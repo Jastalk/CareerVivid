@@ -9,13 +9,12 @@ const db = admin.firestore();
 const corsHandler = secureCorsHandler;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION A — Generic Firestore CRUD Engine
+// SECTION A — Auth helper shared by the portfolio agent API
 //
-// Handles any collection path via URL segments.
-// Route:  /firestoreCrud/<col>/<doc>[/<subCol>/<subDoc>]
-// Methods: GET · POST · PATCH · DELETE
-//
-// Auth: x-api-key header (CareerVivid API key) — same as the rest of portfolioApi.
+// The generic /firestoreCrud endpoint that used to live here was removed: it was
+// an Admin-SDK read/write primitive reachable with any signed-in user's ID token,
+// so a PATCH on your own users/{uid} document bypassed the protectedUserFields()
+// guard in firestore.rules and could set plan/role directly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function handleApiAuth(req: any, res: any) {
@@ -29,152 +28,6 @@ async function handleApiAuth(req: any, res: any) {
   }
   return authResult;
 }
-
-/** Resolve a Firestore DocumentReference or CollectionReference from path segments. */
-function resolveRef(segments: string[]): admin.firestore.DocumentReference | admin.firestore.CollectionReference {
-  if (segments.length === 0) throw new Error("No path provided.");
-  let ref: any = db;
-  for (let i = 0; i < segments.length; i++) {
-    ref = i % 2 === 0 ? ref.collection(segments[i]) : ref.doc(segments[i]);
-  }
-  return ref;
-}
-
-/**
- * Generic CRUD endpoint for any Firestore path.
- *
- * Usage examples (all require x-api-key header):
- *   GET    /firestoreCrud/users/uid123                → read doc
- *   GET    /firestoreCrud/portfolio_projects           → list collection
- *   POST   /firestoreCrud/portfolio_projects           → create doc
- *   PATCH  /firestoreCrud/portfolio_projects/docId    → merge-update doc
- *   DELETE /firestoreCrud/portfolio_projects/docId    → delete doc
- */
-export const firestoreCrud = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
-  corsHandler(req as any, res as any, async () => {
-    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
-
-    const authResult = await handleApiAuth(req, res);
-    if (!authResult) return;
-
-    // Path segments come after the function name in the URL
-    const rawPath: string = (req.path || "").replace(/^\/+/, "");
-    const segments = rawPath.split("/").filter(Boolean);
-
-    if (segments.length === 0) {
-      res.status(400).json({
-        error: "Provide at least a collection name in the URL path, e.g. /firestoreCrud/users/uid123",
-        usage: {
-          GET_doc: "GET /firestoreCrud/<col>/<docId>",
-          GET_collection: "GET /firestoreCrud/<col>",
-          POST: "POST /firestoreCrud/<col> with JSON body",
-          PATCH: "PATCH /firestoreCrud/<col>/<docId> with JSON body",
-          DELETE: "DELETE /firestoreCrud/<col>/<docId>",
-        },
-      });
-      return;
-    }
-
-    try {
-      const ref = resolveRef(segments);
-      const isDoc = segments.length % 2 === 0;
-
-      if (req.method === "GET") {
-        if (isDoc) {
-          const snap = await (ref as admin.firestore.DocumentReference).get();
-          if (!snap.exists) { res.status(404).json({ error: "Document not found." }); return; }
-          const data = snap.data() || {};
-
-          // BOLA Prevention: Verify path ownership or document ownership
-          if (segments[0] === "users" && segments[1] !== authResult.uid) {
-            res.status(403).json({ error: "BOLA Violation: Cannot access another user's sub-path." }); return;
-          }
-          if (segments[0] !== "users" && data._createdBy !== authResult.uid && data.userId !== authResult.uid) {
-            res.status(403).json({ error: "BOLA Violation: Unauthorized access to document." }); return;
-          }
-
-          res.status(200).json({ id: snap.id, path: snap.ref.path, ...data });
-        } else {
-          // BOLA Prevention: Ensure collection reads are scoped to the user
-          if (segments[0] === "users" && segments[1] !== authResult.uid) {
-            res.status(403).json({ error: "BOLA Violation: Cannot access another user's sub-path." }); return;
-          }
-
-          let query: admin.firestore.Query = ref as admin.firestore.CollectionReference;
-          if (segments[0] !== "users") {
-            // Strictly scope root collection queries to the authenticated user
-            query = query.where("_createdBy", "==", authResult.uid);
-          }
-
-          const snap = await query.get();
-          const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          res.status(200).json({ count: docs.length, documents: docs });
-        }
-        return;
-      }
-
-      if (req.method === "POST") {
-        if (segments[0] === "users" && segments[1] !== authResult.uid) {
-          res.status(403).json({ error: "BOLA Violation: Cannot POST to another user's sub-path." }); return;
-        }
-
-        const colRef: admin.firestore.CollectionReference = isDoc
-          ? (ref as admin.firestore.DocumentReference).collection("items")
-          : (ref as admin.firestore.CollectionReference);
-
-        const payload = {
-          ...req.body,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          _createdBy: authResult.uid,
-          userId: authResult.uid,
-        };
-        const docRef = await colRef.add(payload);
-        res.status(201).json({ success: true, id: docRef.id, path: docRef.path });
-        return;
-      }
-
-      if (req.method === "PATCH" || req.method === "DELETE") {
-        if (!isDoc) {
-          res.status(400).json({ error: `${req.method} requires a document path (even number of segments).` });
-          return;
-        }
-        
-        const docRef = ref as admin.firestore.DocumentReference;
-        const snap = await docRef.get();
-        if (!snap.exists) { res.status(404).json({ error: "Document not found." }); return; }
-        
-        const data = snap.data() || {};
-        
-        // BOLA Prevention: Verify ownership before mutating
-        if (segments[0] === "users" && segments[1] !== authResult.uid) {
-          res.status(403).json({ error: "BOLA Violation: Cannot modify another user's sub-path." }); return;
-        }
-        if (segments[0] !== "users" && data._createdBy !== authResult.uid && data.userId !== authResult.uid) {
-          res.status(403).json({ error: "BOLA Violation: Unauthorized modification of document." }); return;
-        }
-
-        if (req.method === "PATCH") {
-          await docRef.set(
-            { ...req.body, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
-            { merge: true }
-          );
-          res.status(200).json({ success: true, path: docRef.path });
-        } else {
-          await docRef.delete();
-          res.status(200).json({ success: true, message: "Document deleted." });
-        }
-        return;
-      }
-
-      res.status(405).json({ error: `Method ${req.method} not allowed. Supported: GET, POST, PATCH, DELETE` });
-    } catch (err: any) {
-      console.error("[firestoreCrud] Error:", err);
-      res.status(500).json({ error: err.message });
-    }
-  });
-});
-
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION B — Specific Portfolio Agent API
 //

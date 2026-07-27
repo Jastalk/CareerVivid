@@ -123,8 +123,8 @@ const OrderNfcCardPage: React.FC = () => {
             const result: any = await createCheckoutSession({
                 priceId: PRODUCTS[selectedType].id,
                 quantity: quantity,
-                successUrl: `${window.location.origin}/#/order-nfc-card?success=true`,
-                cancelUrl: `${window.location.origin}/#/order-nfc-card`,
+                successUrl: `${window.location.origin}/order-nfc-card?success=true`,
+                cancelUrl: `${window.location.origin}/order-nfc-card`,
                 metadata: {
                     type: selectedType,
                     color: selectedColor,

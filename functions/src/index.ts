@@ -35,6 +35,7 @@ const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 // Export the new Proxy Function if needed
 export { streamGeminiResponse as geminiProxy } from "./geminiProxy";
+export { enterpriseAgentProxy } from "./controllers/agentController";
 
 // Export Stripe payment functions
 export { createCheckoutSession, stripeWebhook, cancelSubscription, applyDiscount } from "./stripe";
@@ -94,8 +95,6 @@ export { manageApiKey } from "./manageApiKey";
 export { publishPost } from "./publishPost";
 export { verifyAuth } from "./verifyAuth";
 export {
-  // Generic CRUD engine (any Firestore path)
-  firestoreCrud,
   // Portfolio-specific agent API (targets portfolio/JiawenEvanZhu/edit/hcvcJXT92g70vQ5Ipbez)
   readPortfolio,
   addProjectToPortfolio,

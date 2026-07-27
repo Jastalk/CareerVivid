@@ -1,11 +1,10 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Mirrors isAdmin() in firestore.rules — proven by custom claim, not by
+    // which mailbox the caller signed in with.
     function isStorageAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == 'evan@careervivid.app' ||
-        request.auth.token.email == 'evan@jastalk.com'
-      );
+      return request.auth != null && request.auth.token.get('admin', false) == true;
     }
 
     function isKnownClientApp(appKey) {
@@ -39,15 +38,61 @@ service firebase.storage {
       allow write: if isKnownClientApp(appKey) && isStorageAdmin();
     }
 
-    // Preserve the previous authenticated fallback for existing storage paths,
-    // but exclude the new /apps namespace so app-specific isolation works.
-    match /{topLevel}/{allPaths=**} {
-      allow read, write: if request.auth != null && topLevel != 'apps';
+    // Everything below replaces a single catch-all that read
+    //   match /{topLevel}/{allPaths=**} { allow read, write: if request.auth != null }
+    // Because Storage rules cannot look inside a path, that one line let any
+    // signed-in user read and overwrite every other user's files — resume photos
+    // (PII), portfolio uploads, and paid digital goods alike. Each prefix the app
+    // actually writes to is now spelled out and scoped to its owner.
+
+    // Resume photos, community covers — private to the user they belong to.
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId) || isStorageAdmin();
     }
-    // Allow public access to annotations
+
+    // Job-pipeline background images, keyed by uploader.
+    match /pipeline-backgrounds/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(userId) || isStorageAdmin();
+    }
+
+    // Paid digital goods, keyed by the selling merchant.
+    //
+    // Read stays open to any signed-in user because buyers fetch these directly
+    // and the bucket has no way to check a purchase record. That is a real gap:
+    // anyone with an account can pull any merchant's file if they can guess the
+    // path. Closing it properly means serving downloads through a signed URL
+    // issued by a Cloud Function that verifies the order first.
+    match /digital_downloads/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if isOwner(userId) || isStorageAdmin();
+    }
+
+    // Portfolio assets are keyed by portfolio id, not uid, so ownership cannot
+    // be proven here — public read (portfolios are public pages), signed-in write.
+    match /portfolio/{portfolioId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /portfolios/{portfolioId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Article narration — published content, admin-authored.
+    match /blog-audio/{allPaths=**} {
+      allow read: if true;
+      allow write: if isStorageAdmin();
+    }
+
+    // Resume annotations. Read stays public so they render on shared resumes,
+    // but write now requires an account: `allow write: if true` let anyone on the
+    // internet upload arbitrary files into the bucket.
     match /annotations/{resumeId}/{fileName} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
+
     // Allow public access to public assets
     match /public/{allPaths=**} {
       allow read: if true;

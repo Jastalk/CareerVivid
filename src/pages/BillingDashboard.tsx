@@ -78,6 +78,17 @@ const BillingDashboard: React.FC = () => {
     const [notice, setNotice] = useState('');
     const [newTeamMember, setNewTeamMember] = useState('');
     const [billingInterval, setBillingInterval] = useState<BillingInterval>('monthly');
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    // Stripe sends buyers back to /billing?success=true. This page renders for both
+    // /billing and /subscription, so it owns the confirmation — the equivalent
+    // handler in SubscriptionPage.tsx never ran because no route renders that file.
+    useEffect(() => {
+        if (!window.location.search.includes('success=true')) return;
+        setShowSuccess(true);
+        // Drop the parameter so a refresh does not re-announce the purchase.
+        window.history.replaceState(null, '', window.location.pathname);
+    }, []);
 
     const currentPlan = userProfile?.plan || 'free';
     const subscriptionStatus = (userProfile as any)?.subscriptionStatus || userProfile?.stripeSubscriptionStatus || null;
@@ -178,8 +189,8 @@ const BillingDashboard: React.FC = () => {
             const result: any = await createCheckoutSession({
                 priceId,
                 quantity,
-                successUrl: `${window.location.origin}/#/billing?success=true`,
-                cancelUrl: `${window.location.origin}/#/billing`,
+                successUrl: `${window.location.origin}/billing?success=true`,
+                cancelUrl: `${window.location.origin}/billing`,
             });
             if (result.data.url) window.location.href = result.data.url;
         } catch (err) {
@@ -293,6 +304,17 @@ const BillingDashboard: React.FC = () => {
                     transition={{ duration: 0.6 }}
                     className="space-y-8"
                 >
+                    {showSuccess && (
+                        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                            <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            <div className="text-sm text-emerald-800 dark:text-emerald-200">
+                                <p className="font-bold">{t('billing.successTitle', 'Payment received — your plan is active.')}</p>
+                                <p className="mt-1 font-medium opacity-80">
+                                    {t('billing.successBody', 'Your new credit allowance is available now. A receipt is on its way to your email.')}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                     {error && (
                         <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-700 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
                             {error}

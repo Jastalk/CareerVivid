@@ -218,8 +218,8 @@ const SubscriptionPage: React.FC = () => {
             const result: any = await createCheckoutSession({
                 priceId,
                 quantity,
-                successUrl: `${window.location.origin}/#/subscription?success=true`,
-                cancelUrl: `${window.location.origin}/#/subscription`,
+                successUrl: `${window.location.origin}/billing?success=true`,
+                cancelUrl: `${window.location.origin}/pricing`,
             });
 
             if (result.data.url) {

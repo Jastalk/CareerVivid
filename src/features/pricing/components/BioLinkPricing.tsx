@@ -150,8 +150,10 @@ const BioLinkPricing: React.FC = () => {
 
             const result: any = await createCheckoutSession({
                 priceId,
-                successUrl: `${window.location.origin}/#/success?session_id={CHECKOUT_SESSION_ID}`,
-                cancelUrl: `${window.location.origin}/#/bio-links`,
+                // Was `/#/success`, a route that does not exist in App.tsx at all —
+                // even once the hash was resolved there was nothing to render.
+                successUrl: `${window.location.origin}/bio-links?success=true`,
+                cancelUrl: `${window.location.origin}/bio-links`,
                 trial: isTrial,
             });
 
