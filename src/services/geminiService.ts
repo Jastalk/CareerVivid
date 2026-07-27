@@ -1,4 +1,5 @@
 import { ResumeData, TranscriptEntry, InterviewAnalysis, JobApplicationData, ResumeMatchAnalysis } from '../types';
+import { auth } from '../firebase';
 import { generateSafeUUID } from '../constants';
 import { trackUsage } from './trackingService';
 import { reportError } from './errorService';
@@ -157,9 +158,18 @@ export const callGeminiProxy = async (payload: ProxyPayload): Promise<{ text: st
                 payload.systemInstruction
             );
 
+            // The proxy verifies this token and refuses anonymous callers, so a
+            // missing one is worth failing on here rather than round-tripping.
+            const user = auth.currentUser;
+            if (!user) throw new Error('Sign in to use AI features.');
+            const idToken = await user.getIdToken();
+
             const response = await fetch(PROXY_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
                 body: JSON.stringify({
                     data: {
                         ...payload,
@@ -216,6 +226,111 @@ export const callGeminiProxy = async (payload: ProxyPayload): Promise<{ text: st
             throw error;
         }
     }));
+};
+
+const ENTERPRISE_AGENT_URL =
+    import.meta.env.VITE_ENTERPRISE_AGENT_URL
+    || PROXY_URL.replace(/\/geminiProxy$/, '/enterpriseAgentProxy');
+
+/** Datastores the Enterprise Agent can be pointed at. Mirrors ENTERPRISE_DATASTORES server-side. */
+export type EnterpriseDatastore = 'jobCatalog' | 'rubrics';
+
+export interface EnterpriseCitation {
+    referenceId: string | null;
+    title: string | null;
+    uri: string | null;
+    snippet: string | null;
+    startIndex: number;
+    endIndex: number;
+}
+
+export interface EnterpriseAnswer {
+    text: string;
+    groundingScore: number | null;
+    citations: EnterpriseCitation[];
+    sessionId: string | null;
+    structured?: unknown;
+    /** True when the answer came from the legacy ungrounded proxy. */
+    fellBack: boolean;
+}
+
+/** The agent refused on purpose — ungrounded, unsafe, or adversarial. Not retryable. */
+export class EnterpriseAgentRefusal extends Error {
+    constructor(message: string, readonly detail: unknown) {
+        super(message);
+        this.name = 'EnterpriseAgentRefusal';
+    }
+}
+
+/**
+ * Ask the Enterprise Agent a question grounded in a knowledge datastore.
+ *
+ * Falls back to the legacy Gemini proxy only when the agent is *unreachable* —
+ * not provisioned yet, network failure, 5xx. A 422 means the platform evaluated
+ * the answer and rejected it for groundedness or safety; retrying that on the
+ * ungrounded proxy would hand back exactly the hallucination the guardrail just
+ * caught, so it is surfaced to the caller instead.
+ */
+export const callEnterpriseAgent = async (options: {
+    userMessage: string;
+    datastoreId?: EnterpriseDatastore;
+    sessionId?: string;
+    structured?: boolean;
+    filter?: string;
+    /** Set false for surfaces where an ungrounded answer is worse than none. */
+    allowLegacyFallback?: boolean;
+}): Promise<EnterpriseAnswer> => {
+    const {
+        userMessage,
+        datastoreId = 'jobCatalog',
+        sessionId,
+        structured = false,
+        filter,
+        allowLegacyFallback = true,
+    } = options;
+
+    const user = auth.currentUser;
+    if (!user) throw new Error('Sign in to use AI features.');
+    const idToken = await user.getIdToken();
+
+    let response: Response;
+    try {
+        response = await fetch(ENTERPRISE_AGENT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({ data: { userMessage, datastoreId, sessionId, structured, filter } })
+        });
+    } catch (networkError) {
+        if (!allowLegacyFallback) throw networkError;
+        const legacy = await callGeminiProxy({ contents: userMessage });
+        return { text: legacy.text, groundingScore: null, citations: [], sessionId: null, fellBack: true };
+    }
+
+    if (response.status === 422) {
+        // Deliberate refusal — carries the grounding score / skip reasons.
+        throw new EnterpriseAgentRefusal('The agent could not ground an answer.', await response.json().catch(() => null));
+    }
+
+    if (!response.ok) {
+        if (!allowLegacyFallback) {
+            throw new Error(`Enterprise agent error (${response.status}): ${await response.text()}`);
+        }
+        const legacy = await callGeminiProxy({ contents: userMessage });
+        return { text: legacy.text, groundingScore: null, citations: [], sessionId: null, fellBack: true };
+    }
+
+    const data = await response.json();
+    return {
+        text: data.text ?? '',
+        groundingScore: data.groundingScore ?? null,
+        citations: data.citations ?? [],
+        sessionId: data.sessionId ?? null,
+        structured: data.structured,
+        fellBack: false,
+    };
 };
 
 // --- Function Implementations ---
