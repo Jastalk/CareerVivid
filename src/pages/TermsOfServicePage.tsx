@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PublicHeader from '../components/PublicHeader';
 import Footer from '../components/Footer';
-import { ChevronDown, FileText, Activity, AlertTriangle, CreditCard, Shield } from 'lucide-react';
+import { ChevronDown, FileText, Activity, AlertTriangle, CreditCard, Shield, Sparkles } from 'lucide-react';
 
 const TermsOfServicePage: React.FC = () => {
     const [openIndex, setOpenIndex] = useState<string | null>(null);
@@ -68,6 +68,20 @@ const TermsOfServicePage: React.FC = () => {
             ]
         },
         {
+            icon: <Sparkles size={24} />,
+            title: 'AI Services',
+            items: [
+                {
+                    title: 'AI-Generated Feedback',
+                    content: 'CareerVivid uses a third-party AI provider (Google’s Gemini API) to analyze the content you submit — such as resume text, practice answers, and interview transcripts — and generate coaching feedback. This feedback is provided for guidance only, may contain errors or omissions, and is not professional career, legal, or hiring advice. You are responsible for reviewing and verifying any AI-generated output before relying on it.'
+                },
+                {
+                    title: 'Content You Submit for Analysis',
+                    content: 'When you request an analysis, the relevant content you provide is sent to the AI provider solely to produce your results. We do not sell this content or use it for advertising, and your account credentials (email, username, and password) are never shared with the AI provider. You retain ownership of the content you submit.'
+                }
+            ]
+        },
+        {
             icon: <AlertTriangle size={24} />,
             title: 'Liability & Disclaimers',
             items: [
@@ -101,7 +115,7 @@ const TermsOfServicePage: React.FC = () => {
                     <div className="text-center mb-16">
                         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">Terms of Service</h1>
                         <p className="text-xl text-gray-600 dark:text-gray-400">
-                            Effective Date: January 19, 2026
+                            Effective Date: July 20, 2026
                         </p>
                     </div>
 
