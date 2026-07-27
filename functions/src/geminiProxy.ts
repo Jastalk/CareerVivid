@@ -1,9 +1,48 @@
 import { onRequest } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
 import { getAIClient } from "./utils/ai";
 import { secureCorsHandler } from "./utils/corsUtils.js";
 
 const corsHandler = secureCorsHandler;
 const END_MARKER = "__END_GEMINI__";
+
+/**
+ * Models this proxy is allowed to run.
+ *
+ * Without a list, `modelName` came straight off the request body, so a caller
+ * could name any model the service account can reach — including ones far more
+ * expensive than anything the UI offers.
+ */
+const ALLOWED_MODELS = new Set([
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-pro",
+  "gemini-2.5-flash-image",
+  "gemini-3-pro-image-preview",
+  "imagen-4.0-generate-001",
+]);
+
+/** Largest prompt this proxy will forward, in bytes of serialized `contents`. */
+const MAX_CONTENTS_BYTES = 400_000;
+
+/**
+ * Resolve the caller from their Firebase ID token.
+ *
+ * `invoker: "public"` stays: a browser authenticates with a Firebase ID token,
+ * which IAM knows nothing about, so making the function IAM-private would lock
+ * the web app out rather than lock attackers out. The gate belongs here, in the
+ * handler, where the Firebase token can actually be verified.
+ */
+async function resolveCaller(req: any): Promise<string | null> {
+  const header: string = req.headers?.authorization || "";
+  if (!header.startsWith("Bearer ")) return null;
+  try {
+    const decoded = await admin.auth().verifyIdToken(header.slice(7));
+    return decoded.uid;
+  } catch {
+    return null;
+  }
+}
 
 export const streamGeminiResponse = onRequest(
   {
@@ -24,6 +63,12 @@ export const streamGeminiResponse = onRequest(
         return;
       }
 
+      const uid = await resolveCaller(req);
+      if (!uid) {
+        res.status(401).json({ error: "Sign in to use AI features." });
+        return;
+      }
+
       const payload = req.body?.data ?? req.body ?? {};
       let {
         modelName = "gemini-2.5-flash",
@@ -31,6 +76,16 @@ export const streamGeminiResponse = onRequest(
         config,
         systemInstruction,
       } = payload;
+
+      if (!ALLOWED_MODELS.has(modelName)) {
+        res.status(400).json({ error: `Model not available: ${modelName}` });
+        return;
+      }
+
+      if (JSON.stringify(contents ?? "").length > MAX_CONTENTS_BYTES) {
+        res.status(413).json({ error: "Prompt too large." });
+        return;
+      }
 
       if (!systemInstruction && config?.systemInstruction) {
         systemInstruction = config.systemInstruction;

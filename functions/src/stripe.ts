@@ -194,11 +194,26 @@ export const createCheckoutSession = onCall(
                 requestedMode === 'payment' || ONE_TIME_PRICE_IDS.includes(checkoutPriceId as any) ? "payment" : "subscription";
             assertCheckoutPriceAllowed(checkoutPriceId, mode);
             const checkoutQuantity = normalizeCheckoutQuantity(quantity, checkoutPriceId, mode);
+            // Caller-supplied metadata is spread FIRST so it can never shadow the
+            // fields the webhook grants entitlements from. It previously came last,
+            // which meant a client could pass { priceId: <Max annual> } alongside a
+            // $2.99 one-time price and be granted Max, or pass another user's
+            // { userId } and hand them a plan.
+            //
+            // The reserved keys are also stripped, so a caller cannot smuggle one
+            // through by relying on spread order alone.
+            const RESERVED_METADATA_KEYS = ["userId", "priceId", "requestedPriceId", "seats"];
+            const callerMetadata: Record<string, string> = {};
+            for (const [key, value] of Object.entries(metadata || {})) {
+                if (RESERVED_METADATA_KEYS.includes(key)) continue;
+                callerMetadata[key] = String(value);
+            }
+
             const checkoutMetadata = {
+                ...callerMetadata,
                 userId: userId,
                 priceId: checkoutPriceId,
                 requestedPriceId: priceId,
-                ...metadata,
                 ...(checkoutPriceId === PRICE_IDS.ENTERPRISE_MONTHLY ? { seats: String(checkoutQuantity) } : {}),
             };
 
@@ -292,7 +307,7 @@ export const stripeWebhook = onRequest(
             switch (event.type) {
                 case "checkout.session.completed": {
                     const session = event.data.object as Stripe.Checkout.Session;
-                    await handleCheckoutCompleted(session);
+                    await handleCheckoutCompleted(session, stripe);
                     break;
                 }
 
@@ -335,9 +350,13 @@ export const stripeWebhook = onRequest(
 async function grantPdfDownloadCreditForCheckoutSession(
     session: Stripe.Checkout.Session,
     userId: string,
-    source: "webhook" | "return_verification"
+    source: "webhook" | "return_verification",
+    /** The price Stripe actually charged. Callers that have read it back from the
+     *  line items pass it here; falling back to metadata keeps older callers
+     *  working, but the charged price is the authority. */
+    chargedPriceId?: string
 ): Promise<{ credited: boolean; downloadCredits: number }> {
-    const priceId = session.metadata?.priceId;
+    const priceId = chargedPriceId ?? session.metadata?.priceId;
 
     if (!priceId || !DOWNLOAD_ONCE_PRICE_IDS.includes(priceId as any)) {
         throw new HttpsError("invalid-argument", "Checkout session is not for a PDF download credit.");
@@ -718,12 +737,53 @@ export const applyDiscount = onCall(
 /**
  * Handle successful checkout completion
  */
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-    const userId = session.metadata?.userId;
-    const priceId = session.metadata?.priceId;
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, stripe: Stripe) {
+    // Entitlements are granted from the price Stripe actually charged, read back
+    // from the line items — not from session.metadata.priceId. Metadata is a
+    // free-text field; deriving "what did they buy" from the charge itself means
+    // a tampered or stale metadata value cannot upgrade anyone.
+    let priceId: string | undefined;
+    try {
+        const expanded = await stripe.checkout.sessions.retrieve(session.id, {
+            expand: ["line_items"],
+        });
+        priceId = expanded.line_items?.data?.[0]?.price?.id ?? undefined;
+    } catch (error: any) {
+        console.error(`Could not read line items for session ${session.id}:`, error.message);
+        return;
+    }
+
+    if (!priceId) {
+        console.error(`No price on session ${session.id}; refusing to grant entitlements.`);
+        return;
+    }
+
+    // Prefer the uid recorded on the Stripe customer at creation time. It is
+    // written server-side in createCheckoutSession and is not part of the
+    // client-controlled payload.
+    let userId = session.metadata?.userId;
+    const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+    if (customerId) {
+        try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (!customer.deleted) {
+                const linkedUid = customer.metadata?.firebaseUID;
+                if (linkedUid) {
+                    if (userId && linkedUid !== userId) {
+                        console.error(
+                            `Session ${session.id} metadata userId ${userId} does not match customer ${customerId} firebaseUID ${linkedUid}; using the customer's.`
+                        );
+                    }
+                    userId = linkedUid;
+                }
+            }
+        } catch (error: any) {
+            console.warn(`Could not read customer ${customerId}:`, error.message);
+        }
+    }
 
     if (!userId) {
-        console.error("No userId in session metadata");
+        console.error("No userId resolvable for session", session.id);
         return;
     }
 
@@ -731,7 +791,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
     try {
         if (priceId && DOWNLOAD_ONCE_PRICE_IDS.includes(priceId as any)) {
-            const result = await grantPdfDownloadCreditForCheckoutSession(session, userId, "webhook");
+            const result = await grantPdfDownloadCreditForCheckoutSession(session, userId, "webhook", priceId);
             console.log(
                 result.credited
                     ? `Download credit added for user ${userId}`

@@ -5,11 +5,17 @@ service cloud.firestore {
     // ---------------------------------------------------------
     // 🛡️ ADMIN CHECK (Robust & Fail-Safe)
     // ---------------------------------------------------------
+    // Admin is proven by a custom claim minted server-side, or by the role on the
+    // user document. The previous email bypass was removed: it granted whoever
+    // controlled a single mailbox unconditional read/write over every collection,
+    // which made that one account's password the only thing protecting the
+    // database. A custom claim cannot be reached by knowing an address.
+    //
+    // Set the claim with:
+    //   admin.auth().setCustomUserClaims(uid, { admin: true })
     function isAdmin() {
       return request.auth != null && (
-        // 1. Email Bypass
-        (request.auth.token.email == 'evan@careervivid.app' || request.auth.token.email == 'evan@jastalk.com') ||
-        // 2. Role Check
+        request.auth.token.get('admin', false) == true ||
         (
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'academic_partner', 'super_admin']

@@ -188,8 +188,12 @@ const PricingPage: React.FC = () => {
             const result: any = await createCheckoutSession({
                 priceId: plan.priceId,
                 quantity: plan.quantity || 1,
-                successUrl: `${window.location.origin}/#/subscription?success=true`,
-                cancelUrl: `${window.location.origin}/#/pricing`,
+                // Path routes, not `/#/...`: getPathFromUrl reads window.location.pathname,
+                // so a hash URL lands on `/` and the buyer is bounced to the dashboard
+                // with no confirmation. `/billing` is what actually renders for both
+                // /billing and /subscription.
+                successUrl: `${window.location.origin}/billing?success=true`,
+                cancelUrl: `${window.location.origin}/pricing`,
             });
 
             if (result.data.url) {
