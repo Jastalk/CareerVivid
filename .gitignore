@@ -61,10 +61,12 @@ experiments/
 !.env.example
 !.env.*.example
 
-# Service Account Keys
+# Service Account Keys & Enterprise Credentials
 *-adminsdk-*.json
 *-service-account*.json
 *service-account*.json
+*agent-key*.json
+*.key.json
 *credentials*.json
 secrets/
 credentials/
@@ -74,6 +76,9 @@ credentials/
 *.pfx
 *.jks
 *.keystore
+
+# Enterprise Agent Evaluation Datasets & Local Configs
+functions/test/eval_dataset.json
 
 # Standalone lottery engine repo (has own git)
 megamillions-engine/
