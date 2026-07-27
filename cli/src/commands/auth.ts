@@ -43,7 +43,7 @@ export function registerAuthCommand(program: Command): void {
                 }
 
                 console.log();
-                console.log(`  ${chalk.bold("Get your API key at:")} ${chalk.cyan("https://careervivid.app/#/developer")}`);
+                console.log(`  ${chalk.bold("Get your API key at:")} ${chalk.cyan("https://careervivid.app/developer")}`);
                 console.log(`  ${chalk.dim("Or run")} ${chalk.cyan("cv login")} ${chalk.dim("to authenticate via browser.\n")}`);
 
                 const enquirer = (await import("enquirer")) as any;

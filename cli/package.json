@@ -10,6 +10,7 @@
   "main": "./dist/index.js",
   "files": [
     "dist",
+    "scripts/postinstall.mjs",
     "src/apply/browser_sidecar.py",
     "README.md",
     "LICENSE"
@@ -19,7 +20,7 @@
     "dev": "node --loader ts-node/esm src/index.ts",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build",
-    "postinstall": "node ./dist/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.mjs"
   },
   "dependencies": {
     "@google/genai": "1.49.0",

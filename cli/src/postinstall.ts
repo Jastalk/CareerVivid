@@ -7,9 +7,9 @@
 
 import chalk from "chalk";
 import boxen from "boxen";
-import { getHelpHeader } from "./branding.js";
+import { getHelpHeader, CLI_VERSION } from "./branding.js";
 
-const VERSION = "1.1.14";
+const VERSION = CLI_VERSION;
 const MIN_NODE_MAJOR = 18;
 
 function checkNodeVersion() {

@@ -299,6 +299,14 @@ export function registerJobsCommand(program: Command) {
                 if (!isJson) {
                     console.log(`\n${chalk.bold("  Your Job Tracker")}\n`);
                     jobs.forEach((j, i) => console.log(renderTrackerRow(j, i)));
+                    if (listResult.hasMore) {
+                        console.log(
+                            chalk.dim(
+                                `\n  Showing the ${jobs.length} most recently updated. More exist — ` +
+                                `see the full board at https://careervivid.app/job-tracker`
+                            )
+                        );
+                    }
                     console.log();
                 }
 

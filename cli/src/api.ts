@@ -6,6 +6,7 @@
  */
 
 import { getApiKey, getApiUrl, DEFAULT_API_URL } from "./config.js";
+import { CLI_VERSION } from "./branding.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,8 +50,6 @@ export interface ApiError {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const CLI_VERSION = "1.10.0";
-
 function requireApiKey(): string {
     const key = getApiKey();
     if (!key) {
@@ -59,7 +58,7 @@ function requireApiKey(): string {
             "  Human users:  cv login\n" +
             "  AI agents:    cv auth set-key <key>\n" +
             "  Environment:  export CV_API_KEY=cv_live_...\n\n" +
-            "  Get your key at: https://careervivid.app/#/developer"
+            "  Get your key at: https://careervivid.app/developer"
         );
     }
     return key;
@@ -302,6 +301,14 @@ export interface JobTrackerItem {
     notes: string;
 }
 
+/** cliJobsList is paginated — `total` is the size of this page, not the tracker. */
+export interface JobsListResult {
+    jobs: JobTrackerItem[];
+    total: number;
+    limit?: number;
+    hasMore?: boolean;
+}
+
 export interface ResumeResult {
     resumeId: string;
     title: string;
@@ -393,10 +400,10 @@ export async function jobsUpdate(payload: {
 }
 
 /** List jobs currently in the user's tracker */
-export async function jobsList(status?: ApplicationStatus): Promise<{ jobs: JobTrackerItem[]; total: number } | ApiError> {
+export async function jobsList(status?: ApplicationStatus): Promise<JobsListResult | ApiError> {
     const params: Record<string, string> = {};
     if (status) params.status = status;
-    return cfRequest<{ jobs: JobTrackerItem[]; total: number }>("GET", "cliJobsList", undefined, Object.keys(params).length ? params : undefined);
+    return cfRequest<JobsListResult>("GET", "cliJobsList", undefined, Object.keys(params).length ? params : undefined);
 }
 
 /** Delete a job entry from the user's tracker */
