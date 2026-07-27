@@ -27,11 +27,19 @@
  * }
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
 // ── Configuration ─────────────────────────────────────────────────────────────
+
+// Single source of truth for the version — it used to be hardcoded in the
+// User-Agent, the server descriptor and the startup banner, which drifted.
+const VERSION: string = JSON.parse(
+    readFileSync(join(__dirname, "..", "package.json"), "utf8")
+).version;
 
 const CV_API_KEY = process.env.CV_API_KEY || "";
 const CV_API_URL = process.env.CV_API_URL || "https://careervivid.app/api";
@@ -39,10 +47,14 @@ const CV_FUNCTIONS_URL =
     process.env.CV_FUNCTIONS_URL ||
     "https://us-west1-jastalk-firebase.cloudfunctions.net";
 
+// A hung request would otherwise block the MCP client forever — there is no
+// user-visible cancel for a stdio tool call.
+const REQUEST_TIMEOUT_MS = Number(process.env.CV_TIMEOUT_MS || 60_000);
+
 if (!CV_API_KEY) {
     process.stderr.write(
         "[CareerVivid MCP] ERROR: CV_API_KEY is not set.\n" +
-        "  Get your key at: https://careervivid.app/#/developer\n"
+        "  Get your key at: https://careervivid.app/developer\n"
     );
     process.exit(1);
 }
@@ -52,29 +64,37 @@ if (!CV_API_KEY) {
 const HEADERS = {
     "Content-Type": "application/json",
     "x-api-key": CV_API_KEY,
-    "User-Agent": "careervivid-mcp/2.0.0",
+    "User-Agent": `careervivid-mcp/${VERSION}`,
 };
+
+async function cfFetch(url: string, init: RequestInit) {
+    try {
+        return await fetch(url, {
+            ...init,
+            headers: HEADERS,
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        });
+    } catch (e: any) {
+        // AbortSignal.timeout rejects with a TimeoutError; surface it as
+        // something the caller can show rather than a bare "fetch failed".
+        if (e?.name === "TimeoutError") {
+            throw new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`);
+        }
+        throw e;
+    }
+}
 
 async function cfGet(fn: string, params?: Record<string, string>) {
     let url = `${CV_FUNCTIONS_URL}/${fn}`;
     if (params && Object.keys(params).length > 0) {
         url += "?" + new URLSearchParams(params).toString();
     }
-    return fetch(url, { method: "GET", headers: HEADERS });
+    return cfFetch(url, { method: "GET" });
 }
 
 async function cfPost(fn: string, body: unknown) {
-    return fetch(`${CV_FUNCTIONS_URL}/${fn}`, {
+    return cfFetch(`${CV_FUNCTIONS_URL}/${fn}`, {
         method: "POST",
-        headers: HEADERS,
-        body: JSON.stringify(body),
-    });
-}
-
-async function cfPatch(fn: string, body: unknown) {
-    return fetch(`${CV_FUNCTIONS_URL}/${fn}`, {
-        method: "PATCH",
-        headers: HEADERS,
         body: JSON.stringify(body),
     });
 }
@@ -96,7 +116,7 @@ async function jsonOrErr(res: Response): Promise<any> {
 
 const server = new McpServer({
     name: "careervivid",
-    version: "2.0.0",
+    version: VERSION,
 });
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -138,9 +158,8 @@ server.tool(
     },
     async ({ type, dataFormat, title, content, tags, coverImage, isPublic }) => {
         try {
-            const response = await fetch(`${CV_API_URL}/publish`, {
+            const response = await cfFetch(`${CV_API_URL}/publish`, {
                 method: "POST",
-                headers: HEADERS,
                 body: JSON.stringify({ type, dataFormat, title, content, tags: tags || [], coverImage, isPublic }),
             });
             const data = await jsonOrErr(response);
@@ -179,8 +198,8 @@ server.tool(
     },
     async ({ title, templateId }) => {
         try {
-            const res = await fetch(`${CV_API_URL}/portfolio/init`, {
-                method: "POST", headers: HEADERS,
+            const res = await cfFetch(`${CV_API_URL}/portfolio/init`, {
+                method: "POST",
                 body: JSON.stringify({ title, templateId }),
             });
             const data = await jsonOrErr(res);
@@ -202,8 +221,8 @@ server.tool(
     },
     async ({ portfolioId, projects, techStack }) => {
         try {
-            const res = await fetch(`${CV_API_URL}/portfolio/projects`, {
-                method: "PATCH", headers: HEADERS,
+            const res = await cfFetch(`${CV_API_URL}/portfolio/projects`, {
+                method: "PATCH",
                 body: JSON.stringify({ portfolioId, projects, techStack }),
             });
             const data = await jsonOrErr(res);
@@ -223,8 +242,8 @@ server.tool(
     },
     async ({ image, path, mimeType }) => {
         try {
-            const res = await fetch(`${CV_API_URL}/portfolio/assets`, {
-                method: "POST", headers: HEADERS,
+            const res = await cfFetch(`${CV_API_URL}/portfolio/assets`, {
+                method: "POST",
                 body: JSON.stringify({ image, path, mimeType }),
             });
             const data = await jsonOrErr(res);
@@ -244,8 +263,8 @@ server.tool(
     },
     async ({ portfolioId, theme }) => {
         try {
-            const res = await fetch(`${CV_API_URL}/portfolio/hero`, {
-                method: "PATCH", headers: HEADERS,
+            const res = await cfFetch(`${CV_API_URL}/portfolio/hero`, {
+                method: "PATCH",
                 body: JSON.stringify({ portfolioId, theme }),
             });
             const data = await jsonOrErr(res);
@@ -325,7 +344,12 @@ server.tool(
                 `  🆔 ${j.id}`
             ).join("\n\n");
 
-            return ok(`Tracked jobs (${data.total} total):\n\n${lines}`);
+            // `total` is the page size, not the tracker size — say so rather than
+            // implying the user has exactly this many jobs.
+            const more = data.hasMore
+                ? `\n\nShowing the ${data.total} most recently updated; more exist beyond this page.`
+                : "";
+            return ok(`Tracked jobs (${data.total} shown):\n\n${lines}${more}`);
         } catch (e: any) { return err(`❌ Error: ${e.message}`); }
     }
 );
@@ -559,7 +583,7 @@ server.tool(
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    process.stderr.write("[CareerVivid MCP] Server v2.0.0 running — 14 tools available.\n");
+    process.stderr.write(`[CareerVivid MCP] Server v${VERSION} running.\n`);
 }
 
 main().catch((e) => {

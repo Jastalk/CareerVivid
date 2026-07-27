@@ -3,13 +3,23 @@
   "version": "2.0.0",
   "description": "CareerVivid MCP Server — jobs, resumes, cover letters, referrals, publishing, and portfolio management.",
   "main": "dist/index.js",
+  "bin": {
+    "careervivid-mcp": "dist/index.js",
+    "careervivid-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "ts-node index.ts"
+    "dev": "ts-node index.ts",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.25 || ^4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -24,7 +34,6 @@
     "cross-spawn": "7.0.6",
     "cookie": "0.7.2",
     "semver": "^7.5.4",
-    "ajv": "^6.12.6",
     "micromatch": "^4.0.8",
     "ws": "^8.20.1",
     "axios": ">=1.18.0",
