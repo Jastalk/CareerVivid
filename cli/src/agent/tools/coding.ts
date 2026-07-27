@@ -1,4 +1,4 @@
-import { execSync, ExecSyncOptionsWithStringEncoding } from 'child_process';
+import { execSync, execFileSync, ExecSyncOptionsWithStringEncoding } from 'child_process';
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'fs';
 import { resolve, dirname, relative, join, normalize } from 'path';
 import { Type } from '@google/genai';
@@ -323,13 +323,28 @@ export const searchFilesTool: Tool = {
     case_sensitive?: boolean;
   }) => {
     const searchDir = resolve(args.path || '.');
-    const caseFlag = args.case_sensitive === false ? '-i' : '';
-    const includeFlag = args.file_pattern ? `--include="${args.file_pattern}"` : '';
+
+    // Built as an argv array and run without a shell. These values come from
+    // the model's tool call, and the model reads untrusted text — job
+    // descriptions, scraped pages. When this was a shell string, a
+    // `file_pattern` of `x" ; <command> ; echo "` broke out of the quoting and
+    // ran arbitrary commands on the user's machine, with ~/.careervividrc.json
+    // sitting right there. `pattern` and the directory were JSON.stringify'd;
+    // `file_pattern` was interpolated raw.
+    const argv = ['-rn'];
+    if (args.case_sensitive === false) argv.push('-i');
+    if (args.file_pattern) argv.push(`--include=${args.file_pattern}`);
+    argv.push('--', args.pattern, searchDir);
 
     try {
-      const cmd = `grep -rn ${caseFlag} ${includeFlag} ${JSON.stringify(args.pattern)} ${JSON.stringify(searchDir)} 2>/dev/null | head -50`;
-      const output = execSync(cmd, { encoding: 'utf-8' });
-      return output.trim() || 'No matches found.';
+      const output = execFileSync('grep', argv, {
+        encoding: 'utf-8',
+        maxBuffer: 10 * 1024 * 1024,
+        stdio: ['ignore', 'pipe', 'ignore'], // replaces 2>/dev/null
+      });
+      // replaces `| head -50`
+      const lines = output.trim().split('\n').filter(Boolean).slice(0, 50);
+      return lines.length ? lines.join('\n') : 'No matches found.';
     } catch (e: any) {
       // grep exits with code 1 when no matches, that's fine
       if (e.status === 1) return 'No matches found.';

@@ -5,6 +5,8 @@
  * the right adapter to fill the application form.
  */
 
+import { hostMatches, hostnameOf } from "../utils/host.js";
+
 export type ATSPlatform =
   | "greenhouse"
   | "lever"
@@ -44,13 +46,24 @@ export interface FormField {
 // ── URL → Platform detection ──────────────────────────────────────────────────
 
 export function detectPlatform(url: string): ATSPlatform {
+  // Matched against the parsed hostname, not a substring of the whole URL.
+  // `https://evil.example/?ref=lever.co` used to be detected as Lever, which
+  // then ran the Lever adapter — and the adapters fill in name, email, phone
+  // and resume. See utils/host.ts.
+  const host = hostnameOf(url);
   const u = url.toLowerCase();
-  if (u.includes("greenhouse.io") || u.includes("boards.greenhouse.io") || /\/jobs\/(listing|posting)\/[^/]+\/\d+/.test(u)) return "greenhouse";
-  if (u.includes("lever.co") || u.includes("jobs.lever.co")) return "lever";
-  if (u.includes("ashbyhq.com") || u.includes("jobs.ashbyhq.com") || u.includes("openai.com")) return "ashby";
-  if (u.includes("linkedin.com/jobs")) return "linkedin";
-  if (u.includes("myworkdayjobs.com") || u.includes("workday.com")) return "workday";
-  if (u.includes("icims.com")) return "icims";
+
+  if (hostMatches(host, "greenhouse.io")) return "greenhouse";
+  if (hostMatches(host, "lever.co")) return "lever";
+  if (hostMatches(host, "ashbyhq.com") || hostMatches(host, "openai.com")) return "ashby";
+  if (hostMatches(host, "linkedin.com") && u.includes("/jobs")) return "linkedin";
+  if (hostMatches(host, "myworkdayjobs.com") || hostMatches(host, "workday.com")) return "workday";
+  if (hostMatches(host, "icims.com")) return "icims";
+
+  // Path-shaped fallback for self-hosted Greenhouse boards on a customer's own
+  // domain, which have no recognisable hostname.
+  if (/\/jobs\/(listing|posting)\/[^/]+\/\d+/.test(u)) return "greenhouse";
+
   return "generic";
 }
 
