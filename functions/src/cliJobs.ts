@@ -296,20 +296,21 @@ export const cliJobsList = functions.region("us-west1").runWith({
         if (!user) { res.status(401).json({ error: "Unauthorized. Invalid API key or missing authentication." }); return; }
 
         const statusFilter = req.query.status as string | undefined;
+        const PAGE_LIMIT = 50;
 
         try {
             let query: admin.firestore.Query = db
                 .collection("users").doc(user.uid)
                 .collection("jobTracker")
                 .orderBy("updatedAt", "desc")
-                .limit(50);
+                .limit(PAGE_LIMIT);
 
             if (statusFilter && VALID_STATUSES.includes(statusFilter as ApplicationStatus)) {
                 query = db.collection("users").doc(user.uid)
                     .collection("jobTracker")
                     .where("applicationStatus", "==", statusFilter)
                     .orderBy("updatedAt", "desc")
-                    .limit(50);
+                    .limit(PAGE_LIMIT);
             }
 
             const snap = await query.get();
@@ -328,7 +329,15 @@ export const cliJobsList = functions.region("us-west1").runWith({
                 };
             });
 
-            res.json({ jobs, total: jobs.length });
+            // `total` used to be jobs.length, which is capped by the limit above —
+            // a tracker with 200 entries reported "50 total". Report the page size
+            // and say plainly whether more exist.
+            res.json({
+                jobs,
+                total: jobs.length,
+                limit: PAGE_LIMIT,
+                hasMore: jobs.length === PAGE_LIMIT,
+            });
         } catch (err: any) {
             console.error("[cliJobsList] Error:", err.message);
             res.status(500).json({ error: `Failed to list jobs: ${err.message}` });

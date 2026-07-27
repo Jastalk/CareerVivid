@@ -134,6 +134,26 @@ async function resolveAndDeduct(
   return result;
 }
 
+/**
+ * Give back credits taken by resolveAndDeduct when the Gemini call itself
+ * failed. Credits are reserved before the call so concurrent requests cannot
+ * overspend a limit, which means a failed call has already been billed —
+ * without this the caller pays for nothing, and the CLI's retry loop pays
+ * again on every attempt.
+ */
+async function refundCredits(uid: string, amount: number): Promise<void> {
+  if (amount <= 0) return;
+  try {
+    await db.collection("users").doc(uid).update({
+      "aiUsage.count": admin.firestore.FieldValue.increment(-amount),
+      "aiUsage.cliCount": admin.firestore.FieldValue.increment(-amount),
+    });
+  } catch (e: any) {
+    // A failed refund must not mask the original error the user is waiting on.
+    console.error(`[agentProxy] refund failed uid=${uid} amount=${amount}:`, e.message);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // agentProxy — HTTPS function
 // ─────────────────────────────────────────────────────────────────────────────
@@ -170,6 +190,16 @@ export const agentProxy = functions
       }
       if (!model || typeof model !== "string") {
         res.status(400).json({ error: "model is required." });
+        return;
+      }
+      // Only bill models we have a price for. Falling through to the `default`
+      // cost meant an unpriced — typically more expensive — model was charged
+      // at the cheapest rate.
+      if (!Object.prototype.hasOwnProperty.call(MODEL_CREDIT_COST, model) || model === "default") {
+        res.status(400).json({
+          error: `Unsupported model: ${model}`,
+          supported: Object.keys(MODEL_CREDIT_COST).filter((m) => m !== "default"),
+        });
         return;
       }
       if (!Array.isArray(contents) || contents.length === 0) {
@@ -226,9 +256,18 @@ export const agentProxy = functions
         });
       } catch (err: any) {
         console.error("[agentProxy] Gemini error:", err);
-        res.status(500).json({
+
+        // The credits were reserved before the call; the call did not happen.
+        await refundCredits(creditResult.uid!, creditResult.creditsUsed ?? 0);
+
+        // Pass the upstream status through so the client can tell a transient
+        // 429/503 from a permanent failure instead of guessing from the text.
+        const upstream = Number(err?.status ?? err?.code);
+        const status = upstream === 429 || upstream === 503 ? upstream : 502;
+        res.status(status).json({
           error: err.message || "Gemini call failed.",
-          details: err.toString(),
+          refunded: creditResult.creditsUsed ?? 0,
+          retryable: status !== 502,
         });
       }
     });

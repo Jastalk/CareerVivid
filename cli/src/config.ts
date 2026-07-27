@@ -8,7 +8,7 @@
 
 import { homedir } from "os";
 import { join } from "path";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, chmodSync } from "fs";
 
 export const CONFIG_FILE = join(homedir(), ".careervividrc.json");
 
@@ -55,6 +55,16 @@ export function loadConfig(): CareerVividConfig {
 
 export function saveConfig(config: CareerVividConfig): void {
     writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + "\n", { mode: 0o600 });
+    // writeFileSync's `mode` applies only when it creates the file. A config
+    // written by an earlier version — or with a permissive umask — keeps its
+    // original mode forever otherwise, and this file holds the cv_live_ key
+    // plus any BYO provider keys.
+    try {
+        chmodSync(CONFIG_FILE, 0o600);
+    } catch {
+        // Non-POSIX filesystems (and Windows) may reject chmod; the write itself
+        // succeeded, so this must not be fatal.
+    }
 }
 
 export function getApiKey(): string | undefined {
@@ -149,12 +159,20 @@ export function getLlmConfig(overrides?: {
         cfg.llmModel ??
         'gemini-2.5-flash';
 
+    // The Gemini fallbacks are only valid for Gemini-speaking providers.
+    // Previously they applied to every provider, so selecting `openai`,
+    // `openrouter` or `custom` without a key would send the internal
+    // CareerVivid platform key to that third party's endpoint.
+    const geminiFallback: string | undefined =
+        provider === 'careervivid' || provider === 'gemini'
+            ? cfg.geminiKey ?? process.env.GEMINI_API_KEY
+            : undefined;
+
     const apiKey: string | undefined =
         overrides?.apiKey ??
         process.env.CV_LLM_API_KEY ??
         getProviderKey(provider) ??
-        cfg.geminiKey ??
-        process.env.GEMINI_API_KEY;
+        geminiFallback;
 
     const baseUrl: string | undefined =
         overrides?.baseUrl ??

@@ -8,6 +8,14 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkg = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf-8"));
 
+/**
+ * The one place the CLI version comes from. It used to be hardcoded separately
+ * in api.ts (stuck at 1.10.0) and postinstall.ts (stuck at 1.1.14), so the
+ * User-Agent and the post-install banner both reported versions that had not
+ * shipped in months.
+ */
+export const CLI_VERSION: string = pkg.version;
+
 // ── Colors ───────────────────────────────────────────────────────────────────
 
 export const COLORS = {

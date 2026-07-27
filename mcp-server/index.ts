@@ -344,7 +344,12 @@ server.tool(
                 `  🆔 ${j.id}`
             ).join("\n\n");
 
-            return ok(`Tracked jobs (${data.total} total):\n\n${lines}`);
+            // `total` is the page size, not the tracker size — say so rather than
+            // implying the user has exactly this many jobs.
+            const more = data.hasMore
+                ? `\n\nShowing the ${data.total} most recently updated; more exist beyond this page.`
+                : "";
+            return ok(`Tracked jobs (${data.total} shown):\n\n${lines}${more}`);
         } catch (e: any) { return err(`❌ Error: ${e.message}`); }
     }
 );

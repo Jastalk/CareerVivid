@@ -77,12 +77,19 @@ async function retryWithBackoff<T>(
     try {
       return await fn();
     } catch (e: any) {
+      // The proxy reports whether the failure is transient and whether it gave
+      // the credits back. Retrying a call that was billed and not refunded
+      // charges the user again for each attempt, so only `retryable` errors
+      // (which the proxy refunds) are retried. The message regex stays as a
+      // fallback for older proxy deployments that send neither field.
       const isRetryable =
+        e?.retryable === true ||
         e?.status === 429 ||
         e?.status === 503 ||
-        /rate.?limit|quota|too.?many.?requests|service.?unavailable/i.test(
-          e?.message || ""
-        );
+        (e?.retryable === undefined &&
+          /rate.?limit|quota|too.?many.?requests|service.?unavailable/i.test(
+            e?.message || ""
+          ));
       if (attempt === maxRetries || !isRetryable) throw e;
       await sleep(baseDelayMs * Math.pow(2, attempt));
     }
@@ -190,25 +197,46 @@ export class CareerVividProxyEngine {
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.error || `Proxy error: HTTP ${response.status}`);
+      // Carry the status and the proxy's retry/refund verdict onto the error —
+      // retryWithBackoff tested `e.status`, which a bare Error never has, so
+      // that branch could never fire.
+      const error = Object.assign(
+        new Error(data.error || `Proxy error: HTTP ${response.status}`),
+        {
+          status: response.status,
+          retryable: data.retryable,
+          refunded: data.refunded,
+        }
+      );
+      throw error;
     }
 
     return response.json();
   }
 
   private async compactHistory(): Promise<void> {
-    // Simple compaction: keep the last 20 turns
-    if (this.history.length > this.maxHistoryLength) {
-      const summary: Content = {
-        role: "user",
-        parts: [
-          {
-            text: `[Context compacted — ${this.history.length} prior turns summarized to save context space. Continue the conversation normally.]`,
-          },
-        ],
-      };
-      this.history = [summary, ...this.history.slice(-20)];
-    }
+    if (this.history.length <= this.maxHistoryLength) return;
+
+    // This truncates; it does not summarize. The old notice claimed the dropped
+    // turns had been "summarized", so the model believed it still had that
+    // context and would answer from turns it could no longer see. Telling it
+    // the turns are gone is what lets it ask again instead.
+    const keep = Math.max(2, Math.floor(this.maxHistoryLength / 2));
+    const dropped = this.history.length - keep;
+
+    const notice: Content = {
+      role: "user",
+      parts: [
+        {
+          text:
+            `[Context limit reached — the earliest ${dropped} turn(s) of this ` +
+            `conversation have been dropped and are no longer available. They were ` +
+            `not summarized. If you need information from them, ask for it again.]`,
+        },
+      ],
+    };
+
+    this.history = [notice, ...this.history.slice(-keep)];
   }
 
   private async executeToolCalls(
