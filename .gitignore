@@ -95,8 +95,10 @@ sop-assets/
 # Job automation tool
 browser-use/
 
-# CLI tool (moving to ignore)
-cli/
+# CLI tool — the source of the published `careervivid` npm package, so it is
+# tracked. Build output and deps are ignored in cli/.gitignore.
+cli/node_modules/
+cli/dist/
 
 vectorlotto/
 

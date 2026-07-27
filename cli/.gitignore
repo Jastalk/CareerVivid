@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# Local scratch — the CLI is developed by running it against prod, which tends
+# to leave debris next to the source.
+crash.log
+scratch/
+scratch.ts
+test-paste.js
+test.md
+debug-tts.mjs
+
+# Never commit a real CLI session; it holds cv_live_ and BYO provider keys.
+.careervividrc.json
+.env
+.env.*
