@@ -19,6 +19,7 @@ import { Tool } from "../Tool.js";
 import { Type } from "@google/genai";
 import { getChromeBinaryPath } from "../../apply/browser.js";
 import { chromium } from "playwright-core";
+import { hostMatches } from "../../utils/host.js";
 
 // ── Known ATS domains that still need direct-job validation ───────────────────
 const TRUSTED_ATS_DOMAINS = [
@@ -117,7 +118,7 @@ export function isGenericJobLanding(url: string): boolean {
     }
     if (host === "jobs.ashbyhq.com" && segments.length <= 1) return true;
     if (host === "jobs.lever.co" && segments.length <= 1) return true;
-    if (host.includes("greenhouse.io") && segments.length <= 1) return true;
+    if (hostMatches(host, "greenhouse.io") && segments.length <= 1) return true;
     return false;
   } catch {
     return false;
@@ -136,7 +137,7 @@ function isJobSpecificUrl(url: string): boolean {
       return /^\/[^/]+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(\/application)?$/.test(path);
     }
     if (host === "jobs.lever.co") return /^\/[^/]+\/[^/]+/.test(path);
-    if (host.includes("greenhouse.io")) return /\/jobs?\/\d+/.test(path);
+    if (hostMatches(host, "greenhouse.io")) return /\/jobs?\/\d+/.test(path);
     return /\/apply\/|\/jobs?\/\d+|\/job-postings?\//.test(path);
   } catch {
     return false;
@@ -144,9 +145,17 @@ function isJobSpecificUrl(url: string): boolean {
 }
 
 function stripHtml(html: string): string {
+  // The closing-tag patterns allow whitespace and stray attributes, e.g.
+  // `</script >`. The stricter `<\/script>` missed those, leaving the script
+  // body to survive as text — and this text is fed to the agent as job
+  // content, so anything left in it is model input.
   return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*[^>]*>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*[^>]*>/gi, " ")
+    // Unterminated script/style blocks: drop everything to the end rather than
+    // letting the body through.
+    .replace(/<script\b[^>]*>[\s\S]*$/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*$/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")

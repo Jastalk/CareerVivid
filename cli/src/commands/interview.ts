@@ -18,6 +18,7 @@
  */
 
 import { Command } from "commander";
+import { randomUUID } from "node:crypto";
 import chalk from "chalk";
 import readline from "readline";
 import ora from "ora";
@@ -933,7 +934,7 @@ async function runTextSession(opts: {
                 // a real session. The function will 404, but the persist path still runs.
                 // A proper text-mode session doc would require cliGetInterviewToken for text too.
                 // For now, persist to a synthetic doc under a well-known pattern.
-                sessionId: `text_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                sessionId: `text_${Date.now()}_${randomUUID().slice(0, 8)}`,
                 transcript,
                 feedbackReport: textReport,
             }),
