@@ -30,7 +30,7 @@
     "enquirer": "^2.4.1",
     "google-auth-library": "^10.6.2",
     "gradient-string": "^3.0.0",
-    "mermaid": "11.14.0",
+    "mermaid": "11.15.0",
     "open": "^10.1.0",
     "ora": "^8.1.0",
     "playwright-core": "1.59.1",
