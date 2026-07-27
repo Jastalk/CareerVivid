@@ -30,6 +30,7 @@ const GenerationHub = React.lazy(() => import('./pages/GenerationHub')); // Prot
 const InterviewStudio = lazyWithPreload(() => import('./pages/InterviewStudio')); // Protected
 const CompanyQuestPage = React.lazy(() => import('./pages/CompanyQuestPage')); // Protected
 const SystemDesignCoursePracticePage = React.lazy(() => import('./pages/SystemDesignCoursePracticePage'));
+const CcafQuestPage = React.lazy(() => import('./pages/CcafQuestPage'));
 const CoursePage = React.lazy(() => import('./pages/CoursePage')); // Protected
 const InteractiveLessonPage = React.lazy(() => import('./pages/InteractiveLessonPage')); // Protected
 const CourseResumePage = React.lazy(() => import('./pages/CourseResumePage'));
@@ -520,6 +521,15 @@ const AppContent: React.FC = () => {
     else if (path.startsWith('/quest/')) {
       const slug = path.split('/')[2];
       content = <CompanyQuestPage slug={slug} />;
+    }
+
+    // 3D Brick City Arcade Game Quest Course
+    else if (path === '/learning/ccaf-quest' || path === '/learning/quest-game' || path === '/learning/game') {
+      content = (
+        <React.Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0d0f14] text-white">Loading 3D Quest...</div>}>
+          <CcafQuestPage />
+        </React.Suspense>
+      );
     }
 
     // AI-agent learning curriculum / course catalog — browsable by guests.

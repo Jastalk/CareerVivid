@@ -8,6 +8,7 @@ import {
     ChevronDown,
     Clock3,
     ExternalLink,
+    Gamepad2,
     GraduationCap,
     Layers3,
     Loader2,
@@ -224,6 +225,47 @@ const CoursePage: React.FC = () => {
 
                             {/* Course-level cards — each card is a whole course; its modules live on the course page */}
                             <div className="grid gap-4 md:grid-cols-2">
+                                {/* 3D Brick City Arcade Game Quest */}
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/learning/ccaf-quest')}
+                                    className="cv-design-card cv-design-card-hover group relative flex flex-col overflow-hidden p-6 text-left transition-all hover:-translate-y-1 md:col-span-2 border-2 border-[var(--cv-action-primary)]/40 bg-gradient-to-r from-[#12151e] via-[#1a1e2c] to-[#12151e]"
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
+                                                <Gamepad2 size={24} />
+                                            </span>
+                                            <div>
+                                                <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">3D Interactive Arcade Game</span>
+                                                <h2 className="cv-design-title text-2xl font-bold text-white leading-snug">Brick City 3D Quest: 100-Question Exam Arcade</h2>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap justify-end gap-1.5">
+                                            <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase text-emerald-400">
+                                                🎮 3D World Game Mode
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <p className="cv-design-body mt-3 flex-1 text-sm text-gray-300">
+                                        Explore an interactive 3D Brick City map, walk your avatar to domain buildings, unlock video lessons, and clear 100 real-world exam missions to earn your official Course Certificate!
+                                    </p>
+                                    <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-white/10 pt-3 text-xs font-bold text-gray-400">
+                                        <span className="inline-flex items-center gap-1.5 text-indigo-300">
+                                            <Target size={14} /> 100 Missions & 6 Domains
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 text-purple-300">
+                                            <Sparkles size={14} /> Level Up & XP Progress
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 text-emerald-300">
+                                            <ShieldCheck size={14} /> Official Certificate
+                                        </span>
+                                        <span className="ml-auto inline-flex items-center gap-1.5 text-white bg-indigo-600 hover:bg-indigo-500 px-4 py-1.5 rounded-lg font-bold text-xs transition-all shadow-md">
+                                            Play 3D Quest Game <ArrowRight size={14} />
+                                        </span>
+                                    </div>
+                                </button>
+
                                 {/* AI Agent Builder Curriculum */}
                                 <button
                                     type="button"
