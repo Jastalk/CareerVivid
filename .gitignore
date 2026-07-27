@@ -100,10 +100,12 @@ sop-assets/
 # Job automation tool
 browser-use/
 
-# CLI tool — the source of the published `careervivid` npm package, so it is
-# tracked. Build output and deps are ignored in cli/.gitignore.
-cli/node_modules/
-cli/dist/
+# CLI tool — source of the published `careervivid` npm package. Kept out of
+# this repo deliberately; it is developed and published from its own working
+# copy. The source was tracked briefly (PR #118) and removed again here, so if
+# you need it back it is recoverable from that commit rather than gone:
+#   git show 0ff60da8 -- cli/
+cli/
 
 vectorlotto/
 
