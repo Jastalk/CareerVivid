@@ -80,7 +80,7 @@
     "react-is": "^19.2.4",
     "react-markdown": "^10.1.0",
     "react-qr-code": "^2.0.18",
-    "react-router-dom": "^7.17.0",
+    "react-router-dom": "^7.18.1",
     "react-sketch-canvas": "^6.2.0",
     "react-syntax-highlighter": "^16.1.1",
     "react-textarea-autosize": "^8.5.9",
@@ -120,7 +120,7 @@
     "jsdom": "^28.1.0",
     "lighthouse": "^12.6.1",
     "playwright": "^1.60.0",
-    "postcss": "^8.5.14",
+    "postcss": "^8.5.18",
     "react-helmet-async": "^2.0.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
@@ -166,7 +166,10 @@
     "js-yaml": "^4.2.0",
     "immutable": "^4.3.9",
     "linkify-it": "^5.0.2",
-    "body-parser@^2": "^2.3.0"
+    "body-parser@^2": "^2.3.0",
+    "postcss": "^8.5.18",
+    "react-router": "^7.18.1",
+    "react-router-dom": "^7.18.1"
   },
   "engines": {
     "node": ">=22.12.0"
