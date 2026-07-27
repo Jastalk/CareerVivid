@@ -12,10 +12,10 @@
 
 ## Test account (for reviewers)
 
-Sign in at [careervivid.app](https://careervivid.app) with this shared demo account to explore the full experience — no setup required:
-
-- **Email:** `evan@careervivid.app`
-- **Password:** `123456`
+A shared demo account is available so you can explore the full experience at
+[careervivid.app](https://careervivid.app) without setting anything up. Email
+[support@careervivid.app](mailto:support@careervivid.app) and we will send you
+the credentials directly — we don't publish them here.
 
 ## Built around the candidate loop
 
