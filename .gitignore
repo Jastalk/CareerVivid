@@ -130,3 +130,9 @@ functions/src/mobileInterviewGuideQuestions.generated.ts
 # them stay tracked for compliance record-keeping.
 third_party/learning-sources/*/
 !third_party/learning-sources/LICENSES/
+
+# Built dist/index.html baked into renderSeoContent by
+# scripts/inline-index-html.mjs. Regenerated on every build (it is also the
+# first step of the functions prebuild, so it always exists before tsc runs);
+# committing it would churn a full HTML blob on every deploy.
+functions/src/seo/indexHtml.generated.ts
