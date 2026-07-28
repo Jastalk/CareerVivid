@@ -170,6 +170,22 @@ export const getCourseExercises = (course: InteractiveCourse): InteractiveExerci
 export const getCourseExerciseCount = (course: InteractiveCourse): number =>
   getCourseExercises(course).length;
 
+/**
+ * Catalog totals for marketing and SEO copy.
+ *
+ * Derived from the published course JSON rather than typed by hand, so the
+ * numbers in titles, meta descriptions, and schema.org Course entities stay
+ * true as courses are added. `src/lib/seoCatalogTotals.test.ts` asserts the
+ * hardcoded numbers in index.html still match these.
+ */
+export const getCourseCatalogTotals = (): { courses: number; lessons: number } => {
+  const courses = getInteractiveCourses();
+  return {
+    courses: courses.length,
+    lessons: courses.reduce((total, course) => total + getCourseExerciseCount(course), 0),
+  };
+};
+
 export const getFirstExerciseId = (courseId: string): string | undefined => {
   const course = getInteractiveCourse(courseId);
   return course ? getCourseExercises(course)[0]?.id : undefined;
