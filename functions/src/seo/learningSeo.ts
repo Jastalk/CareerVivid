@@ -1,4 +1,4 @@
-export type LearningSeoSlug = 'ai-agent-curriculum' | 'coding-interview-patterns';
+export type LearningSeoSlug = 'ai-agent-curriculum' | 'coding-interview-patterns' | 'system-design-interview';
 
 export interface LearningSeoPage {
     path: string;
@@ -16,14 +16,14 @@ export interface LearningSeoPage {
 const pages: Record<'catalog' | LearningSeoSlug, LearningSeoPage> = {
     catalog: {
         path: '/learning',
-        title: 'Interactive Courses: AI Agents and Coding Interview Patterns',
-        description: 'Learn by doing with CareerVivid interactive courses: build AI agents from LLM foundations or practice 20 coding interview patterns with step-through algorithm animations and code labs.',
-        heading: 'Interactive courses for AI agents and coding interviews',
+        title: 'Interactive Courses: Coding Interviews, System Design, AI Agents',
+        description: 'Learn by doing across 203 interactive lessons: 20 coding interview patterns with step-through algorithm animations, 13 modules of system design, and a 10-module AI agent curriculum. Coding Interview Patterns is free.',
+        heading: 'Interactive courses for coding interviews, system design, and AI agents',
         introduction: 'CareerVivid offers hands-on learning paths with readings, animations, quizzes, and runnable code labs. Choose a course and learn by doing.',
-        duration: 'Two self-paced online courses',
+        duration: 'Three self-paced online courses, 203 lessons',
         level: 'Beginner through advanced',
         access: 'Courses include free starting access.',
-        topics: ['AI agent building', 'Coding interview preparation'],
+        topics: ['Coding interview preparation', 'System design interviews', 'AI agent building'],
         faqs: [],
     },
     'ai-agent-curriculum': {
@@ -56,9 +56,45 @@ const pages: Record<'catalog' | LearningSeoSlug, LearningSeoPage> = {
             { question: 'Is Coding Interview Patterns free?', answer: 'Yes. Coding Interview Patterns is currently free to access on CareerVivid.' },
         ],
     },
+    'system-design-interview': {
+        path: '/learning/system-design-interview',
+        title: 'System Design Interview Course: 13 Modules, 85 Lessons',
+        description: 'Prepare for system design interviews across 85 lessons and 13 modules: an answer framework, capacity estimation, caching and rate limiting, data at scale, async processing, multi-region reliability, real-time systems, and a senior capstone.',
+        heading: 'System Design Interview',
+        introduction: 'Read the principle, watch a real request flow under load, choose between caches, queues, and partitions, draw the architecture, and explain every trade-off. Each module is harder than the last.',
+        duration: '13 modules, 85 lessons, about 12 hours',
+        level: 'Advanced',
+        access: 'System Design Interview follows CareerVivid account and plan access rules.',
+        topics: ['Interview framework', 'Capacity estimation', 'APIs and data models', 'Caching and rate limiting', 'Data at scale', 'Async and event processing', 'Reliability and multi-region', 'Real-time systems', 'Feeds, search, and analytics'],
+        faqs: [
+            { question: 'What does the System Design Interview course cover?', answer: 'The course covers an interview answer framework, capacity estimation, APIs and data models, core building blocks, caching and rate limiting, data at scale, async and event processing, reliability and multi-region design, real-time systems, feeds and search, distributed-system deep dives, a senior capstone, and a classic questions arena.' },
+            { question: 'What level is the System Design Interview course?', answer: 'It is an advanced course of roughly 12 hours, aimed at engineers preparing for senior and staff system design rounds.' },
+        ],
+    },
 };
 
-export const getLearningSeoPage = (slug?: string): LearningSeoPage | null => {
+/** Courses with their own prerendered page. Anything else renders the catalog. */
+export const LEARNING_SEO_SLUGS: LearningSeoSlug[] = [
+    'ai-agent-curriculum',
+    'coding-interview-patterns',
+    'system-design-interview',
+];
+
+const isKnownSlug = (slug: string): slug is LearningSeoSlug =>
+    (LEARNING_SEO_SLUGS as string[]).includes(slug);
+
+/** Courses anyone can open without an account — drives isAccessibleForFree. */
+export const isLearningPageFree = (slug?: string): boolean => slug === 'coding-interview-patterns';
+
+/**
+ * Never returns null. This used to hand back null for any slug outside a
+ * hardcoded pair, and renderSeoContent turned that into a 404 — so
+ * /learning/system-design-interview and /learning/ccaf-quest were both
+ * unreachable for crawlers even though the routes exist in the SPA.
+ * Unknown slugs now fall back to the catalog, which is a real page that links
+ * to all of them.
+ */
+export const getLearningSeoPage = (slug?: string): LearningSeoPage => {
     if (!slug) return pages.catalog;
-    return slug === 'ai-agent-curriculum' || slug === 'coding-interview-patterns' ? pages[slug] : null;
+    return isKnownSlug(slug) ? pages[slug] : pages.catalog;
 };
