@@ -4,7 +4,7 @@ import {
   SearchServiceClient,
 } from "@google-cloud/discoveryengine";
 
-export const DEFAULT_VERTEX_TEXT_MODEL = process.env.DEFAULT_VERTEX_TEXT_MODEL || "gemini-2.5-flash-lite";
+export const DEFAULT_VERTEX_TEXT_MODEL = process.env.DEFAULT_VERTEX_TEXT_MODEL || "gemini-3.6-flash";
 
 export const GCP_PROJECT_ID =
   process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || "jastalk-firebase";
