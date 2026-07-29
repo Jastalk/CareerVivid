@@ -93,6 +93,9 @@ export function resolveVertexModelName(model?: string): string {
 }
 
 export function getVertexLocationForModel(model?: string): string {
+  if (model && /gemini-3[._-]/.test(model)) {
+    return "global";
+  }
   return process.env.GOOGLE_CLOUD_LOCATION || process.env.GCLOUD_LOCATION || "us-central1";
 }
 
