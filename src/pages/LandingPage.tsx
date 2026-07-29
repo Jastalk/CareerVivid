@@ -7,6 +7,7 @@ import LearnPracticeHiredSection from '../components/Landing/LearnPracticeHiredS
 import CourseShowcaseSection from '../components/Landing/CourseShowcaseSection';
 import InterviewShowcaseSection from '../components/Landing/InterviewShowcaseSection';
 import { INTERVIEW_GUIDE_TOTALS } from '../data/interviewGuideSummaries.generated';
+import { getCourseCatalogTotals } from '../lib/interactiveCourses';
 import {
     FAQSection,
     FinalCTA,
@@ -17,8 +18,9 @@ import {
 
 const SEO_TITLE = 'CareerVivid | Learn the Skills. Practice the Interview. Land the Job.';
 const COMPANY_GUIDE_COUNT = INTERVIEW_GUIDE_TOTALS.companies;
-const SEO_DESCRIPTION = `Interactive AI courses, real company mock interview loops with a live voice AI, and a feed of verified apply-ready jobs. Practice Google, Amazon, Figma and ${COMPANY_GUIDE_COUNT} company interviews free — then apply with a tailored resume from the same workspace.`;
-const SEO_KEYWORDS = 'mock interview practice, AI interview practice, company interview questions, free AI courses, learn AI agents, LLM course, AI voice interviewer, coding interview practice, system design practice, verified job listings, AI resume builder, job tracker, interview coach';
+const { courses: COURSE_COUNT, lessons: LESSON_COUNT } = getCourseCatalogTotals();
+const SEO_DESCRIPTION = `Build job-ready skills across ${COURSE_COUNT} interactive courses and ${LESSON_COUNT} hands-on lessons — coding interview patterns, system design, and AI agents. Then practice ${COMPANY_GUIDE_COUNT} real company interview loops with a live voice AI and apply with a tailored resume from the same workspace.`;
+const SEO_KEYWORDS = 'interactive coding courses, skills building platform, coding interview patterns, system design interview course, learn AI agents, LLM course, technical interview preparation, mock interview practice, company interview questions, AI voice interviewer, tailored resume, resume tailoring for job descriptions, ATS resume optimization';
 const SEO_IMAGE = 'https://firebasestorage.googleapis.com/v0/b/jastalk-firebase.firebasestorage.app/o/public%2Flogo_assets%2Fog_image.png?alt=media';
 const CHROME_EXTENSION_URL = 'https://chromewebstore.google.com/detail/dmigeakdfokehlhigkhadglgoabceoag?utm_source=item-share-cb';
 
@@ -26,13 +28,28 @@ const structuredData = {
     '@context': 'https://schema.org',
     '@graph': [
         {
-            '@type': 'Organization',
+            // Keep @type, description, and knowsAbout identical to the same
+            // @id in index.html — two nodes sharing an @id but disagreeing is a
+            // conflicting signal to both crawlers and answer engines.
+            '@type': ['Organization', 'EducationalOrganization'],
             '@id': 'https://careervivid.app/#organization',
             name: 'CareerVivid',
             url: 'https://careervivid.app/',
-            description: 'CareerVivid builds AI-powered tools for resumes, job tracking, interview prep, portfolios, and job application autofill.',
+            description: 'CareerVivid is an online learning platform for technical skills and job preparation. It offers interactive courses in AI agents, coding interview patterns, and system design, company-specific interview guides, and AI resume tailoring.',
             logo: 'https://firebasestorage.googleapis.com/v0/b/jastalk-firebase.firebasestorage.app/o/public%2Flogo_assets%2Flogo_light_mode.png?alt=media&token=627ec9de-a950-41f7-9138-dd7a33518c55',
             sameAs: ['https://twitter.com/careervivid'],
+            knowsAbout: [
+                'AI agent development',
+                'Large language models',
+                'Prompt engineering',
+                'Retrieval-augmented generation',
+                'Data structures and algorithms',
+                'Coding interview preparation',
+                'System design interviews',
+                'Distributed systems',
+                'Technical interview coaching',
+                'Resume tailoring and ATS optimization',
+            ],
         },
         {
             '@type': 'WebSite',
@@ -44,49 +61,58 @@ const structuredData = {
         },
         {
             '@type': ['WebApplication', 'SoftwareApplication'],
-            '@id': 'https://careervivid.app/#job-workspace',
+            '@id': 'https://careervivid.app/#webapp',
             name: 'CareerVivid',
-            alternateName: 'CareerVivid Job Search Workspace',
+            alternateName: 'CareerVivid Learning and Interview Prep Platform',
             url: 'https://careervivid.app/',
             image: SEO_IMAGE,
-            applicationCategory: 'BusinessApplication',
-            applicationSubCategory: 'Job Search Workspace',
+            applicationCategory: 'EducationalApplication',
+            applicationSubCategory: 'Interactive Courses and Interview Preparation',
             operatingSystem: 'Web',
             offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', name: 'CareerVivid Free' },
             featureList: [
-                'Interactive AI courses with hands-on playgrounds, quizzes, and code labs',
+                `${COURSE_COUNT} interactive courses with ${LESSON_COUNT} hands-on lessons`,
+                'Coding Interview Patterns — 20 patterns with step-through algorithm animations',
+                'System Design Interview — 13 modules from capacity estimation to multi-region reliability',
+                'AI Agent Builder Curriculum — LLM foundations through a portfolio capstone',
+                'Hands-on playgrounds, quizzes, and runnable code labs in every lesson',
                 `Company-specific mock interview loops for ${COMPANY_GUIDE_COUNT} companies`,
                 'Realtime voice AI interviewer with scored feedback',
                 'In-browser coding rounds with real test execution',
                 'Whiteboard system-design rounds graded by AI',
-                'Verified apply-ready job feed from official company career boards',
-                'AI resume builder and tailoring',
+                'Resume tailoring against a target job description',
                 'ATS resume checker and readiness score',
-                'Job application tracker',
-                'Chrome extension job capture and autofill',
                 'XP and progress tracking across courses and interviews',
+                'Verified apply-ready job feed from official company career boards',
+                'Chrome extension job capture and autofill',
             ],
             audience: [
                 { '@type': 'Audience', audienceType: 'students' },
                 { '@type': 'Audience', audienceType: 'new graduates' },
                 { '@type': 'Audience', audienceType: 'career changers' },
+                { '@type': 'Audience', audienceType: 'software engineers' },
                 { '@type': 'Audience', audienceType: 'job seekers' },
             ],
             potentialAction: [
                 {
-                    '@type': 'RegisterAction',
-                    name: 'Start for free',
-                    target: 'https://careervivid.app/signup',
+                    '@type': 'LearnAction',
+                    name: 'Browse the course catalog',
+                    target: 'https://careervivid.app/learning',
                 },
                 {
                     '@type': 'UseAction',
-                    name: 'Build a resume',
+                    name: 'Practice a company interview',
+                    target: 'https://careervivid.app/interview-studio',
+                },
+                {
+                    '@type': 'UseAction',
+                    name: 'Tailor a resume to a job description',
                     target: 'https://careervivid.app/newresume',
                 },
                 {
-                    '@type': 'DownloadAction',
-                    name: 'Install the Chrome extension',
-                    target: CHROME_EXTENSION_URL,
+                    '@type': 'RegisterAction',
+                    name: 'Start for free',
+                    target: 'https://careervivid.app/signup',
                 },
             ],
             description: SEO_DESCRIPTION,
@@ -101,7 +127,23 @@ const structuredData = {
                     name: 'What is CareerVivid?',
                     acceptedAnswer: {
                         '@type': 'Answer',
-                        text: `CareerVivid is a career platform that takes you from learning to hired in one place: interactive AI courses that teach by doing, mock interview loops for ${COMPANY_GUIDE_COUNT} real companies with a live voice AI interviewer, and a feed of verified apply-ready jobs — plus resume tailoring and application tracking.`,
+                        text: `CareerVivid is an online learning platform for technical skills and job preparation. It offers ${COURSE_COUNT} interactive courses with ${LESSON_COUNT} hands-on lessons covering AI agents, coding interview patterns, and system design; interview preparation guides for ${COMPANY_GUIDE_COUNT} companies with a live voice AI interviewer; and AI resume tailoring that rewrites your resume against a specific job description.`,
+                    },
+                },
+                {
+                    '@type': 'Question',
+                    name: 'What courses does CareerVivid offer?',
+                    acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: 'CareerVivid offers three interactive course tracks. Coding Interview Patterns teaches 20 algorithm patterns across 60 lessons with step-through animations and runnable code labs. System Design Interview covers 85 lessons across 13 modules, from capacity estimation to multi-region reliability. The AI Agent Builder Curriculum spans 10 modules and 58 lessons, from LLM foundations through a portfolio capstone.',
+                    },
+                },
+                {
+                    '@type': 'Question',
+                    name: 'How do you tailor a resume to a job description on CareerVivid?',
+                    acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: 'Paste or import the job description, and CareerVivid rewrites your resume against it — surfacing the evidence that matches the role, aligning wording with the posting, and scoring how well the result matches before you apply. The output is ATS-friendly and you can keep a separate tailored version per application.',
                     },
                 },
                 {
@@ -114,10 +156,10 @@ const structuredData = {
                 },
                 {
                     '@type': 'Question',
-                    name: 'Are the CareerVivid AI courses free?',
+                    name: 'Are the CareerVivid courses free?',
                     acceptedAnswer: {
                         '@type': 'Answer',
-                        text: 'The Foundations course is completely free — no account required. It includes interactive playgrounds where you watch a language model predict tokens, sort the AI stack, and experiment with temperature. Creating a free account saves progress and XP; paid plans unlock all 10 courses and 60+ hands-on lessons.',
+                        text: `The Coding Interview Patterns course and the AI Foundations module are completely free — no account required. Foundations includes interactive playgrounds where you watch a language model predict tokens, sort the AI stack, and experiment with temperature. Creating a free account saves progress and XP; paid plans unlock all ${COURSE_COUNT} courses and ${LESSON_COUNT} hands-on lessons.`,
                     },
                 },
                 {
@@ -184,7 +226,7 @@ const LandingPage: React.FC = () => (
             <meta property="og:title" content={SEO_TITLE} />
             <meta property="og:description" content={SEO_DESCRIPTION} />
             <meta property="og:image" content={SEO_IMAGE} />
-            <meta property="og:image:alt" content="CareerVivid AI-powered job search workspace" />
+            <meta property="og:image:alt" content="CareerVivid interactive course and interview preparation platform" />
             <meta property="og:image:width" content="1200" />
             <meta property="og:image:height" content="630" />
             <meta name="twitter:card" content="summary_large_image" />
@@ -193,7 +235,7 @@ const LandingPage: React.FC = () => (
             <meta name="twitter:title" content={SEO_TITLE} />
             <meta name="twitter:description" content={SEO_DESCRIPTION} />
             <meta name="twitter:image" content={SEO_IMAGE} />
-            <meta name="twitter:image:alt" content="CareerVivid AI-powered job search workspace" />
+            <meta name="twitter:image:alt" content="CareerVivid interactive course and interview preparation platform" />
             <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
         </Helmet>
         <PublicHeader variant="editorial" />

@@ -1,36 +1,62 @@
 # CareerVivid
 
-CareerVivid is your AI-powered co-pilot for the job search. It helps job seekers build standout resumes, track applications, prepare for interviews, create portfolios, and autofill job forms in seconds.
+CareerVivid is an online learning platform for technical skills and job preparation. It offers 12 interactive courses with 203 hands-on lessons covering AI agents, coding interview patterns, and system design; interview preparation guides for 301 companies; and AI resume tailoring that rewrites a resume against a specific job description.
 
-## Primary Pages
+Everything runs in the browser. Lessons are interactive rather than video-based: short readings, animated playgrounds that step through an algorithm or a request flow, quizzes, and runnable code labs.
 
-- Homepage: https://careervivid.app/
-- Start for free: https://careervivid.app/signup
-- Chrome extension guide: https://careervivid.app/extension-welcome
-- Chrome Web Store: https://chromewebstore.google.com/detail/dmigeakdfokehlhigkhadglgoabceoag?utm_source=item-share-cb
-- Pricing: https://careervivid.app/pricing
-- Blog: https://careervivid.app/blog
-- Contact: https://careervivid.app/contact
+## Courses
 
-## Learning Courses
+Catalog: https://careervivid.app/learning
 
-- Interactive course catalog: https://careervivid.app/learning
-- AI Agent Builder Curriculum: https://careervivid.app/learning/ai-agent-curriculum
-  - 10 modules and 58 lessons from LLM foundations to an AI agent portfolio project. The Foundations module is free to start.
-- Coding Interview Patterns: https://careervivid.app/learning/coding-interview-patterns
-  - 20 algorithm patterns, 60 lessons, visual step-through animations, and runnable JavaScript code labs. Currently free to access.
+### Coding Interview Patterns — free
+https://careervivid.app/learning/coding-interview-patterns
 
-## What CareerVivid Does
+20 algorithm patterns across 60 lessons. Visual step-through animations, recognition signals for spotting which pattern a problem needs, and runnable JavaScript code labs. Covers two pointers, sliding window, binary search, trees and graphs, dynamic programming, Union Find, shortest path, and network flow. Intermediate level, roughly 4 hours. Free to open without an account.
 
-- AI resume builder and resume tailoring
-- Job application tracking
-- Resume match scoring against target roles
-- Mock interview preparation and feedback
+### System Design Interview
+https://careervivid.app/learning/system-design-interview
+
+85 lessons across 13 modules: interview framework, capacity estimation, APIs and data models, core building blocks, caching and rate limiting, data at scale, async and event processing, reliability and multi-region, real-time systems, feeds/search/analytics, distributed-system deep dives, a senior capstone, and a classic questions arena. Each module reads the principle, watches a request flow under load, chooses between caches, queues, and partitions, draws the architecture, and explains the trade-offs. Advanced level, roughly 12 hours.
+
+### AI Agent Builder Curriculum
+https://careervivid.app/learning/ai-agent-curriculum
+
+10 modules and 58 lessons, from LLM foundations to a shipped portfolio project: AI foundations, LLM basics and sampling, prompt engineering, RAG retrieval, agent architecture, multi-agent systems, evaluation and observability, LLM security and guardrails, deployment controls, and portfolio projects. Beginner to advanced, roughly 9 hours. The AI foundations module is free to start.
+
+## Interview Preparation
+
+- Interview Studio: https://careervivid.app/interview-studio
+  Mock coding, system design, and behavioural rounds with AI feedback.
+- Company interview guides: https://careervivid.app/quest/{company-slug}
+  301 companies, including Airbnb, Adobe, Affirm, Akamai, Algolia, Alibaba, Airtable, and 1Password. Every guide page is browsable without an account; running a scored practice stage requires signing in.
+
+## Resume Tailoring
+
+- Resume builder and tailoring: https://careervivid.app/newresume
+
+Paste or import a job description and CareerVivid rewrites the resume against it — surfacing the evidence that matches the role, aligning wording with the posting, and scoring the match before you apply. Output is ATS-friendly, and each application can keep its own tailored version.
+
+## Also Included
+
+- Job recommendations and application tracking
 - Portfolio and whiteboard workspace
-- Chrome extension job capture and job application autofill
-- iOS app: coming soon
-- Android app: coming soon
+- Skill progression with XP and levels
+- Chrome extension for saving job postings and autofilling applications: https://chromewebstore.google.com/detail/dmigeakdfokehlhigkhadglgoabceoag?utm_source=item-share-cb
+- iOS and Android apps: coming soon
+
+## Pricing
+
+- Free: Coding Interview Patterns, the AI foundations module, and all 301 company interview guides.
+- CareerVivid Pro: $6/month, unlocking the full course catalog and AI features.
+- Details: https://careervivid.app/pricing
 
 ## Audience
 
-CareerVivid is built for students, new graduates, career changers, and job seekers who want one place to manage the job search.
+Students, new graduates, career changers, and working software engineers who want to build real technical skills, prepare for interviews, and tailor a resume in one place.
+
+## Other Pages
+
+- Start for free: https://careervivid.app/signup
+- Blog: https://careervivid.app/blog
+- Community: https://careervivid.app/community
+- Contact: https://careervivid.app/contact

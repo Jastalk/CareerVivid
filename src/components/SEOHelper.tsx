@@ -61,7 +61,7 @@ const SEOHelper: React.FC<SEOProps> = ({
     // Fallbacks
     const defaultImage = 'https://firebasestorage.googleapis.com/v0/b/jastalk-firebase.firebasestorage.app/o/public%2Flogo_assets%2Fog_image.png?alt=media';
     const finalImage = image || defaultImage;
-    const imageAlt = title ? `${title} preview` : 'CareerVivid AI-powered job search workspace';
+    const imageAlt = title ? `${title} preview` : 'CareerVivid interactive course and interview preparation platform';
 
     // Construct the structured data
     let structuredData: any = {

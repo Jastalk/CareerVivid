@@ -33,8 +33,9 @@ const hitToUrl = (hit: any): string | null => {
 const STATIC_ROUTES = [
     { loc: BASE_URL, changefreq: "daily", priority: "1.0" },
     { loc: `${BASE_URL}/learning`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/learning/ai-agent-curriculum`, changefreq: "weekly", priority: "0.9" },
     { loc: `${BASE_URL}/learning/coding-interview-patterns`, changefreq: "weekly", priority: "0.9" },
+    { loc: `${BASE_URL}/learning/system-design-interview`, changefreq: "weekly", priority: "0.9" },
+    { loc: `${BASE_URL}/learning/ai-agent-curriculum`, changefreq: "weekly", priority: "0.9" },
     { loc: `${BASE_URL}/interview-studio`, changefreq: "weekly", priority: "0.9" },
     { loc: `${BASE_URL}/community`, changefreq: "hourly", priority: "0.9" },
     { loc: `${BASE_URL}/pricing`, changefreq: "weekly", priority: "0.8" },
