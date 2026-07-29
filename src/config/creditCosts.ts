@@ -18,16 +18,17 @@ export const ENTERPRISE_MINIMUM_SEATS = 2;
 
 // --- CLI Agent costs (per AI round-trip) ---
 export const CLI_AGENT_COSTS = {
-    'gemini-3.1-flash-lite-preview': 0.5, // Fastest — best value
-    'gemini-2.5-flash': 1,                // Default — balanced
-    'gemini-3.1-pro-preview': 2,          // Deep reasoning
+    'gemini-3.1-flash-lite': 1,  // 1 credit / turn
+    'gemma-4': 1,                // 1 credit / turn
+    'gemini-3.5-flash': 3,       // 3 credits / turn — default
+    'gemini-3.6-flash': 5,       // 5 credits / turn — deep reasoning
 } as const;
 
 export const AI_CREDIT_COSTS = {
     // --- CLI Agent (per turn) ---
-    CLI_AGENT_FLASH_LITE: 0.5,   // gemini-3.1-flash-lite-preview
-    CLI_AGENT_FLASH: 1,          // gemini-2.5-flash
-    CLI_AGENT_PRO: 2,            // gemini-3.1-pro-preview
+    CLI_AGENT_FLASH_LITE: 1,    // gemini-3.1-flash-lite / gemma-4
+    CLI_AGENT_FLASH: 3,         // gemini-3.5-flash
+    CLI_AGENT_PRO: 5,           // gemini-3.6-flash
 
     // --- Job Tools ---
     JOB_SEARCH: 1,               // Search & score jobs against resume
