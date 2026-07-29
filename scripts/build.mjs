@@ -44,6 +44,12 @@ try {
     console.log(chalk.yellow('\n📦 Building Vite App...'))
     await $`npm run build:vite`
 
+    // Bake dist/index.html into renderSeoContent so it never has to fetch the
+    // page it is serving. Must run after build:vite — it needs the hashed
+    // asset URLs Vite injects.
+    console.log(chalk.yellow('\n📦 Inlining index.html into the SEO function...'))
+    await $`node scripts/inline-index-html.mjs`
+
     console.log(chalk.yellow('\n📦 Building and Exporting Next.js App...'))
     // Build next-app
     await $`cd next-app && npm run build`

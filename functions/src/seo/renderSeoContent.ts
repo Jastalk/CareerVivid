@@ -2,21 +2,44 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { isbot } from "isbot";
 import { algoliasearch } from "algoliasearch";
-import { getLearningSeoPage } from "./learningSeo";
+import { getLearningSeoPage, isLearningPageFree } from "./learningSeo";
+import { INDEX_HTML } from "./indexHtml.generated";
 
 const db = admin.firestore();
 
-// ── Cache index.html per function instance (warm requests pay ~0 overhead) ────
-let cachedIndexHtml: string | null = null;
+// ── index.html, without a network hop ─────────────────────────────────────────
+// Hosting rewrites /learning/** here, so EVERY human pageview of a course page
+// runs this function — and for a human it only serves index.html back. It used
+// to fetch that page from our own CDN on each cold instance, which put a public
+// internet round-trip on the critical path inside a 30s budget. Slow fetch →
+// dead container → Google's own "Error: Server Error" page, which is what users
+// were hitting on /learning/ccaf-quest.
+//
+// scripts/inline-index-html.mjs bakes the built dist/index.html in at deploy
+// time, so a cold instance now answers from a string constant. The fetch
+// survives only as a fallback for a functions-only deploy where the constant
+// was never populated — and it is abort-guarded so it can never hang the
+// function to its timeout again.
+let cachedIndexHtml: string | null = INDEX_HTML || null;
+
+const INDEX_FETCH_TIMEOUT_MS = 5_000;
 
 async function getIndexHtml(): Promise<string> {
     if (cachedIndexHtml) return cachedIndexHtml;
-    const response = await fetch("https://careervivid.app/index.html", {
-        headers: { "X-Internal-Fetch": "1" }
-    });
-    if (!response.ok) throw new Error(`Failed to fetch index.html: ${response.status}`);
-    cachedIndexHtml = await response.text();
-    return cachedIndexHtml;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), INDEX_FETCH_TIMEOUT_MS);
+    try {
+        const response = await fetch("https://careervivid.app/index.html", {
+            headers: { "X-Internal-Fetch": "1" },
+            signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`Failed to fetch index.html: ${response.status}`);
+        cachedIndexHtml = await response.text();
+        return cachedIndexHtml;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -256,18 +279,21 @@ async function handleWhiteboard(parts: string[]): Promise<string> {
 
 function handleLearningPage(slug?: string): string {
     const page = getLearningSeoPage(slug);
-    if (!page) throw new Error("not_found");
 
+    // page.path, not the request path — an unrecognised slug renders the
+    // catalog, and its canonical must point at /learning rather than claim the
+    // URL that was asked for.
     const canonicalUrl = `${BASE_URL}${page.path}`;
-    const isCatalog = !slug;
+    const isCatalog = page.path === "/learning";
     const courseSchema = isCatalog
         ? {
             "@type": "ItemList",
             name: "CareerVivid interactive courses",
-            numberOfItems: 2,
+            numberOfItems: 3,
             itemListElement: [
-                { "@type": "ListItem", position: 1, name: "AI Agent Builder Curriculum", url: `${BASE_URL}/learning/ai-agent-curriculum` },
-                { "@type": "ListItem", position: 2, name: "Coding Interview Patterns", url: `${BASE_URL}/learning/coding-interview-patterns` },
+                { "@type": "ListItem", position: 1, name: "Coding Interview Patterns", url: `${BASE_URL}/learning/coding-interview-patterns` },
+                { "@type": "ListItem", position: 2, name: "System Design Interview", url: `${BASE_URL}/learning/system-design-interview` },
+                { "@type": "ListItem", position: 3, name: "AI Agent Builder Curriculum", url: `${BASE_URL}/learning/ai-agent-curriculum` },
             ],
         }
         : {
@@ -278,10 +304,10 @@ function handleLearningPage(slug?: string): string {
             url: canonicalUrl,
             provider: { "@type": "Organization", name: "CareerVivid", url: `${BASE_URL}/` },
             educationalLevel: page.level,
-            isAccessibleForFree: slug === "coding-interview-patterns",
+            isAccessibleForFree: isLearningPageFree(slug),
             hasCourseInstance: { "@type": "CourseInstance", courseMode: "online" },
             teaches: page.topics,
-            ...(slug === "coding-interview-patterns"
+            ...(isLearningPageFree(slug)
                 ? { offers: { "@type": "Offer", price: "0", priceCurrency: "USD", category: "Free" } }
                 : {}),
         };
@@ -326,12 +352,16 @@ function handleLearningPage(slug?: string): string {
         <section style="margin-top:32px;">
           <h2 style="font-size:1.35rem;font-weight:800;">Available courses</h2>
           <article style="padding:16px 0;border-bottom:1px solid #eee;">
-            <h3 style="font-size:1.05rem;margin:0 0 6px;"><a href="${BASE_URL}/learning/ai-agent-curriculum" style="color:#4f46e5;">AI Agent Builder Curriculum</a></h3>
-            <p style="color:#555;line-height:1.6;margin:0;">10 modules and 58 lessons from LLM foundations to a shipped AI agent portfolio project. The Foundations module is free to start.</p>
-          </article>
-          <article style="padding:16px 0;">
             <h3 style="font-size:1.05rem;margin:0 0 6px;"><a href="${BASE_URL}/learning/coding-interview-patterns" style="color:#4f46e5;">Coding Interview Patterns</a></h3>
             <p style="color:#555;line-height:1.6;margin:0;">20 algorithm patterns, 60 lessons, visual step-through animations, and runnable JavaScript code labs. Currently free to access.</p>
+          </article>
+          <article style="padding:16px 0;border-bottom:1px solid #eee;">
+            <h3 style="font-size:1.05rem;margin:0 0 6px;"><a href="${BASE_URL}/learning/system-design-interview" style="color:#4f46e5;">System Design Interview</a></h3>
+            <p style="color:#555;line-height:1.6;margin:0;">13 modules and 85 lessons: an answer framework, capacity estimation, caching, data at scale, async processing, multi-region reliability, real-time systems, and a senior capstone.</p>
+          </article>
+          <article style="padding:16px 0;">
+            <h3 style="font-size:1.05rem;margin:0 0 6px;"><a href="${BASE_URL}/learning/ai-agent-curriculum" style="color:#4f46e5;">AI Agent Builder Curriculum</a></h3>
+            <p style="color:#555;line-height:1.6;margin:0;">10 modules and 58 lessons from LLM foundations to a shipped AI agent portfolio project. The Foundations module is free to start.</p>
           </article>
         </section>` : "";
     const bodyContent = `
@@ -475,7 +505,12 @@ export const renderSeoContent = onRequest(
                 html = await handleArticle(routeParts[2]);
             } else if (routeType === "community" && !routeParts[1]) {
                 html = await handleCommunityFeed();
-            } else if (routeType === "learning" && (!routeParts[1] || routeParts[1] === "ai-agent-curriculum" || routeParts[1] === "coding-interview-patterns")) {
+            // Any /learning/* path renders: known courses get their own page,
+            // everything else falls back to the catalog. Hosting rewrites the
+            // whole subtree here, so a hardcoded slug list meant real routes
+            // like /learning/system-design-interview and /learning/ccaf-quest
+            // answered 404 to crawlers.
+            } else if (routeType === "learning") {
                 html = handleLearningPage(routeParts[1]);
             } else if (routeType === "shared" && routeParts[1] && routeParts[2]) {
                 html = await handleResume(routeParts[1], routeParts[2]);
