@@ -6,7 +6,7 @@ const db = admin.firestore();
 export const injectCommunityMeta = onRequest(
     {
         region: "us-west1",
-        memory: "256MiB",
+        memory: "512MiB",
         timeoutSeconds: 30,
     },
     async (req, res) => {

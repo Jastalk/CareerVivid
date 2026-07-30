@@ -178,7 +178,7 @@ export const cleanupJobSearchCache = onSchedule({
     schedule: "every 24 hours",
     timeZone: "America/Los_Angeles",
     timeoutSeconds: 300,
-    memory: "256MiB",
+    memory: "512MiB",
     region: "us-west1"
 }, async (event) => {
     console.log("[cleanupJobSearchCache] Starting cache cleanup...");
@@ -226,7 +226,7 @@ export const cleanupUsageLogs = onSchedule({
     schedule: "every 24 hours",
     timeZone: "America/Los_Angeles",
     timeoutSeconds: 300,
-    memory: "256MiB",
+    memory: "512MiB",
     region: "us-west1"
 }, async (event) => {
     console.log("[cleanupUsageLogs] Starting usage logs cleanup...");
