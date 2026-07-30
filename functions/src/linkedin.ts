@@ -14,7 +14,7 @@ const DEFAULT_REDIRECT_URI = 'https://careervivid.app/admin';
 
 // 1. Get Auth URL
 export const getLinkedInAuthUrl = onCall(
-    { region: "us-west1", secrets: [linkedinClientId] },
+    { region: "us-west1", memory: "512MiB", secrets: [linkedinClientId] },
     async (request) => {
         if (!request.auth) {
             throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -33,7 +33,7 @@ export const getLinkedInAuthUrl = onCall(
 
 // 2. Handle the OAuth Callback and get the token
 export const handleLinkedInCallback = onCall(
-    { region: "us-west1", secrets: [linkedinClientId, linkedinClientSecret] },
+    { region: "us-west1", memory: "512MiB", secrets: [linkedinClientId, linkedinClientSecret] },
     async (request) => {
         const { code, state, redirectUri } = request.data;
         const currentRedirectUri = redirectUri || DEFAULT_REDIRECT_URI;
@@ -102,7 +102,7 @@ export const handleLinkedInCallback = onCall(
 
 // 3. Publish a Post to LinkedIn
 export const publishLinkedInPost = onCall(
-    { region: "us-west1", timeoutSeconds: 60 },
+    { region: "us-west1", memory: "512MiB", timeoutSeconds: 60 },
     async (request) => {
         if (!request.auth) {
             throw new HttpsError('unauthenticated', 'User must be logged in.');

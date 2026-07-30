@@ -553,7 +553,7 @@ export const uploadImageHttp = functions.region('us-west1').runWith({ timeoutSec
 
 // --- NEW: Public Access Functions ---
 
-export const getPublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "256MB" }).https.onRequest((req, res) => {
+export const getPublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest((req, res) => {
   console.log("getPublicResume called");
   try {
     // WRAP EVERYTHING in CORS. If you don't, it crashes.
@@ -649,7 +649,7 @@ export const getPublicResume = functions.region('us-west1').runWith({ timeoutSec
   }
 });
 
-export const updatePublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "256MB" }).https.onRequest(async (req, res) => {
+export const updatePublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     if (req.method === 'OPTIONS') {
       res.status(204).send('');
@@ -807,7 +807,7 @@ export const getInterviewAuthToken = functions.region('us-west1').https.onCall(a
  */
 export const getInterviewVertexToken = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Verify user authentication
     if (!context.auth) {
@@ -909,7 +909,7 @@ export const getInterviewVertexToken = functions
  */
 export const billInterviewSession = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Verify user authentication
     if (!context.auth) {
@@ -1044,7 +1044,7 @@ export const billInterviewSession = functions
  */
 export const cliGetInterviewToken = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1159,7 +1159,7 @@ export const cliGetInterviewToken = functions
  */
 export const cliInterviewBill = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1379,7 +1379,7 @@ export const cliInterviewBill = functions
  */
 export const cliGetInterviewContext = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1471,7 +1471,7 @@ export const cliGetInterviewContext = functions
  */
 export const cliLog = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1557,7 +1557,7 @@ export const cliLog = functions
  */
 export const cliGetLogs = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1658,7 +1658,7 @@ export * from "./social";
 
 export const connectTikTok = functions
   .region('us-west1')
-  .runWith({ timeoutSeconds: 60, memory: "256MB" }) // No need to defineSecrets if using .env
+  .runWith({ timeoutSeconds: 60, memory: "512MB" }) // No need to defineSecrets if using .env
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       // 1. Method Check
@@ -1802,7 +1802,7 @@ export const connectTikTok = functions
 
 export const authWithTikTok = functions
   .region('us-west1')
-  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .runWith({ timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Note: This is a Callable function, but we might be calling it from a public context (login page),
     // so we can't enforce context.auth. However, we are minting a token, so we need to be careful.

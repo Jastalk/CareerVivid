@@ -13,7 +13,7 @@ const db = admin.firestore();
  */
 export const manageApiKey = functions
     .region("us-west1")
-    .runWith({ timeoutSeconds: 30, memory: "256MB" })
+    .runWith({ timeoutSeconds: 30, memory: "512MB" })
     .https.onCall(async (data, context) => {
         // 1. Auth guard
         if (!context.auth) {

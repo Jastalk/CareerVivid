@@ -47,7 +47,7 @@ function getMonthlyLimit(plan?: string): number {
 // ─────────────────────────────────────────────────────────────────────────────
 export const agentDeductCredits = functions
   .region("us-west1")
-  .runWith({ secrets: [novuSecretKey], timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ secrets: [novuSecretKey], timeoutSeconds: 30, memory: "512MB" })
   .https.onCall(
     async (
       data: { model: string; calls?: number; apiKey: string },

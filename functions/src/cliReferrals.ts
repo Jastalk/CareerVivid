@@ -87,7 +87,7 @@ async function ensureUniqueReferralCode(userId: string): Promise<string> {
 
 export const cliReferralStats = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
