@@ -1350,7 +1350,7 @@ export const findValidatedScrapedJobMatches = async (
 
 export const getRecommendedScrapedJobs = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError("unauthenticated", "User must be authenticated");
@@ -1395,7 +1395,7 @@ export const getRecommendedScrapedJobs = functions.region("us-west1").runWith({
 
 export const validateRecommendedJobOpen = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onCall(async (data, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError("unauthenticated", "User must be authenticated");
@@ -1439,7 +1439,7 @@ export const validateRecommendedJobOpen = functions.region("us-west1").runWith({
 
 export const validateExternalJobLink = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onCall(async (data: ExternalJobLinkValidationInput, context) => {
     if (!context.auth) {
         throw new functions.https.HttpsError("unauthenticated", "User must be authenticated");
@@ -1489,7 +1489,7 @@ export const validateExternalJobLink = functions.region("us-west1").runWith({
 
 export const openRecommendedJob = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     if (req.method !== "GET" && req.method !== "HEAD") {
         res.status(405).send("Method not allowed");

@@ -23,7 +23,7 @@ export const saveAnswerLibrary = functions
     .region("us-west1")
     .runWith({
         timeoutSeconds: 60,
-        memory: "256MB",
+        memory: "512MB",
     })
     .https.onCall(async (data, context) => {
         if (!context.auth) {
@@ -89,7 +89,7 @@ export const getAnswerLibrary = functions
     .region("us-west1")
     .runWith({
         timeoutSeconds: 60,
-        memory: "256MB",
+        memory: "512MB",
     })
     .https.onCall(async (data, context) => {
         if (!context.auth) {

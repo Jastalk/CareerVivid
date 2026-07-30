@@ -703,7 +703,7 @@ export const resolveApplicationAnswers = functions
 
 export const claimApplicationQueueItem = functions
   .region("us-west1")
-  .runWith({ secrets: [], timeoutSeconds: 60, memory: "256MB" })
+  .runWith({ secrets: [], timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     const userId = requireAuth(context);
     const queueId = text(data?.queueId);
@@ -751,7 +751,7 @@ export const claimApplicationQueueItem = functions
 
 export const reportApplicationRunStep = functions
   .region("us-west1")
-  .runWith({ secrets: [], timeoutSeconds: 60, memory: "256MB" })
+  .runWith({ secrets: [], timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     const userId = requireAuth(context);
     const queueId = text(data?.queueId);
@@ -807,7 +807,7 @@ export const reportApplicationRunStep = functions
 
 export const completeApplicationRun = functions
   .region("us-west1")
-  .runWith({ secrets: [], timeoutSeconds: 60, memory: "256MB" })
+  .runWith({ secrets: [], timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     const userId = requireAuth(context);
     const queueId = text(data?.queueId);

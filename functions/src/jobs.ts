@@ -1032,7 +1032,7 @@ URL: [The direct application link from the search results]
 // Smart Search - searches across all indexed cached jobs
 export const smartSearchJobs = functions.region('us-west1').runWith({
     timeoutSeconds: 30,
-    memory: "256MB"
+    memory: "512MB"
 }).https.onCall(async (data, context) => {
     const searchTerm = (data.searchTerm || '').toLowerCase().trim();
     const locationFilter = (data.location || '').toLowerCase().trim();
@@ -1170,7 +1170,7 @@ export const deleteUserJob = functions.region('us-west1').https.onCall(async (da
 // HTTP Function to get jobs for a specific company by slug (Used by Embed Widget)
 export const getCompanyJobs = functions.region('us-west1').runWith({
     timeoutSeconds: 30,
-    memory: "256MB"
+    memory: "512MB"
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -1235,7 +1235,7 @@ export const getCompanyJobs = functions.region('us-west1').runWith({
 // Callable endpoint for frontend autocomplete suggestions using CTS completion API
 export const getTalentAutocomplete = functions.region('us-west1').runWith({
     timeoutSeconds: 15,
-    memory: "256MB"
+    memory: "512MB"
 }).https.onCall(async (data, context) => {
     // Require authentication
     if (!context.auth) {
