@@ -36,7 +36,6 @@ const InteractiveLessonPage = React.lazy(() => import('./pages/InteractiveLesson
 const CourseResumePage = React.lazy(() => import('./pages/CourseResumePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage')); // Protected
 const ChatBot = React.lazy(() => import('./components/ChatBot'));
-const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const SignInPage = React.lazy(() => import('./pages/SignInPage'));
 const SignUpPage = React.lazy(() => import('./pages/SignUpPage'));
 const ExtensionAuthCompletePage = React.lazy(() => import('./pages/ExtensionAuthCompletePage'));
@@ -58,7 +57,6 @@ const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 const BlogListPage = React.lazy(() => import('./pages/BlogListPage'));
 const BlogPostPage = React.lazy(() => import('./pages/BlogPostPage'));
 const PublicResumePage = React.lazy(() => import('./pages/PublicResumePage'));
-const SubscriptionPage = React.lazy(() => import('./pages/SubscriptionPage'));
 const PortfolioHub = React.lazy(() => import('./features/portfolio/pages/PortfolioHub'));
 const PortfolioEditor = React.lazy(() => import('./features/portfolio/pages/PortfolioEditor'));
 const PortfolioBuilderPage = React.lazy(() => import('./pages/PortfolioBuilderPage'));
@@ -145,7 +143,6 @@ import { useGuestDataMigration } from './hooks/useGuestDataMigration';
 import SEOHelper from './components/SEOHelper';
 import ProtectedRoute from './components/ProtectedRoute'; // [NEW] Protected Route Wrapper
 import { NavigationProvider } from './contexts/NavigationContext';
-import { useNavigation } from './contexts/NavigationContext';
 import { useWorkspaceSync } from './hooks/useWorkspaceSync';
 import PWABadge from './components/PWABadge';
 import CreditCelebration from './components/CreditCelebration';
@@ -418,15 +415,13 @@ const AppContent: React.FC = () => {
     // 2. Flattened Routing Logic
 
     // -- Authentication Routes --
-    if (path === '/extension-auth-complete' || path.startsWith('/extension-auth-complete?')) {
+    if (path === '/extension-auth-complete') {
       content = (
         <ProtectedRoute>
           <ExtensionAuthCompletePage />
         </ProtectedRoute>
       );
-    } else if (path === '/extension-welcome') {
-      content = <ExtensionWelcomePage />;
-    } else if (path === '/signin' || path.startsWith('/signin?')) {
+    } else if (path === '/signin') {
       const params = new URLSearchParams(window.location.search);
       const cliPort = params.get('cli_port');
       const redirect = params.get('redirect');
@@ -636,7 +631,9 @@ const AppContent: React.FC = () => {
     }
 
     // Static Create & Build Hub
-    else if (path === '/hub' || path === '/folder/create-build-hub') {
+    // NOTE: '/folder/create-build-hub' is intentionally NOT matched here — the
+    // '/folder/' prefix branch above already claims it and renders FolderView.
+    else if (path === '/hub') {
       content = (
         <ProtectedRoute>
           <DndWorkspaceProvider>
