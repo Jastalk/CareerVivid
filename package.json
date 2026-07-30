@@ -8,7 +8,7 @@
     "dev": "vite",
     "build:vite": "vite build",
     "build": "zx scripts/build.mjs",
-    "lint": "eslint",
+    "lint": "eslint src functions/src --ext .ts,.tsx",
     "preview": "vite preview",
     "translate-locales": "node scripts/translate_locales.js",
     "sync-translations": "zx sync_translations.mjs",
@@ -19,7 +19,8 @@
     "test": "vitest run",
     "generate:interview-guides": "node scripts/generate-interview-guide-summaries.mjs",
     "verify:interview-guides": "node scripts/generate-interview-guide-summaries.mjs --check",
-    "test:autofill": "vitest run src/autofill/__tests__"
+    "test:autofill": "vitest run src/autofill/__tests__",
+    "lint:strict": "eslint src functions/src --ext .ts,.tsx --max-warnings 0"
   },
   "dependencies": {
     "@blocknote/core": "^0.47.0",
