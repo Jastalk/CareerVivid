@@ -326,7 +326,7 @@ function buildMonthlyRevenue(
 export const getOpenRevenueStats = onRequest(
   {
     region: "us-west1",
-    memory: "256MiB",
+    memory: "512MiB",
     timeoutSeconds: 60,
     cors: true,
     secrets: [stripeOpenRevenueRestrictedKey],

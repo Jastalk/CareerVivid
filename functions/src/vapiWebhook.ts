@@ -13,7 +13,7 @@ export const vapiWebhook = onRequest(
   {
     region: "us-west1",
     invoker: "public",
-    memory: "256MiB",
+    memory: "512MiB",
     timeoutSeconds: 15,
   },
   async (req, res) => {

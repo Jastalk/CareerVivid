@@ -1,7 +1,16 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
+// `@sparticuz/chromium` and `puppeteer-core` are deliberately NOT imported at
+// module scope. Firebase loads this file for EVERY function in the codebase, so
+// a top-level import made all 31 containers pay the cost of loading the Chromium
+// bindings — ~256-282 MiB before a single request was handled. The 18 functions
+// configured at 256MiB could not finish booting and failed their startup probe,
+// which took down getOpenRevenueStats, generateSitemap, renderSeoContent and the
+// rest with an infrastructure 500 that never reached their handlers.
+//
+// They are now loaded on demand inside generatePdfBuffer(), the only consumer.
+// `Page` stays a type-only import: types are erased at compile time and cost
+// nothing at runtime.
 import type { Page } from "puppeteer-core";
 import { secureCorsHandler } from "./utils/corsUtils.js";
 import { randomUUID } from "crypto";
@@ -186,6 +195,14 @@ const injectPreviewPayload = (page: Page, payload: { resumeData: ResumeData; tem
 
 const generatePdfBuffer = async (resumeData: ResumeData, templateId: string) => {
   console.log(`Rendering template "${templateId}" via preview page: ${PDF_PREVIEW_URL}`);
+
+  // Loaded here rather than at module scope — see the note on the imports at the
+  // top of this file. Only the PDF path pays this cost, and Node caches the
+  // modules after the first call so warm invocations are unaffected.
+  const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+    import("@sparticuz/chromium"),
+    import("puppeteer-core"),
+  ]);
 
   const executablePath = await chromium.executablePath();
   const browser = await puppeteer.launch({

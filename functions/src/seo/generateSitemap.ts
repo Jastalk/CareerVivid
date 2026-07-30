@@ -78,7 +78,7 @@ const ALL_STATIC_ROUTES = [...STATIC_ROUTES, ...LOCALIZED_STATIC_ROUTES, ...QUES
 export const generateSitemap = onRequest(
     {
         region: "us-west1",
-        memory: "256MiB",
+        memory: "512MiB",
         timeoutSeconds: 60,
     },
     async (_req, res) => {

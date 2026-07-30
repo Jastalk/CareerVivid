@@ -77,7 +77,7 @@ async function applyPortfolioPatch(uid: string, patch: Record<string, any>): Pro
 }
 
 // ── B1. Read the whole portfolio ──────────────────────────────────────────────
-export const readPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const readPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "GET") { res.status(405).json({ error: "Use GET." }); return; }
@@ -105,7 +105,7 @@ export const readPortfolio = onRequest({ region: "us-west1", memory: "256MiB" },
  *   techUsed?     string[]
  *   id?           string   (auto-generated if omitted)
  */
-export const addProjectToPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const addProjectToPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "POST") { res.status(405).json({ error: "Use POST." }); return; }
@@ -149,7 +149,7 @@ export const addProjectToPortfolio = onRequest({ region: "us-west1", memory: "25
 });
 
 // ── B3. Remove a project by ID ────────────────────────────────────────────────
-export const removeProjectFromPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const removeProjectFromPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "DELETE") { res.status(405).json({ error: "Use DELETE." }); return; }
@@ -187,7 +187,7 @@ export const removeProjectFromPortfolio = onRequest({ region: "us-west1", memory
  *   description string
  *   id?         string  (auto-generated if omitted)
  */
-export const addExperienceToPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const addExperienceToPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "POST") { res.status(405).json({ error: "Use POST." }); return; }
@@ -231,7 +231,7 @@ export const addExperienceToPortfolio = onRequest({ region: "us-west1", memory: 
 });
 
 // ── B5. Remove an experience entry by ID ──────────────────────────────────────
-export const removeExperienceFromPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const removeExperienceFromPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "DELETE") { res.status(405).json({ error: "Use DELETE." }); return; }
@@ -265,7 +265,7 @@ export const removeExperienceFromPortfolio = onRequest({ region: "us-west1", mem
  *
  * PATCH body: { section: string, value: any }
  */
-export const patchPortfolioSection = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const patchPortfolioSection = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "PATCH") { res.status(405).json({ error: "Use PATCH." }); return; }
@@ -298,7 +298,7 @@ export const patchPortfolioSection = onRequest({ region: "us-west1", memory: "25
 });
 
 // ── B7. Add a skill to techStack ─────────────────────────────────────────────
-export const addSkillToPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const addSkillToPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "POST") { res.status(405).json({ error: "Use POST." }); return; }
@@ -338,7 +338,7 @@ export const addSkillToPortfolio = onRequest({ region: "us-west1", memory: "256M
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 
-export const initPortfolio = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const initPortfolio = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "POST") { res.status(405).json({ error: "Method Not Allowed. Use POST." }); return; }
@@ -386,7 +386,7 @@ export const initPortfolio = onRequest({ region: "us-west1", memory: "256MiB" },
   });
 });
 
-export const updatePortfolioProjects = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const updatePortfolioProjects = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "PATCH") { res.status(405).json({ error: "Method Not Allowed. Use PATCH." }); return; }
@@ -425,7 +425,7 @@ export const updatePortfolioProjects = onRequest({ region: "us-west1", memory: "
   });
 });
 
-export const updatePortfolioHero = onRequest({ region: "us-west1", memory: "256MiB" }, async (req, res) => {
+export const updatePortfolioHero = onRequest({ region: "us-west1", memory: "512MiB" }, async (req, res) => {
   corsHandler(req as any, res as any, async () => {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     if (req.method !== "PATCH") { res.status(405).json({ error: "Method Not Allowed. Use PATCH." }); return; }
@@ -492,7 +492,7 @@ export const uploadPortfolioAsset = onRequest({ region: "us-west1", memory: "512
 });
 
 export const onPortfolioProjectsUpdated = onDocumentUpdated(
-  { document: "users/{userId}/portfolios/{portfolioId}", region: "us-west1", memory: "256MiB" },
+  { document: "users/{userId}/portfolios/{portfolioId}", region: "us-west1", memory: "512MiB" },
   async (event) => {
     const newData = event.data?.after.data();
     const oldData = event.data?.before.data();

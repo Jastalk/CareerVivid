@@ -462,7 +462,7 @@ async function handleCommunityFeed(): Promise<string> {
 export const renderSeoContent = onRequest(
     {
         region: "us-west1",
-        memory: "256MiB",
+        memory: "512MiB",
         timeoutSeconds: 30,
     },
     async (req, res) => {
