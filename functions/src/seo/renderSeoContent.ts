@@ -3,26 +3,35 @@ import * as admin from "firebase-admin";
 import { isbot } from "isbot";
 import { algoliasearch } from "algoliasearch";
 import { getLearningSeoPage, isLearningPageFree } from "./learningSeo";
-import { INDEX_HTML } from "./indexHtml.generated";
 
 const db = admin.firestore();
 
-// ── index.html, without a network hop ─────────────────────────────────────────
-// Hosting rewrites /learning/** here, so EVERY human pageview of a course page
-// runs this function — and for a human it only serves index.html back. It used
-// to fetch that page from our own CDN on each cold instance, which put a public
-// internet round-trip on the critical path inside a 30s budget. Slow fetch →
-// dead container → Google's own "Error: Server Error" page, which is what users
-// were hitting on /learning/ccaf-quest.
+// ── index.html, fetched — deliberately NOT inlined at build time ──────────────
+// Hosting rewrites /learning/** here, so every human pageview of a course page
+// runs this function, and for a human it only serves index.html back.
 //
-// scripts/inline-index-html.mjs bakes the built dist/index.html in at deploy
-// time, so a cold instance now answers from a string constant. The fetch
-// survives only as a fallback for a functions-only deploy where the constant
-// was never populated — and it is abort-guarded so it can never hang the
-// function to its timeout again.
-let cachedIndexHtml: string | null = INDEX_HTML || null;
-
+// A previous version baked dist/index.html into the bundle at build time to
+// avoid this fetch. That was wrong, and it broke production: index.html
+// references Vite's CONTENT-HASHED asset URLs, so the inlined copy is only
+// valid for the exact hosting build it was captured from. Deploy hosting again
+// without redeploying this function and it keeps serving /assets/index-<old
+// hash>.js, which no longer exists — Hosting's `** -> /index.html` rewrite then
+// answers that request with HTML, and the browser reports:
+//
+//   Failed to load module script: Expected a JavaScript-or-Wasm module script
+//   but the server responded with a MIME type of "text/html"
+//
+// The page renders blank on direct navigation while in-app navigation still
+// works, because client-side routing never refetches the shell. Inlining
+// silently couples this function to one hosting build; fetching cannot go
+// stale. Correctness beats saving one request.
+//
+// The fetch is abort-guarded so a slow CDN can never hang the function to its
+// timeout, and cached per instance so only the first request on a cold
+// container pays for it. Instance recycling is what picks up a new deploy.
 const INDEX_FETCH_TIMEOUT_MS = 5_000;
+
+let cachedIndexHtml: string | null = null;
 
 async function getIndexHtml(): Promise<string> {
     if (cachedIndexHtml) return cachedIndexHtml;
