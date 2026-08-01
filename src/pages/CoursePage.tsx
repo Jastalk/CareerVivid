@@ -32,6 +32,7 @@ import {
     getCourseExerciseCount,
     getCourseExercises,
     firstIncompleteExerciseId,
+    locateExercise,
     type InteractiveCourse,
 } from '../lib/interactiveCourses';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +42,7 @@ import { useCourseProgress } from '../hooks/useCourseProgress';
 import { useAllCourseProgress } from '../hooks/useAllCourseProgress';
 import SEOHelper from '../components/SEOHelper';
 import AuthGateModal, { AuthGateModalProps } from '../components/AuthGateModal';
-import { canAccessCourse, isCourseFreeForGuests } from '../config/accessPolicy';
+import { canAccessCourse, canAccessLesson, isCourseFreeForGuests } from '../config/accessPolicy';
 import { stripLanguagePrefix } from '../utils/languagePreference';
 import {
     CourseModuleWithState,
@@ -127,11 +128,24 @@ const CoursePage: React.FC = () => {
 
     /** Opens the saved next lesson when callers do not name a specific lesson. */
     const openCourse = (courseId: string, destination = `/learn/${courseId}`) => {
-        if (canAccessCourse(courseId, { isSignedIn: Boolean(currentUser), isPremium: Boolean(isPremium) })) {
-            const course = getInteractiveCourse(courseId);
-            const resumeDestination = course && destination === `/learn/${courseId}`
-                ? `/learn/${courseId}/${firstIncompleteExerciseId(course, progressByCourse[courseId]?.completedModuleIds ?? [])}`
-                : destination;
+        const course = getInteractiveCourse(courseId);
+        const resumeDestination = course && destination === `/learn/${courseId}`
+            ? `/learn/${courseId}/${firstIncompleteExerciseId(course, progressByCourse[courseId]?.completedModuleIds ?? [])}`
+            : destination;
+
+        // Resolve the specific lesson first: a paid course can still have free
+        // chapters (System Design Interview's Core Design level), so entitlement
+        // is decided per lesson rather than per course.
+        const targetExerciseId = resumeDestination.split('/')[3] ?? '';
+        const targetChapterId = targetExerciseId
+            ? locateExercise(courseId, targetExerciseId)?.chapter.id
+            : undefined;
+        const auth = { isSignedIn: Boolean(currentUser), isPremium: Boolean(isPremium) };
+
+        if (
+            canAccessCourse(courseId, auth)
+            || canAccessLesson(courseId, targetChapterId, auth)
+        ) {
             navigate(resumeDestination);
             return;
         }

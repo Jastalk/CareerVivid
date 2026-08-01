@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { canGuestUseLocalQuestStage } from './accessPolicy';
+import {
+  FREE_CHAPTER_IDS,
+  canAccessLesson,
+  canGuestUseLocalQuestStage,
+  isChapterFreeForGuests,
+  isCourseFreeForGuests,
+  isLessonFreeForGuests,
+} from './accessPolicy';
+import { getInteractiveCourse } from '../lib/interactiveCourses';
 
 describe('canGuestUseLocalQuestStage', () => {
   it.each(['sap', 'figma', 'scale-ai', 'hashicorp', 'mercury', 'vercel', 'google', 'openai', 'unknown-company'])(
@@ -15,5 +23,67 @@ describe('canGuestUseLocalQuestStage', () => {
     expect(canGuestUseLocalQuestStage('figma', 'behavioral')).toBe(false);
     expect(canGuestUseLocalQuestStage('openai', 'screening')).toBe(false);
     expect(canGuestUseLocalQuestStage('unknown-company', 'final')).toBe(false);
+  });
+});
+
+describe('free Core Design level', () => {
+  const GUEST = { isSignedIn: false, isPremium: false };
+  const FREE_ACCOUNT = { isSignedIn: true, isPremium: false };
+  const PRO = { isSignedIn: true, isPremium: true };
+  const course = getInteractiveCourse('system-design-interview');
+
+  it('marks exactly the four Core Design chapters free', () => {
+    expect(course).toBeDefined();
+    // The free set must match the roadmap level it claims to be. If a chapter
+    // moves between levels in the course JSON, pricing must not change
+    // silently — this forces the decision back into accessPolicy.ts.
+    const foundations = course!.chapters
+      .filter((chapter) => chapter.systemDesign?.roadmap === 'foundations')
+      .map((chapter) => chapter.id);
+
+    expect(new Set(foundations)).toEqual(new Set(FREE_CHAPTER_IDS));
+    expect(foundations).toHaveLength(4);
+  });
+
+  it('covers 29 lessons — the whole Level 1 roadmap', () => {
+    const lessons = course!.chapters
+      .filter((chapter) => FREE_CHAPTER_IDS.has(chapter.id))
+      .reduce((total, chapter) => total + chapter.exercises.length, 0);
+    expect(lessons).toBe(29);
+  });
+
+  it('opens every Core Design lesson to a signed-out guest', () => {
+    for (const chapter of course!.chapters.filter((c) => FREE_CHAPTER_IDS.has(c.id))) {
+      expect(isLessonFreeForGuests('system-design-interview', chapter.id)).toBe(true);
+      expect(canAccessLesson('system-design-interview', chapter.id, GUEST)).toBe(true);
+      expect(canAccessLesson('system-design-interview', chapter.id, FREE_ACCOUNT)).toBe(true);
+    }
+  });
+
+  it('keeps Levels 2 and 3 and the Classic Questions Arena behind Pro', () => {
+    const paid = course!.chapters.filter((c) => !FREE_CHAPTER_IDS.has(c.id));
+    expect(paid).toHaveLength(9);
+
+    for (const chapter of paid) {
+      expect(isChapterFreeForGuests(chapter.id)).toBe(false);
+      expect(canAccessLesson('system-design-interview', chapter.id, GUEST)).toBe(false);
+      expect(canAccessLesson('system-design-interview', chapter.id, FREE_ACCOUNT)).toBe(false);
+      expect(canAccessLesson('system-design-interview', chapter.id, PRO)).toBe(true);
+    }
+  });
+
+  it('does not make the whole course free', () => {
+    // Catalog copy and SEO both key off this; flipping it gives away L2 and L3.
+    expect(isCourseFreeForGuests('system-design-interview')).toBe(false);
+  });
+
+  it('still treats wholly free courses as free without a chapter id', () => {
+    expect(isLessonFreeForGuests('coding-interview-patterns')).toBe(true);
+    expect(isLessonFreeForGuests('ai-foundations-map')).toBe(true);
+  });
+
+  it('denies an unknown lesson rather than defaulting open', () => {
+    expect(isLessonFreeForGuests('system-design-interview', undefined)).toBe(false);
+    expect(isLessonFreeForGuests('system-design-interview', 'sd-not-a-chapter')).toBe(false);
   });
 });

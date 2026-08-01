@@ -24,6 +24,40 @@ export const FREE_COURSE_IDS: ReadonlySet<string> = new Set([
 export const isCourseFreeForGuests = (courseId: string): boolean => FREE_COURSE_IDS.has(courseId);
 
 /**
+ * Chapters anyone can open even though the rest of their course is paid.
+ *
+ * These four are the "Core Design" level (Level 1 of 3) of System Design
+ * Interview — 29 lessons — offered free on the same terms as Coding Interview
+ * Patterns: no account, no Pro. Levels 2 and 3 (Production Scale, Distributed
+ * Systems) and the Classic Questions Arena stay behind Pro.
+ *
+ * The ids match `systemDesign.roadmap === 'foundations'` in
+ * data/courses/12-system-design-interview.json. They are listed explicitly
+ * rather than derived so that pricing lives in this file, not in course
+ * content — moving a chapter between levels must not silently change what is
+ * free. `accessPolicy.test.ts` asserts the two stay in sync.
+ */
+export const FREE_CHAPTER_IDS: ReadonlySet<string> = new Set([
+    'sd-interview-framework',
+    'sd-capacity-estimation',
+    'sd-api-data-models',
+    'sd-core-building-blocks',
+]);
+
+export const isChapterFreeForGuests = (chapterId: string): boolean => FREE_CHAPTER_IDS.has(chapterId);
+
+/**
+ * True when a guest may open one specific lesson.
+ *
+ * Course-level access still wins — a wholly free course needs no chapter
+ * lookup. Pass `chapterId` when the caller knows which chapter the lesson
+ * belongs to (resolve it with `locateExercise`); omitting it falls back to
+ * course-level access, which is the safe direction to be wrong in.
+ */
+export const isLessonFreeForGuests = (courseId: string, chapterId?: string): boolean =>
+    FREE_COURSE_IDS.has(courseId) || (Boolean(chapterId) && FREE_CHAPTER_IDS.has(chapterId as string));
+
+/**
  * Company quests: every quest PAGE is browsable by guests. Local coding and
  * whiteboard practice are also available without an account for every company.
  * AI review, voice coaching, diagram generation, persistence, XP, and all
@@ -49,4 +83,26 @@ export const canAccessCourse = (
     // interviews are metered separately through AI credits.
     void isSignedIn;
     return false;
+};
+
+/**
+ * True when a course has ANY free entry point — a wholly free course, or a
+ * paid course with a free chapter such as System Design Interview's Core
+ * Design level. Drives whether the catalog offers "Start" or the auth gate.
+ */
+export const hasFreeEntryPoint = (courseId: string, chapterIds: string[]): boolean =>
+    FREE_COURSE_IDS.has(courseId) || chapterIds.some((id) => FREE_CHAPTER_IDS.has(id));
+
+/**
+ * Per-lesson entitlement. Premium unlocks everything; otherwise the lesson
+ * must sit in a free course or a free chapter.
+ */
+export const canAccessLesson = (
+    courseId: string,
+    chapterId: string | undefined,
+    { isSignedIn, isPremium }: { isSignedIn: boolean; isPremium: boolean },
+): boolean => {
+    if (isPremium) return true;
+    void isSignedIn;
+    return isLessonFreeForGuests(courseId, chapterId);
 };
