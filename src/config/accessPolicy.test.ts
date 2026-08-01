@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   FREE_CHAPTER_IDS,
   canAccessLesson,
+  hasFreeEntryPoint,
   canGuestUseLocalQuestStage,
   isChapterFreeForGuests,
   isCourseFreeForGuests,
@@ -85,5 +86,38 @@ describe('free Core Design level', () => {
   it('denies an unknown lesson rather than defaulting open', () => {
     expect(isLessonFreeForGuests('system-design-interview', undefined)).toBe(false);
     expect(isLessonFreeForGuests('system-design-interview', 'sd-not-a-chapter')).toBe(false);
+  });
+});
+
+describe('the two flows from the reported screenshots', () => {
+  const GUEST = { isSignedIn: false, isPremium: false };
+  const course = getInteractiveCourse('system-design-interview');
+  const chapterIds = course!.chapters.map((c) => c.id);
+
+  it('1. a guest can open Core Design lessons — no login', () => {
+    // Every "Start" button in the Core Design roadmap.
+    const coreDesign = course!.chapters.filter((c) => c.systemDesign?.roadmap === 'foundations');
+    for (const chapter of coreDesign) {
+      for (const exercise of chapter.exercises) {
+        expect(
+          canAccessLesson('system-design-interview', chapter.id, GUEST),
+          `${chapter.id}/${exercise.id} must open for a guest`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it('2. a guest can reach the System Design roadmap page from /learning', () => {
+    // Clicking the catalog card navigates to /learning/system-design-interview,
+    // which is a browse page, not a lesson — it must never gate while the
+    // course advertises a free level.
+    expect(hasFreeEntryPoint('system-design-interview', chapterIds)).toBe(true);
+  });
+
+  it('does not accidentally open browse for a fully paid course', () => {
+    const aiSecurity = getInteractiveCourse('llm-security-guardrails');
+    if (aiSecurity) {
+      expect(hasFreeEntryPoint(aiSecurity.id, aiSecurity.chapters.map((c) => c.id))).toBe(false);
+    }
   });
 });

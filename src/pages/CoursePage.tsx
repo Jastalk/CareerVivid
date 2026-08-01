@@ -42,7 +42,7 @@ import { useCourseProgress } from '../hooks/useCourseProgress';
 import { useAllCourseProgress } from '../hooks/useAllCourseProgress';
 import SEOHelper from '../components/SEOHelper';
 import AuthGateModal, { AuthGateModalProps } from '../components/AuthGateModal';
-import { canAccessCourse, canAccessLesson, isCourseFreeForGuests } from '../config/accessPolicy';
+import { canAccessCourse, canAccessLesson, hasFreeEntryPoint, isCourseFreeForGuests } from '../config/accessPolicy';
 import { stripLanguagePrefix } from '../utils/languagePreference';
 import {
     CourseModuleWithState,
@@ -136,15 +136,24 @@ const CoursePage: React.FC = () => {
         // Resolve the specific lesson first: a paid course can still have free
         // chapters (System Design Interview's Core Design level), so entitlement
         // is decided per lesson rather than per course.
-        const targetExerciseId = resumeDestination.split('/')[3] ?? '';
+        const targetExerciseId = resumeDestination.startsWith('/learn/')
+            ? resumeDestination.split('/')[3] ?? ''
+            : '';
         const targetChapterId = targetExerciseId
             ? locateExercise(courseId, targetExerciseId)?.chapter.id
             : undefined;
         const auth = { isSignedIn: Boolean(currentUser), isPremium: Boolean(isPremium) };
 
+        // `/learning/<id>` is the course's roadmap PAGE, not a lesson — browsing
+        // it should never be gated when any part of the course is free, or the
+        // catalog advertises a free level behind a sign-in wall.
+        const isBrowseDestination = resumeDestination.startsWith('/learning/');
+        const chapterIds = course?.chapters.map((chapter) => chapter.id) ?? [];
+
         if (
             canAccessCourse(courseId, auth)
             || canAccessLesson(courseId, targetChapterId, auth)
+            || (isBrowseDestination && hasFreeEntryPoint(courseId, chapterIds))
         ) {
             navigate(resumeDestination);
             return;
