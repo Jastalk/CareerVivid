@@ -11,6 +11,14 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+
+/**
+ * Public origin for links we email out, with any trailing slash removed so
+ * callers can append a path without producing a double slash. Mirrors
+ * APP_BASE_URL in index.ts, which is not exported.
+ */
+const APP_BASE_URL = (process.env.CAREERVIVID_APP_URL || "https://careervivid.app").replace(/\/+$/, "");
+
 // Helper to create job ID - matches frontend logic
 const createJobId = (title: string, company: string): string => {
     const sanitizedTitle = title.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '');
@@ -133,7 +141,16 @@ export const sendPracticeEmails = onSchedule({
                 });
 
                 // Send Email
-                const emailLink = `https://careervivid.web.app/#/interview-studio/${jobId}`;
+                // careervivid.web.app is not a live Firebase Hosting site — it
+                // returns Firebase's "Site Not Found" page, so every practice
+                // email sent from here has been a dead link. The app is served
+                // from the custom domain only.
+                //
+                // The `/#/` prefix is also legacy. App.tsx still rewrites
+                // #/interview-studio/:id to a real path on mount, so old links
+                // keep working, but new mail should emit the modern path
+                // directly rather than depend on that redirect.
+                const emailLink = `${APP_BASE_URL}/interview-studio/${jobId}`;
 
                 await db.collection('mail').add({
                     to: userData.email,
