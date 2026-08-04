@@ -119,7 +119,8 @@ const DndWorkspaceProvider = React.lazy(() => import('./components/DndWorkspaceP
 
 // Navigation utility
 import { navigate, getPathFromUrl } from './utils/navigation';
-import { isCourseFreeForGuests } from './config/accessPolicy';
+import { isCourseFreeForGuests, isLessonFreeForGuests } from './config/accessPolicy';
+import { locateExercise } from './lib/interactiveCourses';
 
 
 const LoadingFallback = () => (
@@ -538,23 +539,29 @@ const AppContent: React.FC = () => {
     }
 
     // Interactive code-along lesson: /learn/:courseId/:exerciseId
-    // The free course is open to everyone; the rest of the catalog needs an account.
+    // Free courses are open to everyone, and so are free CHAPTERS inside a paid
+    // course — System Design Interview's Core Design level. Anything else needs
+    // an account. Gating per lesson means resolving which chapter it lives in.
     else if (path.startsWith('/learn/')) {
       const parts = path.split('/');
       const courseId = parts[2];
       const exerciseId = parts[3] || '';
+      const chapterId = exerciseId ? locateExercise(courseId, exerciseId)?.chapter.id : undefined;
+      const isOpen = isLessonFreeForGuests(courseId, chapterId);
       if (!exerciseId) {
+        // No lesson named yet, so only a wholly free course can skip the gate —
+        // the resume page decides which lesson to open.
         const resume = <CourseResumePage courseId={courseId} />;
         content = isCourseFreeForGuests(courseId) ? resume : <ProtectedRoute>{resume}</ProtectedRoute>;
       }
       else if (parts[4] === 'mock') {
         const practice = <SystemDesignCoursePracticePage courseId={courseId} exerciseId={exerciseId} />;
-        content = isCourseFreeForGuests(courseId) ? practice : <ProtectedRoute>{practice}</ProtectedRoute>;
+        content = isOpen ? practice : <ProtectedRoute>{practice}</ProtectedRoute>;
       } else {
       const lesson = (
         <InteractiveLessonPage key={`${courseId}/${exerciseId}`} courseId={courseId} exerciseId={exerciseId} />
       );
-      content = isCourseFreeForGuests(courseId) ? lesson : (
+      content = isOpen ? lesson : (
         <ProtectedRoute>{lesson}</ProtectedRoute>
       );
       }
