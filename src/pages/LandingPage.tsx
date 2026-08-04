@@ -6,6 +6,7 @@ import CommunityShowcaseHero from '../components/Landing/CommunityShowcaseHero';
 import LearnPracticeHiredSection from '../components/Landing/LearnPracticeHiredSection';
 import CourseShowcaseSection from '../components/Landing/CourseShowcaseSection';
 import InterviewShowcaseSection from '../components/Landing/InterviewShowcaseSection';
+import DecodeJobHero from '../components/Landing/DecodeJobHero';
 import { INTERVIEW_GUIDE_TOTALS } from '../data/interviewGuideSummaries.generated';
 import { getCourseCatalogTotals } from '../lib/interactiveCourses';
 import {
@@ -241,6 +242,7 @@ const LandingPage: React.FC = () => (
         <PublicHeader variant="editorial" />
         <main>
             {/* Lead with company interview practice; show the workspace preview before the product demo. */}
+            <DecodeJobHero />
             <InterviewShowcaseSection />
             <LearnPracticeHiredSection />
             <CourseShowcaseSection />
