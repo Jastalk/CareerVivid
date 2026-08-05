@@ -39,8 +39,24 @@ export const DOMAIN_VIDEOS: DomainVideo[] = [
     },
 ];
 
+/**
+ * Course videos are hidden until they are finished.
+ *
+ * The Domain 1 entry below is kept, not deleted — the film exists and is still
+ * being cut. Flipping this to `true` brings every video surface back at once:
+ * the lesson card inside a mission, the rewatch overlay, and the toolbar entry
+ * all go through `domainVideoFor`.
+ *
+ * When they do come back, they come back as an offer, not a gate. Opening a
+ * mission goes straight to the questions either way — see MissionDialog, where
+ * `showingLesson` now starts false.
+ */
+export const VIDEO_LESSONS_ENABLED = false;
+
 export const domainVideoFor = (domainOrder: number): DomainVideo | undefined =>
-    DOMAIN_VIDEOS.find(video => video.domainOrder === domainOrder);
+    VIDEO_LESSONS_ENABLED
+        ? DOMAIN_VIDEOS.find(video => video.domainOrder === domainOrder)
+        : undefined;
 
 /** Public URL for a domain video. */
 export const domainVideoSrc = (video: DomainVideo): string =>

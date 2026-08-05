@@ -223,6 +223,10 @@ export const useQuestAudio = (active: boolean, domainOrder?: number) => {
         sfxOn,
         toggleMusic: useCallback(() => setMusicOn(on => !on), []),
         toggleSfx: useCallback(() => setSfxOn(on => !on), []),
+        // The opening prompt needs to set a definite answer rather than flip
+        // whatever happened to be stored — "yes, play music" must mean on even
+        // when the remembered value already was on.
+        setMusic: useCallback((on: boolean) => setMusicOn(on), []),
         sfx,
     };
 };

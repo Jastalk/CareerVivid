@@ -68,9 +68,15 @@ export const MissionDialog: React.FC<MissionDialogProps> = ({
 }) => {
     const { localize, t } = useQuestLocale();
     const video = domainVideoFor(mission.domainOrder);
-    // Learn, then answer. The domain's course video leads the first time any of
-    // its missions is opened; once watched, it never blocks again.
-    const [showingLesson, setShowingLesson] = useState(Boolean(video) && !hasWatched);
+    // The video no longer leads. Opening a mission goes straight to the
+    // questions, and the lesson stays one click away on the "watch" button
+    // below — a fourteen-minute film in front of the first question is a wall,
+    // not an onramp, and the course is meant to have no barrier to entry.
+    //
+    // Everything else about the lesson flow is untouched: `hasWatched` still
+    // tracks who has seen it, and the rewatch entry still works. Flip this back
+    // to `Boolean(video) && !hasWatched` to restore the old gate.
+    const [showingLesson, setShowingLesson] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const [picked, setPicked] = useState<string | null>(null);
     const [stepSolved, setStepSolved] = useState(alreadyCleared);

@@ -9479,6 +9479,11 @@
     "travelling": "Travelling to...",
     "try_again": "Incorrect choice. Think again!",
     "weak_spots": "Weak-Spot Focus",
-    "weaker_option": "Sub-optimal Choice"
+    "weaker_option": "Sub-optimal Choice",
+    "audio_prompt_title": "Play background music?",
+    "audio_prompt_body": "This world has a soundtrack that changes as you move between domains. You can switch it off any time from the toolbar.",
+    "audio_prompt_on": "Play music",
+    "audio_prompt_off": "No thanks",
+    "audio_prompt_hint": "We'll remember your choice."
   }
 }

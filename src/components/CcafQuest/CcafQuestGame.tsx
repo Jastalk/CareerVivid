@@ -21,6 +21,7 @@ import { QuestLanguagePanel } from './QuestLanguagePanel';
 import { LessonPlayer } from './LessonPlayer';
 import { domainVideoFor } from '../../lib/ccafVideoLessons';
 import { useQuestAudio } from './useQuestAudio';
+import { QuestAudioPrompt, hasAnsweredAudioPrompt } from './QuestAudioPrompt';
 import { useQuestCamera } from './useQuestCamera';
 import { useQuestProximity, INTERACT_RADIUS } from './useQuestProximity';
 import { useQuestPanelKey } from './useQuestPanelKey';
@@ -97,7 +98,13 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
     // render the player looks like a beginner. Starting on that frame plays
     // domain 1's track for a moment before swapping to the right one — audible
     // on every single page load.
-    const { musicOn, sfxOn, toggleMusic, toggleSfx, sfx } = useQuestAudio(loaded && !videoOpen, progressDomainOrder);
+    const { musicOn, sfxOn, toggleMusic, toggleSfx, setMusic, sfx } = useQuestAudio(loaded && !videoOpen, progressDomainOrder);
+
+    // Asked once, on the very first visit. Read lazily so a returning player
+    // never sees it flash. The prompt gates nothing — it sits over a world that
+    // is already running — but answering it is also the user gesture browsers
+    // require before any audio may start.
+    const [askAudio, setAskAudio] = useState(() => !hasAnsweredAudioPrompt());
 
     useQuestPanelKey('KeyL', langOpen, () => { sfx('panel'); setLangOpen(true); });
     useQuestPanelKey('KeyV', videoOpen, () => { sfx('panel'); setVideoOpen(true); });
@@ -469,6 +476,16 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
                 <QuestVideoOverlay
                     video={domainVideoFor(rewatchDomain)!}
                     onClose={() => setVideoOpen(false)}
+                />
+            )}
+
+            {askAudio && (
+                <QuestAudioPrompt
+                    onChoose={(on) => {
+                        setMusic(on);
+                        setAskAudio(false);
+                        if (on) sfx('panel');
+                    }}
                 />
             )}
 
