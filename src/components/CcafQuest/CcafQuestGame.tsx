@@ -105,6 +105,7 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
     // is already running — but answering it is also the user gesture browsers
     // require before any audio may start.
     const [askAudio, setAskAudio] = useState(() => !hasAnsweredAudioPrompt());
+    const [confirmReset, setConfirmReset] = useState(false);
 
     useQuestPanelKey('KeyL', langOpen, () => { sfx('panel'); setLangOpen(true); });
     useQuestPanelKey('KeyV', videoOpen, () => { sfx('panel'); setVideoOpen(true); });
@@ -366,9 +367,11 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
                     domain={activeDomain}
                     domainCleared={domainClearedCount}
                     readinessPct={examReadiness.overall}
-                    onReset={() => {
-                        if (window.confirm(t('ccaf_quest.reset_confirm'))) reset();
-                    }}
+                    // `window.confirm` looked wired up and did nothing: several
+                    // embedded and preview browsers suppress native dialogs and
+                    // return false, so the button silently never reset anything.
+                    // An in-app dialog cannot be suppressed.
+                    onReset={() => { sfx('panel'); setConfirmReset(true); }}
                 />
             )}
 
@@ -487,6 +490,47 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
                         if (on) sfx('panel');
                     }}
                 />
+            )}
+
+            {confirmReset && (
+                <div
+                    className="fixed inset-0 z-[130] flex items-center justify-center p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="quest-reset-title"
+                >
+                    <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-md" />
+                    <div className="relative w-full max-w-sm rounded-[1.75rem] bg-gradient-to-br from-rose-400/40 via-slate-600/30 to-slate-700/20 p-px shadow-2xl shadow-rose-900/30">
+                        <div className="rounded-[1.7rem] bg-slate-900/95 px-6 py-8 text-center sm:px-8">
+                            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-2xl">
+                                ↺
+                            </div>
+                            <h2 id="quest-reset-title" className="text-xl font-extrabold text-white">
+                                {t('ccaf_quest.reset')}
+                            </h2>
+                            <p className="mx-auto mt-3 max-w-xs text-sm leading-relaxed text-slate-400">
+                                {t('ccaf_quest.reset_confirm')}
+                            </p>
+                            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                                <button
+                                    type="button"
+                                    autoFocus
+                                    onClick={() => { setConfirmReset(false); reset(); sfx('complete'); }}
+                                    className="flex-1 rounded-2xl bg-gradient-to-b from-rose-500 to-rose-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-rose-900/40 transition hover:from-rose-400 hover:to-rose-500 active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                                >
+                                    {t('ccaf_quest.reset_yes')}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setConfirmReset(false)}
+                                    className="flex-1 rounded-2xl border border-slate-700 bg-slate-800/40 px-5 py-3.5 text-sm font-semibold text-slate-300 transition hover:border-slate-500 hover:bg-slate-800 hover:text-white active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                                >
+                                    {t('ccaf_quest.reset_no')}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Last so it layers over everything — L works mid-question. */}

@@ -9484,6 +9484,8 @@
     "audio_prompt_body": "This world has a soundtrack that changes as you move between domains. You can switch it off any time from the toolbar.",
     "audio_prompt_on": "Play music",
     "audio_prompt_off": "No thanks",
-    "audio_prompt_hint": "We'll remember your choice."
+    "audio_prompt_hint": "We'll remember your choice.",
+    "reset_yes": "Yes, start over",
+    "reset_no": "Cancel"
   }
 }

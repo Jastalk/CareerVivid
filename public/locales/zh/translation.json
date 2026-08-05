@@ -9738,6 +9738,8 @@
     "audio_prompt_body": "这个世界有配乐，会随着你在不同 Domain 之间移动而变化。随时可以从工具栏关掉。",
     "audio_prompt_on": "播放音乐",
     "audio_prompt_off": "不用了",
-    "audio_prompt_hint": "我们会记住你的选择。"
+    "audio_prompt_hint": "我们会记住你的选择。",
+    "reset_yes": "确定，重新开始",
+    "reset_no": "取消"
   }
 }
