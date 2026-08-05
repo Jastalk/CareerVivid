@@ -463,20 +463,28 @@
 }
 
 @layer utilities {
+  /* These blanket rules auto-darken light-mode utilities that were never given a
+     dark variant. They match by substring, which means `dark:hover:bg-white`
+     also contains "bg-white" — so a button that had deliberately chosen a light
+     dark-mode background got forced to #262522 with !important, landing on
+     near-black text for contrast of about 1.03:1. Invisible.
+
+     The :not() guards fix that: if an element declares its own dark background
+     or text colour, it has opted in explicitly and the fallback stands aside. */
   html.dark [class*="bg-[#f7f1e7]"],
   html.dark [class*="bg-[#fbfbfe]"],
-  html.dark [class*="bg-gray-50"],
-  html.dark [class*="bg-gray-100"] {
+  html.dark [class*="bg-gray-50":not([class*="dark:bg-"]),
+  html.dark [class*="bg-gray-100":not([class*="dark:bg-"]) {
     background-color: #1f1f1d !important;
   }
 
   html.dark [class*="bg-[#fffaf1]"],
-  html.dark [class*="bg-white"] {
+  html.dark [class*="bg-white":not([class*="dark:bg-"]) {
     background-color: #262522 !important;
   }
 
-  html.dark [class*="bg-gray-200"],
-  html.dark [class*="bg-gray-300"] {
+  html.dark [class*="bg-gray-200":not([class*="dark:bg-"]),
+  html.dark [class*="bg-gray-300":not([class*="dark:bg-"]) {
     background-color: #37332d !important;
   }
 
@@ -492,18 +500,18 @@
   }
 
   html.dark [class*="text-[#211b16]"],
-  html.dark [class*="text-black"],
-  html.dark [class*="text-gray-950"],
-  html.dark [class*="text-gray-900"],
-  html.dark [class*="text-gray-800"] {
+  html.dark [class*="text-black":not([class*="dark:text-"]),
+  html.dark [class*="text-gray-950":not([class*="dark:text-"]),
+  html.dark [class*="text-gray-900":not([class*="dark:text-"]),
+  html.dark [class*="text-gray-800":not([class*="dark:text-"]) {
     color: #f4f1e9 !important;
   }
 
   html.dark [class*="text-[#665a4a]"],
   html.dark [class*="text-[#7d6e5e]"],
-  html.dark [class*="text-gray-700"],
-  html.dark [class*="text-gray-600"],
-  html.dark [class*="text-gray-500"] {
+  html.dark [class*="text-gray-700":not([class*="dark:text-"]),
+  html.dark [class*="text-gray-600":not([class*="dark:text-"]),
+  html.dark [class*="text-gray-500":not([class*="dark:text-"]) {
     color: #aaa39a !important;
   }
 

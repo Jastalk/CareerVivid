@@ -1,3 +1,5 @@
+import courseAccess from '../../data/course-access.json';
+
 /**
  * Central access policy for guest preview and plan-based entitlements.
  *
@@ -15,6 +17,10 @@
  * - ai-foundations-map: module 1 of the AI Agent Builder Curriculum.
  * - coding-interview-patterns: launch promo — free while the course grows;
  *   move it behind Pro by removing it from this set (one-line change).
+ *
+ * Some paid courses can also declare a guest preview in course-access.json.
+ * Those previews are deliberately separate from this set: a guest may open
+ * the course overview and its marked lessons, but not the full course.
  */
 export const FREE_COURSE_IDS: ReadonlySet<string> = new Set([
     'ai-foundations-map',
@@ -22,6 +28,33 @@ export const FREE_COURSE_IDS: ReadonlySet<string> = new Set([
 ]);
 
 export const isCourseFreeForGuests = (courseId: string): boolean => FREE_COURSE_IDS.has(courseId);
+
+type GuestPreview = {
+    startExerciseId: string;
+    exerciseIdPrefixes: readonly string[];
+    exerciseIds: readonly string[];
+};
+
+const getCourseGuestPreview = (courseId: string): GuestPreview | undefined =>
+    (courseAccess.guestPreviews as Record<string, GuestPreview | undefined>)[courseId];
+
+/** A guest can always view an overview when the course has any free module. */
+export const hasGuestCoursePreview = (courseId: string): boolean =>
+    isCourseFreeForGuests(courseId) || Boolean(getCourseGuestPreview(courseId));
+
+/** True only for an entire free course or a lesson in a marked guest module. */
+export const isCourseExerciseFreeForGuests = (courseId: string, exerciseId: string): boolean => {
+    if (isCourseFreeForGuests(courseId)) return true;
+    const preview = getCourseGuestPreview(courseId);
+    return preview?.exerciseIdPrefixes.some((prefix) => exerciseId.startsWith(prefix))
+        || preview?.exerciseIds.includes(exerciseId)
+        || false;
+};
+
+/** First public lesson used for anonymous resume links into a partial preview. */
+export const getGuestCoursePreviewStartExerciseId = (courseId: string): string | undefined => {
+    return getCourseGuestPreview(courseId)?.startExerciseId;
+};
 
 /**
  * Chapters anyone can open even though the rest of their course is paid.

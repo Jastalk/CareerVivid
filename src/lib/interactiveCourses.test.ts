@@ -107,6 +107,62 @@ describe('interactiveCourses', () => {
     }
   });
 
+  it('never lets the correct answer sit in the same slot across a course', () => {
+    // Regression: every System Design quiz question and scenario decision was
+    // authored with correctIndex 0, so the entire graded layer was clearable by
+    // position without reading anything. Guarded course-wide, not just there.
+    for (const course of getInteractiveCourses()) {
+      const graded = getCourseExercises(course).flatMap((exercise) => [
+        ...(exercise.quiz ?? []).map((q) => ({ at: `${exercise.id}/${q.id}`, ...q })),
+        ...(exercise.systemDesignDecision ? [{ at: exercise.id, ...exercise.systemDesignDecision }] : []),
+      ]);
+      if (graded.length < 6) continue;
+
+      const perSlot = graded.reduce<Record<number, number>>(
+        (acc, q) => ({ ...acc, [q.correctIndex]: (acc[q.correctIndex] ?? 0) + 1 }),
+        {},
+      );
+      const slots = Object.keys(perSlot).length;
+      const busiest = Math.max(...Object.values(perSlot));
+
+      expect(slots, `${course.id} puts every answer in one slot`).toBeGreaterThan(1);
+      // A tiny bank can cluster by chance, so only hold the larger ones to a
+      // spread. At 36 questions, 70% in one slot is not an accident — and the AI
+      // courses showed the same authoring habit at 6, where 5-of-6 on one index
+      // is already position-clearable. Six is the lowest bank this can police:
+      // at three options it still permits a 3/2/1 split.
+      if (graded.length >= 6) {
+        expect(busiest / graded.length, `${course.id} clusters answers in one slot`).toBeLessThan(0.7);
+      }
+
+      for (const question of graded) {
+        expect(new Set(question.options).size, `${question.at} repeats an option`).toBe(question.options.length);
+        expect(question.options.length, `${question.at} needs real alternatives`).toBeGreaterThanOrEqual(3);
+      }
+    }
+  });
+
+  it('teaches in the System Design readings rather than listing terms', () => {
+    // Regression: the readings averaged 593 characters — a bag of vocabulary
+    // with no mechanism, no worked number, and no reason anything was true.
+    const course = getInteractiveCourse('system-design-interview')!;
+    const readings = getCourseExercises(course).filter((exercise) => exercise.kind === 'reading');
+
+    expect(readings).toHaveLength(13);
+    for (const reading of readings) {
+      const words = reading.content.trim().split(/\s+/).length;
+      expect(words, `${reading.id} is too short to teach anything`).toBeGreaterThan(300);
+    }
+
+    // Each teaching module must state the invariant it preserves and tell the
+    // learner what the interviewer is actually grading.
+    for (const reading of readings.filter((r) => r.id.endsWith('-reading'))) {
+      expect(reading.content, `${reading.id} states no invariant`).toMatch(/invariant/i);
+      expect(reading.content, `${reading.id} never says what is being graded`)
+        .toMatch(/interviewer is listening for/i);
+    }
+  });
+
   it('registers all System Design Interview simulation and practice widgets', () => {
     const course = getInteractiveCourse('system-design-interview')!;
     for (const exercise of getCourseExercises(course).filter((item) => item.kind === 'interactive')) {

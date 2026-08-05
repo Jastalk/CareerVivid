@@ -7,6 +7,8 @@
  * and is therefore NOT used as content source — external reference links only.
  */
 
+import { shuffleChoices, shuffleWithSeed } from './deterministicShuffle';
+
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
 /* ------------------------------------------------------------------ */
@@ -292,7 +294,36 @@ export const CASE_DRILLS: CaseDrill[] = [
   },
 ];
 
-export const getCaseDrill = (id: string): CaseDrill | undefined => CASE_DRILLS.find((c) => c.id === id);
+/**
+ * Case drills are authored answer-first — the essential clarifying questions
+ * come before the distractors, and the right design decision is written before
+ * the wrong ones — because that is the readable way to write them. Serving them
+ * in that order would let a learner clear every arena question by picking the
+ * first three and then the second option, so the order is permuted here.
+ *
+ * Seeded on the drill and prompt text: stable for a given learner across
+ * retries and reloads, unrelated to where the author happened to type it.
+ */
+export const getCaseDrill = (id: string): CaseDrill | undefined => {
+  const drill = CASE_DRILLS.find((c) => c.id === id);
+  if (!drill) return undefined;
+  const decide = drill.decide.map((question) => ({
+    ...question,
+    ...shuffleChoices(question.options, question.correctIndex, `${drill.id}:${question.prompt}`),
+  }));
+  return {
+    ...drill,
+    clarify: {
+      ...drill.clarify,
+      options: shuffleWithSeed(drill.clarify.options, `${drill.id}:clarify`),
+    },
+    decide,
+    followup: {
+      ...drill.followup,
+      ...shuffleChoices(drill.followup.options, drill.followup.correctIndex, `${drill.id}:${drill.followup.prompt}`),
+    },
+  };
+};
 
 /* ------------------------------------------------------------------ */
 /* Latency numbers (Jeff Dean / system-design-primer, CC BY 4.0)       */
@@ -312,10 +343,10 @@ export const LATENCY_CARDS: LatencyCard[] = [
   { operation: 'Main memory reference', answer: '100 ns', distractors: ['1 ns', '10 µs', '1 ms'], insight: '200× slower than L1 — why cache-friendly data layouts matter.' },
   { operation: 'Read 4 KB randomly from SSD', answer: '150 µs', distractors: ['150 ns', '15 ms', '1.5 s'], insight: '~1,000× slower than RAM. "Just read it from disk" is never free.' },
   { operation: 'Round trip within same datacenter', answer: '500 µs', distractors: ['5 µs', '50 ms', '500 ms'], insight: 'Every microservice hop costs ~0.5 ms before any work happens — chatty architectures pay this repeatedly.' },
-  { operation: 'Read 1 MB sequentially from SSD', answer: '1 ms', distractors: ['10 µs', '100 ms', '1 s'], insight: 'Sequential SSD ≈ 1 GB/s. Sequential beats random by ~7× on SSD, far more on HDD.' },
+  { operation: 'Read 1 MB sequentially from SSD', answer: '1 ms', distractors: ['10 µs', '100 ms', '1 s'], insight: 'Sequential SSD ≈ 1 GB/s. Reading the same 1 MB as 256 random 4 KB pages costs ~38 ms — sequential wins by ~40×, and by far more on HDD.' },
   { operation: 'HDD disk seek', answer: '10 ms', distractors: ['10 µs', '100 µs', '1 s'], insight: '20× a datacenter round trip — why databases fight so hard to avoid random disk I/O.' },
   { operation: 'Packet round trip CA → Netherlands → CA', answer: '150 ms', distractors: ['1.5 ms', '15 ms', '1.5 s'], insight: 'Physics. No cross-ocean synchronous call belongs in a request path — this number justifies CDNs and regional deployments.' },
-  { operation: 'Read 1 MB sequentially from memory', answer: '250 µs', distractors: ['250 ns', '25 ms', '250 ms'], insight: 'RAM streams at ~4 GB/s — 30× faster than HDD sequential, which is why caches exist.' },
+  { operation: 'Read 1 MB sequentially from memory', answer: '250 µs', distractors: ['250 ns', '25 ms', '250 ms'], insight: 'RAM streams at ~4 GB/s. The same megabyte takes ~1 ms from SSD (4×) and ~30 ms from HDD (120×) — that spread is the whole argument for caching.' },
 ];
 
 /* ------------------------------------------------------------------ */

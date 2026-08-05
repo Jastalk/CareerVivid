@@ -37,34 +37,34 @@
               "id": "q1-differentiator",
               "prompt": "An interviewer sees 'chat with your PDF' on two resumes. Candidate A shows response screenshots; candidate B shows an eval table (89% grounded, worst failures listed) and a semantic cache hit-rate. Who reads as the engineer, and why?",
               "options": [
-                "A — screenshots prove it works",
-                "B — measurement and cost-awareness are what separate building from demoing",
-                "Neither; PDFs are played out"
+                "A — a working demo beats a spreadsheet, and 89% grounded is an admission that it's wrong 11% of the time",
+                "Neither stands out — both built the same tutorial project, so the differentiator has to be a more original idea",
+                "B — measurement and cost-awareness are what separate building from demoing"
               ],
-              "correctIndex": 1,
-              "explanation": "Same project, different evidence. Evals and ops numbers show you know *how well* it works and *what it costs* — the two questions production teams ask all day."
+              "correctIndex": 2,
+              "explanation": "Same project, different evidence. Evals and ops numbers show you know *how well* it works and *what it costs* — the two questions production teams ask all day. The first option gets the psychology backwards: publishing 89% and naming your worst failures reads as confidence, because everyone in the room knows the honest number is never 100 and A's screenshots are simply the cases that worked. And the second is the trap that keeps portfolios unfinished — chasing a novel idea instead of taking an ordinary one seriously. B's project is the cliché one. B still wins."
             },
             {
               "id": "q2-queue-justification",
               "prompt": "In your architecture, video analysis goes through a job queue. The interviewer asks why. Your best answer:",
               "options": [
-                "\"Queues are a best practice\"",
                 "\"Analysis takes minutes; HTTP requests time out in seconds — the queue moves slow work out of the request cycle and makes retries safe\"",
-                "\"The framework included one\""
+                "\"It decouples the services, so the API and the worker can scale and deploy independently\"",
+                "\"It smooths out traffic spikes — the queue absorbs a burst the workers couldn't handle synchronously\""
               ],
-              "correctIndex": 1,
-              "explanation": "The winning answer names the constraint (minutes vs seconds) and the failure it prevents (timeouts, unsafe retries). Every box in your diagram deserves an answer of this shape."
+              "correctIndex": 0,
+              "explanation": "The winning answer names the constraint (minutes vs seconds) and the failure it prevents (timeouts, unsafe retries). The other two are true, and you may well say them as follow-ups — that is what makes them the interesting wrong answers. But both are benefits a queue *also* provides, and neither would have forced you to add one: decoupling has other solutions, and buffering only matters once your load justifies it. Only the timeout answer explains why the component is not optional. Every box in your diagram deserves an answer of that shape."
             },
             {
               "id": "q3-agent-guardrails",
               "prompt": "You demo an agent project. Which detail most strongly signals production instincts?",
               "options": [
-                "The agent has fifteen tools",
+                "It falls back to a smaller model automatically when the primary provider is rate-limiting",
                 "It shows an iteration cap, a tool allowlist, and a trace viewer for every run",
-                "It uses the newest model released this month"
+                "Each tool has a hand-written schema with validated arguments and typed errors"
               ],
               "correctIndex": 1,
-              "explanation": "Guardrails and observability say 'I've thought about how this fails.' Tool count and model version say 'I read the changelog.'"
+              "explanation": "Guardrails and observability say 'I've thought about how this fails' — and the trace viewer is the detail that carries the most weight, because it is the thing you only build after you have had to debug a bad run. The other two are genuinely good engineering and will land well; they are just narrower. A fallback chain covers one failure mode, and typed tool schemas improve the happy path. The cap-allowlist-trace trio covers cost, blast radius, and diagnosis at once."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

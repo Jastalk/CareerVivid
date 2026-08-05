@@ -65,5 +65,34 @@ When provided with a video project directory (e.g., `Resume editor demo video (1
    - Present the rendered video file to the user for review.
    - Wait for the user to confirm there are no more changes.
 3. **Deploy to YouTube:**
-   - Once the user explicitly approves, upload the video to YouTube using the `hackathon-youtube-uploader` skill.
+   - **MANDATORY CLI-ONLY UPLOAD DIRECTIVE**: YouTube video uploads and metadata releases MUST be performed **100% exclusively via CLI tools**. Never use browser GUI, manual web uploads, or browser automation for YouTube uploads.
+   - **CareerVivid Videos**: MUST upload exclusively to **`https://www.youtube.com/@CareerVividSystemDesign`** using `node scripts/upload-careervivid-youtube-video.mjs`.
+   - **DevPost / Hackathon Videos**: Upload to **`@evanzhu-k8q`** using `uploader.js`. Never mix CareerVivid content onto `@evanzhu-k8q`.
    - By default, the privacy setting must be set to `public`.
+
+## System Design Video Production Skill (Veo 3.1 Lite)
+
+All agents (Antigravity, Claude Code, and Subagent Fleets) generating System Design explainer videos MUST read and obey the Skill specification at:
+`skills/vox-system-design-video-production/SKILL.md`
+
+- **Mandatory Daily Video Production Cadence**: All agents MUST produce **3 high-converting System Design videos EVERY DAY**.
+  - **Topic Differentiation**: If a topic (e.g. YouTube, Uber, WhatsApp) has been covered before, choose **new deep-dive sub-categories** that were NOT mentioned previously.
+  - **TikTok Submission & Thumbnail Mandate**: For TikTok uploads via `node scripts/upload-tiktok-video.mjs --video <mp4> --thumbnail <jpg> --caption <caption>`, the uploader MUST attach the custom 16:9 thumbnail cover, ensure "Who can see this post" is set to "Everyone", and complete the final step of clicking the **Post/Submit button** so the video link is published live.
+- **Mandatory Default AI Video Model**: `veo-3.1-lite-generate-001` ($0.05/sec, restricted to Beats 1 & 8 mood/motion clips with ZERO text).
+- **Programmatic Progressive Diagram Architecture**: Beats 2–7 MUST be rendered programmatically at 1920x1080 @ 30fps via Playwright (real DOM text, progressive node/edge build-up, dark grid/slate backdrop, zero AI text gibberish).
+- **Concrete Technical Metrics Mandate**: EVERY beat MUST include at least one concrete metric (QPS, TTFT ms, VRAM GB, Tokens/sec).
+- **Two-Layer Thumbnail Build**: Layer 1 (`generate_image` background plate, zero text) + Layer 2 (Playwright DOM typography overlay).
+- **TikTok 9:16 Vertical Short**: Every compilation MUST cut a 45–60s 9:16 vertical short from Beat 5.
+- **Shared Grammar**: Import from `scripts/system-design-interview/paperCollagePromptGrammar.mjs`.
+- **Zero On-Screen Text in AI Video**: Mandatory `TEXT` and `NEGATIVE` constraints preventing pseudo-latin or edge gibberish text.
+- **Mandatory Spoken Like & Subscribe CTA**: All System Design script outro beats MUST include explicit verbal narration asking viewers to like and subscribe for more breakdowns (e.g., *"If you enjoyed this system design breakdown, make sure to like and subscribe for more! Practice interactive scenarios and 300+ real tech company interview questions today on CareerVivid!"*).
+- **Mandatory YouTube Video Description Links**: All YouTube video descriptions MUST include:
+  - System Design Learning: `https://careervivid.app/learning/system-design-interview`
+  - Coding for Beginners: `https://careervivid.app/learning/coding-interview-patterns`
+  - 300+ Real Tech Company Interview Questions: `https://careervivid.app/interview-studio`
+- **Mandatory 16:9 Thumbnail Generation & Upload**: Every video generated MUST include a high-converting 16:9 thumbnail generated via `generate_image` (paper collage art direction, bold contrast, NO YouTube tags/icons) and attached during CLI upload via `node scripts/upload-careervivid-youtube-video.mjs --video <mp4> --thumbnail <jpg> --title <title> --description <desc>`.
+
+## ego-browser Handoff Protocol
+- Every time after an agent finishes using `ego-browser`, the agent MUST invoke `await completeTaskSpace(task.id, { keep: true })` (or `{ keep: false }`) to relinquish browser control and return control back to the user immediately.
+
+

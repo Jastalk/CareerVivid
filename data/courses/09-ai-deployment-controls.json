@@ -56,34 +56,34 @@
               "id": "q1-p95",
               "prompt": "Why monitor p95 latency instead of average latency?",
               "options": [
-                "p95 is easier to compute",
                 "Averages hide the tail — one slow call in twenty is thousands of users having a bad day, invisible in the mean",
-                "APIs only report percentiles"
+                "A single 60-second outlier drags the average up and makes a healthy service look broken",
+                "Percentiles can be compared across services, while averages depend on each service's traffic mix"
               ],
-              "correctIndex": 1,
-              "explanation": "A 2s average with a 30s p95 means 5% of requests are agonizing. Users remember the tail, not the mean."
+              "correctIndex": 0,
+              "explanation": "A 2s average with a 30s p95 means 5% of requests are agonising, and users remember the tail. The second option has the failure mode exactly inverted, which is why it is worth sitting with: outliers *do* move a mean, but in a stream of millions one 60-second call moves it by microseconds. The mean's real sin is the opposite — it is dominated by the fast majority, so a badly degraded 5% disappears into it entirely."
             },
             {
               "id": "q2-degradation",
               "prompt": "The frontier model API is having an incident. What does a well-built AI app do?",
               "options": [
-                "Show an error page until the provider recovers",
-                "Degrade gracefully — fall back to a faster model or cached answers, and tell users if quality is reduced",
-                "Retry the same call in a tight loop"
+                "Queue the requests and replay them once the provider recovers",
+                "Retry with exponential backoff and jitter until the call succeeds",
+                "Degrade gracefully — fall back to a faster model or cached answers, and tell users if quality is reduced"
               ],
-              "correctIndex": 1,
-              "explanation": "Fallback chains keep the product alive through provider incidents. Tight retry loops make their incident your outage."
+              "correctIndex": 2,
+              "explanation": "Fallback chains keep the product alive through provider incidents. The backoff answer is the one to argue with, because backoff-with-jitter is correct and you should absolutely have it — it just solves a different problem. It stops *you* from amplifying their outage; it does not get an answer to the user in front of you now. Queue-and-replay is right for background work and useless for anything synchronous: nobody wants yesterday's answer to a question they asked during the incident."
             },
             {
               "id": "q3-cost-creep",
               "prompt": "Cost per user is creeping up 10% weekly with no traffic growth. What's your first move?",
               "options": [
-                "Wait for the monthly bill to confirm the trend",
+                "Set a budget alert so you're told before it reaches a level that matters",
                 "Break down cost by feature and prompt — find what's growing (prompt bloat? longer outputs? retry storms?) before it compounds",
-                "Switch every feature to the cheapest model today"
+                "Move the highest-volume feature to a cheaper model and see whether the curve flattens"
               ],
               "correctIndex": 1,
-              "explanation": "Diagnosis before medicine: the breakdown tells you whether the fix is a cache, a prompt trim, or a retry bug. Compounding 10% weekly doubles in 8 weeks."
+              "explanation": "Diagnosis before medicine: the breakdown tells you whether the fix is a cache, a prompt trim, or a retry bug. Compounding 10% weekly doubles in eight weeks. An alert is worth having but it is not a first move — you already know the trend, that is what prompted the question, and an alert just tells you again later. Swapping models is a real fix aimed at a cause you haven't established; if the growth is a retry storm, a cheaper model makes retries cheaper and the bug keeps compounding underneath."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

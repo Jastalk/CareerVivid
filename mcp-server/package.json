@@ -1,6 +1,6 @@
 {
   "name": "careervivid-mcp-server",
-  "version": "2.1.0",
+  "version": "2.1.3",
   "description": "CareerVivid MCP Server — jobs, resumes, cover letters, referrals, publishing, and portfolio management.",
   "main": "dist/index.js",
   "bin": {

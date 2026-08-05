@@ -56,34 +56,34 @@
               "id": "q1-supervisor-job",
               "prompt": "In the supervisor pattern, what should the supervisor NOT do?",
               "options": [
-                "Decompose the goal into subtasks",
-                "Verify the specialists' results",
-                "Perform the subtasks itself when the specialists seem slow"
+                "Take on a subtask itself when a specialist is slow or has already failed twice",
+                "Re-run a specialist with a sharper brief when the first result comes back thin",
+                "Decide the order subtasks run in, including which ones can run in parallel"
               ],
-              "correctIndex": 2,
-              "explanation": "The moment the supervisor starts doing the work, you're back to one overloaded agent — with extra steps. Routing and verification are the whole job."
+              "correctIndex": 0,
+              "explanation": "The moment the supervisor starts doing the work, you're back to one overloaded agent — with extra steps, and now its context is polluted with implementation detail it needs to stay above in order to judge the next result. Retrying with a better brief is squarely the supervisor's job: it is a routing decision, informed by having seen the output. So is sequencing — knowing what can run in parallel is most of what a supervisor is for."
             },
             {
               "id": "q2-review-separation",
               "prompt": "Why give review to a separate agent instead of asking the builder to check its own work?",
               "options": [
-                "The builder's context is too full",
-                "An author re-reading its own output inherits its own blind spots; fresh context catches different errors",
-                "Reviewer models are a special type of LLM"
+                "The builder's context window is nearly full by the time it finishes",
+                "A reviewer can be given a stronger model than the builder, so it catches more",
+                "An author re-reading its own output inherits its own blind spots; fresh context catches different errors"
               ],
-              "correctIndex": 1,
-              "explanation": "Same model, fresh context, adversarial framing — that separation is what makes review meaningful. It's code review for agents."
+              "correctIndex": 2,
+              "explanation": "Same model, fresh context, adversarial framing — that separation is what makes review meaningful. It's code review for agents. A full window is a real operational problem with a different fix (compaction), and it would stop mattering the moment context got cheaper — the blind-spot argument would not. Model tiering is a nice option the separation gives you, not the reason for it: a reviewer running the *same* model at the same tier still catches errors the builder cannot see, because it never made the decision that caused them."
             },
             {
               "id": "q3-when-not",
               "prompt": "A user wants to look up one fact from your docs. Multi-agent or single agent?",
               "options": [
-                "Multi-agent — more agents means more reliability",
+                "Multi-agent — a retriever plus a verifier catches wrong answers before they ship",
                 "Single agent (or plain RAG) — multi-agent adds calls, latency, and handoff risk for zero benefit here",
-                "Neither; facts require fine-tuning"
+                "Multi-agent, so each doc source gets its own specialist and nothing is missed"
               ],
               "correctIndex": 1,
-              "explanation": "Architecture should match task complexity. Simple lookup = simple pipeline. Save the team for work that needs distinct specialties or verification."
+              "explanation": "Architecture should match task complexity. Simple lookup = simple pipeline. Save the team for work that needs distinct specialties or verification. Both wrong answers describe real patterns that earn their keep at scale — verifier agents and per-source retrievers are standard once the corpus is large or the stakes are high. On a single-fact lookup they triple the latency and add two handoffs where the answer can be paraphrased into something subtly different from what the doc said."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

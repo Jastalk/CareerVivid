@@ -74,4 +74,45 @@ describe('systemDesignQuestionBank', () => {
       expect(set.items.length).toBeGreaterThanOrEqual(5);
     }
   });
+
+  it('serves case drills with the answer position scrambled, not authored-first', () => {
+    // The defect: drills are authored answer-first (essential clarify questions
+    // written before the distractors, the right decision before the wrong ones),
+    // so serving them raw let a learner clear the whole arena by picking the
+    // first three and then option two. getCaseDrill permutes on the way out.
+    const answerSlots = new Set<number>();
+    const essentialSlots = new Set<string>();
+
+    for (const authored of CASE_DRILLS) {
+      const served = getCaseDrill(authored.id)!;
+
+      // The shuffle must preserve content: same options, answer still correct.
+      const authoredMcqs = [...authored.decide, authored.followup];
+      const servedMcqs = [...served.decide, served.followup];
+      expect(servedMcqs).toHaveLength(authoredMcqs.length);
+      for (const [i, question] of servedMcqs.entries()) {
+        const source = authoredMcqs[i];
+        expect([...question.options].sort()).toEqual([...source.options].sort());
+        expect(question.options[question.correctIndex]).toBe(source.options[source.correctIndex]);
+        answerSlots.add(question.correctIndex);
+      }
+
+      expect([...served.clarify.options].map((o) => o.text).sort())
+        .toEqual([...authored.clarify.options].map((o) => o.text).sort());
+      expect(served.clarify.options.filter((o) => o.essential))
+        .toHaveLength(authored.clarify.requiredCount);
+      essentialSlots.add(
+        served.clarify.options.flatMap((o, i) => (o.essential ? [i] : [])).join(','),
+      );
+
+      // Same drill, same order — a retry must not look like a new question.
+      expect(getCaseDrill(authored.id)).toEqual(served);
+    }
+
+    // No single slot can carry the answer, and the essential clarify questions
+    // must not land in the same three positions in every drill.
+    expect(answerSlots.size).toBeGreaterThan(1);
+    expect(essentialSlots.size).toBeGreaterThan(1);
+    expect(essentialSlots.has('0,1,2')).toBe(false);
+  });
 });

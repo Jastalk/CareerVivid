@@ -56,34 +56,34 @@
               "id": "q1-generic-answers",
               "prompt": "Your prompt keeps producing generic, could-apply-to-anyone answers. Which block is most likely missing?",
               "options": [
-                "Role — the model needs a personality",
                 "Context — without your specific facts, the model fills gaps with averages",
-                "A politeness marker like 'please'"
+                "Role — the model has to be told it's an expert before it will answer like one",
+                "Output format — an unstructured answer has nowhere to put the specifics"
               ],
-              "correctIndex": 1,
-              "explanation": "Generic output is the signature of missing context. The model doesn't know your situation unless you put it in the prompt."
+              "correctIndex": 0,
+              "explanation": "Generic output is the signature of missing context. The model doesn't know your situation unless you put it in the prompt. Reaching for the role block is the most common reflex, and it is why so many prompts open with three sentences of flattery and still return mush: a role changes register and vocabulary, not the facts available. If the model doesn't know your team ships weekly, no amount of 'you are a world-class expert' will make it say so."
             },
             {
               "id": "q2-format-why",
               "prompt": "Why does the output-format block matter so much for agents and pipelines?",
               "options": [
-                "JSON responses use fewer tokens",
-                "Code needs to parse the answer — structured output turns a chat reply into a usable component",
-                "Models think harder when asked for JSON"
+                "JSON is more compact than prose, so structured pipelines cost fewer tokens",
+                "Committing to a schema makes the model reason more carefully about the answer",
+                "Code needs to parse the answer — structured output turns a chat reply into a usable component"
               ],
-              "correctIndex": 1,
-              "explanation": "Downstream code can't reliably parse prose. A schema makes the model's output a contract that functions, tools, and agents can consume."
+              "correctIndex": 2,
+              "explanation": "Downstream code can't reliably parse prose. A schema makes the model's output a contract that functions, tools, and agents can consume. The token argument is backwards — braces, quotes, and repeated key names are pure overhead, and JSON is usually *more* tokens than the equivalent sentence. You accept that cost for parseability. Nor does a schema improve reasoning; if anything, forcing early commitment to a rigid shape can cost a little quality, which is why teams often ask for reasoning first and the JSON last."
             },
             {
               "id": "q3-delimiters",
               "prompt": "What do delimiters (``` or XML tags) around user content protect against?",
               "options": [
-                "Token-count overcharges",
+                "Markdown inside the user's text breaking how your app renders the reply",
                 "The model confusing user-provided data with instructions — including malicious ones",
-                "Markdown rendering glitches in the UI"
+                "Unbounded user input silently pushing your instructions out of the context window"
               ],
               "correctIndex": 1,
-              "explanation": "Delimiters keep 'stuff to process' separate from 'things to do'. That separation is also your first line of defense against prompt injection."
+              "explanation": "Delimiters keep 'stuff to process' separate from 'things to do'. That separation is also your first line of defense against prompt injection. The other two are real problems with real fixes — sanitise on render, and truncate or budget the input — but a delimiter does neither. It is a boundary marker in the prompt, not an escape function and not a length limit; wrapping a 200k-token document in backticks still overflows the window."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }
@@ -123,34 +123,34 @@
               "id": "q1-when-fewshot",
               "prompt": "Which task benefits most from few-shot examples?",
               "options": [
-                "Asking for today's weather",
-                "Extracting fields from invoices into your company's exact JSON schema",
-                "Generating a completely original poem"
+                "Answering questions about a product line the model was never trained on",
+                "Writing a genuinely original poem on a fresh theme",
+                "Extracting fields from invoices into your company's exact JSON schema"
               ],
-              "correctIndex": 1,
-              "explanation": "Few-shot shines at format transfer — showing the model your exact schema and labeling conventions beats describing them."
+              "correctIndex": 2,
+              "explanation": "Few-shot shines at format transfer — showing the model your exact schema and labeling conventions beats describing them. The first option is the most common misuse: examples teach a *pattern*, not a knowledge base, so twenty product Q&A pairs will make the model answer confidently in the right shape about the eighty products you didn't include. That is retrieval's job. And examples actively narrow creative work — the poem starts imitating your samples."
             },
             {
               "id": "q2-cot-cost",
               "prompt": "You added chain-of-thought to every prompt in your app and costs jumped 3× with no quality gain. Why?",
               "options": [
-                "CoT generates many extra reasoning tokens, which only pay off on genuinely hard problems",
-                "CoT requires a more expensive model tier",
-                "The API charges a reasoning fee"
+                "Reasoning tokens are billed at a premium rate above ordinary output tokens",
+                "CoT generates many extra output tokens, which only pay off on genuinely hard problems",
+                "Chain-of-thought only runs on reasoning-tier models, which cost more per call"
               ],
-              "correctIndex": 0,
-              "explanation": "Reasoning tokens are output tokens — the most expensive kind. Use CoT selectively where multi-step reasoning actually changes the answer."
+              "correctIndex": 1,
+              "explanation": "Reasoning tokens are output tokens — the most expensive kind — and CoT makes a lot of them. Use it where multi-step reasoning actually changes the answer. The premium-rate answer is worth pinning down: with CoT *prompting* there is no special rate, the tokens are ordinary output, and the bill grows because there are more of them, not because each costs more. Nor does CoT require a special model; 'think step by step' works on any model, which is exactly why it is so easy to switch on everywhere and never measure."
             },
             {
               "id": "q3-react",
               "prompt": "What does ReAct prompting add over plain chain-of-thought?",
               "options": [
-                "Faster generation",
                 "Actions — the model interleaves reasoning with tool calls and reads their results",
-                "It removes the need for examples"
+                "A verification pass, where the model critiques its own reasoning before answering",
+                "Memory that persists across turns, so the model accumulates state"
               ],
-              "correctIndex": 1,
-              "explanation": "ReAct = Reason + Act. Thought → Action → Observation → repeat is the loop that turns a language model into an agent."
+              "correctIndex": 0,
+              "explanation": "ReAct = Reason + Act. Thought → Action → Observation → repeat is the loop that turns a language model into an agent. The other two name real, adjacent patterns that are easy to conflate — self-critique (Reflexion) and agent memory — and both are things you may end up adding. What makes ReAct distinct is the *observation*: new information enters from outside the model mid-reasoning. Self-critique never leaves the model's own head, so it cannot discover a fact the model didn't already have."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

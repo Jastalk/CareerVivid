@@ -5,6 +5,7 @@ import { defineSecret } from "firebase-functions/params";
 import { getAIClient } from "./utils/ai.js";
 import { runPassiveDeepResearchTask } from "./deepResearch";
 import { purgeExpiredJobsCTS } from "./talentSolution";
+import { canonicalInterviewStudioUrl } from "./emailPolicy";
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -133,7 +134,7 @@ export const sendPracticeEmails = onSchedule({
                 });
 
                 // Send Email
-                const emailLink = `https://careervivid.web.app/#/interview-studio/${jobId}`;
+                const emailLink = canonicalInterviewStudioUrl(jobId);
 
                 await db.collection('mail').add({
                     to: userData.email,

@@ -56,45 +56,45 @@
               "id": "q1-hallucination",
               "prompt": "Why does an LLM hallucinate about your company's refund policy?",
               "options": [
-                "The model is trying to be helpful by inventing plausible policies",
-                "It's a next-token predictor with no access to your policy — fluent guessing is its default behavior",
-                "Refund policies are legally protected data"
+                "It was trained on other companies' refund policies and generalises from them",
+                "Its training data was too old to include your current policy",
+                "It's a next-token predictor with no access to your policy — fluent guessing is its default behavior"
               ],
-              "correctIndex": 1,
-              "explanation": "No facts in, plausible tokens out. The fix is retrieval: put the actual policy into the context window."
+              "correctIndex": 2,
+              "explanation": "No facts in, plausible tokens out. The fix is retrieval: put the actual policy into the context window. The other two are close enough to be worth separating, because they point at the wrong fix. 'Trained on similar policies' explains why the invention sounds so credible — 30 days, receipt required — but not why it invents at all. And a cutoff date implies a newer model would help; it wouldn't, because your internal policy was never in any training set, at any date."
             },
             {
               "id": "q2-semantic",
               "prompt": "A user asks 'days off?' and the handbook says 'vacation accrual policy'. Why does embedding search still find it?",
               "options": [
-                "The database stores synonyms for every word",
+                "The index expands each query with synonyms before searching",
                 "Embeddings map similar *meanings* to nearby vectors, regardless of word overlap",
-                "It doesn't — RAG requires exact keyword matches"
+                "The model rewrites the question into handbook vocabulary first"
               ],
               "correctIndex": 1,
-              "explanation": "That's the core trick: semantic similarity in vector space, not string matching."
+              "explanation": "That's the core trick: semantic similarity in vector space, not string matching. The other two describe real techniques — synonym expansion and query rewriting are both used in production, often *alongside* embeddings — but they are extra machinery bolted on top. Plain vector search already handles this case with nothing added, because 'days off' and 'vacation accrual' land near each other in the embedding space without anyone writing down that they are related."
             },
             {
               "id": "q3-freshness",
               "prompt": "Your product docs change weekly. With RAG, what do you update?",
               "options": [
-                "Re-train or fine-tune the model weekly",
+                "Re-embed the entire corpus so the vector space stays consistent",
                 "Just the index — re-chunk and re-embed the changed docs",
-                "Nothing; models pick up changes automatically"
+                "Re-train or fine-tune the model on the new documentation"
               ],
               "correctIndex": 1,
-              "explanation": "The model never changes. Freshness lives in the index, which is exactly why RAG beats fine-tuning for knowledge."
+              "explanation": "The model never changes. Freshness lives in the index, which is exactly why RAG beats fine-tuning for knowledge. The first option is the trap for people who understand embeddings *almost* well enough: vectors are computed per chunk and independently, so an unchanged document's vector is bit-for-bit identical whether you recompute it or not. Re-embedding everything weekly is a real bill for zero change. The one time it is genuinely required is when you switch embedding models — then old and new vectors are incomparable and the whole corpus must be rebuilt."
             },
             {
               "id": "q4-failure",
               "prompt": "A RAG system gives a wrong answer even though generation works fine. Where do you look first?",
               "options": [
                 "Retrieval — check which chunks were fetched and whether the right one exists at all",
-                "Increase the temperature",
-                "Switch to a bigger model immediately"
+                "The prompt — tighten the instruction to only answer from the provided context",
+                "The model — move up a tier so it follows the context more faithfully"
               ],
               "correctIndex": 0,
-              "explanation": "Most RAG failures are retrieval failures: wrong chunks, bad chunking, or missing content. Debug the context before blaming the model."
+              "explanation": "Most RAG failures are retrieval failures: wrong chunks, bad chunking, or missing content. Debug the context before blaming the model. Grounding instructions are genuinely worth having, and a stronger model does follow context better — but both are fixes for a model that *ignores* good context, and you have not yet established that the context was good. Log the retrieved chunks first. If the right passage was never fetched, no instruction and no model tier can recover it."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

@@ -1,17 +1,26 @@
 import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
-import { getAIClient } from "./utils/ai";
+import { getAIClient, getVertexLocationForModel } from "./utils/ai";
 import { secureCorsHandler } from "./utils/corsUtils.js";
 
 const corsHandler = secureCorsHandler;
 const END_MARKER = "__END_GEMINI__";
 
+const MODEL_ALIASES: Record<string, string> = {
+  "gemini-3.1-flash-lite": "gemini-2.5-flash-lite",
+  "gemini-3.1-flash-lite-preview": "gemini-2.5-flash-lite",
+  "gemini-3.5-flash-lite": "gemini-2.5-flash-lite",
+  "gemini-3.5-flash": "gemini-2.5-flash",
+  "gemini-3.6-flash": "gemini-2.5-flash",
+  "gemini-3.1-pro-preview": "gemini-2.5-pro",
+  "gemini-3-flash-preview": "gemini-2.5-flash",
+  "gemini-3.1-flash-preview": "gemini-2.5-flash",
+  "gemini-2.5-flash-preview": "gemini-2.5-flash",
+  "gemini-2.5-pro-preview": "gemini-2.5-pro",
+};
+
 /**
  * Models this proxy is allowed to run.
- *
- * Without a list, `modelName` came straight off the request body, so a caller
- * could name any model the service account can reach — including ones far more
- * expensive than anything the UI offers.
  */
 const ALLOWED_MODELS = new Set([
   "gemini-2.5-flash",
@@ -20,6 +29,9 @@ const ALLOWED_MODELS = new Set([
   "gemini-2.5-flash-image",
   "gemini-3-pro-image-preview",
   "imagen-4.0-generate-001",
+  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3.6-flash",
 ]);
 
 /** Largest prompt this proxy will forward, in bytes of serialized `contents`. */
@@ -27,11 +39,6 @@ const MAX_CONTENTS_BYTES = 400_000;
 
 /**
  * Resolve the caller from their Firebase ID token.
- *
- * `invoker: "public"` stays: a browser authenticates with a Firebase ID token,
- * which IAM knows nothing about, so making the function IAM-private would lock
- * the web app out rather than lock attackers out. The gate belongs here, in the
- * handler, where the Firebase token can actually be verified.
  */
 async function resolveCaller(req: any): Promise<string | null> {
   const header: string = req.headers?.authorization || "";
@@ -50,6 +57,7 @@ export const streamGeminiResponse = onRequest(
     region: "us-west1",
     memory: "1GiB",
     invoker: "public",
+    secrets: ["GEMINI_API_KEY"],
   },
   async (req, res) => {
     corsHandler(req, res, async () => {
@@ -77,6 +85,10 @@ export const streamGeminiResponse = onRequest(
         systemInstruction,
       } = payload;
 
+      if (modelName && MODEL_ALIASES[modelName]) {
+        modelName = MODEL_ALIASES[modelName];
+      }
+
       if (!ALLOWED_MODELS.has(modelName)) {
         res.status(400).json({ error: `Model not available: ${modelName}` });
         return;
@@ -102,7 +114,7 @@ export const streamGeminiResponse = onRequest(
         const isImagenPredict = modelName.startsWith("imagen");
 
         if (isImageMode && isImagenPredict) {
-          const ai = getAIClient();
+          const ai = getAIClient(undefined, getVertexLocationForModel(modelName));
           const promptText = typeof contents === 'string' ? contents : JSON.stringify(contents);
           
           const response = await ai.models.generateImages({
@@ -138,25 +150,42 @@ export const streamGeminiResponse = onRequest(
           return;
         }
 
-        const ai = getAIClient();
         const finalConfig = { ...config };
         if (systemInstruction) {
           finalConfig.systemInstruction = systemInstruction;
         }
 
         let result: any;
-        if (isImageMode) {
-          result = await ai.models.generateContent({ 
-            model: modelName, 
-            contents, 
-            config: finalConfig 
-          });
-        } else {
-          result = await ai.models.generateContentStream({ 
-            model: modelName, 
-            contents, 
-            config: finalConfig 
-          });
+        let ai = getAIClient(undefined, getVertexLocationForModel(modelName));
+
+        try {
+          if (isImageMode) {
+            result = await ai.models.generateContent({ 
+              model: modelName, 
+              contents, 
+              config: finalConfig 
+            });
+          } else {
+            result = await ai.models.generateContentStream({ 
+              model: modelName, 
+              contents, 
+              config: finalConfig 
+            });
+          }
+        } catch (initialErr: any) {
+          // If a requested model is retired or returns 404, fallback to gemini-2.5-flash
+          if (initialErr?.message?.includes("NOT_FOUND") || initialErr?.message?.includes("404") || initialErr?.status === 404) {
+            console.warn(`Model ${modelName} returned 404. Falling back to gemini-2.5-flash.`);
+            const fallbackModel = "gemini-2.5-flash";
+            ai = getAIClient(undefined, getVertexLocationForModel(fallbackModel));
+            if (isImageMode) {
+              result = await ai.models.generateContent({ model: fallbackModel, contents, config: finalConfig });
+            } else {
+              result = await ai.models.generateContentStream({ model: fallbackModel, contents, config: finalConfig });
+            }
+          } else {
+            throw initialErr;
+          }
         }
 
         res.setHeader("Content-Type", "text/plain");

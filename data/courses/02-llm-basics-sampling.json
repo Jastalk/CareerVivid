@@ -46,34 +46,34 @@
               "id": "q1-billing",
               "prompt": "Your API bill doubled this month with the same number of users. Which change most likely caused it?",
               "options": [
-                "You switched the app's font to a wider one",
-                "You added a long system prompt that is sent with every single request",
-                "Users started asking questions in the evening"
+                "You turned on streaming, so tokens are now billed as they arrive",
+                "You raised max_tokens from 500 to 2,000 so answers stop getting truncated",
+                "You added a long system prompt that is sent with every single request"
               ],
-              "correctIndex": 1,
-              "explanation": "System prompts are input tokens on every call. Adding 1,500 tokens of instructions to every request is the classic silent bill-doubler."
+              "correctIndex": 2,
+              "explanation": "System prompts are input tokens on every call. Adding 1,500 tokens of instructions to every request is the classic silent bill-doubler — invisible in code review, charged forever. The max_tokens answer is the one that catches most engineers: it is a *ceiling*, not a reservation. You are billed for the tokens actually generated, so raising the cap costs nothing until answers genuinely get longer. Streaming changes how tokens are delivered, not how they are counted."
             },
             {
               "id": "q2-latency",
               "prompt": "Users complain the AI answer takes too long to finish. What's the most direct fix?",
               "options": [
+                "Stream the response so the first words appear immediately",
                 "Constrain the output — shorter answers mean fewer tokens to generate",
-                "Move the server closer to the users",
-                "Increase the temperature so the model decides faster"
+                "Move the inference server into the same region as your users"
               ],
-              "correctIndex": 0,
-              "explanation": "Output tokens are generated sequentially, so answer length dominates generation time. Temperature changes *which* token is picked, not how fast."
+              "correctIndex": 1,
+              "explanation": "Output tokens are generated one after another, so answer length is what dominates total time. Streaming is the answer worth thinking hardest about: it is genuinely the right fix for *perceived* wait, but the last token still lands at exactly the same moment — it moves time-to-first-token, not time-to-finish, which is what was complained about. Region moves buy you tens of milliseconds against several seconds of generation."
             },
             {
               "id": "q3-languages",
               "prompt": "Why can the same message cost more tokens in Chinese or emoji than in English?",
               "options": [
-                "The API charges a foreign-language fee",
                 "Tokenizers are trained mostly on English, so other scripts split into more, smaller pieces",
-                "Unicode characters are physically larger"
+                "Those characters take more bytes in UTF-8, and tokens are billed per byte",
+                "The model translates the text internally before it can answer"
               ],
-              "correctIndex": 1,
-              "explanation": "Token vocabularies reflect training data. Text unlike that data — CJK scripts, emoji, rare symbols — fragments into more tokens per character."
+              "correctIndex": 0,
+              "explanation": "Token vocabularies reflect training data. Text unlike that data — CJK scripts, emoji, rare symbols — fragments into more tokens per character. The UTF-8 answer gets the right direction for the wrong reason, and the distinction matters: a token is a learned vocabulary entry, not a fixed number of bytes. A common English word is one token whether it is 3 letters or 12, while an emoji can cost several tokens on its own."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }
@@ -129,45 +129,45 @@
               "id": "q1-triangle",
               "prompt": "You're building autocomplete that fires on every keystroke. Which corner of the triangle dominates?",
               "options": [
-                "Quality — suggestions must be perfect",
-                "Latency — a suggestion that arrives late is worthless, so use a small fast model",
-                "Cost — pick the cheapest model regardless of speed"
+                "Latency — a suggestion that lands after you've typed the next word is worthless",
+                "Quality — a wrong suggestion is worse than none, so reach for the strongest model",
+                "Cost — it fires on every keystroke, so per-call price is what will break you"
               ],
-              "correctIndex": 1,
-              "explanation": "Autocomplete is worthless if it lags behind typing. Small, fast models with tiny outputs win here — quality just needs to be 'good enough to accept sometimes'."
+              "correctIndex": 0,
+              "explanation": "Autocomplete is worthless if it lags behind typing, so small fast models with tiny outputs win. The cost argument is the strongest challenger and deserves an answer: the volume really is enormous. But it resolves the same way — the models fast enough to keep up are also the cheap ones, so latency is the binding constraint and cost follows it. Quality only needs to clear 'good enough to accept sometimes', because a rejected suggestion costs the user one keystroke."
             },
             {
               "id": "q2-temperature-task",
               "prompt": "You're extracting invoice numbers from emails into JSON. Which settings make sense?",
               "options": [
-                "Temperature ~0 with a stop sequence after the JSON — you want repeatable, parseable output",
-                "Temperature 1.2 so the model can be flexible about formats",
-                "Maximum max_tokens so nothing is ever cut off"
+                "Temperature 1.2, so the model can adapt to invoice layouts it hasn't seen",
+                "Temperature ~0 *and* top_p 0.5, to constrain the sampling twice over",
+                "Temperature ~0 with a stop sequence after the JSON — you want repeatable, parseable output"
               ],
-              "correctIndex": 0,
-              "explanation": "Extraction is a determinism task: low temperature, constrained output. High temperature adds exactly the creativity you don't want in structured data."
+              "correctIndex": 2,
+              "explanation": "Extraction is a determinism task: low temperature, constrained output. High temperature adds exactly the creativity you don't want in structured data. The third option is the subtle one — stacking samplers feels safer, but at temperature 0 the distribution has already collapsed onto the top token, so top_p has nothing left to trim. Tuning both at once mostly means you can no longer tell which knob changed the behaviour."
             },
             {
               "id": "q3-finetune-knowledge",
               "prompt": "The model doesn't know about products you launched last month. Will fine-tuning fix it?",
               "options": [
-                "Yes — fine-tuning is how you teach models new facts",
+                "Yes — fine-tuning is how you teach a model new facts",
                 "It's the wrong tool — fine-tuning shapes behavior; fresh facts should come in via retrieval (RAG)",
-                "No model can ever use information newer than its training data"
+                "Yes, provided you write enough training examples covering each new product"
               ],
               "correctIndex": 1,
-              "explanation": "Fine-tuning bakes in patterns, not a knowledge feed — and you'd have to re-tune for every launch. Retrieval puts current facts into the context at question time."
+              "explanation": "Fine-tuning bakes in patterns, not a knowledge feed — and you'd have to re-tune for every launch. Retrieval puts current facts into the context at question time. The third option is the same mistake wearing a lab coat: more examples do raise recall of those specific facts, but you have now bought a training run as the price of every catalogue change, and you still cannot update a price without re-running it."
             },
             {
               "id": "q4-routing",
               "prompt": "Your AI feature costs too much at scale, but quality drops if you switch everything to a budget model. What's the standard play?",
               "options": [
-                "Route: budget model for easy requests, frontier model only for the hard ones",
-                "Cache one answer and serve it to everyone",
-                "Remove the feature — the triangle can't be beaten"
+                "Cache aggressively, so repeated questions never reach a model at all",
+                "Trim the system prompt and cap output length until the budget model fits the budget",
+                "Route: budget model for easy requests, frontier model only for the hard ones"
               ],
-              "correctIndex": 0,
-              "explanation": "Model routing is how real products beat the triangle: most traffic is easy and cheap to serve; only genuinely hard cases pay frontier prices."
+              "correctIndex": 2,
+              "explanation": "Model routing is how real products beat the triangle: most traffic is easy and cheap to serve, and only genuinely hard cases pay frontier prices. Caching is a real and excellent optimisation — ship it too — but it only helps on repeats, so it does nothing for the long tail of unique questions that is usually where the money goes. Prompt trimming lowers the bill without touching the stated problem, which was that the budget model is not good enough."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

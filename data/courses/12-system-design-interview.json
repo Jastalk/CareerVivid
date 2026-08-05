@@ -8,7 +8,7 @@
   "category": "Computer Science",
   "difficulty": "Advanced",
   "tagline": "Learn to design scalable systems — from first sketch to a diagram you can defend.",
-  "description": "Read the principle, watch a real request flow under load, choose between caches, queues, and partitions, draw the architecture, and explain every trade-off. Twelve modules, each system harder than the last.",
+  "description": "Read the principle, watch a real request flow under load, choose between caches, queues, and partitions, draw the architecture, and explain every trade-off. Twelve teaching modules, each system harder than the last, then an arena of the six most-asked interview questions.",
   "status": "published",
   "tags": [
     "system-design",
@@ -60,7 +60,7 @@
           "title": "Read: a repeatable interview loop",
           "xp": 15,
           "kind": "reading",
-          "content": "# Start with constraints, not boxes\n\n**Recognition signals:** an open-ended prompt, an ambiguous scale target, or a request to design a familiar product.\n\nUse this loop: clarify functional and non-functional requirements; estimate the peak; trace one happy-path request; name the data source; add only the components that remove a stated bottleneck; finish with failure modes and trade-offs.\n\n**Invariant:** every component has one responsibility and every arrow carries a concrete operation.\n\n**Cost and complexity:** a small, defensible design beats an unbounded diagram. Complexity is paid in operational ownership, tail latency, and recovery work.",
+          "content": "# Start with constraints, not boxes\n\nTwo candidates get the same prompt: *\"Design a URL shortener.\"*\n\nThe first draws a load balancer, three API servers, a Redis cache, a Kafka topic, and a sharded database — in ninety seconds, before anyone has said how many links per day. It looks impressive. Then the interviewer asks *\"why the queue?\"* and there is no answer, because the queue was never a response to anything. The diagram was decoration.\n\nThe second says: *\"Before I draw — is this closer to Bit.ly, where a few links get clicked millions of times, or an internal tool? Roughly how many new links a day?\"* Thirty seconds in they have a read:write ratio. Everything they draw afterwards is an answer to a number someone gave them.\n\nThe second candidate passes. Not because they know more components, but because every box on their board can be defended out loud.\n\n## The loop\n\nRun these six phases in order. The order is the skill — designing before clarifying is the single most common way strong engineers fail this interview.\n\n**1. Clarify.** Split *functional* requirements (shorten a URL, redirect a click) from *non-functional* ones (99.9% availability, p99 under 100 ms, links live five years). Then say what you are **not** building: *\"I'll leave out analytics and custom domains unless you'd like them.\"* That sentence costs five seconds and buys you the rest of the hour.\n\n**2. Estimate.** Turn the behaviour into a rate. You need three numbers before you can choose anything: peak QPS, storage growth, and the read:write ratio. A shortener at 100:1 reads is a caching problem. At 1:1 it is a write problem. Same prompt, different system.\n\n**3. Trace one request.** Follow a single happy-path request end to end and say what each hop does. *\"The click hits the CDN edge, misses, reaches the load balancer, the API looks up `abc123` in Redis, hits, and returns a 301.\"* One traced request proves you understand your own diagram better than ten unexplained boxes.\n\n**4. Name the source of truth.** Exactly one component owns each piece of data. Everything else is a copy, a cache, or an index — and every copy must be rebuildable from the owner. If you cannot point at the owner of a field, you do not yet have a design.\n\n**5. Add components only to remove a named bottleneck.** Each new box must complete this sentence: *\"I am adding X because Y is too slow / too large / too fragile, and the evidence is Z.\"* A cache is added because reads are 100× writes. A queue is added because the work takes minutes and the API budget is 200 ms. No sentence, no box.\n\n**6. Close with failure modes.** Volunteer the weaknesses before you are asked. *\"The single Redis is a hot spot; under a cache-wide flush the database sees 100× normal load, so I'd add request coalescing.\"* Naming your own limits reads as seniority. Being caught by them reads as luck.\n\n## Why the order cannot be shuffled\n\nEvery phase consumes the output of the one before it. You cannot size a fleet without a peak. You cannot choose a store without an access pattern. You cannot pick between fan-out on write and fan-out on read without a freshness target. Skip a phase and the next decision becomes a guess wearing the costume of a decision.\n\nThis is why interviewers grade the sequence and not the diagram. Two candidates can reach identical architectures — one arrived by reasoning and one by memory — and the interviewer can tell them apart in a single follow-up question.\n\n## The invariant\n\n> **Every component has exactly one responsibility, and every arrow carries a concrete operation.**\n\nTest your board against it. An arrow labelled \"data\" is not a design. An arrow labelled `GET /links/{code} → 200 {url}` is. A box called \"backend\" hides the decision; boxes called \"redirect service\" and \"link store\" expose it.\n\n## What complexity actually costs\n\nNew engineers price complexity in latency. Senior engineers price it in **ownership**: every component is something a human is paged for at 3 a.m., something that needs a dashboard, a runbook, a deploy pipeline, and a failure story. A five-box design you can operate beats a fifteen-box design you cannot.\n\nSo the small defensible design wins. Not because simple is virtuous, but because you can hold all of it in your head while the interviewer attacks it — and that attack is the actual interview.\n\n## What the interviewer is listening for\n\n- Did you ask before you drew?\n- Can you name the source of truth for every piece of data?\n- Does each component trace back to a stated requirement?\n- Did you say the weaknesses out loud before being asked?",
           "check": {
             "type": "read"
           }
@@ -95,15 +95,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nMake the design decision before you draw a detailed architecture.",
           "systemDesignDecision": {
-            "situation": "You are asked to design a URL shortener for an unknown scale. The interviewer has not stated latency, retention, or write volume.",
+            "situation": "You are asked to design a URL shortener for an unstated scale. Nobody has mentioned latency, retention, or write volume.",
             "decision": "What should you do before selecting a database?",
             "options": [
-              "Ask for traffic, read/write ratio, durability, latency, and retention requirements.",
-              "Choose a globally replicated SQL database because it is safest.",
-              "Draw cache, queue, and CDN boxes to show scale."
+              "Start with Postgres — it is the safe default, and you can migrate later if the numbers demand it.",
+              "Ask for traffic, read:write ratio, durability, latency, and retention requirements.",
+              "Sketch the cache, queue, and CDN first so the interviewer can see you know the scaling toolbox."
             ],
-            "correctIndex": 0,
-            "explanation": "The first job is to turn an open prompt into constraints. A technology choice before traffic and consistency requirements is a guess, not a design."
+            "correctIndex": 1,
+            "explanation": "The first option is defensible engineering and a weak interview answer: it is a decision made without the input that decides it, and the follow-up \"why Postgres?\" has no answer yet. The third is the classic failure — components drawn before any constraint exists, which produces a diagram you cannot defend when it is attacked. At 100:1 reads this is a caching problem; at 1:1 it is a write problem. Same prompt, different system."
           },
           "check": {
             "type": "widget"
@@ -120,23 +120,23 @@
               "id": "q1",
               "prompt": "Which statement is a useful invariant for a redirect service?",
               "options": [
+                "Every redirect is served from cache in under 10 ms.",
                 "Every successful create returns a stable short code for the same idempotency key.",
-                "Every service should use the same database.",
-                "Every request must go through a queue."
+                "Every service in the system uses the same database engine."
               ],
-              "correctIndex": 0,
-              "explanation": "An invariant is a property the system preserves, independent of the implementation details."
+              "correctIndex": 1,
+              "explanation": "An invariant is a property the system preserves no matter how it is built. \"Served from cache in 10 ms\" is a performance target — real, but it names an implementation and can be missed without the system being wrong. The stable-code property holds whether you use Redis, Postgres, or paper."
             },
             {
               "id": "q2",
               "prompt": "When should you introduce a cache?",
               "options": [
-                "When a measured or stated read path needs lower latency or lower primary-store load.",
-                "At the beginning of every diagram.",
-                "Only after deploying to production."
+                "As soon as you draw the database, since every real system caches.",
+                "Only once the service is in production and you have profiling data.",
+                "When a stated or measured read path needs lower latency, or the primary store needs relief."
               ],
-              "correctIndex": 0,
-              "explanation": "Caching is a response to an access pattern and a freshness contract."
+              "correctIndex": 2,
+              "explanation": "The first option is the common interview reflex, and it is what gets you the unanswerable \"why?\" follow-up. The second is too strict — in an interview the interviewer gives you the access pattern, and \"100:1 reads\" is evidence enough to design against. A cache answers a named access pattern and comes with a freshness contract."
             }
           ],
           "check": {
@@ -224,7 +224,7 @@
           "title": "Read: estimate enough to decide",
           "xp": 15,
           "kind": "reading",
-          "content": "# Use back-of-the-envelope math\n\n**Recognition signals:** DAU, request volume, media size, retention, or a p95 target appears in the prompt.\n\nConvert daily behavior to average QPS, apply a stated peak multiplier, estimate write volume and storage separately, then reserve operational headroom.\n\n**Invariant:** every estimate has a unit and an assumption.\n\n**Cost implications:** compute follows peak concurrency; storage follows payload, replication, indexes, and retention. Do not let a precise-looking number hide an unmeasured assumption.",
+          "content": "# Use back-of-the-envelope math\n\nThe interviewer says \"assume 50 million daily active users\" and waits. This is not a maths test. It is a test of whether you can convert a sentence about human behaviour into a number that chooses a machine.\n\nCandidates fail this phase in two opposite ways. Some refuse to estimate — *\"it depends on the workload\"* — and never reach a design. Others produce 47,283.6 QPS with a straight face, which tells the interviewer they do not know which digits are real. The correct behaviour sits in between: **state an assumption out loud, multiply, and round hard.**\n\n## The only cascade you need\n\nAlmost every capacity question in every interview is this chain:\n\n```\nusers × actions per user      → events per day\nevents per day ÷ 86,400       → average QPS\naverage QPS × peak factor     → peak QPS   ← this sizes the fleet\nevents per day × payload      → bytes per day\nbytes per day × retention × replication → total storage\n```\n\nWork one all the way through. 1M DAU, 12 actions each:\n\n| Step | Arithmetic | Result | The assumption you must say aloud |\n|---|---|---|---|\n| Daily events | 1M × 12 | 12M/day | \"I'll assume 12 actions per user per day\" |\n| Average QPS | 12M ÷ 86,400 | ≈ 140 QPS | 86,400 s/day — round to 100k on a whiteboard |\n| Peak QPS | 140 × 4 | ≈ 560 QPS | \"Traffic is never flat; peak/average of 3–5× is typical\" |\n| New data/day | 12M × 20% writes × 1 KB | ≈ 2.4 GB/day | \"Read:write about 80:20, ~1 KB per record\" |\n| Year one storage | 2.4 GB × 365 × 3 replicas | ≈ 2.6 TB | \"Replication factor 3\" |\n\nFive lines. Now you can size a fleet, justify sharding or reject it, and put a number on the monthly bill. Notice how much the design already changed: at 560 peak QPS you do **not** need to shard anything, and saying so is worth more than drawing a shard router you cannot justify.\n\n## The four numbers to memorise\n\nEverything else you can derive.\n\n- **86,400 seconds per day.** Round to 100,000 when scribbling — an 16% error you will never be marked down for.\n- **1 million/day ≈ 12 per second.** The unit rate. 500M/day? That is 500 × 12 ≈ 6,000/s. You just did Twitter's write path in your head.\n- **Divide bits by 8.** A 1 Gbps link carries at most 125 MB/s, and real throughput is lower.\n- **Peak is 3–5× average.** Unless the interviewer gives you a different burst shape, say \"4×\" and move on.\n\n## Why peak, not average, sizes the fleet\n\nProvisioning for the average is not a cost optimisation, it is an outage schedule. If your service averages 400 RPS and a campaign produces a 4× spike, the fleet must absorb 1,600 RPS. And it must absorb it **while degraded** — a rolling deploy typically removes 25% of capacity, and one AZ failing removes a third. So the real target is closer to:\n\n```\n1,600 RPS peak ÷ 0.75 (deploy headroom) ≈ 2,150 RPS of provisioned capacity\n```\n\n\"Autoscaling will handle it\" is not an answer, because autoscaling reacts on a timescale of minutes and a traffic spike arrives in seconds. Say the headroom out loud; it is one of the clearest seniority signals in the whole interview.\n\n## Compute follows concurrency, storage follows volume\n\nThese two are estimated separately and they fail differently.\n\n**Compute** is driven by peak *concurrent* work: requests in flight × time each one holds a thread or connection. A service handling 500 QPS at 200 ms per request has ~100 requests in flight (Little's Law: L = λW). That is the number that decides instance count, connection pool size, and thread limits.\n\n**Storage** is driven by volume over time: payload × rate × retention, then multiplied by replication and again by every index and derived copy. A 1 KB record with three replicas and two secondary indexes is not 1 KB on disk — budget 4–5×.\n\nThe classic mistake is estimating one and assuming the other followed. They are unrelated axes and either can be the bottleneck.\n\n## The invariant\n\n> **Every estimate carries a unit and a named assumption.**\n\n\"About 5,800\" is noise. \"About 5,800 tweets per second, assuming 500M tweets a day spread evenly\" is a design input, and the interviewer can now correct your assumption instead of your arithmetic. That correction is the conversation you want.\n\n## What the interviewer is listening for\n\n- Did you state assumptions before multiplying, rather than after being challenged?\n- Did you round aggressively and say you were rounding?\n- Did you separate peak from average, and add degradation headroom?\n- Did the numbers actually change a design decision — or were they theatre?",
           "check": {
             "type": "read"
           }
@@ -271,15 +271,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nChoose an operationally safe capacity rule.",
           "systemDesignDecision": {
-            "situation": "Your average load is 400 RPS, but a campaign can produce a four-times peak and deployments remove 25% of capacity.",
-            "decision": "What fleet target is most defensible?",
+            "situation": "Average load is 400 RPS. A marketing campaign can produce a 4× peak, and a rolling deploy removes 25% of the fleet.",
+            "decision": "What capacity target is most defensible?",
             "options": [
-              "Size for the 1,600 RPS peak with spare capacity after one quarter of the fleet is unavailable.",
-              "Size exactly for 400 RPS because autoscaling will react.",
-              "Use the average and put every request in a queue."
+              "Size for 1,600 RPS and let autoscaling cover the deploy window.",
+              "Size for 400 RPS, since autoscaling reacts to real demand rather than a guess.",
+              "Size so that 1,600 RPS is still served with a quarter of the fleet unavailable — roughly 2,150 RPS provisioned."
             ],
-            "correctIndex": 0,
-            "explanation": "The estimate must survive the stated burst and a realistic degradation. A queue can absorb some work, but it cannot make a synchronous API latency target disappear."
+            "correctIndex": 2,
+            "explanation": "Option one is close, and it is the answer most candidates give: it handles the burst but assumes autoscaling can cover a deploy, when the two events routinely coincide and autoscaling reacts over minutes while a spike arrives in seconds. Option two treats autoscaling as a capacity plan rather than a cost optimisation. Peak and degradation multiply — say both out loud."
           },
           "check": {
             "type": "widget"
@@ -294,25 +294,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "Which input most directly affects one-year storage?",
+              "prompt": "Which set of inputs most directly determines one-year storage?",
               "options": [
-                "Payload size, writes per day, replication, and retention.",
-                "API instance count alone.",
-                "The HTTP status code."
+                "Payload size, write rate, retention window, and replication factor.",
+                "Peak QPS and the instance count needed to serve it.",
+                "Read:write ratio and the cache hit rate."
               ],
               "correctIndex": 0,
-              "explanation": "Storage is a data-volume calculation; replication and indexes multiply the raw payload."
+              "explanation": "The other two are compute estimates wearing a storage costume. Peak QPS sizes the fleet; the cache hit rate sizes memory and protects the primary. Neither changes how many bytes land on disk — that is volume × time, then multiplied again by replicas and every index."
             },
             {
               "id": "q2",
-              "prompt": "Why state a peak multiplier?",
+              "prompt": "Your service averages 400 RPS. Why is that the wrong number to size the fleet on?",
               "options": [
-                "Average rate hides burst concurrency and tail behavior.",
-                "It makes every estimate exact.",
-                "It removes the need for monitoring."
+                "Because averages are only valid over a 24-hour window.",
+                "Because bursts and degraded capacity both happen, and the fleet has to absorb them at the same time.",
+                "Because autoscaling will change the instance count anyway, so any static number is meaningless."
               ],
-              "correctIndex": 0,
-              "explanation": "A peak multiplier is an explicit uncertainty bound that drives capacity and protection decisions."
+              "correctIndex": 1,
+              "explanation": "Autoscaling is the tempting answer and it is a trap: it reacts over minutes while a spike arrives in seconds, so it smooths cost, not incidents. Size for peak (say 4× = 1,600 RPS) and then divide by your degraded fraction — a rolling deploy typically removes about 25% of capacity."
             }
           ],
           "check": {
@@ -400,7 +400,7 @@
           "title": "Read: contracts before tables",
           "xp": 15,
           "kind": "reading",
-          "content": "# Make ownership explicit\n\n**Recognition signals:** the prompt asks for create, update, cancel, search, or status APIs.\n\nStart with nouns, keys, and operations. Define idempotency for mutations, select the source of truth, and make indexes or projections rebuildable.\n\n**Invariant:** an acknowledged mutation has one durable identity and a replay does not create a second side effect.\n\n**Cost implications:** normalized writes reduce duplication; read models reduce request joins but introduce propagation and repair work.",
+          "content": "# Contracts before tables\n\nHere is a bug that has cost real companies real money.\n\nA client calls `POST /payments` with `{amount: 4999, currency: \"usd\"}`. The server charges the card, then the response times out on the way back. The client sees a network error, and does the obvious thing: it retries. The server charges the card again.\n\nNothing crashed. No component was unavailable. Every service did exactly what it was written to do, and the customer was charged twice — because the API had no way to express *\"this is the same operation as before.\"*\n\nThis is why data modelling in an interview starts with the contract, not the schema. The schema tells you where bytes live. The contract tells you what happens when the network does what networks do.\n\n## Idempotency, mechanically\n\nThe fix is a client-generated key attached to the mutation:\n\n```\nPOST /payments\nIdempotency-Key: 8f14e45f-ea1a-4d3f-9e42-3c7b1a2d9f60\n{ \"amount\": 4999, \"currency\": \"usd\" }\n```\n\nThe server then runs a four-step protocol:\n\n1. **Claim the key.** Insert it into a dedupe table with a uniqueness constraint, in the same transaction that starts the work. If the insert conflicts, someone got here first.\n2. **On conflict, do not re-execute.** Look up the stored outcome for that key.\n3. **Return the *original* response** — same payment id, same status code the first call produced.\n4. **Expire keys on a stated window** (24 hours is a common choice). Say the window out loud; unbounded dedupe tables are their own outage.\n\nThe subtle part is step 1: the claim and the work must commit together. If you charge first and record the key afterwards, a crash between them reintroduces the exact double-charge you were preventing.\n\nNote what idempotency is *not*. It does not make the operation happen exactly once — the charge may still be attempted once, twice, or never. It makes the **observable effect** happen once. That distinction is the whole answer to \"how do you get exactly-once?\" — you do not; you get at-least-once delivery plus an idempotent effect, and together they look like exactly-once from outside.\n\n## One owner per fact\n\nEvery field in your system has exactly one component that owns it. Everything else — search indexes, materialised feeds, caches, analytics tables, denormalised copies inside other services — is *derived*, and derived data has one obligation:\n\n> **It must be rebuildable from the owner without talking to any other derived copy.**\n\nTest this on your board. If your Elasticsearch cluster is wiped at 2 a.m., can you rebuild it from the primary store or the event log? If yes, it is an index. If no, it is a second source of truth, and you now have two systems that can disagree with no procedure for deciding which is right. That is the failure mode behind \"the search results show a product that no longer exists.\"\n\n## Read models are a purchase, not a free lunch\n\nNormalised writes stop duplication and make updates cheap; they push the cost onto reads, which must join. A read model (a projection, a materialised view, a denormalised document) pays the cost at write time so reads are a single lookup.\n\n| | Normalised | Read model / projection |\n|---|---|---|\n| Write cost | One row | One row + N projection updates |\n| Read cost | Multi-table join | Single key lookup |\n| Freshness | Always current | Lags by the propagation delay |\n| Failure mode | Slow queries under load | Silent divergence from the owner |\n| What it needs | Good indexes | A rebuild path and a repair job |\n\nThe trade you are making is *join latency now* against *propagation lag and repair work forever*. Say which one you chose and why, and name the repair mechanism. A projection with no rebuild job is a future incident with a ticket already written.\n\n## Read-your-write is a product promise\n\nA user edits their profile and immediately reloads the page. If that read goes to a replica lagging 200 ms behind, they see their old name and conclude the save failed. They save again. Now you have a support ticket about a bug that does not exist.\n\nYou have three standard answers, and you should name the one you picked:\n\n- **Route the read to the primary** for a short window after a write — simple, costs primary capacity.\n- **Session consistency:** pin that user's reads to a replica that has caught up past their last write's position.\n- **Return the written value** in the mutation response, so the client never needs to re-read.\n\nOrdinary, tolerant reads can still go to the nearest replica. The point is that you decided per-path instead of hoping.\n\n## The invariant\n\n> **An acknowledged mutation has exactly one durable identity, and replaying it produces no second effect.**\n\n## What the interviewer is listening for\n\n- Did you name the idempotency key *and* its retention window?\n- Can you point at the single owner of every field on the board?\n- Is every derived copy rebuildable, and did you say from what?\n- Did you decide read-your-write explicitly instead of leaving it to luck?",
           "check": {
             "type": "read"
           }
@@ -438,12 +438,12 @@
             "situation": "A client times out while creating a payment and retries with the same request body.",
             "decision": "Which API contract prevents a duplicate charge?",
             "options": [
-              "Require an idempotency key and store the first completed result against that key.",
-              "Reject every retry after a timeout.",
-              "Create a new payment and rely on reconciliation."
+              "Require an idempotency key and store the first completed result against it, returning that same result on replay.",
+              "Have the client poll for a matching recent payment before retrying, and only create if none is found.",
+              "Create the second payment and let a nightly reconciliation job detect and refund duplicates."
             ],
             "correctIndex": 0,
-            "explanation": "The idempotency key lets the server return the original result even when the client cannot tell whether the first attempt committed."
+            "explanation": "Check-then-create is the tempting one and it is a race: two retries can both read \"none found\" before either writes. Reconciliation is genuinely used as a safety net, but as the primary mechanism it means the customer sees the double charge on their statement first. The key must be claimed in the same transaction that starts the work, or a crash between charging and recording reopens the hole."
           },
           "check": {
             "type": "widget"
@@ -460,23 +460,23 @@
               "id": "q1",
               "prompt": "What is the source of truth for a derived search index?",
               "options": [
-                "The durable primary record or event log used to rebuild it.",
-                "The current search response.",
-                "The browser cache."
+                "The search index itself, once it has been populated and verified.",
+                "Whichever copy has the most recent write timestamp.",
+                "The durable primary record or event log the index can be rebuilt from."
               ],
-              "correctIndex": 0,
-              "explanation": "A derived index must be rebuildable from an owned durable source."
+              "correctIndex": 2,
+              "explanation": "Option one is the failure this concept exists to prevent: an index that cannot be rebuilt has silently become a second source of truth, and two sources of truth that disagree cannot be fixed, only arbitrated. Option two is last-writer-wins applied to whole systems — it picks a winner without knowing which one is right."
             },
             {
               "id": "q2",
-              "prompt": "When is a replica read risky immediately after a write?",
+              "prompt": "A client times out creating a payment and retries the identical request. What actually prevents a double charge?",
               "options": [
-                "When the user expects read-your-write but replication may lag.",
-                "When the record has an id.",
-                "When the API is versioned."
+                "A client-supplied idempotency key, claimed in the same transaction that starts the work.",
+                "Detecting that the amount, currency, and customer match a payment from the last few seconds.",
+                "Rejecting any request that arrives after a timeout on the same connection."
               ],
               "correctIndex": 0,
-              "explanation": "Replica lag is acceptable only when the product accepts staleness."
+              "explanation": "Field-matching is the seductive one, and it is wrong in both directions: it blocks a customer legitimately buying the same coffee twice, and it misses a retry that took longer than the window. Only an explicit key states \"this is the same operation\" — and it has to be claimed transactionally, or a crash between charging and recording reopens the hole."
             }
           ],
           "check": {
@@ -564,7 +564,7 @@
           "title": "Read: primitives earn their place",
           "xp": 15,
           "kind": "reading",
-          "content": "# Pick building blocks by access pattern\n\n**Recognition signals:** a design needs traffic distribution, durable lookup, large blobs, or work that outlives one request.\n\nUse stateless APIs behind health-aware routing. Choose a store by its access pattern. Queue work only when the user can tolerate eventual completion.\n\n**Invariant:** a successful acknowledgement means the promised durable boundary has been crossed.\n\n**Cost implications:** every primitive adds latency, operational ownership, and failure modes. A queue shifts work; it does not erase it.",
+          "content": "# Primitives earn their place\n\nThere are maybe eight components in the whole system design vocabulary: load balancer, stateless service, relational store, key-value store, object store, cache, queue, CDN. Nobody fails for not knowing them. Candidates fail for adding them without a reason, and then being unable to answer *\"what breaks if I delete this box?\"*\n\nHere is the rule that fixes this. Before drawing any component, finish this sentence out loud:\n\n> *\"I'm adding **X** because **Y** is too slow / too large / too fragile, and the evidence is **Z**.\"*\n\nIf you cannot fill in Z, the box is decoration. Erase it. A four-box design where every box survives that question outscores a twelve-box design every time.\n\n## Stateless services, and what \"stateless\" actually buys\n\nA load balancer distributes requests across a fleet and stops sending traffic to instances that fail a health check. That is all it does. It is not a place to keep data.\n\nWhich leads to the most common junior design bug. Sessions are kept in each API server's local memory, and traffic is round-robin. Request one lands on server A and logs the user in. Request two lands on server B, which has never seen this person, so the user is bounced to the login page. It looks like a random, unreproducible logout bug. It is architecture.\n\n\"Stateless\" is a precise claim: **any instance can serve any request, so instances can be created, destroyed, and replaced freely.** That property is what makes autoscaling, rolling deploys, and instance failure boring instead of user-visible. Get the state out — into Redis, or into a signed token the client carries — and all three become non-events.\n\n## Choose the store by access pattern\n\nDo not choose by brand loyalty. Choose by the shape of the read.\n\n| Access pattern | Fit | Why |\n|---|---|---|\n| Multi-entity queries, transactions, ad-hoc filters | Relational | Joins and ACID are the product |\n| Look up one row by a known key, huge volume | Key-value / wide-column | O(1) by key, scales horizontally |\n| Files, images, video, backups | Object storage | Cheap per byte, infinite, not queryable |\n| Full-text and relevance ranking | Inverted index | A different index for a different question |\n| Ephemeral hot data, counters, sessions | In-memory | Microsecond reads, and losing it is survivable |\n| Append-only event history, replay | Log | Ordering and replay are first-class |\n\nThe senior move is to use more than one and be explicit about which owns what: *\"Blobs in S3, metadata in Postgres, and the metadata row holds the S3 key.\"* Object storage for bytes and a database for the pointer is the single most reused pattern in this entire interview.\n\n## Queues buy a latency budget, not less work\n\nGenerating a large export takes four minutes. The create API has a 200 ms p95 target. These are not negotiable against each other, so the work moves off the request:\n\n1. Persist a **job record** with status `queued` — durable, before responding.\n2. Enqueue the work.\n3. Return `202 Accepted` with a job id and a status URL.\n4. A worker picks it up, does the work, updates the record to `done` with a result pointer.\n\nStep 1 is the one people skip, and it is the one that matters. Without a durable job record there is nothing to poll, nothing to retry, nothing to show the user, and no way to know a job was lost. The queue is not the design — **the job record is the design**, and the queue is how work reaches a worker.\n\nBe honest about what a queue does not give you: it does not reduce total work, it relocates it. You still need capacity to drain it, and now you also own consumer lag, retry policy, poison messages, and a dead-letter path. A queue converts a latency problem into a throughput-and-observability problem, which is usually a good trade — but it is a trade.\n\n## Measure asynchronous work by age, not count\n\nThe useful SLA for an async pipeline is **the age of the oldest unprocessed item**, not queue depth. Depth of 10,000 that drains in 4 seconds is healthy. Depth of 12 where the oldest arrived 40 minutes ago means something is stuck, and the user is staring at a spinner. Age catches poison messages, stalled partitions, and one-slow-consumer; depth catches none of them.\n\n## The invariant\n\n> **A successful acknowledgement means the promised durable boundary has been crossed.**\n\nIf you return `202`, the job must survive the process dying one millisecond later. If you return `201 Created`, the record must be readable by the next request. Acknowledging before the write is durable is how systems lose data while every dashboard stays green.\n\n## What the interviewer is listening for\n\n- Can you justify deleting any box, and say what breaks?\n- Is anything stateful hiding inside a \"stateless\" service?\n- Did you persist the job *before* returning 202?\n- Did you name queue age — not depth — as the health signal?",
           "check": {
             "type": "read"
           }
@@ -599,15 +599,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nKeep a slow operation out of a low-latency API.",
           "systemDesignDecision": {
-            "situation": "Generating a large export takes several minutes, while the create API has a 200 ms p95 target.",
+            "situation": "Generating a large export takes several minutes. The create API has a 200 ms p95 target.",
             "decision": "What should the API return?",
             "options": [
-              "Persist a job, enqueue work durably, and return a job id with a status path.",
-              "Hold the HTTP connection open until the export completes.",
-              "Return success before persisting any job state."
+              "Stream the export in chunks so the connection stays useful while the work runs.",
+              "Enqueue the work and return 202 immediately; the queue is the durable record.",
+              "Persist a job record, enqueue the work, and return 202 with a job id and status path."
             ],
-            "correctIndex": 0,
-            "explanation": "The durable job record makes completion observable and recoverable while protecting the synchronous latency budget."
+            "correctIndex": 2,
+            "explanation": "Option two is the near-miss that matters. Treating the queue as the record leaves nothing to poll, nothing to show the user, and no way to know a job was lost — the job record is the design, and the queue is only how work reaches a worker. Streaming holds a connection open for minutes, which fails on mobile networks, defeats the latency target, and cannot be resumed."
           },
           "check": {
             "type": "widget"
@@ -622,25 +622,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "What should a load balancer own?",
+              "prompt": "Users report being randomly logged out. Traffic is round-robin across three API servers. What is the flaw?",
               "options": [
-                "Health-aware request routing.",
-                "The only copy of application session state.",
-                "Business transaction history."
+                "The load balancer is not running health checks frequently enough.",
+                "Session state lives in each API server's local memory, so the next request lands on a server that has never seen the user.",
+                "The database replica is lagging behind the primary."
               ],
-              "correctIndex": 0,
-              "explanation": "The load balancer routes to healthy stateless handlers; durable business state belongs elsewhere."
+              "correctIndex": 1,
+              "explanation": "This is the single most common junior design bug, and it presents as a flaky, unreproducible logout rather than as an architecture problem. \"Stateless\" is a precise claim — any instance can serve any request — and it is what makes autoscaling, rolling deploys, and instance death boring. Move sessions to Redis or a signed token."
             },
             {
               "id": "q2",
-              "prompt": "What is a useful asynchronous SLA?",
+              "prompt": "Which signal best tells you an asynchronous pipeline is unhealthy?",
               "options": [
-                "Age of the oldest queued job.",
-                "The color of the worker dashboard.",
-                "The API's average CPU alone."
+                "Queue depth, alerting above a fixed threshold.",
+                "Worker CPU utilisation across the consumer fleet.",
+                "The age of the oldest unprocessed item."
               ],
-              "correctIndex": 0,
-              "explanation": "Queue age measures how long a user-visible job has waited."
+              "correctIndex": 2,
+              "explanation": "Depth is the intuitive choice and it misses the incidents that matter: 10,000 items draining in 4 seconds is healthy, while 12 items where the oldest arrived 40 minutes ago means a poison message has blocked a partition. Age catches stuck work; depth and CPU both look fine while a user stares at a spinner."
             }
           ],
           "check": {
@@ -732,7 +732,7 @@
           "title": "Read: protect the expensive path",
           "xp": 15,
           "kind": "reading",
-          "content": "# Cache and limit with a contract\n\n**Recognition signals:** a read-heavy hot key, expensive downstream work, public APIs, or bursty traffic.\n\nDefine cache key, source of truth, TTL, invalidation, and tolerated staleness. Define limiter key, algorithm, refill policy, and behavior when coordination fails.\n\n**Invariant:** cache values are disposable; the authoritative store is not. Limiter decisions are bounded and observable.\n\n**Cost implications:** larger TTL lowers load but expands stale reads; global coordination improves fairness but adds latency and availability dependency.",
+          "content": "# Protect the expensive path\n\nA cache is not \"make it faster.\" A cache is a **deliberate decision to serve data that might be wrong**, in exchange for latency and load. If you cannot say how wrong, and for how long, you have not designed a cache — you have added a bug with good p99.\n\nSo every cache on your board needs five answers, and an interviewer will ask for them in roughly this order.\n\n## The five questions\n\n**1. What is the key?** `link:abc123`. Specific enough that one write invalidates exactly one entry. Cache the whole response and a single field change invalidates megabytes.\n\n**2. Who owns the truth?** The cache never does. It is a disposable copy. Losing the entire cache must be a latency event, never a data-loss event. If your system cannot survive `FLUSHALL`, the cache has quietly become a database.\n\n**3. What is the TTL?** This is your explicit staleness budget. \"60 seconds\" means you have decided a user may see 60-second-old data and that this is acceptable to the product. Say the number, and say who agreed to it.\n\n**4. How is it invalidated?** TTL alone is the weakest possible answer. The classic incident: merchants update prices, the write goes to the database, nothing touches the cache, and customers see yesterday's price until a 6-hour TTL expires. The write path must delete or update the key. **TTL is the fallback for when invalidation fails — not the mechanism.**\n\n**5. What happens on a miss?** Under load, a popular key expiring means every concurrent request misses at once and stampedes the database. The standard defences: request coalescing (one request fills, the rest wait on it), a short lock, or serving stale-while-revalidate. Name one.\n\n## Cache-aside, the default you should be able to draw\n\n```\nread:   GET key → hit?  return it\n                  miss? read the store, write the cache, return\nwrite:  write the store → delete the key\n```\n\nDelete rather than update on write. Updating races with concurrent fills and can leave a *newer* value overwritten by an older in-flight read; deleting is idempotent and always converges to a correct refill. This is a small detail that reliably impresses.\n\nThe trade-off is a straight line: a longer TTL means less load and more staleness. Nothing clever escapes it. You are choosing a point on that line, and the interviewer wants to hear that you know you are choosing.\n\n## Rate limiting is admission control\n\nA cache protects the expensive path from *volume*. A limiter protects it from *a caller*. Same instinct, different question, and the design also comes down to a small set of decisions.\n\n**The key is the design.** Per IP? Shared offices and mobile carriers get punished together and one attacker rotates addresses freely. Per user? Fair and abuse-resistant, but requires authentication to have already run — which is why the limiter sits at the gateway *after* auth and *before* any expensive work. Per user *and* endpoint is the usual answer, because a search query and a password reset should not share a budget.\n\n**The algorithm follows the burst question.** A fixed window counter is trivial and has a well-known flaw: 100 requests at 11:59:59 and 100 more at 12:00:00 is 200 in one second while every window looks compliant. Token bucket removes it with two clean parameters — capacity is your burst allowance, refill rate is your sustained rate — which is also exactly how you would explain the policy to a customer. Sliding window log is exact but stores a timestamp per request, which is real memory at scale.\n\n**Rejection is a product contract.** `429` plus `Retry-After` plus the remaining-quota headers. Silently dropping requests turns your rate limit into an outage the client cannot diagnose or back off from.\n\n## Sizing it, and the part that is actually hard\n\nTen million active API keys × ~100 bytes of bucket state = **1 GB**. That fits in one Redis cluster with room to spare. State size is not the hard part.\n\nThe hard part is that you have now added a network round trip to *every single request*, including the ones you were going to serve in 5 ms. And the failure question is worse: **what happens when the limiter store is down?**\n\n- **Fail open** — everything is allowed. Great for availability, and during an abuse event it hands the attacker the whole system.\n- **Fail closed** — everything is rejected. Your limiter outage becomes a full product outage.\n- **Local fallback** — each gateway enforces a small bounded local allowance and alerts. Over-admits by roughly the number of gateways, briefly. This is usually the right answer, and the fact that it is *bounded* is why.\n\nThe correct choice is endpoint-specific: fail open on a cheap idempotent read, fail closed or bounded-local on an expensive write. Saying \"it depends on the endpoint\" here is the senior answer, provided you then pick one and say the bound.\n\n## Multi-region, honestly\n\nThree regions, one global Redis, synchronous check on every request: a cross-ocean round trip is ~150 ms. That is not a rate limiter, that is a latency budget deleted. The pragmatic design is local buckets per region with asynchronous reconciliation, accepting bounded over-admission of up to N× briefly, where N is your region count. State the bound out loud — an interviewer wants the number, not the vibe.\n\n## The invariant\n\n> **Cache values are disposable; the authoritative store is not. Limiter decisions are bounded, explainable, and observable.**\n\n## What the interviewer is listening for\n\n- Did the write path invalidate, with TTL as backstop rather than mechanism?\n- Do you have an answer for the stampede on a hot key?\n- Is the limiter key user-and-route, and does it sit after auth?\n- Did you pick a limiter-outage policy per endpoint, and name the over-admission bound?",
           "check": {
             "type": "read"
           }
@@ -770,12 +770,12 @@
             "situation": "A public API is under abuse and its shared rate-limit store becomes unavailable.",
             "decision": "Which policy is best for a costly write endpoint?",
             "options": [
-              "Fail closed or use a small bounded local allowance, and alert on the degraded policy.",
-              "Fail open for all traffic because availability always wins.",
-              "Disable authentication so healthy users can retry faster."
+              "Fail open — availability wins, and the abuse is a smaller problem than an outage.",
+              "Fail closed, or allow a small bounded local budget per gateway, and alert that the policy is degraded.",
+              "Queue all requests until the limiter store recovers, so nothing is rejected or over-admitted."
             ],
-            "correctIndex": 0,
-            "explanation": "For an expensive or abusive write path, unbounded fail-open can overload the entire system. The policy must be endpoint-specific and observable."
+            "correctIndex": 1,
+            "explanation": "Failing open during an active abuse event hands the attacker your entire system — and this is precisely when the limiter store is most likely to be struggling. Queueing converts an admission problem into an unbounded memory problem and delays every legitimate caller. The right answer is endpoint-specific: fail open on a cheap idempotent read, bounded-local on an expensive write, and say what the over-admission bound is."
           },
           "check": {
             "type": "widget"
@@ -790,25 +790,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "What should invalidate a cache after a successful write?",
+              "prompt": "Merchants update prices but customers keep seeing old ones for hours. The cache is cache-aside with a 6-hour TTL. What is the fix?",
               "options": [
-                "A write-driven invalidation event for the affected key, with TTL as a fallback bound.",
-                "A random cache eviction.",
-                "Only a browser refresh."
+                "Shorten the TTL to a few seconds so stale windows stay small.",
+                "Have the write path delete the affected key, keeping the TTL as a fallback bound.",
+                "Move the price read off the cache and onto a read replica."
               ],
-              "correctIndex": 0,
-              "explanation": "Write-driven invalidation reduces staleness; TTL bounds it when events fail."
+              "correctIndex": 1,
+              "explanation": "Shortening the TTL is the tempting patch: it shrinks the bug without removing it, and it multiplies load on the primary by turning every popular key into a repeated miss. TTL should be the backstop for when invalidation fails, never the mechanism. Delete rather than update on write — deletion is idempotent and cannot lose a race with a concurrent fill."
             },
             {
               "id": "q2",
-              "prompt": "Why key a rate limiter by user and route?",
+              "prompt": "Why key a rate limiter by user *and* route rather than by IP alone?",
               "options": [
-                "It protects fairness and lets policies match the cost of an operation.",
-                "It eliminates all retries.",
-                "It makes the database strongly consistent."
+                "IP-based limits require storing more state than user-based limits.",
+                "Routes have different costs and IPs are shared by many users while one attacker can rotate through thousands.",
+                "IP addresses are unavailable to a gateway sitting behind a load balancer."
               ],
-              "correctIndex": 0,
-              "explanation": "The key determines who shares a budget and how abuse is isolated."
+              "correctIndex": 1,
+              "explanation": "IP limiting punishes exactly the wrong people — an office or a mobile carrier NAT shares one address across thousands of legitimate users — while being trivially evaded by anyone who wants to. Adding the route matters too: a search query and a password reset should never share a budget."
             }
           ],
           "check": {
@@ -896,7 +896,7 @@
           "title": "Read: partition data without hiding skew",
           "xp": 15,
           "kind": "reading",
-          "content": "# Scaling storage is an ownership problem\n\n**Recognition signals:** data or write traffic no longer fits one primary, tenants have uneven sizes, or replicas serve reads.\n\nChoose a partition key from access patterns, measure per-partition load, define an epoch or routing map for movement, and state which reads may be stale.\n\n**Invariant:** one key range has one write owner at a time.\n\n**Cost implications:** more shards increase parallelism and operational overhead; replicas lower read latency but introduce lag and repair.",
+          "content": "# Partition data without hiding skew\n\nSharding is what you do when one machine can no longer hold the data or absorb the writes. It is also the decision that is hardest to reverse, because a partition key chosen badly is re-chosen only by migrating every row in the system while it is serving traffic.\n\nSo the first honest question is: **do you need it yet?** A single Postgres primary with a read replica handles far more than most candidates assume — tens of thousands of reads per second, terabytes of data. Reaching for shards at 500 QPS is a red flag in the opposite direction. \"I'd run one primary with replicas until writes approach the single-node ceiling, and here is the number I'd watch\" is a stronger answer than a shard router nobody asked for.\n\n## The partition key is chosen by the read\n\nPick the key that lets your most common query hit exactly one shard.\n\n- Shard **by user id** and \"load my timeline\" is one shard. \"Find all posts mentioning X\" is every shard.\n- Shard **by tenant** and every query in a B2B product is one shard — until one tenant becomes 40% of your data.\n- Shard **by time** and recent-data queries are one shard, but every write in the system lands on today's shard. You have built a single-node write path with extra steps.\n\nA query that must ask every shard and merge is a **scatter-gather**, and its latency is the slowest shard's, not the average — so p99 gets worse as you add shards. One scatter-gather is fine. Designing your primary read path as one is not.\n\n## Skew is the failure mode, not size\n\nHash partitioning distributes keys evenly. It does **not** distribute *traffic* evenly, because traffic follows a power law: one celebrity, one enterprise tenant, one viral post lands on one shard and that shard melts while the others idle at 5%.\n\nThis is why per-shard load must be a first-class metric. Average utilisation hides everything. What you need on the dashboard is the **max across shards**, and the ratio of max to median. Once you can see skew, the mitigations are ordinary: split the hot key across sub-keys, give the hot tenant a dedicated shard, or put a cache in front of exactly that key.\n\nConsistent hashing with **virtual nodes** is the standard defence at the mapping layer. Without it, adding a node reshuffles almost every key; with a few hundred virtual nodes per physical node, adding one moves roughly 1/N of the data and uneven physical capacities smooth out. That is the whole reason virtual nodes exist — say it that way and it lands.\n\n## Moving a shard without lying to anyone\n\nThis is the deep-dive question, and there is one correct shape:\n\n1. **Copy** the range to the target while the source keeps serving.\n2. **Catch up** by streaming the writes that happened during the copy, until lag is small.\n3. **Fence** — bump an ownership epoch so the source stops accepting writes for that range. Brief unavailability for that range only.\n4. **Cut over** routing to the target.\n5. **Verify**, then reclaim the source copy.\n\nThe step candidates skip is 3, and it is the one that matters. Without a fence, an in-flight request routed by a stale map writes to the old owner *after* cutover, and that write is silently lost. A monotonic epoch attached to the routing decision — where the storage node rejects writes carrying an old epoch — is what makes the move safe.\n\n> **One key range has exactly one write owner at a time.** Everything in that procedure exists to preserve this sentence.\n\nCutover is authorised by evidence — target caught up, epoch bumped, reads resolvable — not by \"the new process started\" or \"CPU looks lower.\"\n\n## Replicas trade freshness for read capacity\n\nA replica gives you more read throughput and a failover target. It also gives you **lag**, and lag is a product-visible property, not an infrastructure detail. At 200 ms of lag, a user who updates their profile and reloads sees the old value.\n\nSo route by tolerance rather than by default:\n\n| Read | Where | Why |\n|---|---|---|\n| Just wrote it, reading it back | Primary or session-consistent path | Read-your-write is a promise |\n| Authorisation check after a revoke | Primary or quorum read | Stale = security incident |\n| Someone else's profile, a feed | Nearest replica | Seconds of staleness is invisible |\n| Analytics, exports | Dedicated replica | Never let a report page the primary |\n\nPut lag on a dashboard with an alert threshold expressed in the product's terms: not \"replication lag high\" but \"reads may be up to 5 s stale.\"\n\n## The invariant\n\n> **One key range has one write owner at a time, and every stale read is stale by a stated, bounded amount.**\n\n## What the interviewer is listening for\n\n- Did you justify sharding, or reach for it reflexively?\n- Does the partition key match the dominant query — and did you name what it makes expensive?\n- Do you measure max-shard load rather than the average?\n- Does your migration fence writes, or does it lose them quietly?",
           "check": {
             "type": "read"
           }
@@ -920,15 +920,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nChoose the read route that matches the user promise.",
           "systemDesignDecision": {
-            "situation": "A user updates a profile and immediately opens the profile page. Replicas can lag by 200 ms.",
-            "decision": "Where should this immediate read go?",
+            "situation": "A user updates their profile and immediately opens the profile page. Replicas can lag by 200 ms.",
+            "decision": "Where should this particular read go?",
             "options": [
-              "Route this read to the primary or a session-consistent path.",
-              "Always route to the nearest replica.",
-              "Disable replication during profile updates."
+              "To the nearest replica, with the client retrying if the value looks stale.",
+              "To the nearest replica — 200 ms is below human perception, so it will resolve itself.",
+              "To the primary, or to a session-consistent path pinned past that user's last write."
             ],
-            "correctIndex": 0,
-            "explanation": "Read-your-write is a product promise. A primary or session-consistent path preserves it while ordinary tolerant reads can still use replicas."
+            "correctIndex": 2,
+            "explanation": "The 200 ms argument is the trap: lag is a distribution, not a constant, and its tail is exactly where a slow replica meets an impatient reload. Client-side retry is worse — the client cannot tell \"stale\" from \"correct\", so it either loops or gives up. Read-your-write is a product promise; ordinary tolerant reads can still use replicas, and that is the point of deciding per path."
           },
           "check": {
             "type": "widget"
@@ -943,25 +943,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "What is a safe cutover condition in a shard move?",
+              "prompt": "You are moving a shard to a new node. What makes the cutover safe?",
               "options": [
-                "The target has caught up, routing is fenced by an ownership epoch, and reads can resolve the move.",
-                "The target process started.",
-                "A dashboard shows lower CPU."
+                "The target node has finished the initial copy and is accepting connections.",
+                "Per-shard CPU on the source has dropped, confirming traffic has moved.",
+                "The target has caught up, an ownership epoch fences writes to the source, and reads can resolve the move."
               ],
-              "correctIndex": 0,
-              "explanation": "Cutover needs correctness evidence, not just a running process."
+              "correctIndex": 2,
+              "explanation": "The fence is the step candidates skip and the only one that prevents silent data loss: without it, an in-flight request routed by a stale map writes to the old owner *after* cutover and that write disappears. A finished copy and a quiet CPU graph are both consistent with actively losing writes."
             },
             {
               "id": "q2",
-              "prompt": "What does a replica lag metric tell you?",
+              "prompt": "What does a replica lag metric actually tell you?",
               "options": [
-                "How stale a replica-backed read may be.",
-                "The total size of a user profile.",
-                "Whether a cache key exists."
+                "How stale a replica-backed read may be, in product terms.",
+                "How much write capacity the primary has left before it saturates.",
+                "Whether the partition key is distributing load evenly."
               ],
               "correctIndex": 0,
-              "explanation": "Lag is a staleness signal that must be matched to product tolerance."
+              "explanation": "Lag is a staleness measure, and it is only useful once you translate it into a sentence the product owns: not \"lag is 200 ms\" but \"a user who just saved may see their old profile.\" Write saturation and skew are real problems with their own metrics — per-shard max utilisation is the one that catches skew, since the average hides it completely."
             }
           ],
           "check": {
@@ -1049,7 +1049,7 @@
           "title": "Read: make async work observable",
           "xp": 15,
           "kind": "reading",
-          "content": "# Queues are temporal contracts\n\n**Recognition signals:** bursts, independent consumers, slow side effects, event replay, or delivery to many destinations.\n\nSet ordering scope, partition key, delivery semantics, idempotency key, retry schedule, DLQ policy, and queue-age objective.\n\n**Invariant:** a handler can observe the same event more than once without duplicating the external effect.\n\n**Cost implications:** partitions cap consumer parallelism; long retention and retries cost storage; strict ordering limits throughput.",
+          "content": "# Queues are temporal contracts\n\nA queue looks like a pipe. It is really a **promise about time**: this work will happen, not now, at least once, and possibly more than once. Every hard part of async design comes from taking that sentence literally.\n\n## Why \"exactly once\" is not on the menu\n\nA worker pulls an event, sends an email, and crashes before committing its offset. The event is redelivered. Someone gets two emails.\n\nThe instinct is to commit the offset first. Now the worker crashes *after* committing and *before* sending, and the email is never sent. You have traded duplicates for losses.\n\nThere is no ordering of those two steps that gives you exactly once, because the send and the commit are in different systems and no atomic commit spans them. This is not an implementation gap you can engineer around; it is the shape of the problem.\n\nSo the industry answer is: **at-least-once delivery plus an idempotent effect.** Choose duplicates, then make duplicates harmless. Before performing the side effect, claim a dedupe key derived from the event — `notification:{event_id}` — with a uniqueness constraint. Second delivery, the claim fails, you skip and acknowledge. From outside, exactly once. Inside, at-least-once with a guard.\n\nSay it that way in an interview and you have answered the hardest question in this module before it is asked.\n\n## The seven decisions on every queue\n\nAn interviewer probing async design is checking whether you know these exist:\n\n| Decision | Question | Typical answer |\n|---|---|---|\n| Ordering scope | Ordered relative to *what*? | Per key, never global |\n| Partition key | What determines the shard? | The entity that needs ordering |\n| Delivery semantics | At-least-once or at-most-once? | At-least-once + idempotent handler |\n| Idempotency key | What identifies \"same effect\"? | Event id, or a business key |\n| Retry schedule | How often, how many times? | Exponential backoff + jitter, bounded |\n| DLQ policy | Where do poison messages go? | Dead-letter after N, with context, alerted |\n| Age objective | When is lag a problem? | Oldest-unprocessed age, in product terms |\n\nGlobal ordering is the trap. It sounds rigorous and it caps your throughput at one consumer, forever. What products actually require is *per-conversation*, *per-user*, or *per-account* ordering — so partition by that entity, keep one consumer per partition, and you get ordering where it matters with parallelism everywhere else.\n\n## Poison messages, and the outage they cause\n\nOne malformed event arrives at 02:00. The consumer throws. It retries. It throws again. It retries forever, in place, and **every message behind it on that partition is now blocked**. Users on that partition stop receiving notifications entirely, while dashboards show a healthy consumer that is very busy.\n\nThe fix is bounded retries then dead-letter:\n\n- Retry a small number of times with exponential backoff **and jitter** — without jitter, a downstream blip produces a synchronised retry storm that keeps it down.\n- After the bound, move the event to a dead-letter queue **with its failure context**: the exception, the attempt count, the original payload.\n- Alert on DLQ arrivals. A silent DLQ is a folder where your data goes to be forgotten.\n- Provide a replay path, because the whole point is to fix the bug and reprocess.\n\nThe partition keeps flowing. One user's bad event stops being everyone's outage.\n\n## Lag is the only health metric that matters\n\nTwo numbers, and they are not interchangeable:\n\n- **Consumer lag** — how far behind the incoming stream you are. Detects \"consumers cannot keep up.\"\n- **Oldest unprocessed age** — how long the most delayed item has waited. Detects \"something is stuck.\"\n\nA queue can have near-zero lag and a 40-minute-old item hiding on one stalled partition. Alert on age, expressed the way the product experiences it: not \"lag > 10,000,\" but \"notifications may be delayed by more than 5 minutes.\"\n\n## What partitions cost\n\nPartition count is a ceiling on consumer parallelism — you cannot usefully run more consumers than partitions, and repartitioning a live topic is disruptive, so over-provision partitions early. Retention and retries cost storage. Strict ordering costs throughput. There is no configuration where all three are free; pick the two the product needs.\n\n## The invariant\n\n> **A handler can observe the same event more than once without producing a second external effect.**\n\n## What the interviewer is listening for\n\n- Did you say at-least-once plus idempotency, rather than claiming exactly-once?\n- Is your ordering scope per-key, and did you say why not global?\n- Bounded retries with jitter, a DLQ with context, and an alert?\n- Do you alert on oldest-item age rather than queue depth?",
           "check": {
             "type": "read"
           }
@@ -1076,12 +1076,12 @@
             "situation": "A notification worker sends an email but crashes before committing its queue offset. The event is delivered again.",
             "decision": "What makes the second attempt safe?",
             "options": [
-              "Record an idempotency key for the delivery effect and treat the duplicate as the same operation.",
-              "Disable retries for email events.",
-              "Commit the offset before attempting the email."
+              "Commit the offset before attempting the email, so a crash cannot cause a duplicate.",
+              "Record an idempotency key for the delivery effect and treat the redelivery as the same operation.",
+              "Switch the topic to exactly-once delivery so redelivery cannot happen."
             ],
-            "correctIndex": 0,
-            "explanation": "Committing first risks losing the event; retrying without idempotency risks duplicate delivery. The effect needs a durable dedupe key."
+            "correctIndex": 1,
+            "explanation": "Committing first is the reflex, and it trades duplicates for silent losses — crash after the commit and that email is never sent. No ordering of send and commit works, because they live in different systems with no atomic commit between them. Exactly-once delivery across a network boundary is not a configuration flag; the working answer is at-least-once plus an idempotent effect."
           },
           "check": {
             "type": "widget"
@@ -1096,25 +1096,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "What does consumer lag measure best?",
+              "prompt": "A worker sends an email, then crashes before committing its queue offset. What makes the redelivery safe?",
               "options": [
-                "How long work is waiting relative to the incoming stream.",
-                "How many API routes exist.",
-                "Whether the producer uses JSON."
+                "Committing the offset before sending, so a crash cannot cause a duplicate.",
+                "Claiming a dedupe key derived from the event before performing the side effect.",
+                "Configuring the queue for exactly-once delivery semantics."
               ],
-              "correctIndex": 0,
-              "explanation": "Lag and oldest-event age reveal whether consumers keep up with the product SLA."
+              "correctIndex": 1,
+              "explanation": "Committing first just swaps duplicates for losses — crash after the commit and the email is never sent. There is no ordering of those two steps that works, because they are in different systems with no atomic commit between them. Exactly-once delivery is not a setting you can enable; the industry answer is at-least-once plus an idempotent effect."
             },
             {
               "id": "q2",
-              "prompt": "When should an event move to a DLQ?",
+              "prompt": "One malformed event arrives at 02:00 and no notification has been delivered since. What is the design flaw?",
               "options": [
-                "After bounded retries with preserved failure context.",
-                "Immediately after its first failure.",
-                "Only when a database is empty."
+                "The producer is not validating events before publishing them.",
+                "The topic does not have enough partitions to absorb the backlog.",
+                "The consumer retries the failing event forever in place, blocking every message behind it on that partition."
               ],
-              "correctIndex": 0,
-              "explanation": "Bounded retries handle transient faults; DLQ isolates poison events for explicit repair."
+              "correctIndex": 2,
+              "explanation": "Producer validation helps but cannot be complete — some events only fail against downstream state. More partitions do nothing, because the block is per-partition and the poison message would simply stall one of a larger set. Bound the retries, dead-letter with the failure context attached, alert, and the partition keeps flowing."
             }
           ],
           "check": {
@@ -1206,7 +1206,7 @@
           "title": "Read: design for controlled degradation",
           "xp": 15,
           "kind": "reading",
-          "content": "# Reliability is a user contract\n\n**Recognition signals:** availability target, outage, multi-region, dependency timeout, retry storm, or recovery objective.\n\nBound concurrency and queues, isolate failing dependencies with circuit breakers, state RTO/RPO, and decide what operations degrade or stop.\n\n**Invariant:** a failure in one dependency cannot consume unbounded resources in its callers.\n\n**Cost implications:** additional regions and synchronous quorum improve survival but increase latency, replication cost, and operational coordination.",
+          "content": "# Design for controlled degradation\n\n\"Highly available\" is not a design. It is a wish. The design question is sharper and much more revealing:\n\n> **When your dependency is slow, what exactly does the user get?**\n\nEvery real system has a bad day. The difference between a mature design and a fragile one is not whether failures happen — it is whether the failure was *planned for* and stays contained.\n\n## How one slow dependency takes down everything\n\nThis is the cascade, and you should be able to narrate it:\n\nA downstream service starts responding in 5 seconds instead of 50 ms. Your API keeps calling it, because nothing told it to stop. Each call now holds a thread and a connection for 100× longer. The thread pool fills. Requests queue. The queue has no bound, so it grows until memory does. Now *your* health checks time out, the load balancer pulls you out, and the traffic you were serving lands on the remaining instances, which fill up faster.\n\nThe dependency was degraded. Your service is **down**. And notice: nothing in that story is a bug. Every component did what it was written to do. The missing piece is a limit.\n\n## Three limits that stop it\n\n**Timeouts, everywhere.** Every network call has a timeout, and it is shorter than the caller's own budget. No timeout means \"wait forever,\" which is never what you want. If your API promises 200 ms p95, a 5-second downstream timeout is a fiction — it will have failed the user four seconds earlier.\n\n**Bounded concurrency and bounded queues.** Cap in-flight calls to each dependency (a bulkhead). When the cap is reached, reject immediately rather than queueing without limit. Fast rejection is a feature: it keeps the failure in one place instead of letting it consume every resource in the process.\n\n**Circuit breakers.** Track the failure rate per dependency. Past a threshold, **open** — stop calling entirely and return the fallback immediately. After a cooldown, go **half-open**: let a few probes through. If they succeed, close; if not, open again. This does two things at once: it stops you burning resources on calls that will fail, and it stops you hammering a struggling dependency that needs quiet to recover.\n\nRetries need a matching discipline. Exponential backoff with **jitter** — without jitter every client retries in lockstep and the recovery attempt becomes the next outage. And retries need a budget: retrying three times at every layer of a four-layer stack is 81× amplification aimed at a service that is already failing.\n\n## Decide what degrades before you need to\n\nThe valuable design work is deciding, in advance, which features fail and which survive. A checkout flow can lose recommendations, reviews, and loyalty points and still take money. It cannot lose payment authorisation. Write that down as a tier list, and the incident response becomes a lookup instead of an argument at 3 a.m.\n\nThe fallback itself is a design decision with a product owner: stale cached data, an empty section, a degraded-mode banner, or a clean error. \"Show yesterday's recommendations\" is a choice. Timing out for 30 seconds and then showing a blank page is not.\n\n## RTO and RPO, in plain words\n\nTwo numbers the interviewer expects you to distinguish:\n\n- **RTO — Recovery Time Objective:** how long until service is restored. This is a *downtime* budget.\n- **RPO — Recovery Point Objective:** how much committed data you can afford to lose, measured in time. This is a *data-loss* budget.\n\nRPO is what makes backup strategy concrete. Nightly backups mean RPO = 24 hours: you are stating that losing a day of writes is acceptable. For a payments system it is not, so you need continuous replication and point-in-time recovery. The classic failure — everything redundant except the single database with weekly dumps — is the one where nine hours of restore and a week of lost data were both, technically, the plan.\n\n## Multi-region is a consistency decision wearing an availability costume\n\nAdding a region does not just add capacity. It forces you to answer what happens during a partition, and the answer is a genuine trade:\n\n- **Active-passive:** one region writes, the other stands by. Simple, understandable, and your RTO is however long failover takes.\n- **Active-active with regional ownership:** each region owns a shard of the keyspace. Fast local writes, no conflicts by construction, and cross-region access pays a hop.\n- **Active-active with conflict resolution:** every region accepts every write. Best availability, and you now own merge semantics — which for a \"transfer $500\" event may have no correct merge at all.\n\nFor irreversible money movement the defensible answer is to require the configured quorum and **reject or queue** writes that cannot meet it. Accepting a local write during a partition and merging later means inventing a resolution rule for a transfer that may already have been spent. Availability is not free here; you are choosing which one to give up, and saying so is the answer.\n\n## The invariant\n\n> **A failure in one dependency cannot consume unbounded resources in its callers.**\n\n## What the interviewer is listening for\n\n- Did you volunteer the failure path, or wait to be asked?\n- Timeouts, bounded concurrency, and a breaker — not just \"we retry\"?\n- Is there a written list of what degrades and what must not?\n- Can you state RTO and RPO as numbers, and defend them?",
           "check": {
             "type": "read"
           }
@@ -1230,15 +1230,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nState the consistency consequence instead of hiding it.",
           "systemDesignDecision": {
-            "situation": "One region is isolated from the other replicas. Your product stores financial transfers that must not be duplicated or lost.",
+            "situation": "One region is isolated from the other replicas. The product stores financial transfers that must not be duplicated or lost.",
             "decision": "What write policy is most defensible?",
             "options": [
-              "Require the configured quorum and reject or queue writes that cannot meet it.",
-              "Accept all local writes and merge transfer conflicts later.",
-              "Route every request to the isolated region to reduce latency."
+              "Accept writes locally and merge conflicting transfers when the partition heals.",
+              "Fail the whole region over to a healthy one immediately and serve everything from there.",
+              "Require the configured quorum, and reject or queue writes that cannot meet it."
             ],
-            "correctIndex": 0,
-            "explanation": "For irreversible financial transfers, a quorum-based durability boundary is more important than accepting an ambiguous local write during a partition."
+            "correctIndex": 2,
+            "explanation": "Local-accept-and-merge sounds like availability and is really an unanswerable question: \"transfer $500\" has no correct merge rule, and the money may already have been spent by the time you notice. Immediate failover is a real strategy but not a *write* policy — it does not say what happens to writes already accepted in the isolated region. For irreversible money movement, the durability boundary outranks availability, and saying which one you gave up is the answer."
           },
           "check": {
             "type": "widget"
@@ -1253,25 +1253,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "What does a circuit breaker do after repeated timeouts?",
+              "prompt": "A dependency starts responding in 5 seconds instead of 50 ms. Why does your own service go down?",
               "options": [
-                "Stops more calls temporarily and serves a bounded fallback or error.",
-                "Retries every call forever.",
-                "Replicates the dependency database."
+                "The dependency's errors propagate directly into your response payloads.",
+                "Each call holds a thread and connection 100× longer, the pool fills, the unbounded queue grows, and your health checks start timing out.",
+                "The load balancer routes retries to the slowest instances first."
               ],
-              "correctIndex": 0,
-              "explanation": "A circuit breaker contains cascading failure and gives the dependency room to recover."
+              "correctIndex": 1,
+              "explanation": "Nothing in this cascade is a bug — every component does exactly what it was written to do. What is missing is a limit. Timeouts shorter than your own budget, bounded concurrency per dependency, and a circuit breaker that stops calling entirely are the three limits that contain it."
             },
             {
               "id": "q2",
-              "prompt": "What is RPO?",
+              "prompt": "What does RPO specify?",
               "options": [
-                "Maximum tolerated data loss measured in time or acknowledged work.",
-                "The average API response time.",
-                "The number of load balancers."
+                "The maximum tolerated data loss, measured in time or acknowledged work.",
+                "The maximum time the service may be unavailable before recovery completes.",
+                "The p99 response time the service commits to under normal load."
               ],
               "correctIndex": 0,
-              "explanation": "RPO defines how much committed data the recovery plan can lose."
+              "explanation": "Option two is RTO, and confusing the two is the standard mix-up. RTO is a downtime budget; RPO is a data-loss budget. Nightly backups mean RPO = 24 hours — you have stated that losing a day of writes is acceptable, which for a payments system it is not."
             }
           ],
           "check": {
@@ -1359,7 +1359,7 @@
           "title": "Read: durable events, ephemeral presence",
           "xp": 15,
           "kind": "reading",
-          "content": "# Real-time is two different systems\n\n**Recognition signals:** chat, presence, collaboration, WebSockets, rooms, fan-out, reconnect, or low delivery latency.\n\nKeep connection state at gateways, persist messages before fan-out, define ordering scope, and let offline clients catch up from a cursorable log. Treat presence as best-effort TTL state.\n\n**Invariant:** a persisted message can be replayed after a reconnect.\n\n**Cost implications:** fan-out work grows with room membership; connection affinity lowers routing cost but complicates balancing and failover.",
+          "content": "# Durable events, ephemeral presence\n\nChat looks like one system. It is two, and they have opposite requirements. Candidates who treat them as one thing build something that either loses messages or melts under presence updates.\n\n**Messages** must be durable, ordered within a conversation, and replayable — losing one is unacceptable, and a message from an hour ago still matters.\n\n**Presence** (\"online\", \"typing…\") is the opposite. It changes constantly, it is worthless three seconds later, and losing an update is invisible to everyone. Storing presence with the same durability as messages is how a chat system spends 90% of its write budget on the word \"typing\".\n\nSeparate them on the board and half the design is done.\n\n## The connection layer\n\nPersistent WebSockets rather than polling: polling every 5 seconds burns battery and mobile data to mostly learn that nothing happened, and still delivers a second late. The socket also gives you the thing polling cannot — the server knows *right now* who is reachable.\n\nGateways hold the connections and one thing more: the **routing table** mapping user → gateway. That table is the entire \"how do I reach this person\" problem, and it belongs in fast shared state (Redis or similar) so any node can answer it, with a TTL so dead entries expire.\n\nSizing is worth saying out loud: 50M DAU × 40 messages/day is 2 billion messages/day ≈ **23,000 messages/second** average, with peaks several times that. Gateways are sharded from day one, and a single gateway holds on the order of 10⁵ connections, so you are talking about hundreds of them. Connections are cheap in memory and expensive in *rebalancing* — when a gateway dies, its clients all reconnect at once, so the reconnect path must survive a thundering herd (staggered backoff, and capacity to absorb the reconnect spike).\n\n## Persist before fan-out. Always.\n\nThe send path, in order:\n\n1. Validate and assign a **per-conversation sequence number**.\n2. **Write to the durable log.** This is the commit point.\n3. Acknowledge to the sender — one grey tick.\n4. Look up recipients, find their gateways, push over sockets.\n5. For anyone not connected, enqueue a push notification.\n6. Delivery and read receipts flow back as separate, later events.\n\nStep 2 before step 4 is not negotiable. Push first and the sender's phone shows the message delivered while the server has no record of it — a crash at that instant makes it vanish from history and from every device that reconnects. Persist first, and delivery becomes retryable: everything after step 2 can fail and be redone.\n\n## Ordering without trusting clocks\n\nClient timestamps are wrong — clock skew, wrong time zones, deliberately altered. NTP gets servers to within milliseconds, which is not enough when two messages are sent 200 µs apart.\n\nThe mechanism is a **per-conversation monotonic sequence number**, assigned server-side by the single writer for that conversation's shard. It gives you two things: gap-free ordering, and a way for the client to *detect* that it is missing message 47 and ask for it. Global ordering across all conversations is neither achievable at scale nor useful to anyone — say that, because the willingness to scope ordering correctly is exactly what is being tested.\n\n## Reconnection is the real test\n\nA phone goes through a tunnel. Four messages arrive in the room. It reconnects. What now?\n\nThe client stores a **cursor**: the last sequence number it has. On reconnect it sends *\"I have up to 46\"* and the server replays 47 onward from the durable log. Bounded, ordered, correct, and completely independent of whatever the old gateway was doing before it died.\n\nThe two wrong answers are instructive. Sending full room history on every reconnect is unbounded work triggered by the flakiest clients on the worst networks — a self-inflicted DDoS on your own database. And assuming missing messages are \"probably just presence\" loses real data.\n\n## Fan-out cost is the room-size question\n\n1:1 chat is trivial. A 1,000-member group means one message becomes 1,000 deliveries, and a 100,000-member channel means the naive design writes 100,000 rows for one message. The mitigations are the ones you would expect: cap group size (WhatsApp's limit is a design decision, not an accident), fan out asynchronously through workers, and for very large broadcast rooms invert the model — let clients pull from a shared room log instead of pushing per-recipient copies.\n\n## Presence, done cheaply\n\nA key with a short TTL, refreshed by a heartbeat every 30 seconds. Stop heartbeating and the key expires and you are offline. No cleanup job, no consistency protocol, no durable writes, and a crashed gateway self-heals in one TTL. Then damp the fan-out: not every observer needs every \"typing\" event, and batching or sampling presence updates costs nothing anyone can perceive.\n\n## The invariant\n\n> **A persisted message can be replayed after a reconnect, from a cursor, in order.**\n\n## What the interviewer is listening for\n\n- Did you split durable messages from ephemeral presence, explicitly?\n- Do you persist before fan-out — and can you say why that order?\n- Server-assigned per-conversation sequence, not client clocks?\n- Is reconnect a bounded cursor replay rather than a full history dump?",
           "check": {
             "type": "read"
           }
@@ -1383,15 +1383,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nRecover a user without replaying the entire room.",
           "systemDesignDecision": {
-            "situation": "A user's WebSocket disconnects after several messages were written to the room log.",
-            "decision": "How should the client catch up after reconnecting?",
+            "situation": "A user's WebSocket drops after several messages were written to the room log.",
+            "decision": "How should the client catch up on reconnect?",
             "options": [
-              "Reconnect with the last acknowledged message cursor and replay later durable messages.",
-              "Assume any missing messages are presence events.",
-              "Send the full room history on every reconnect."
+              "Reconnect with the last acknowledged message cursor and replay everything after it.",
+              "Refetch the last N messages of the room and let the client de-duplicate locally.",
+              "Send the full room history on every reconnect so nothing can be missed."
             ],
             "correctIndex": 0,
-            "explanation": "A durable cursor makes recovery bounded, ordered at the room scope, and independent of transient gateway state."
+            "explanation": "A fixed window of N is the plausible-looking shortcut and it breaks exactly when it matters: a client offline through a long tunnel misses more than N and loses messages with no way to detect it. Full history is unbounded work triggered by your flakiest clients on the worst networks — a self-inflicted DDoS on your own store. A cursor makes recovery bounded, ordered, and independent of whichever gateway just died."
           },
           "check": {
             "type": "widget"
@@ -1406,25 +1406,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "Why persist a chat message before fan-out?",
+              "prompt": "Why persist a chat message to the durable log *before* pushing it over the socket?",
               "options": [
-                "Reconnects and offline clients can replay a durable source.",
-                "It makes presence strongly consistent.",
-                "It removes all network latency."
+                "Writing first reduces the latency the sender perceives.",
+                "The socket layer cannot serialise messages until they have an assigned id.",
+                "Reconnecting and offline clients replay from that log, and everything after the write becomes retryable."
               ],
-              "correctIndex": 0,
-              "explanation": "Durable append separates correctness from the best-effort socket delivery path."
+              "correctIndex": 2,
+              "explanation": "Persisting first is slightly *slower* for the sender, which is exactly why people are tempted to reverse it. Push first and the sender sees a delivered tick for a message the server has no record of — a crash at that instant erases it from history and from every device that reconnects."
             },
             {
               "id": "q2",
-              "prompt": "What is a practical presence model?",
+              "prompt": "What is a practical presence model for \"online\" and \"typing…\"?",
               "options": [
-                "TTL-based best-effort state refreshed by heartbeats.",
-                "A globally serializable transaction for every cursor movement.",
-                "A permanent record for every connection ping."
+                "A row per user updated on every state change, with the write replicated like any other.",
+                "A key with a short TTL, refreshed by a heartbeat, expiring on its own when the client goes away.",
+                "A durable event appended to the conversation log so presence history is auditable."
               ],
-              "correctIndex": 0,
-              "explanation": "Presence changes often and can tolerate expiry; message history cannot."
+              "correctIndex": 1,
+              "explanation": "Presence changes constantly and is worthless three seconds later, so giving it message-grade durability spends most of your write budget on the word \"typing\". TTL expiry also means a crashed gateway self-heals in one heartbeat interval with no cleanup job."
             }
           ],
           "check": {
@@ -1512,7 +1512,7 @@
           "title": "Read: separate serving from computation",
           "xp": 15,
           "kind": "reading",
-          "content": "# Precompute only what the product needs\n\n**Recognition signals:** feed, ranking, autocomplete, search, telemetry, analytics, many followers, high-cardinality labels.\n\nUse hybrid fan-out for feeds, memory-resident prefix indexes for autocomplete, and a partitioned aggregation path for metrics. Put expensive ranking and compaction off the serving path.\n\n**Invariant:** serving reads never depend on a full historical scan.\n\n**Cost implications:** fan-out on write amplifies write work; fan-out on read raises tail latency; unbounded metric cardinality can overwhelm storage and query systems.",
+          "content": "# Separate serving from computation\n\nOpen the app. The feed is there in 80 milliseconds. Whatever produced it did not start when you tapped — a read that fast cannot have ranked thousands of candidate posts. It was **precomputed**, and the entire design question is *how much*, *when*, and *who pays*.\n\nThis is the one idea behind feeds, search, and analytics alike: move expensive work off the request path, and accept the cost of doing so.\n\n## Fan-out on write versus fan-out on read\n\n**Fan-out on write (push).** When you post, the system immediately writes your post id into every follower's feed list. Reads are then a single range scan of one precomputed list — trivially fast. You have moved all the cost to write time.\n\n**Fan-out on read (pull).** Nothing happens on post. When someone opens their feed, the system fetches recent posts from everyone they follow and merges. Writes are trivial; reads are expensive and their latency grows with how many people you follow.\n\nDo the arithmetic, because the arithmetic is the answer. 500M posts/day, average 200 followers, push model:\n\n```\n500,000,000 × 200 = 100,000,000,000 inbox writes per day\n100 billion ÷ 86,400 s ≈ 1,200,000 writes per second\n```\n\n1.2 million writes per second to serve 5,800 posts per second. That is the cost of making reads free, and for the average user it is worth paying.\n\nThen the celebrity arrives. One account with 50 million followers posts once, and the push model owes 50 million writes for a single action. It cannot be done synchronously — the poster would wait minutes — and done asynchronously it saturates the fan-out workers and delays everyone else's feed.\n\n## The hybrid, and the threshold\n\nSo: **push for the many, pull for the few.**\n\n- Below a follower threshold — on the order of 10,000 — fan out on write. Reads stay fast for the overwhelming majority.\n- Above it, write nothing. At read time, merge that account's recent posts into the precomputed list.\n\nA user following three celebrities does three extra fetches, which is cheap, while 99.9% of the feed came precomputed. Name the threshold out loud; the number is not sacred, but knowing that a threshold exists — and that it is tunable — is the point. This is the canonical answer to the timeline question and it is worth being able to derive rather than recite.\n\nWhere do the precomputed feeds live? In-memory lists, capped — roughly 800 entries per user is a real production figure. Capping matters: nobody scrolls to post 5,000, and the cap turns unbounded storage into a fixed cost per user. A relational join at read time under 300k read QPS is exactly the thing fan-out exists to avoid.\n\n## Autocomplete is a different index, not a different query\n\nSearch-as-you-type has a latency budget of roughly 50 ms, because it fires on every keystroke. That budget rules out scanning documents. What it needs is a **prefix index** — a trie or equivalent, held in memory, where each node stores the top-k completions for that prefix already ranked.\n\nThe lookup is then: walk the prefix, read the precomputed list, return. No ranking at query time, no disk. Updates arrive asynchronously from the write stream, and being minutes stale is invisible to a user typing \"piz…\". You are trading update freshness for a latency floor, deliberately.\n\nThe general lesson repeats: full-text search, prefix search, and primary storage are three different access patterns and therefore three different indexes, all fed from one owned durable source. The moment your search index cannot be rebuilt from that source, it has become a second source of truth — and two sources of truth that disagree is not a bug you can fix, it is a bug you can only arbitrate.\n\n## Analytics: bound cardinality before it bounds you\n\nMetrics look free until they are not. The killer is **cardinality**: the number of distinct label combinations. Add `user_id` as a metric label and a 10-million-user product just created 10 million time series per metric. Every query, every dashboard, every retention policy now scales with that number, and the monitoring system falls over during the incident it was bought to diagnose.\n\nThe defences are ordinary and must be in place *before* the outage: validate labels at ingestion and reject unbounded ones, pre-aggregate rather than storing raw events, tier retention (raw for hours, per-minute for weeks, hourly for years), and sample high-volume paths.\n\nAnd keep the aggregation path off the serving path entirely. Counting how many times a link was clicked should never make the redirect slower — emit an event, aggregate elsewhere, and let the counter lag.\n\n## The invariant\n\n> **A serving read never depends on a full historical scan.**\n\nIf answering a request requires touching all of history, you have an offline job pretending to be an API. Precompute it, index it, or bound it.\n\n## What the interviewer is listening for\n\n- Did you *derive* the fan-out arithmetic rather than assert the answer?\n- Did you name the hybrid and give a threshold?\n- Do search, autocomplete, and primary storage have separate rebuildable indexes?\n- Did you bound metric cardinality at ingestion rather than after the incident?",
           "check": {
             "type": "read"
           }
@@ -1536,15 +1536,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nAvoid an unbounded write storm.",
           "systemDesignDecision": {
-            "situation": "A celebrity with 50M followers posts content. Ordinary users expect a fresh home feed quickly.",
+            "situation": "A celebrity with 50M followers posts. Ordinary users still expect a fresh home feed quickly.",
             "decision": "Which feed policy is most defensible?",
             "options": [
-              "Use hybrid fan-out: precompute ordinary accounts and merge celebrity content at read time.",
-              "Push 50M writes synchronously before acknowledging the post.",
-              "Remove celebrities from all feeds."
+              "Fan out to all 50M inboxes asynchronously, so the poster is not kept waiting.",
+              "Use hybrid fan-out: precompute for ordinary accounts, merge celebrity posts at read time.",
+              "Fan out on read for everyone, which removes the celebrity special case entirely."
             ],
-            "correctIndex": 0,
-            "explanation": "Hybrid fan-out concentrates expensive large-account work on readers while retaining low-latency precomputed feeds for the common case."
+            "correctIndex": 1,
+            "explanation": "Making it asynchronous fixes the poster's latency and not the actual problem: 50M writes still saturate the fan-out workers and delay every other user's feed behind them. Pull-for-everyone is coherent but throws away the optimisation that serves 99.9% of reads in one lookup, and its read latency grows with follow count. Say the threshold out loud — around 10k followers — because knowing a threshold exists is the point."
           },
           "check": {
             "type": "widget"
@@ -1559,25 +1559,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "Why is autocomplete often served from an in-memory prefix index?",
+              "prompt": "Why is autocomplete served from an in-memory prefix index rather than the search cluster?",
               "options": [
-                "Small ranked prefix lookups need low predictable latency.",
-                "It makes documents immutable.",
-                "It removes the need to update an index."
+                "Prefix queries cannot be expressed against an inverted index.",
+                "It fires on every keystroke, so it needs a ~50 ms budget with precomputed top-k per prefix and no disk in the path.",
+                "It guarantees suggestions always reflect the newest documents."
               ],
-              "correctIndex": 0,
-              "explanation": "The serving index is optimized for prefix lookup; updates can arrive asynchronously."
+              "correctIndex": 1,
+              "explanation": "Option three is backwards — the prefix index is *deliberately* stale, updated asynchronously, because a user typing \"piz…\" cannot perceive minutes of lag. That is the trade being made: update freshness sold for a latency floor. Search, autocomplete, and primary storage are three access patterns and therefore three indexes."
             },
             {
               "id": "q2",
               "prompt": "What protects a metrics pipeline from cardinality explosion?",
               "options": [
-                "Label validation, aggregation, retention tiers, and sampling policy.",
-                "A larger dashboard.",
-                "Adding all raw events to the request response."
+                "Increasing retention so queries can be spread over a longer window.",
+                "Sampling only at query time, keeping every raw event on ingest.",
+                "Validating labels at ingestion, pre-aggregating, tiering retention, and sampling high-volume paths."
               ],
-              "correctIndex": 0,
-              "explanation": "Cardinality must be bounded at ingestion and storage, not discovered after an outage."
+              "correctIndex": 2,
+              "explanation": "Cardinality has to be bounded where the data enters, not after the incident — by then the monitoring system you bought to diagnose the outage is part of it. Add user_id as a label on a 10-million-user product and you have created 10 million series per metric."
             }
           ],
           "check": {
@@ -1669,7 +1669,7 @@
           "title": "Read: consistency is a chosen contract",
           "xp": 15,
           "kind": "reading",
-          "content": "# Design the distributed KV contract\n\n**Recognition signals:** replicas, quorum, hash ring, regional writes, partition, stale read, conflict, repair.\n\nDefine partitioning, replication factor, acknowledgement quorum, read mode, versioning, and anti-entropy. State what the system does during a network partition.\n\n**Invariant:** an acknowledged write meets the declared durability rule, not an implied stronger one.\n\n**Cost implications:** larger quorums and more replicas improve survival but increase tail latency, bandwidth, and reconciliation work.",
+          "content": "# Consistency is a chosen contract\n\nBy this point the phrase \"eventually consistent\" has appeared in every design. This module is where you have to mean something precise by it, because the interviewer is about to ask *\"what does a read return five milliseconds after a write, if the replica has not received it?\"* and \"eventually\" is not an answer.\n\n## Where the data goes\n\nKeys are placed on a **hash ring**: hash the key, walk clockwise, the first N nodes own the replicas. The property that matters is that adding or removing a node moves only the keys in the affected arc — roughly 1/N of the data — instead of reshuffling everything the way `hash(key) % node_count` does.\n\nExcept that with one point per physical node, the arcs are wildly uneven and a node with twice the capacity still gets one arbitrary arc. **Virtual nodes** fix both: give each physical node a few hundred points scattered around the ring, and ownership smooths out, capacity differences become a matter of assigning more points, and a departing node's load spreads across all its neighbours rather than dumping on one. That is the whole reason virtual nodes exist, and stating it that way is the difference between having read about consistent hashing and understanding it.\n\n## Quorum is a dial, not a mode\n\nWith replication factor **N**, a write waits for **W** acknowledgements and a read consults **R** replicas.\n\n```\nW + R > N   →  the read set and the write set must overlap\n               →  at least one replica you read has the latest write\n```\n\nThat inequality is the entire mechanism. Common settings for N=3:\n\n| W | R | Overlap? | Character |\n|---|---|---|---|\n| 3 | 1 | yes | Fast reads, writes fail if any replica is down |\n| 1 | 3 | yes | Fast writes, reads pay the slowest replica |\n| 2 | 2 | yes | Balanced — survives one node down on both paths |\n| 1 | 1 | **no** | Fastest, and you may read stale data |\n\nTwo things worth saying out loud. First, quorum reads cost **tail latency**, because you wait for the slowest of R replicas — and at high percentiles the slowest is much slower than the median. Second, W+R > N gives you overlap, not linearizability: without additional coordination you can still see anomalies around concurrent writes. Quorum is a strong, honest, well-understood contract; it is not a synonym for \"strongly consistent,\" and treating it as one is the trap in this module.\n\n## Per-path consistency, not per-system\n\nThe mature answer is that one system runs several contracts at once, chosen by what each read is *for*:\n\n- A permissions check immediately after a revoke → primary or quorum read. Stale here is a security incident: an account you just revoked still has access.\n- Rendering another user's profile → nearest replica. Two seconds stale is invisible.\n- A billing ledger → strongly consistent, no exceptions.\n- A \"likes\" counter → eventually consistent, and nobody will ever notice.\n\nSaying \"this system is eventually consistent\" is a weaker answer than \"these three paths are eventually consistent for these reasons, and this one is not, for this reason.\"\n\n## During a partition, you actually choose\n\nA network split means some replicas cannot reach others. You must pick:\n\n- **Refuse writes that cannot meet the quorum** — stay consistent, lose availability for those keys. Correct for money, permissions, inventory.\n- **Accept local writes and reconcile later** — stay available, and now you own conflict resolution.\n\n\"CAP theorem\" is not an answer by itself. Naming which side you took, for which data, and what the user experiences on the losing side, is.\n\n## Conflicts and repair\n\nIf you accept concurrent writes you need a rule for merging them, and each rule has a cost you should name:\n\n- **Last-writer-wins by timestamp** — trivial, and it silently discards a real write. Fine for a presence flag, wrong for a shopping cart.\n- **Vector clocks** — correctly detect concurrency rather than guessing, and hand the conflict back to the application, which now needs a resolution rule.\n- **CRDTs** — merge deterministically by construction, for the data types that fit (counters, sets, some text). Where they fit they are the cleanest answer available.\n\nDivergence also happens without conflicts — a replica misses writes while it is down. Two background mechanisms converge things: **read repair** (a read notices disagreement and pushes the newest value to the stale replica) and **anti-entropy** (a periodic background comparison, typically via Merkle trees so replicas can find the differing ranges without shipping everything). Without them, a replica that was down for an hour serves stale data indefinitely.\n\n## The invariant\n\n> **An acknowledged write satisfies the durability rule you declared — not a stronger one the reader assumed.**\n\nIf W=1, you have promised that one replica has it. Do not describe that as durable, and do not let the diagram imply it.\n\n## What the interviewer is listening for\n\n- Can you state W + R > N and explain *why* overlap gives you freshness?\n- Did you assign consistency per read path instead of per system?\n- Did you say what happens during a partition, and to whom?\n- Did you name both read repair and anti-entropy?",
           "check": {
             "type": "read"
           }
@@ -1694,14 +1694,14 @@
           "content": "# Guided scenario\n\nMake the consistency cost visible.",
           "systemDesignDecision": {
             "situation": "A permissions system must not show a revoked account as active immediately after a successful revoke.",
-            "decision": "Which read policy best matches the requirement?",
+            "decision": "Which read policy matches the requirement?",
             "options": [
-              "Use a primary/session-consistent read or a quorum read for the immediate verification path.",
-              "Use the nearest single replica for every read.",
-              "Use a cache with an unbounded TTL."
+              "Cache authorisation decisions with a short TTL to keep the check off the hot path.",
+              "Read from the nearest replica and re-check asynchronously if the decision is later contradicted.",
+              "Use a primary, session-consistent, or quorum read on the immediate verification path."
             ],
-            "correctIndex": 0,
-            "explanation": "The immediate authorization check has a strong freshness requirement; lower-latency replica reads can remain available for tolerant paths."
+            "correctIndex": 2,
+            "explanation": "A short TTL still means a revoked account keeps its access for the length of that TTL, and \"short\" is doing a lot of load-bearing work in a security control. Asynchronous re-check is worse — the access already happened. Stale here is not a UX blemish, it is a security incident, so this path buys freshness with latency while tolerant reads elsewhere keep using replicas."
           },
           "check": {
             "type": "widget"
@@ -1716,25 +1716,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "Why use virtual nodes on a hash ring?",
+              "prompt": "What do virtual nodes give you on a consistent hash ring?",
               "options": [
-                "They smooth ownership and data movement across uneven physical nodes.",
-                "They remove the need for replication.",
-                "They make every read strongly consistent."
+                "Even ownership across uneven physical nodes, and a departing node's load spread over all its neighbours.",
+                "A guarantee that any read reflects the most recent acknowledged write.",
+                "Replication, without needing to store copies on multiple nodes."
               ],
               "correctIndex": 0,
-              "explanation": "Virtual nodes distribute ranges more evenly and make node changes less disruptive."
+              "explanation": "Virtual nodes are purely a placement mechanism — they say nothing about freshness (that is W + R > N) and nothing about durability (that is the replication factor). With one point per physical node the arcs are wildly uneven and a departing node dumps its whole range on a single neighbour."
             },
             {
               "id": "q2",
-              "prompt": "What is anti-entropy for?",
+              "prompt": "With replication factor N = 3, which pair guarantees a read overlaps the latest acknowledged write?",
               "options": [
-                "Reconciling replica divergence in the background.",
-                "Reducing HTTP header size.",
-                "Replacing the write quorum."
+                "W = 1, R = 1 — fastest on both paths.",
+                "W = 2, R = 2 — the read set and write set must share a replica.",
+                "W = 3, R = 3 — the only combination that is safe."
               ],
-              "correctIndex": 0,
-              "explanation": "Repair converges copies that missed writes or resolved conflicts differently."
+              "correctIndex": 1,
+              "explanation": "The rule is W + R > N. W=2, R=2 gives 4 > 3, so the sets overlap and you survive one node being down on either path. W=3, R=3 also overlaps but fails the moment any replica is unavailable, which is the opposite of what you wanted. W=1, R=1 gives 2 ≤ 3 — no overlap, stale reads permitted."
             }
           ],
           "check": {
@@ -1830,7 +1830,7 @@
           "title": "Read: lead the evolving design",
           "xp": 15,
           "kind": "reading",
-          "content": "# Senior interviews test adaptation\n\n**Recognition signals:** changing requirements, multiple teams, regional correctness, auditability, an irreversible side effect, or a request to compare options.\n\nStart with a tractable initial design. When a new constraint arrives, isolate the affected boundary, name what stays true, and revise only the necessary contract.\n\n**Invariant:** a schedule run has a stable identity; external side effects can be audited and reconciled.\n\n**Cost implications:** exactly-once effects require idempotent ledgers and reconciliation; time zones introduce calendar-rule complexity; operational evidence costs storage but makes recovery possible.",
+          "content": "# Lead the evolving design\n\nJunior and senior interviews use the same prompts. What changes is that in a senior loop, the interviewer will **break your design on purpose**, thirty minutes in, and watch what you do.\n\n*\"Actually, the billing side effect must be exactly once.\"*\n*\"Actually, schedules are in the user's local time zone.\"*\n*\"Actually, we now have three regions.\"*\n\nThis is the whole test. Not whether your first design was right — nobody's first design survives a new requirement — but whether you can absorb a constraint without either panicking or quietly abandoning everything you already established.\n\n## How to take a new requirement\n\nFour moves, in order:\n\n1. **Name what still holds.** *\"The schedule store, the due-work query, and the dispatch lease are unaffected — this only changes the execution boundary.\"* This is the single strongest signal available to you. It shows you understand your design as a set of separable contracts rather than one undifferentiated blob.\n2. **Isolate the affected boundary.** Exactly which component's contract changes? Usually one.\n3. **State the new invariant.** *\"An external billing call must have at most one visible effect per scheduled run.\"*\n4. **Revise the minimum.** Then say what it costs. Rewriting the whole board is the panic response; a targeted change with a stated price is the senior one.\n\nThe failure mode to avoid is the opposite of panic: quietly dropping an earlier commitment to make the new requirement fit. If the new constraint breaks something you promised earlier, *say so* and propose the trade.\n\n## Worked example: exactly-once billing\n\nThe scheduler dispatches a job. The worker calls the billing provider. The worker crashes before acknowledging. **Did the customer get charged?** Nobody knows — the crash happened somewhere in a call that may or may not have completed.\n\nNeither reflex is safe. Retrying blindly may double-charge. Marking the job complete may silently skip a charge. The design needs three pieces:\n\n**A stable idempotency key per run.** Not per attempt — per *run*. `schedule:{id}:run:{scheduled_at}` is the same on every retry of the same logical execution, so the provider can recognise a repeat. Deriving it from the attempt or from wall-clock time defeats the whole mechanism.\n\n**A local ledger written before the call.** Record intent (`run X, attempting charge, key K`) *before* making the request, and the outcome after. After a crash, the ledger is what tells you an attempt was in flight and with which key. Without it you cannot even ask the right question.\n\n**Reconciliation.** Periodically compare your ledger against the provider's record of that key and resolve uncertain rows. This is not optional garnish; it is the only thing that eventually closes the gap the crash opened.\n\nAnd be precise about the claim. You have not achieved exactly-once execution — the call may genuinely have been attempted twice. You have achieved **at-most-once observable effect, with an audit trail**. That precision is what the question is testing.\n\n## Worked example: local time zones\n\n\"Every day at 09:00 in the user's local time\" looks like a formatting concern. It is a correctness concern, and it has sharp edges:\n\n- Offsets are not fixed. `America/New_York` is UTC−5 or UTC−4 depending on the date. Storing an offset instead of an IANA zone id produces wrong runs twice a year, silently.\n- On the spring-forward day, 02:30 **does not exist**. What does a job scheduled for 02:30 do? Skip, or run at 03:00? You must decide, and write it down.\n- On the autumn day, 01:30 **happens twice**. Run once or twice? Decide.\n- The tz database itself changes when governments change their rules. Your stored zone ids are fine; your *precomputed* future run times are not, and need recomputation.\n\nThe design consequence: store the schedule as `(IANA zone, local time, recurrence rule)` and compute the next run in UTC, rather than storing a UTC instant and hoping. Say the DST policy out loud. Interviewers ask this because it separates people who have operated a scheduler from people who have imagined one.\n\n## Leases, and what they do not give you\n\nDispatching due work across a fleet needs exactly one worker to own each due job. A **lease** — a time-bounded claim, renewed by heartbeat, expiring automatically if the worker dies — is the standard mechanism. It bounds concurrent ownership and it self-heals after a crash without a human.\n\nWhat it does not do is make the external side effect safe. A lease can expire while the worker is alive but slow (a long GC pause, a network partition), a second worker takes over, and now two workers are running the same job. The lease reduced the probability; only idempotency plus the ledger makes the outcome correct. Being clear about that boundary — coordination reduces duplicates, idempotency makes duplicates harmless — is a senior distinction.\n\n## Operational evidence is part of the design\n\nAt this level, \"how would you debug this at 3 a.m.\" is a fair question, and the answer belongs on the board:\n\n- **Lateness**: scheduled time versus actual dispatch time, at p50 and p99.\n- **Queue age**: the oldest undispatched due job.\n- **Uncertain executions**: ledger rows with an attempt and no confirmed outcome. This number should be near zero and alarming when it is not.\n- **Reconciliation lag**: how long since the provider comparison last ran clean.\n\nStoring evidence costs money. Not storing it costs you the ability to recover, and you will discover that during the incident.\n\n## The invariant\n\n> **A schedule run has a stable identity, and every external side effect can be audited and reconciled against it.**\n\n## What the interviewer is listening for\n\n- When the requirement changed, did you name what still held?\n- Was the idempotency key stable per *run*, not per attempt?\n- Did you distinguish exactly-once *execution* from at-most-once *effect*?\n- Did you volunteer the DST policy, or wait to be caught by it?\n- Can you say what you would look at during an incident?",
           "check": {
             "type": "read"
           }
@@ -1854,15 +1854,15 @@
           "widgetId": "system-design-decision",
           "content": "# Guided scenario\n\nResolve an ambiguous external effect with evidence.",
           "systemDesignDecision": {
-            "situation": "A worker calls an external billing provider, then crashes before acknowledging the scheduled job. The provider may have charged the customer.",
+            "situation": "A worker calls an external billing provider, then crashes before acknowledging the scheduled job. The provider may or may not have charged the customer.",
             "decision": "What recovery path is safest?",
             "options": [
-              "Retry with a stable idempotency key and reconcile provider/ledger state before any manual repair.",
-              "Mark the job complete to avoid a duplicate charge.",
-              "Charge again and refund only if the customer complains."
+              "Query the provider for a matching recent charge, and only retry if none is found.",
+              "Retry with a stable per-run idempotency key, then reconcile the local ledger against the provider before any manual repair.",
+              "Mark the job complete — a missed charge is recoverable, a double charge is not."
             ],
-            "correctIndex": 0,
-            "explanation": "An idempotency key plus an auditable ledger makes retry safe and exposes the evidence needed to reconcile uncertain outcomes."
+            "correctIndex": 1,
+            "explanation": "Querying first is the instinct, and it is a race against the provider's own eventual consistency: a charge in flight may not be visible yet, so you retry and double-charge anyway. Marking complete silently loses revenue and hides the incident. The key must be stable per *run* — derive it from the schedule and scheduled time, never from the attempt or the clock, or every retry looks like a new charge."
           },
           "check": {
             "type": "widget"
@@ -1877,25 +1877,25 @@
           "quiz": [
             {
               "id": "q1",
-              "prompt": "Why use a lease when dispatching scheduled work?",
+              "prompt": "A worker holds a lease on a due job. What does the lease actually guarantee?",
               "options": [
-                "It bounds concurrent ownership of a due job and expires after worker failure.",
-                "It guarantees an external action happened exactly once.",
-                "It removes the need for clocks."
+                "That the external side effect happens exactly once.",
+                "That no other worker will ever run this job concurrently.",
+                "That ownership is bounded in time and expires automatically if the worker dies."
               ],
-              "correctIndex": 0,
-              "explanation": "A lease coordinates work ownership; idempotency and reconciliation still protect the side effect."
+              "correctIndex": 2,
+              "explanation": "A lease can expire while the worker is alive but stalled — a long GC pause, a network partition — and a second worker takes over while the first is still running. The lease reduces the probability of duplicate work; only an idempotency key plus a ledger makes the duplicate harmless. Coordination and correctness are different jobs."
             },
             {
               "id": "q2",
-              "prompt": "What changes when schedules are expressed in local time?",
+              "prompt": "Schedules are expressed as \"09:00 in the user's local time\". What does that change?",
               "options": [
-                "The system must apply IANA time-zone and daylight-saving rules to compute each run.",
-                "All schedules can use the same fixed offset forever.",
-                "The execution queue no longer needs retries."
+                "Each run must be computed from an IANA zone id, because the UTC offset changes with the date and the tz rules themselves change.",
+                "Nothing structural — store the user's UTC offset once at signup and apply it.",
+                "Only the display layer, since the scheduler can keep firing on a fixed UTC instant."
               ],
               "correctIndex": 0,
-              "explanation": "Local civil time changes; a fixed offset produces incorrect runs around daylight-saving transitions."
+              "explanation": "Storing an offset produces silently wrong runs twice a year: America/New_York is UTC−5 or UTC−4 depending on the date. There are sharper edges too — 02:30 does not exist on the spring-forward day and happens twice in autumn, so you owe an explicit policy for both."
             }
           ],
           "check": {
@@ -1954,7 +1954,7 @@
           "title": "How the arena works",
           "kind": "reading",
           "xp": 10,
-          "content": "# Classic Questions Arena\n\nSix of the most-asked system design questions, each as a four-phase drill that mirrors a real interview:\n\n1. **Clarify** — pick the 3 questions you must ask before designing. Wrong picks show you why.\n2. **Estimate** — napkin math with tolerance grading. Method over decimals.\n3. **Design** — the 2 decisions that decide the interview, with the trade-off spelled out.\n4. **Follow-up** — the requirement change the interviewer springs on you.\n\nClear all four phases to clear a question. Do one question per sitting and say your answers OUT LOUD — the arena grades your choices, but interviews grade your narration.\n\n### The six questions\nBit.ly/Pastebin · Twitter timeline · Web crawler · WhatsApp · API rate limiter · Dropbox sync\n\nThey cover the whole toolbox: caching, fan-out, politeness/dedupe, ordering & sockets, admission control, and chunked sync.",
+          "content": "# Classic Questions Arena\n\nThe twelve modules taught the toolbox. This chapter is where you find out whether you can pick the right tool under time pressure, which is a genuinely different skill.\n\nSix of the most-asked system design questions, each as a four-phase drill that mirrors the real thing:\n\n1. **Clarify** — choose the questions you must ask before designing. Wrong picks explain why they are wrong, which is the actual lesson: most \"reasonable\" questions are not *blocking* ones.\n2. **Estimate** — napkin math, graded on tolerance. Method over decimals.\n3. **Design** — the two decisions that decide the interview, with the trade-off spelled out.\n4. **Follow-up** — the requirement change the interviewer springs on you at minute thirty.\n\nClear all four to clear the question.\n\n## How to use it\n\nDo **one question per sitting**, and say your answers **out loud** before selecting them. The arena grades your choices; a real interview grades your narration, and those are not the same skill. Talking to an empty room feels ridiculous for about ninety seconds and is the single highest-return practice technique available to you.\n\nIf a phase goes wrong, do not immediately retry it. Go back to the module it came from — each question maps onto ones you have already done — and then return. Recognising *which* module a question belongs to is itself most of the exam.\n\n## The six questions\n\n| Question | The idea it really tests |\n|---|---|\n| **Bit.ly / Pastebin** | Read-heavy caching, key generation, the 100:1 ratio |\n| **Twitter timeline** | Fan-out on write vs on read, and the celebrity problem |\n| **Web crawler** | Politeness, dedupe at scale, bounded-memory set membership |\n| **WhatsApp** | Ordering, sockets, offline delivery, durable-then-push |\n| **API rate limiter** | Admission control, token bucket, distributed enforcement |\n| **Dropbox sync** | Chunking, content hashing, delta sync, conflict policy |\n\nBetween them they cover the whole toolbox. Almost every other question you will be asked — design Instagram, design Uber, design YouTube, design Google Docs — is a recombination of these six, which is why they are worth doing until the shape of each is automatic.\n\n## One habit that beats all the others\n\nIn every phase, before you answer, ask yourself: *what number would change my mind?*\n\nIf you cannot name one, you are pattern-matching rather than designing — and pattern-matching is exactly what a follow-up question is built to expose.",
           "check": {
             "type": "read"
           },
