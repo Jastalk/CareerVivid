@@ -394,6 +394,44 @@ const updateResumeSection: AgentTool = {
     },
 };
 
+
+/**
+ * Open one of the user's existing resumes.
+ *
+ * Without this the model has resume ids in its context envelope and no way to
+ * act on them, so it composes a path — it produced /resume/{id}, which 404s,
+ * while telling the user it had opened their resume. A tool that returns the
+ * real route removes the guess.
+ */
+const openResume: AgentTool = {
+    name: "openResume",
+    description:
+        "Open one of the user's saved resumes in the editor. Use the id from your context; omit it to open the most recently edited one. Never compose a resume URL yourself.",
+    parameters: {
+        type: "object",
+        properties: { resumeId: { type: "string", description: "Omit for the most recent." } },
+    },
+    phase: 1,
+    risk: "read",
+    writes: false,
+    execute: async (ctx, a) => {
+        const col = userRef(ctx.uid).collection("resumes");
+        const snap = a.resumeId
+            ? await col.doc(String(a.resumeId)).get()
+            : (await col.orderBy("updatedAt", "desc").limit(1).get()).docs[0];
+        // Scoped by path, so an id belonging to someone else simply is not here.
+        if (!snap || !snap.exists) throw new Error("Resume not found.");
+
+        const r: any = snap.data();
+        return {
+            resumeId: snap.id,
+            title: r.title ?? "Untitled",
+            route: `/edit/${snap.id}`,
+            note: "Call navigateToRoute with this exact route.",
+        };
+    },
+};
+
 const navigateToRoute: AgentTool = {
     name: "navigateToRoute",
     description:
@@ -1000,6 +1038,7 @@ export const REGISTRY: AgentTool[] = [
     getCareerProfile,
     updateCareerProfile,
     analyzeResume,
+    openResume,
     createResumeDraft,
     updateResumeSection,
     navigateToRoute,

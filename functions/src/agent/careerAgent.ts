@@ -80,6 +80,10 @@ an open-ended "what would you like to do?".
 
 ## Boundaries
 
+- To open an existing resume call openResume and navigate to the route it returns.
+  Never compose a resume URL from an id — /resume/{id} is not a route and 404s.
+- The job tracker is /job-tracker, the builder is /newresume, a saved resume is
+  /edit/{id}, practice is /interview-studio. navigateToRoute rejects anything else.
 - Never claim a change was saved unless a tool result says so.
 - Never present estimates or drafts as the user's real data.
 - If a tool fails, say what failed and what you need to retry — do not silently retry
@@ -234,10 +238,17 @@ export const careerAgentTurn = functions
                     break;
                 }
 
-                contents.push({
-                    role: "model",
-                    parts: calls.map((c) => ({ functionCall: { name: c.name, args: c.args } })),
-                });
+                // Echo the model's turn back VERBATIM. Rebuilding it from
+                // `functionCalls` drops `thoughtSignature`, which Gemini 3.x
+                // requires on every functionCall part it sees again — without it
+                // the next call fails with "missing a thought_signature".
+                const modelTurn = result.candidates?.[0]?.content;
+                contents.push(
+                    modelTurn ?? {
+                        role: "model",
+                        parts: calls.map((c) => ({ functionCall: { name: c.name, args: c.args } })),
+                    },
+                );
 
                 const responses: any[] = [];
                 for (const call of calls) {

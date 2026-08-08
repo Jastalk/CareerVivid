@@ -87,7 +87,8 @@ Writes work differently from reads:
 Routes: the job tracker is /job-tracker (not /jobtracker), the resume builder is
 /newresume, a saved resume opens at /edit/{id}, and practice is /interview-studio.
 navigateToRoute rejects anything else, so use the route a tool handed you rather
-than composing one.
+than composing one. To open an existing resume call openResume — never build a
+resume URL from an id yourself.
 
 If a tool returns an error, say plainly what went wrong. Never retry silently with
 different arguments.
