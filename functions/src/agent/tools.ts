@@ -57,6 +57,43 @@ const optS = (v: unknown, max = 2_000): string | undefined =>
 const userRef = (uid: string) => db.collection("users").doc(uid);
 
 /**
+ * Routes the agent may send a user to.
+ *
+ * Checked against the real switch in src/App.tsx. An allowlist rather than a
+ * "starts with /" check because the model will confidently invent plausible
+ * paths — it emitted /jobtracker for a route that is actually /job-tracker —
+ * and a bad path lands the user on a blank page with no error to explain it.
+ *
+ * Adding a route here is the deliberate act of exposing it to the agent.
+ */
+const NAV_ROUTES: ReadonlySet<string> = new Set([
+    "/dashboard",
+    "/job-tracker",
+    // NOT "/jobs" or "/quest": App.tsx matches those only with a further
+    // segment (path.startsWith('/jobs/')), so the bare path renders nothing.
+    "/job-market",
+    "/newresume",
+    "/interview-studio",
+    "/learning",
+    "/community",
+    "/quick-start",
+    "/portfolio",
+    "/profile",
+    "/subscription",
+    "/pricing",
+]);
+
+/** Routes carrying an id, e.g. /edit/{resumeId}. */
+const NAV_PREFIXES: readonly string[] = ["/edit/", "/quest/", "/learning/", "/jobs/"];
+
+const isNavigableRoute = (route: string): boolean => {
+    const path = route.split("?")[0].replace(/\/$/, "") || "/";
+    return NAV_ROUTES.has(path) || NAV_PREFIXES.some((p) => path.startsWith(p) && path.length > p.length);
+};
+
+
+
+/**
  * The user's application tracker.
  *
  * NOT the top-level `jobApplications` collection — that is the B2B/HR side
@@ -364,7 +401,13 @@ const navigateToRoute: AgentTool = {
     parameters: {
         type: "object",
         properties: {
-            route: { type: "string", description: 'App path, e.g. "/newresume", "/jobtracker", "/learning".' },
+            route: {
+                type: "string",
+                description:
+                    'One of: /dashboard, /job-tracker, /jobs, /job-market, /newresume, /interview-studio, ' +
+                    '/learning, /community, /quick-start, /portfolio, /profile, /subscription, /pricing, ' +
+                    'or an id route like /edit/{resumeId}.',
+            },
             reason: { type: "string", description: "One short sentence shown to the user." },
         },
         required: ["route"],
@@ -374,10 +417,15 @@ const navigateToRoute: AgentTool = {
     writes: false,
     execute: async (_ctx, a) => {
         const route = S(a.route, "route", 200);
-        // Navigation is client-side and same-origin only: an agent that can send
-        // the user to an arbitrary URL is an open redirect.
+        // Same-origin app paths only: an agent that can send the user to an
+        // arbitrary URL is an open redirect.
         if (!route.startsWith("/") || route.startsWith("//")) {
             throw new Error("route must be an app-relative path beginning with a single '/'.");
+        }
+        if (!isNavigableRoute(route)) {
+            throw new Error(
+                `Unknown route: ${route}. Valid routes: ${[...NAV_ROUTES].join(", ")}, or /edit/{resumeId}.`,
+            );
         }
         return { navigate: route, reason: optS(a.reason, 200) };
     },
@@ -706,12 +754,13 @@ const recommendLearningPath: AgentTool = {
 const startInterviewPractice: AgentTool = {
     name: "startInterviewPractice",
     description:
-        "Open an Interview Studio practice session for a role or tracked job. Spends credits, so it always requires approval.",
+        "Open Interview Studio for the user. It opens unconfigured — they pick the company and round there — so tell them what to choose. Spends credits, so it always requires approval.",
     parameters: {
         type: "object",
         properties: {
             role: { type: "string", description: "Role to practise for." },
             jobId: { type: "string", description: "Optional tracked job to draw context from." },
+            resumeId: { type: "string", description: "Optional resume to load into the session." },
             mode: { type: "string", enum: ["behavioral", "coding", "system_design"] },
         },
         required: ["role"],
@@ -731,8 +780,18 @@ const startInterviewPractice: AgentTool = {
             const snap = await jobTrackerCol(ctx.uid).doc(a.jobId).get();
             if (!snap.exists) throw new Error("Job not found.");
         }
-        const params = new URLSearchParams({ role: a.role, mode: a.mode, ...(a.jobId ? { jobId: a.jobId } : {}) });
-        return { route: `/interview-studio?${params.toString()}`, role: a.role, mode: a.mode };
+        // InterviewStudio reads source/scrapeId/resumeId from the query string and
+        // nothing else — role and mode were being emitted into a void, so the user
+        // landed on an unconfigured page while the agent said it had set one up.
+        // Pass only what the page honours, and let the model say the rest aloud.
+        const params = new URLSearchParams(a.resumeId ? { resumeId: a.resumeId } : {});
+        const qs = params.toString();
+        return {
+            route: qs ? `/interview-studio?${qs}` : "/interview-studio",
+            role: a.role,
+            mode: a.mode,
+            note: "Interview Studio opens unconfigured. Tell the user which role and round to pick.",
+        };
     },
 };
 

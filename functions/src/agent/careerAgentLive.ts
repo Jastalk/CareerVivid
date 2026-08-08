@@ -84,6 +84,11 @@ Writes work differently from reads:
   and do NOT claim the change is saved. You will be told separately when they
   approve, and only then is it real.
 
+Routes: the job tracker is /job-tracker (not /jobtracker), the resume builder is
+/newresume, a saved resume opens at /edit/{id}, and practice is /interview-studio.
+navigateToRoute rejects anything else, so use the route a tool handed you rather
+than composing one.
+
 If a tool returns an error, say plainly what went wrong. Never retry silently with
 different arguments.
 
