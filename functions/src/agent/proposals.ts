@@ -108,6 +108,29 @@ export interface CreatedProposal {
     diff: ProposalDiff;
 }
 
+/**
+ * Tool validators intentionally use optional fields for context such as a
+ * tracked job or selected resume. Firestore rejects `undefined` anywhere in a
+ * document, so remove those optional values before a proposal is persisted.
+ * Keep this at the persistence boundary: every current and future write tool
+ * gets the same protection without changing its model-facing schema.
+ */
+function removeUndefined<T>(value: T): T {
+    if (Array.isArray(value)) {
+        return value
+            .filter((item) => item !== undefined)
+            .map((item) => removeUndefined(item)) as T;
+    }
+    if (value && typeof value === "object" && value.constructor === Object) {
+        return Object.fromEntries(
+            Object.entries(value as Record<string, unknown>)
+                .filter(([, item]) => item !== undefined)
+                .map(([key, item]) => [key, removeUndefined(item)]),
+        ) as T;
+    }
+    return value;
+}
+
 /** Persist a validated write for the user to approve. Returns what the card renders. */
 export async function createProposal(opts: {
     uid: string;
@@ -119,14 +142,15 @@ export async function createProposal(opts: {
     // Top-level: users/{uid}/** is client-writable via a catch-all rule, and a
     // forgeable proposal makes the approval card meaningless.
     const ref = db.collection("agentProposals").doc();
+    const args = removeUndefined(opts.args);
     const proposal: AgentProposal = {
         id: ref.id,
         uid: opts.uid,
         taskId: opts.taskId,
         tool: opts.tool,
-        args: opts.args,
+        args,
         summary: opts.summary,
-        diff: buildDiff(opts.tool, opts.args),
+        diff: buildDiff(opts.tool, args),
         status: "pending",
         createdAt: admin.firestore.Timestamp.now(),
     };

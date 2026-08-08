@@ -1,16 +1,20 @@
 /**
- * Career Agent client.
+ * Career Agent client — streaming text turns, saved history.
  *
- * Holds conversation state and talks to the server-side loop. It deliberately
- * does NOT run the loop, hold tools, or touch a model key — all of that is in
- * functions/src/agent/careerAgent.ts.
+ * Talks to `careerAgentStream` over SSE rather than the buffered callable, so
+ * text appears as the model produces it. A multi-step turn can run tool calls
+ * for many seconds; buffering meant the user stared at a blank panel and
+ * concluded it was broken.
+ *
+ * It does NOT run the loop, hold tools, or touch a model key — all of that is
+ * server-side in functions/src/agent/turnRunner.ts.
  *
  * Approval works by ID: the server persisted the proposed arguments, and this
- * hook only ever sends back the proposal's id plus approve/reject. It cannot
- * change what gets written, which is what makes the approval card meaningful.
+ * hook only sends back the proposal's id plus approve/reject. It cannot change
+ * what gets written, which is what makes the approval card meaningful.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -26,9 +30,15 @@ export interface Proposal {
     tool: string;
     summary: string;
     diff: ProposalDiff;
-    /** Set once resolved, so the card can render its outcome instead of vanishing. */
+    /** Set once resolved, so the card renders its outcome instead of vanishing. */
     outcome?: 'approved' | 'rejected' | 'failed';
     error?: string;
+}
+
+/** A read-tool result the panel renders as a card rather than leaving as prose. */
+export interface AgentCard {
+    kind: string;
+    [key: string]: unknown;
 }
 
 export interface AgentMessage {
@@ -36,10 +46,10 @@ export interface AgentMessage {
     role: 'user' | 'assistant';
     text: string;
     proposals?: Proposal[];
-    pending?: boolean;
+    cards?: AgentCard[];
+    streaming?: boolean;
 }
 
-/** Client-side effects a tool can request, e.g. navigation or opening voice. */
 export interface AgentEffect {
     navigate?: string;
     reason?: string;
@@ -47,23 +57,29 @@ export interface AgentEffect {
     startVoice?: boolean;
     purpose?: string;
     estimatedMinutes?: number;
+    kind?: string;
 }
 
-interface TurnResponse {
-    text: string;
-    proposals: Proposal[];
-    effects: AgentEffect[];
-    taskId: string;
-    credits: { free: boolean; freeTurnsRemaining: number; creditsRemaining: number };
+export interface ConversationSummary {
+    id: string;
+    title: string;
+    turnCount: number;
+    updatedAt: number;
 }
 
 const REGION = 'us-west1';
-const uid = () => Math.random().toString(36).slice(2, 10);
+const STREAM_URL =
+    import.meta.env.VITE_AGENT_STREAM_URL ||
+    'https://us-west1-jastalk-firebase.cloudfunctions.net/careerAgentStream';
+
+const rid = () => Math.random().toString(36).slice(2, 10);
+
+/** Kinds the panel knows how to render. Anything else stays a plain effect. */
+const CARD_KINDS = new Set(['company_guides', 'interview_questions']);
 
 export function useCareerAgent(opts: {
     route: string;
     entity?: { type: 'resume' | 'job' | 'course'; id: string };
-    /** Tools the user has opted into auto-executing. Server ignores ineligible ones. */
     autoExecTools?: string[];
     onEffect?: (effect: AgentEffect) => void;
 }) {
@@ -71,11 +87,31 @@ export function useCareerAgent(opts: {
     const [messages, setMessages] = useState<AgentMessage[]>([]);
     const [isThinking, setIsThinking] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [credits, setCredits] = useState<TurnResponse['credits'] | null>(null);
+    const [credits, setCredits] = useState<{ free: boolean; freeTurnsRemaining: number; creditsRemaining: number } | null>(null);
+    const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+    const [conversationId, setConversationId] = useState<string | null>(null);
 
     // Sent back each turn so the model keeps continuity without the server
-    // storing conversation state.
+    // holding session state.
     const historyRef = useRef<Array<{ role: string; parts: Array<{ text: string }> }>>([]);
+    const abortRef = useRef<AbortController | null>(null);
+    const optsRef = useRef(opts);
+    optsRef.current = opts;
+
+    const fns = () => getFunctions(undefined, REGION);
+
+    const refreshConversations = useCallback(async () => {
+        if (!currentUser) return;
+        try {
+            const fn = httpsCallable<unknown, { conversations: ConversationSummary[] }>(fns(), 'listAgentConversations');
+            const { data } = await fn({ limit: 30 });
+            setConversations(data.conversations ?? []);
+        } catch {
+            // A missing history list must not break the panel.
+        }
+    }, [currentUser]);
+
+    useEffect(() => { void refreshConversations(); }, [refreshConversations]);
 
     const send = useCallback(
         async (text: string, attachment?: { type: 'parsed_resume'; data: unknown }) => {
@@ -87,94 +123,195 @@ export function useCareerAgent(opts: {
             }
 
             setError(null);
-            const userMsg: AgentMessage = { id: uid(), role: 'user', text: trimmed };
-            const placeholder: AgentMessage = { id: uid(), role: 'assistant', text: '', pending: true };
-            setMessages((m) => [...m, userMsg, placeholder]);
+            const userMsg: AgentMessage = { id: rid(), role: 'user', text: trimmed };
+            const replyId = rid();
+            setMessages((m) => [...m, userMsg, { id: replyId, role: 'assistant', text: '', streaming: true }]);
             setIsThinking(true);
 
+            const controller = new AbortController();
+            abortRef.current = controller;
+
             try {
-                const fn = httpsCallable<unknown, TurnResponse>(getFunctions(undefined, REGION), 'careerAgentTurn');
-                const { data } = await fn({
-                    message: trimmed,
-                    route: opts.route,
-                    entity: opts.entity,
-                    history: historyRef.current,
-                    autoExecTools: opts.autoExecTools ?? [],
-                    attachment,
+                const idToken = await currentUser.getIdToken();
+                const res = await fetch(STREAM_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        message: trimmed,
+                        route: optsRef.current.route,
+                        entity: optsRef.current.entity,
+                        history: historyRef.current,
+                        autoExecTools: optsRef.current.autoExecTools ?? [],
+                        attachment,
+                        conversationId,
+                    }),
                 });
+
+                if (!res.ok || !res.body) {
+                    throw new Error(res.status === 401 ? 'Sign in to use the Career Agent.' : `Agent unavailable (${res.status}).`);
+                }
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let finalText = '';
+
+                // SSE frames are separated by a blank line and can split across
+                // network chunks, so buffer until a complete frame is present.
+                for (;;) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let sep: number;
+                    while ((sep = buffer.indexOf('\n\n')) !== -1) {
+                        const frame = buffer.slice(0, sep);
+                        buffer = buffer.slice(sep + 2);
+                        if (frame.startsWith(':')) continue; // heartbeat
+
+                        const eventLine = frame.split('\n').find((l) => l.startsWith('event: '));
+                        const dataLine = frame.split('\n').find((l) => l.startsWith('data: '));
+                        if (!eventLine || !dataLine) continue;
+
+                        const event = eventLine.slice(7).trim();
+                        let payload: any;
+                        try { payload = JSON.parse(dataLine.slice(6)); } catch { continue; }
+
+                        if (event === 'chunk') {
+                            finalText += payload.text;
+                            setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, text: x.text + payload.text } : x)));
+                        } else if (event === 'proposal') {
+                            setMessages((m) => m.map((x) =>
+                                x.id === replyId ? { ...x, proposals: [...(x.proposals ?? []), payload] } : x));
+                        } else if (event === 'effect') {
+                            if (payload?.kind && CARD_KINDS.has(payload.kind)) {
+                                setMessages((m) => m.map((x) =>
+                                    x.id === replyId ? { ...x, cards: [...(x.cards ?? []), payload] } : x));
+                            }
+                            optsRef.current.onEffect?.(payload);
+                        } else if (event === 'saved') {
+                            setConversationId(payload.conversationId);
+                        } else if (event === 'done') {
+                            setCredits(payload.credits ?? null);
+                            if (payload.conversationId) setConversationId(payload.conversationId);
+                            void refreshConversations();
+                        } else if (event === 'error') {
+                            throw new Error(
+                                payload.code === 'credit_limit_reached'
+                                    ? "You're out of AI credits for this month."
+                                    : payload.message ?? 'Something went wrong.',
+                            );
+                        }
+                    }
+                }
 
                 historyRef.current = [
                     ...historyRef.current,
                     { role: 'user', parts: [{ text: attachment ? `${trimmed} [uploaded a resume]` : trimmed }] },
-                    { role: 'model', parts: [{ text: data.text }] },
+                    { role: 'model', parts: [{ text: finalText }] },
                 ].slice(-20);
 
-                setCredits(data.credits);
-                setMessages((m) =>
-                    m.map((msg) =>
-                        msg.id === placeholder.id
-                            ? { ...msg, text: data.text, proposals: data.proposals, pending: false }
-                            : msg,
-                    ),
-                );
-
-                for (const effect of data.effects ?? []) opts.onEffect?.(effect);
+                setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, streaming: false } : x)));
             } catch (e: any) {
-                const msg =
-                    e?.message === 'credit_limit_reached'
-                        ? "You're out of AI credits for this month."
-                        : e?.message ?? 'Something went wrong.';
-                setError(msg);
-                setMessages((m) => m.filter((x) => x.id !== placeholder.id));
+                if (e?.name === 'AbortError') {
+                    // Stopped on purpose: keep whatever already streamed.
+                    setMessages((m) => m.map((x) => (x.id === replyId ? { ...x, streaming: false } : x)));
+                } else {
+                    setError(e?.message ?? 'Something went wrong.');
+                    setMessages((m) => m.filter((x) => x.id !== replyId));
+                }
             } finally {
+                abortRef.current = null;
                 setIsThinking(false);
             }
         },
-        [currentUser, isThinking, opts],
+        [currentUser, isThinking, conversationId, refreshConversations],
     );
 
-    const resolve = useCallback(
-        async (proposalId: string, approve: boolean) => {
-            const mark = (outcome: Proposal['outcome'], err?: string) =>
-                setMessages((m) =>
-                    m.map((msg) => ({
-                        ...msg,
-                        proposals: msg.proposals?.map((p) =>
-                            p.id === proposalId ? { ...p, outcome, error: err } : p,
-                        ),
-                    })),
-                );
+    /** Stop generating but keep what has already arrived. */
+    const stopGenerating = useCallback(() => abortRef.current?.abort(), []);
 
-            try {
-                const fn = httpsCallable<unknown, { status: string; result?: AgentEffect }>(
-                    getFunctions(undefined, REGION),
-                    'careerAgentResolve',
-                );
-                const { data } = await fn({ proposalId, approve });
-                mark(approve ? 'approved' : 'rejected');
+    const resolve = useCallback(async (proposalId: string, approve: boolean) => {
+        const mark = (outcome: Proposal['outcome'], err?: string) =>
+            setMessages((m) => m.map((msg) => ({
+                ...msg,
+                proposals: msg.proposals?.map((p) => (p.id === proposalId ? { ...p, outcome, error: err } : p)),
+            })));
 
-                if (approve && data.result) opts.onEffect?.(data.result);
+        try {
+            const fn = httpsCallable<unknown, { status: string; result?: AgentEffect }>(fns(), 'careerAgentResolve');
+            const { data } = await fn({ proposalId, approve });
+            mark(approve ? 'approved' : 'rejected');
+            if (approve && data.result) optsRef.current.onEffect?.(data.result);
 
-                // Tell the model what happened so it can offer the next step
-                // rather than re-proposing what was just applied.
-                if (approve) {
-                    historyRef.current.push({
-                        role: 'user',
-                        parts: [{ text: `[system] The user approved proposal ${proposalId}. It was applied successfully.` }],
-                    });
-                }
-            } catch (e: any) {
-                mark('failed', e?.message ?? 'Could not apply the change.');
+            // Tell the model what happened so it offers the next step rather
+            // than re-proposing what was just applied.
+            if (approve) {
+                historyRef.current.push({
+                    role: 'user',
+                    parts: [{ text: `[system] The user approved proposal ${proposalId}. It was applied successfully.` }],
+                });
             }
-        },
-        [opts],
-    );
+        } catch (e: any) {
+            mark('failed', e?.message ?? 'Could not apply the change.');
+        }
+    }, []);
 
+    /** Start fresh. The stored thread stays in history until explicitly deleted. */
     const reset = useCallback(() => {
         historyRef.current = [];
         setMessages([]);
         setError(null);
+        setConversationId(null);
     }, []);
 
-    return { messages, send, resolve, reset, isThinking, error, credits };
+    const openConversation = useCallback(async (id: string) => {
+        try {
+            const fn = httpsCallable<unknown, { id: string; title: string; turns: Array<{ role: 'user' | 'assistant'; text: string; effects?: AgentCard[] }> }>(
+                fns(), 'getAgentConversation');
+            const { data } = await fn({ conversationId: id });
+
+            setMessages(data.turns.map((t) => ({
+                id: rid(),
+                role: t.role,
+                text: t.text,
+                cards: (t.effects ?? []).filter((e: any) => e?.kind && CARD_KINDS.has(e.kind)) as AgentCard[],
+            })));
+            historyRef.current = data.turns
+                .map((t) => ({ role: t.role === 'user' ? 'user' : 'model', parts: [{ text: t.text }] }))
+                .slice(-20);
+            setConversationId(id);
+            setError(null);
+        } catch (e: any) {
+            setError(e?.message ?? 'Could not open that conversation.');
+        }
+    }, []);
+
+    const deleteConversation = useCallback(async (id: string) => {
+        // Optimistic: a delete that appears to hang reads as "it kept my data".
+        setConversations((c) => c.filter((x) => x.id !== id));
+        if (id === conversationId) reset();
+        try {
+            await httpsCallable(fns(), 'deleteAgentConversation')({ conversationId: id });
+        } catch {
+            void refreshConversations();
+        }
+    }, [conversationId, reset, refreshConversations]);
+
+    const deleteAllConversations = useCallback(async () => {
+        setConversations([]);
+        reset();
+        try {
+            await httpsCallable(fns(), 'deleteAgentConversation')({ all: true });
+        } catch {
+            void refreshConversations();
+        }
+    }, [reset, refreshConversations]);
+
+    return {
+        messages, send, resolve, reset, stopGenerating,
+        isThinking, error, credits,
+        conversations, conversationId, openConversation, deleteConversation, deleteAllConversations, refreshConversations,
+    };
 }

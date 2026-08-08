@@ -16,6 +16,7 @@
 
 import * as admin from "firebase-admin";
 import { type AgentTool, type ToolContext } from "./types";
+import { searchCompanyGuides, getCompanyQuestions } from "./interviewTools";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -1050,6 +1051,8 @@ export const REGISTRY: AgentTool[] = [
     generateNextActions,
     // Phase 3
     tailorResume,
+    searchCompanyGuides,
+    getCompanyQuestions,
     recommendLearningPath,
     startInterviewPractice,
     summarizeProgress,

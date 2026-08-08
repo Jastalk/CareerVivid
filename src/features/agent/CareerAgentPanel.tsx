@@ -1,78 +1,78 @@
 /**
  * The Career Agent conversation.
  *
- * ONE component, two layouts. `variant="drawer"` is the docked side panel;
- * `variant="full"` is the /agent workspace. Building these as two components
- * would guarantee they drift — the drawer would get a fix the workspace didn't.
+ * ONE component, two layouts. `variant="drawer"` is the docked panel;
+ * `variant="full"` is the /agent workspace. Two components would guarantee
+ * drift — the drawer would get a fix the workspace didn't.
+ *
+ * State comes from AgentSessionContext, not from local hooks, so expanding the
+ * drawer is a layout change rather than a fresh conversation.
+ *
+ * Styling uses the app's --cv-* tokens and font-heading, so it reads as part of
+ * the product rather than a bolted-on widget, and inherits light/dark for free.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-// This app has no <Router>: routing is pushState + a popstate listener in
-// App.tsx. react-router's hooks throw outside a Router provider.
-import { navigate } from '../../utils/navigation';
-import { Send, Sparkles, RotateCcw, AlertCircle, Paperclip, Loader2, Mic, MicOff, PhoneOff, AudioLines, Hand } from 'lucide-react';
+import {
+    Send, Sparkles, AlertCircle, Paperclip, Loader2, Mic, MicOff, PhoneOff,
+    AudioLines, Hand, History, Settings2, Square, Check,
+} from 'lucide-react';
+import { useAgentSession } from './AgentSessionContext';
 import { ProposedChanges } from './ProposedChanges';
+import { AgentCards } from './AgentCards';
+import { AgentHistory } from './AgentHistory';
+import { TaskPlan } from './TaskPlan';
+import { AUTO_EXEC_TOOLS } from './useAutoExec';
 import { FREE_AGENT_TURNS_PER_DAY } from '../../config/creditCosts';
 import { parseResumeFromFile } from '../../services/geminiService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useAgentSession } from './AgentSessionContext';
-import { TaskPlan } from './TaskPlan';
+import { renderInlineMarkdown } from '../../utils/renderInlineMarkdown';
 
 const ACCEPTED_UPLOAD = '.pdf,.doc,.docx,.txt';
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 
-/** Shown when the conversation is empty. Concrete beats "how can I help?". */
+/** Concrete beats "how can I help?" — each maps to a real tool path. */
 const STARTERS = [
-    'Help me create my first resume',
-    'Set up my job tracker',
+    'Practise a Google interview',
     'What should I work on next?',
+    'Set up my job tracker',
     'Tailor my resume for a role',
 ];
 
 interface Props {
     variant?: 'drawer' | 'full';
-    route: string;
+    /** Accepted for call-site compatibility; the session owns the real route. */
+    route?: string;
     entity?: { type: 'resume' | 'job' | 'course'; id: string };
-    autoExecTools?: string[];
-    onClose?: () => void;
 }
 
-export const CareerAgentPanel: React.FC<Props> = ({
-    variant = 'drawer',
-    route,
-    entity,
-    autoExecTools,
-}) => {
+export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     const { currentUser } = useAuth();
+    const { text: agent, live, autoExec } = useAgentSession();
     const [input, setInput] = useState('');
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
+    const [showHistory, setShowHistory] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
+    const { messages, send, resolve, reset, stopGenerating, isThinking, error, credits } = agent;
+    const isFull = variant === 'full';
 
-    const { text: agent, live } = useAgentSession();
-
-
-    const { messages, send, resolve, reset, isThinking, error, credits } = agent;
-
-    useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
     const submit = (e?: React.FormEvent) => {
         e?.preventDefault();
-        const text = input;
+        const value = input;
         setInput('');
-        void send(text);
+        void send(value);
     };
 
     /**
-     * Parse the upload on the client, then hand the agent the structured result.
-     *
-     * Parsing stays here because `parseResumeFromFile` already handles PDF and
-     * DOCX and is the same path the resume builder uses. The agent only needs
-     * the fields, not the file.
+     * Parse the upload client-side, then hand the agent the structured result.
+     * `parseResumeFromFile` already handles PDF and DOCX and is the same path
+     * the resume builder uses — the agent only needs the fields, not the file.
      */
     const handleUpload = async (file: File | undefined) => {
         if (!file || !currentUser) return;
@@ -80,22 +80,18 @@ export const CareerAgentPanel: React.FC<Props> = ({
             setUploadError('That file is larger than 8 MB. Try exporting a smaller PDF.');
             return;
         }
-
         setUploadError(null);
         setUploading(true);
         try {
-            const dataUrl = await new Promise<string>((resolve, reject) => {
+            const dataUrl = await new Promise<string>((res, rej) => {
                 const reader = new FileReader();
-                reader.onload = () => resolve(String(reader.result));
-                reader.onerror = () => reject(new Error('Could not read that file.'));
+                reader.onload = () => res(String(reader.result));
+                reader.onerror = () => rej(new Error('Could not read that file.'));
                 reader.readAsDataURL(file);
             });
-
             const parsed = await parseResumeFromFile(currentUser.uid, dataUrl, file.type, 'English');
-            await send(
-                `I uploaded my resume (${file.name}). Turn it into a CareerVivid resume.`,
-                { type: 'parsed_resume', data: parsed },
-            );
+            await send(`I uploaded my resume (${file.name}). Turn it into a CareerVivid resume.`,
+                { type: 'parsed_resume', data: parsed });
         } catch (err: any) {
             setUploadError(err?.message ?? 'Could not read that resume.');
         } finally {
@@ -104,270 +100,261 @@ export const CareerAgentPanel: React.FC<Props> = ({
         }
     };
 
-    const isFull = variant === 'full';
+    const iconBtn =
+        'rounded-xl p-2.5 text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-action-soft-bg)] ' +
+        'hover:text-[var(--cv-action-primary)] disabled:opacity-40';
 
     return (
-        <div className={`flex h-full flex-col ${isFull ? 'mx-auto w-full max-w-3xl' : ''}`}>
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-                <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-amber-500" />
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Career Agent</h2>
-                </div>
-                <div className="flex items-center gap-3">
-                    {credits && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {credits.free
-                                ? `${credits.freeTurnsRemaining}/${FREE_AGENT_TURNS_PER_DAY} free today`
-                                : `${credits.creditsRemaining} credits`}
-                        </span>
-                    )}
-                    {messages.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={reset}
-                            title="Start over"
-                            className="rounded-md p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
-                        >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <div className={`flex-1 overflow-y-auto px-4 py-4 ${isFull ? 'space-y-5' : 'space-y-4'}`}>
-                {messages.length === 0 && (
-                    <div className="pt-4">
-                        <p className="text-sm text-gray-600 dark:text-gray-300">
-                            I can set up your resume, build your job tracker, and plan what to learn next.
-                            Where do you want to start?
-                        </p>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <button
-                                type="button"
-                                onClick={() => void live.start()}
-                                className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-700 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
-                            >
-                                <AudioLines className="h-3 w-3" />
-                                Talk to the agent
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => fileRef.current?.click()}
-                                className="inline-flex items-center gap-1.5 rounded-full border border-gray-900 px-3 py-1.5 text-xs font-medium text-gray-900 transition-colors hover:bg-gray-900 hover:text-white dark:border-gray-100 dark:text-gray-100 dark:hover:bg-gray-100 dark:hover:text-gray-900"
-                            >
-                                <Paperclip className="h-3 w-3" />
-                                Upload my resume
-                            </button>
-                            {STARTERS.map((s) => (
-                                <button
-                                    key={s}
-                                    type="button"
-                                    onClick={() => void send(s)}
-                                    className="rounded-full border border-gray-200 px-3 py-1.5 text-xs text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {messages.map((m) => (
-                    <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
-                        <div className={m.role === 'user' ? 'max-w-[85%]' : 'w-full'}>
-                            {m.role === 'user' ? (
-                                <p className="rounded-2xl rounded-br-sm bg-gray-900 px-3.5 py-2 text-sm text-white dark:bg-white dark:text-gray-900">
-                                    {m.text}
-                                </p>
-                            ) : m.pending ? (
-                                <div className="flex gap-1 py-1">
-                                    {[0, 150, 300].map((d) => (
-                                        <span
-                                            key={d}
-                                            className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400"
-                                            style={{ animationDelay: `${d}ms` }}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-800 dark:text-gray-200">
-                                        {m.text}
-                                    </div>
-                                    {m.proposals?.map((p) => (
-                                        <ProposedChanges
-                                            key={p.id}
-                                            proposal={p}
-                                            onResolve={(id, approve) => void resolve(id, approve)}
-                                            disabled={isThinking}
-                                        />
-                                    ))}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                ))}
-
-                {live.error && (
-                    <p className="flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        {live.error}
-                    </p>
-                )}
-                {uploadError && (
-                    <p className="flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        {uploadError}
-                    </p>
-                )}
-                {live.plan && (
-                    <div className="pt-1">
-                        <TaskPlan plan={live.plan} />
-                    </div>
-                )}
-
-                {live.turns.map((t) => (
-                    <div key={t.id} className={t.role === 'user' ? 'flex justify-end' : ''}>
-                        <p
-                            className={
-                                t.role === 'user'
-                                    ? 'max-w-[85%] rounded-2xl rounded-br-sm bg-gray-900 px-3.5 py-2 text-sm text-white dark:bg-white dark:text-gray-900'
-                                    : 'text-sm leading-relaxed text-gray-800 dark:text-gray-200'
-                            }
-                        >
-                            {t.text}
-                        </p>
-                    </div>
-                ))}
-
-                {live.proposals.map((p) => (
-                    <ProposedChanges
-                        key={p.id}
-                        proposal={p}
-                        onResolve={(id, approve) => void live.resolveProposal(id, approve)}
+        <div className="flex h-full min-h-0 bg-[var(--cv-bg-product)]">
+            {showHistory && (
+                <aside className={`${isFull ? 'w-64' : 'w-52'} shrink-0 border-r border-[var(--cv-border-subtle)]`}>
+                    <AgentHistory
+                        conversations={agent.conversations}
+                        activeId={agent.conversationId}
+                        onOpen={(id) => { void agent.openConversation(id); if (!isFull) setShowHistory(false); }}
+                        onDelete={(id) => void agent.deleteConversation(id)}
+                        onDeleteAll={() => void agent.deleteAllConversations()}
+                        onNew={() => { reset(); if (!isFull) setShowHistory(false); }}
+                        onClose={() => setShowHistory(false)}
                     />
-                ))}
-
-                {error && (
-                    <p className="flex items-start gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                        <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        {error}
-                    </p>
-                )}
-                <div ref={endRef} />
-            </div>
-
-            {(live.status === 'connecting' || live.status === 'live') && (
-                <div className="flex items-center gap-3 border-t border-amber-200 bg-amber-50 px-4 py-2.5 text-sm dark:border-amber-800 dark:bg-amber-950/40">
-                    <Mic className={`h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 ${live.status === 'live' ? 'animate-pulse' : ''}`} />
-                    <span className="flex-1 text-gray-800 dark:text-gray-200">
-                        {live.status === 'connecting'
-                            ? 'Connecting…'
-                            : `Live · ${Math.floor(live.elapsedSeconds / 60)}:${String(live.elapsedSeconds % 60).padStart(2, '0')}`}
-                        {live.muted && <span className="ml-1.5 font-medium text-red-600 dark:text-red-400">· muted</span>}
-                        {live.status === 'live' && (
-                            <span className="ml-1.5 text-xs text-gray-500 dark:text-gray-400">
-                                · {live.billedCredits} credits used{live.capMinutes ? ` · ends at ${live.capMinutes}:00` : ''}
-                            </span>
-                        )}
-                    </span>
-                    {live.status === 'live' && (
-                        <>
-                            <button
-                                type="button"
-                                onClick={live.toggleMute}
-                                title={live.muted ? 'Unmute' : 'Mute your microphone'}
-                                aria-label={live.muted ? 'Unmute' : 'Mute'}
-                                aria-pressed={live.muted}
-                                className={`rounded-lg p-1.5 transition-colors ${
-                                    live.muted
-                                        ? 'bg-red-600 text-white'
-                                        : 'text-gray-600 hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10'
-                                }`}
-                            >
-                                {live.muted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={live.interrupt}
-                                disabled={!live.agentSpeaking}
-                                title="Stop the agent talking"
-                                aria-label="Stop the agent talking"
-                                className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-30 dark:text-gray-300 dark:hover:bg-white/10"
-                            >
-                                <Hand className="h-3.5 w-3.5" />
-                            </button>
-                        </>
-                    )}
-                    <button
-                        type="button"
-                        onClick={() => void live.stop()}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-medium text-white dark:bg-white dark:text-gray-900"
-                    >
-                        <PhoneOff className="h-3.5 w-3.5" />
-                        End
-                    </button>
-                </div>
+                </aside>
             )}
 
-            <form onSubmit={submit} className="border-t border-gray-200 p-3 dark:border-gray-800">
-                <div className="flex items-end gap-2">
-                    <input
-                        ref={fileRef}
-                        type="file"
-                        accept={ACCEPTED_UPLOAD}
-                        className="hidden"
-                        onChange={(e) => void handleUpload(e.target.files?.[0])}
-                    />
-                    <button
-                        type="button"
-                        title="Upload a resume"
-                        aria-label="Upload a resume"
-                        disabled={uploading || isThinking}
-                        onClick={() => fileRef.current?.click()}
-                        className="rounded-xl border border-gray-200 p-2.5 text-gray-500 transition-colors hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-                    >
-                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                    </button>
-                    <textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) submit(e as unknown as React.FormEvent);
-                        }}
-                        rows={1}
-                        placeholder={uploading ? 'Reading your resume…' : 'Ask, or upload your resume…'}
-                        className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                    />
-                    <button
-                        type="button"
-                        title={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
-                        aria-label={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
-                        disabled={live.status === 'connecting' || live.status === 'closing'}
-                        onClick={() => (live.status === 'live' ? void live.stop() : void live.start())}
-                        className={`rounded-xl p-2.5 transition-colors disabled:opacity-40 ${
-                            live.status === 'live'
-                                ? 'bg-red-600 text-white hover:bg-red-500'
-                                : 'border border-gray-200 text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800'
-                        }`}
-                    >
-                        {live.status === 'connecting' ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : live.status === 'live' ? (
-                            <PhoneOff className="h-4 w-4" />
-                        ) : (
-                            <AudioLines className="h-4 w-4" />
+            <div className={`flex min-h-0 min-w-0 flex-1 flex-col ${isFull ? 'mx-auto max-w-3xl' : ''}`}>
+                <header className="flex items-center gap-2 border-b border-[var(--cv-border-subtle)] px-4 py-3">
+                    <span className="grid h-7 w-7 place-items-center rounded-xl bg-gradient-to-br from-[var(--cv-action-primary)] to-amber-500 text-white shadow-sm">
+                        <Sparkles className="h-3.5 w-3.5" />
+                    </span>
+                    <h2 className="font-heading text-sm font-extrabold tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
+                        Career Agent
+                    </h2>
+
+                    <div className="ml-auto flex items-center gap-1">
+                        {credits && (
+                            <span className="mr-1 hidden text-[11px] text-[var(--cv-text-muted)] sm:inline">
+                                {credits.free
+                                    ? `${credits.freeTurnsRemaining}/${FREE_AGENT_TURNS_PER_DAY} free today`
+                                    : `${credits.creditsRemaining} credits`}
+                            </span>
                         )}
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={!input.trim() || isThinking}
-                        className="rounded-xl bg-gray-900 p-2.5 text-white transition-colors hover:bg-gray-700 disabled:opacity-40 dark:bg-white dark:text-gray-900"
-                    >
-                        <Send className="h-4 w-4" />
-                    </button>
+                        <button type="button" onClick={() => setShowHistory((v) => !v)} title="History"
+                            aria-pressed={showHistory}
+                            className={`rounded-lg p-1.5 transition-colors ${showHistory ? 'bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-primary)]' : 'text-[var(--cv-text-muted)] hover:bg-black/5 dark:hover:bg-white/10'}`}>
+                            <History className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={() => setShowSettings((v) => !v)} title="Agent settings"
+                            aria-pressed={showSettings}
+                            className={`rounded-lg p-1.5 transition-colors ${showSettings ? 'bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-primary)]' : 'text-[var(--cv-text-muted)] hover:bg-black/5 dark:hover:bg-white/10'}`}>
+                            <Settings2 className="h-3.5 w-3.5" />
+                        </button>
+                    </div>
+                </header>
+
+                {showSettings && (
+                    <div className="border-b border-[var(--cv-border-subtle)] bg-[var(--cv-surface-muted)] px-4 py-3">
+                        <p className="cv-design-eyebrow text-[10px]">Run without asking</p>
+                        <p className="mt-1 text-[11px] leading-relaxed text-[var(--cv-text-muted)]">
+                            Creating resumes, adding jobs in bulk, and anything that spends credits always
+                            asks first — that cannot be turned off.
+                        </p>
+                        <ul className="mt-2.5 space-y-1.5">
+                            {AUTO_EXEC_TOOLS.map((t) => {
+                                const on = autoExec.tools.includes(t.name);
+                                return (
+                                    <li key={t.name}>
+                                        <button type="button" onClick={() => autoExec.toggle(t.name)}
+                                            className="flex w-full items-start gap-2.5 rounded-xl p-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10">
+                                            <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-md border transition-colors ${
+                                                on ? 'border-[var(--cv-action-primary)] bg-[var(--cv-action-primary)] text-white'
+                                                   : 'border-[var(--cv-border-subtle)]'}`}>
+                                                {on && <Check className="h-3 w-3" />}
+                                            </span>
+                                            <span className="min-w-0">
+                                                <span className="block text-xs font-medium text-[var(--cv-text-body-product)]">{t.label}</span>
+                                                <span className="block text-[10px] text-[var(--cv-text-muted)]">{t.description}</span>
+                                            </span>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
+
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+                    {messages.length === 0 && live.turns.length === 0 && (
+                        <div className="pt-3">
+                            <p className="font-heading text-lg font-extrabold leading-tight tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
+                                What are we working on?
+                            </p>
+                            <p className="mt-1.5 text-sm leading-6 text-[var(--cv-text-body-product)]">
+                                I can practise real interview questions from 301 companies, build your resume,
+                                and keep your applications moving.
+                            </p>
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                <button type="button" onClick={() => void live.start()}
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[var(--cv-action-primary)] to-amber-500 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-transform hover:scale-[1.03]">
+                                    <AudioLines className="h-3.5 w-3.5" /> Talk to the agent
+                                </button>
+                                <button type="button" onClick={() => fileRef.current?.click()}
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] px-3.5 py-2 text-xs font-semibold text-[var(--cv-text-body-product)] transition-colors hover:border-[var(--cv-action-primary)]">
+                                    <Paperclip className="h-3 w-3" /> Upload my resume
+                                </button>
+                                {STARTERS.map((s) => (
+                                    <button key={s} type="button" onClick={() => void send(s)}
+                                        className="rounded-full border border-[var(--cv-border-subtle)] px-3.5 py-2 text-xs text-[var(--cv-text-body-product)] transition-colors hover:border-[var(--cv-action-primary)] hover:bg-[var(--cv-action-soft-bg)]">
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        {messages.map((m) => (
+                            <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
+                                <div className={m.role === 'user' ? 'max-w-[85%]' : 'w-full'}>
+                                    {m.role === 'user' ? (
+                                        <p className="rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2 text-sm text-white shadow-sm">
+                                            {m.text}
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <div className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--cv-text-body-product)]">
+                                                {renderInlineMarkdown(m.text)}
+                                                {m.streaming && (
+                                                    <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-[var(--cv-action-primary)] align-middle" />
+                                                )}
+                                            </div>
+                                            <AgentCards cards={m.cards} />
+                                            {m.proposals?.map((p) => (
+                                                <ProposedChanges key={p.id} proposal={p}
+                                                    onResolve={(id, ok) => void resolve(id, ok)} disabled={isThinking} />
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        {isThinking && !messages.some((m) => m.streaming && m.text) && (
+                            <div className="flex gap-1 py-1">
+                                {[0, 150, 300].map((d) => (
+                                    <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--cv-action-primary)]"
+                                        style={{ animationDelay: `${d}ms` }} />
+                                ))}
+                            </div>
+                        )}
+
+                        {live.plan && <TaskPlan plan={live.plan} />}
+
+                        {live.turns.map((t) => (
+                            <div key={t.id} className={t.role === 'user' ? 'flex justify-end' : ''}>
+                                <p className={t.role === 'user'
+                                    ? 'max-w-[85%] rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2 text-sm text-white'
+                                    : 'text-sm leading-relaxed text-[var(--cv-text-body-product)]'}>
+                                    {t.text}
+                                </p>
+                            </div>
+                        ))}
+
+                        {live.proposals.map((p) => (
+                            <ProposedChanges key={p.id} proposal={p}
+                                onResolve={(id, ok) => void live.resolveProposal(id, ok)} />
+                        ))}
+
+                        {[uploadError, live.error, error].filter(Boolean).map((msg, i) => (
+                            <p key={i} className="flex items-start gap-1.5 rounded-xl bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                                <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                {msg}
+                            </p>
+                        ))}
+                        <div ref={endRef} />
+                    </div>
                 </div>
-            </form>
+
+                {(live.status === 'connecting' || live.status === 'live') && (
+                    <div className="flex items-center gap-2 border-t border-[var(--cv-border-subtle)] bg-gradient-to-r from-[var(--cv-action-soft-bg)] to-amber-500/10 px-4 py-2.5 text-sm">
+                        <Mic className={`h-4 w-4 shrink-0 text-[var(--cv-action-primary)] ${live.status === 'live' && !live.muted ? 'animate-pulse' : ''}`} />
+                        <span className="min-w-0 flex-1 truncate text-[var(--cv-text-body-product)]">
+                            {live.status === 'connecting'
+                                ? 'Connecting…'
+                                : `${Math.floor(live.elapsedSeconds / 60)}:${String(live.elapsedSeconds % 60).padStart(2, '0')}`}
+                            {live.muted && <span className="ml-1.5 font-semibold text-red-600 dark:text-red-400">· muted</span>}
+                            {live.status === 'live' && (
+                                <span className="ml-1.5 text-[11px] text-[var(--cv-text-muted)]">
+                                    · {live.billedCredits} credits{live.capMinutes ? ` · ends ${live.capMinutes}:00` : ''}
+                                </span>
+                            )}
+                        </span>
+                        {live.status === 'live' && (
+                            <>
+                                <button type="button" onClick={live.toggleMute} aria-pressed={live.muted}
+                                    title={live.muted ? 'Unmute' : 'Mute your microphone'}
+                                    className={`rounded-lg p-1.5 transition-colors ${live.muted ? 'bg-red-600 text-white' : 'text-[var(--cv-text-body-product)] hover:bg-black/5 dark:hover:bg-white/10'}`}>
+                                    {live.muted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                                </button>
+                                <button type="button" onClick={live.interrupt} disabled={!live.agentSpeaking}
+                                    title="Stop the agent talking"
+                                    className="rounded-lg p-1.5 text-[var(--cv-text-body-product)] transition-colors hover:bg-black/5 disabled:opacity-30 dark:hover:bg-white/10">
+                                    <Hand className="h-3.5 w-3.5" />
+                                </button>
+                            </>
+                        )}
+                        <button type="button" onClick={() => void live.stop()}
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-500">
+                            <PhoneOff className="h-3.5 w-3.5" /> End
+                        </button>
+                    </div>
+                )}
+
+                <form onSubmit={submit} className="border-t border-[var(--cv-border-subtle)] p-3">
+                    <div className="flex items-end gap-1.5">
+                        <input ref={fileRef} type="file" accept={ACCEPTED_UPLOAD} className="hidden"
+                            onChange={(e) => void handleUpload(e.target.files?.[0])} />
+                        <button type="button" title="Upload a resume" aria-label="Upload a resume"
+                            disabled={uploading || isThinking} onClick={() => fileRef.current?.click()} className={iconBtn}>
+                            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                        </button>
+
+                        <textarea
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+                            }}
+                            rows={1}
+                            placeholder={uploading ? 'Reading your resume…' : 'Ask, upload a resume, or start talking…'}
+                            className="max-h-32 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] px-3.5 py-2.5 text-sm text-[var(--cv-text-body-product)] outline-none transition-colors placeholder:text-[var(--cv-text-muted)] focus:border-[var(--cv-action-primary)]"
+                        />
+
+                        <button type="button"
+                            title={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
+                            aria-label={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
+                            disabled={live.status === 'connecting' || live.status === 'closing'}
+                            onClick={() => (live.status === 'live' ? void live.stop() : void live.start())}
+                            className={live.status === 'live'
+                                ? 'rounded-xl bg-red-600 p-2.5 text-white transition-colors hover:bg-red-500'
+                                : iconBtn}>
+                            {live.status === 'connecting' ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : live.status === 'live' ? <PhoneOff className="h-4 w-4" />
+                                : <AudioLines className="h-4 w-4" />}
+                        </button>
+
+                        {isThinking ? (
+                            <button type="button" onClick={stopGenerating} title="Stop generating"
+                                className="rounded-xl bg-[var(--cv-surface-muted)] p-2.5 text-[var(--cv-text-body-product)] transition-colors hover:bg-black/10">
+                                <Square className="h-4 w-4" />
+                            </button>
+                        ) : (
+                            <button type="submit" disabled={!input.trim()}
+                                className="rounded-xl bg-gradient-to-br from-[var(--cv-action-primary)] to-amber-500 p-2.5 text-white shadow-sm transition-transform hover:scale-105 disabled:scale-100 disabled:opacity-40">
+                                <Send className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                </form>
+            </div>
         </div>
     );
 };

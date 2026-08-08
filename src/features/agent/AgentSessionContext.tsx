@@ -16,6 +16,7 @@ import React, { createContext, useContext, useMemo, type ReactNode } from 'react
 import { navigate } from '../../utils/navigation';
 import { useCareerAgent, type AgentEffect } from './useCareerAgent';
 import { useLiveCareerAgent } from './useLiveCareerAgent';
+import { useAutoExec } from './useAutoExec';
 
 type TextAgent = ReturnType<typeof useCareerAgent>;
 type LiveAgent = ReturnType<typeof useLiveCareerAgent>;
@@ -23,6 +24,7 @@ type LiveAgent = ReturnType<typeof useLiveCareerAgent>;
 interface AgentSession {
     text: TextAgent;
     live: LiveAgent;
+    autoExec: ReturnType<typeof useAutoExec>;
     route: string;
 }
 
@@ -41,10 +43,14 @@ export const AgentSessionProvider: React.FC<{ path: string; children: ReactNode 
         }
     };
 
+    const autoExec = useAutoExec();
     const live = useLiveCareerAgent({ route: path, onEffect: handleEffect });
-    const text = useCareerAgent({ route: path, onEffect: handleEffect });
+    const text = useCareerAgent({ route: path, autoExecTools: autoExec.tools, onEffect: handleEffect });
 
-    const value = useMemo(() => ({ text, live, route: path }), [text, live, path]);
+    const value = useMemo(
+        () => ({ text, live, autoExec, route: path }),
+        [text, live, autoExec, path],
+    );
 
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
