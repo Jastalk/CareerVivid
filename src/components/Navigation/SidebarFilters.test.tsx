@@ -30,6 +30,7 @@ vi.mock('lucide-react', () => ({
     Monitor: () => <div data-testid="icon-monitor" />,
     Users: () => <div data-testid="icon-users" />,
     CreditCard: () => <div data-testid="icon-creditcard" />,
+    Settings: () => <div data-testid="icon-settings" />,
     Gift: () => <div data-testid="icon-gift" />,
     FileText: () => <div data-testid="icon-filetext" />,
     GraduationCap: () => <div data-testid="icon-graduation-cap" />,
