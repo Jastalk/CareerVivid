@@ -1,6 +1,10 @@
 const { GoogleGenAI } = require("@google/genai");
 
-const apiKey = "AIzaSyB2Ti_bKb11Tqu0VXTCzToNUTG-ML8S6Gg";
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+if (!apiKey) {
+  console.error("Set GEMINI_API_KEY or GOOGLE_API_KEY before running this connectivity test.");
+  process.exit(1);
+}
 
 async function testSingleModel(modelName) {
   console.log(`\nTesting ${modelName} via AI Studio API...`);

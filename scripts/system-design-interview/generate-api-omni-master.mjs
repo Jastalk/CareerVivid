@@ -12,7 +12,10 @@ import { execSync } from 'child_process';
 import { GoogleGenAI } from '@google/genai';
 import { GoogleAuth } from 'google-auth-library';
 
-const API_KEY = "AQ.Ab8RN6LskIsc9l49VHGlnJVQP7Fto8kruRQ2qzT5X9hAiV5lAQ";
+const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+if (!API_KEY) {
+    throw new Error('Set GEMINI_API_KEY or GOOGLE_API_KEY before generating Omni clips.');
+}
 const MODEL = "veo-3.1-lite-generate-preview";
 
 const CLIPS_DIR = path.resolve('public/system-design-lessons/clips');
