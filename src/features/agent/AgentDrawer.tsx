@@ -13,7 +13,13 @@ import { navigate } from '../../utils/navigation';
 import { CareerAgentPanel } from './CareerAgentPanel';
 import { useAuth } from '../../contexts/AuthContext';
 
-/** Routes where a floating panel would obstruct the actual work. */
+/**
+ * Routes where a floating panel would obstruct the actual work.
+ *
+ * /quest is deliberately NOT here: the coding and system-design rounds open as
+ * overlays on that route, and the whole point is to keep coaching while the
+ * user works. The drawer sits at z-[60] so it stays above those z-50 modals.
+ */
 const SUPPRESSED = [/^\/agent/, /^\/interview-studio/, /^\/whiteboard/, /^\/editor\/[^/]+\/preview/];
 
 export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
@@ -29,7 +35,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                 type="button"
                 onClick={() => setOpen(true)}
                 aria-label="Open Career Agent"
-                className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-gray-900"
+                className="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-gray-900"
             >
                 <Sparkles className="h-4 w-4 text-amber-400 dark:text-amber-500" />
                 Career Agent
@@ -38,7 +44,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     }
 
     return (
-        <aside className="fixed bottom-0 right-0 z-40 flex h-[min(38rem,88vh)] w-[min(26rem,100vw)] flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:bottom-5 sm:right-5 sm:rounded-2xl dark:border-gray-800 dark:bg-gray-950">
+        <aside className="fixed bottom-0 right-0 z-[60] flex h-[min(38rem,88vh)] w-[min(26rem,100vw)] flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:bottom-5 sm:right-5 sm:rounded-2xl dark:border-gray-800 dark:bg-gray-950">
             <div className="flex items-center justify-end gap-1 border-b border-gray-200 px-2 py-1.5 dark:border-gray-800">
                 <button
                     type="button"

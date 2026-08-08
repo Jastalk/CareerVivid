@@ -180,3 +180,57 @@ export const getCompanyQuestions: AgentTool = {
         };
     },
 };
+
+/** Stage ids from buildQuestLine (src/lib/companyQuests.ts). */
+const QUEST_STAGES = ["screening", "coding", "system_design", "behavioral", "values", "final"] as const;
+
+/**
+ * Open one stage of a company loop as a modal, not the quest landing page.
+ *
+ * CompanyQuestPage already honours `?stage=` and auto-launches that round —
+ * CodingBattle and SystemDesignBattle render as full-screen overlays over the
+ * quest route. So the agent does not need to navigate anywhere new; it needs to
+ * stop sending people to the quest index and start naming the round.
+ *
+ * Read-only: opening a practice modal writes nothing and spends nothing. The
+ * scoring at the end of the round is where credits are charged, by the battle.
+ */
+export const openInterviewStage: AgentTool = {
+    name: "openInterviewStage",
+    description:
+        "Open a specific round of a company's interview loop as a modal — coding opens the code editor, system_design opens the whiteboard. Use this the moment the user agrees to practise a question you are discussing. Do NOT send them to the quest page and make them pick the round themselves.",
+    parameters: {
+        type: "object",
+        properties: {
+            company: { type: "string", description: "Company name or slug." },
+            stage: {
+                type: "string",
+                enum: [...QUEST_STAGES],
+                description: "coding and system_design open a working modal; the others open their quest round.",
+            },
+        },
+        required: ["company", "stage"],
+    },
+    phase: 3,
+    risk: "read",
+    writes: false,
+    execute: async (_ctx, a) => {
+        const ref = S(a.company, "company");
+        const stage = S(a.stage, "stage", 40);
+        if (!(QUEST_STAGES as readonly string[]).includes(stage)) {
+            throw new Error(`stage must be one of: ${QUEST_STAGES.join(", ")}`);
+        }
+
+        const hit = findGuides(ref, 1)[0];
+        if (!hit) throw new Error(`No interview guide for "${ref}". Try searchCompanyGuides first.`);
+
+        return {
+            kind: "open_stage",
+            company: hit.company,
+            stage,
+            // `?stage=` is what CompanyQuestPage reads to auto-launch the round.
+            route: `${hit.route}?stage=${stage}`,
+            note: "Call navigateToRoute with this exact route. The round opens over the page and you stay reachable beside it — keep coaching while they work.",
+        };
+    },
+};
