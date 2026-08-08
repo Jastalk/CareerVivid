@@ -5,7 +5,7 @@
  * directly to the CareerVivid brand channel (https://www.youtube.com/@Careervivid-w8y).
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 
 const LESSONS_DIR = path.resolve('public/system-design-lessons');
@@ -63,7 +63,6 @@ for (const [idx, v] of VIDEOS.entries()) {
     console.log(`========================================================`);
 
     const script = `
-ego-browser nodejs <<'EOF'
 const task = await useOrCreateTaskSpace('upload careervivid channel videos')
 
 await openOrReuseTab('https://studio.youtube.com', { wait: true, timeout: 20 })
@@ -86,8 +85,8 @@ await js(String.raw\`(() => {
 await wait(3)
 
 // Select file
-cliLog('Uploading file: ${videoPath}')
-await uploadFile('input[type="file"]', '${videoPath}')
+cliLog('Uploading file: ' + ${JSON.stringify(videoPath)})
+await uploadFile('input[type="file"]', ${JSON.stringify(videoPath)})
 await wait(6)
 
 // Fill Title
@@ -142,12 +141,17 @@ await js(String.raw\`(() => {
 })()\`)
 
 await wait(5)
-cliLog('✅ Upload completed for ${v.file}')
-EOF
+cliLog('✅ Upload completed for ' + ${JSON.stringify(v.file)})
+try { await completeTaskSpace(task.id, { keep: true }) } catch (e) {}
 `;
 
     try {
-        execSync(script, { stdio: 'inherit', cwd: process.cwd() });
+        execFileSync('ego-browser', ['nodejs'], {
+            stdio: ['pipe', 'inherit', 'inherit'],
+            cwd: process.cwd(),
+            input: script,
+            shell: false,
+        });
         console.log(`🎉 Finished uploading ${v.file}`);
     } catch (e) {
         console.error(`❌ Error uploading ${v.file}:`, e.message);

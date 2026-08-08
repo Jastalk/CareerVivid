@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const TARGET_BASE_DIR = '/Volumes/Lenovo/CareerVivid_Veo_Videos';
 
@@ -44,9 +45,15 @@ async function archiveUploadedVideos() {
         fs.mkdirSync(item.remote, { recursive: true });
 
         // 1. Copy video files to external drive using quiet rsync
-        const rsyncCmd = `rsync -aq --include="*/" --include="*.mp4" --exclude="*" "${path.resolve(item.local)}/" "${path.resolve(item.remote)}/"`;
         try {
-            execSync(rsyncCmd, { stdio: 'pipe' });
+            execFileSync('rsync', [
+                '-aq',
+                '--include=*/',
+                '--include=*.mp4',
+                '--exclude=*',
+                `${path.resolve(item.local)}/`,
+                `${path.resolve(item.remote)}/`,
+            ], { stdio: 'pipe', shell: false });
             console.log(`   ✅ Video files transferred to external drive.`);
         } catch (err) {
             console.error(`   ❌ Sync error for ${item.local}:`, err.message);

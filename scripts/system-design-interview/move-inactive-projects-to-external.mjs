@@ -9,7 +9,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const EXTERNAL_TARGET_DIR = '/Volumes/Lenovo/Archived_Projects';
 
@@ -40,13 +40,20 @@ async function archiveProjectsFast() {
         console.log(`========================================================`);
 
         // Exclude transient heavy caches (node_modules, .next, .turbo, .yarn/cache) for super fast USB transfer
-        const rsyncCmd = `rsync -av --exclude="node_modules" --exclude=".next" --exclude=".turbo" --exclude=".yarn/cache" "${proj.localPath}/" "${proj.destPath}/"`;
         try {
-            const out = execSync(rsyncCmd, { encoding: 'utf8' });
+            execFileSync('rsync', [
+                '-av',
+                '--exclude=node_modules',
+                '--exclude=.next',
+                '--exclude=.turbo',
+                '--exclude=.yarn/cache',
+                `${proj.localPath}/`,
+                `${proj.destPath}/`,
+            ], { encoding: 'utf8', shell: false });
             console.log(`✅ Codebase & Git history successfully copied to external drive!`);
 
             console.log(`   🗑️ Safely removing local project directory: ${proj.localPath}...`);
-            execSync(`rm -rf "${proj.localPath}"`, { stdio: 'pipe' });
+            fs.rmSync(proj.localPath, { recursive: true, force: true });
             console.log(`   ✨ Local project removed! Freed space on local SSD!\n`);
         } catch (err) {
             console.error(`❌ Error archiving ${proj.name}:`, err.message);

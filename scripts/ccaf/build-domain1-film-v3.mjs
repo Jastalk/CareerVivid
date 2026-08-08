@@ -40,6 +40,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execCommandLine } from '../lib/safe-exec.mjs';
 import { chromium } from 'playwright';
 import { DOMAIN_1_FILM, assertFullCoverage, assertContentMatchesMissions } from './domain1Script.ts';
 import { CLIP_FOR } from './generate-domain1-omni-videos.mjs';
@@ -596,7 +597,7 @@ async function main() {
             // reads as a design choice instead of a bug.
             : { input: `-f lavfi -i color=c=0x0b0f19:s=${W}x${H}:r=${FPS}`, chain: `[0:v]setsar=1[bg];` };
 
-        execSync(
+        execCommandLine(
             `ffmpeg -y ${bg.input} -framerate ${FPS} -i "${framesDir}/f%05d.png" ${audioIn} ` +
             `-filter_complex "${bg.chain}[bg][1:v]overlay=0:0:shortest=1,format=yuv420p[v]" ` +
             `-map "[v]" -map 2:a -c:v libx264 -preset medium -crf 21 -c:a aac -b:a 192k -shortest "${out}"`,

@@ -13,6 +13,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execCommandLine } from '../lib/safe-exec.mjs';
 import { chromium } from 'playwright';
 import { GoogleAuth } from 'google-auth-library';
 import { DESIGN_X_EPISODES, CTA_URL } from './designXScript.ts';
@@ -176,7 +177,7 @@ async function main() {
 
         // Drift so repeated passes through the loop are never framed the same.
         const drift = `scale=2208:1242:flags=lanczos,crop=1920:1080:x='(iw-ow)*min(t/${duration.toFixed(2)}\\,1)':y='(ih-oh)/2',fps=${FPS},setsar=1`;
-        execSync(
+        execCommandLine(
             `ffmpeg -y -stream_loop -1 -i "${bed}" -framerate ${FPS} -i "${framesDir}/f%05d.png" -i "${wav}" ` +
             `-filter_complex "[0:v]${drift}[bg];[bg][1:v]overlay=0:0:shortest=1[v]" ` +
             `-map "[v]" -map 2:a -c:v libx264 -preset medium -crf 22 -c:a aac -b:a 192k -pix_fmt yuv420p -shortest "${out}"`,

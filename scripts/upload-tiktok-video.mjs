@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 function getArg(flag) {
     const idx = process.argv.indexOf(flag);
@@ -48,24 +48,24 @@ if (snap.includes('Log in') || snap.includes('Sign in') || snap.includes('Login'
     await handOffTaskSpace(task.id)
 } else {
     cliLog('✅ Authenticated on TikTok!')
-    cliLog('Uploading video file: ${absoluteVideoPath}...')
-    await uploadFile('input[type="file"]', "${absoluteVideoPath}")
+    cliLog('Uploading video file: ' + ${JSON.stringify(absoluteVideoPath)})
+    await uploadFile('input[type="file"]', ${JSON.stringify(absoluteVideoPath)})
     cliLog('Waiting for video file processing...')
     await wait(14)
 
     cliLog('Setting video caption...')
-    await fillInput('div[contenteditable="true"]', "${caption.replace(/"/g, '\\"')}")
+    await fillInput('div[contenteditable="true"]', ${JSON.stringify(caption)})
     await wait(2)
 
     ${absoluteThumbnailPath ? `
-    cliLog('Setting video cover thumbnail: ${absoluteThumbnailPath}...')
+    cliLog('Setting video cover thumbnail: ' + ${JSON.stringify(absoluteThumbnailPath)})
     try {
         await click('button:has-text("Edit cover")', { label: 'Click Edit Cover button' })
         await wait(3)
         // Upload thumbnail image file in cover modal if file input exists
         const fileInput = await page.$('div[role="dialog"] input[type="file"], input[accept="image/*"]')
         if (fileInput) {
-            await fileInput.setInputFiles("${absoluteThumbnailPath}")
+            await fileInput.setInputFiles(${JSON.stringify(absoluteThumbnailPath)})
             await wait(3)
         }
         await click('button:has-text("Save")', { label: 'Save Cover' }).catch(() => null)
@@ -112,7 +112,12 @@ try { await completeTaskSpace(task.id, { keep: true }) } catch (e) {}
 `;
 
 try {
-    const output = execSync(`ego-browser nodejs <<'EOF'\n${scriptCode}\nEOF`, { encoding: 'utf8', cwd: process.cwd() });
+    const output = execFileSync('ego-browser', ['nodejs'], {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        input: scriptCode,
+        shell: false,
+    });
     console.log(output);
 } catch (err) {
     console.error('❌ TikTok Upload Error:', err.message);

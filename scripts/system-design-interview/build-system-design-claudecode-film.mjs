@@ -17,6 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execCommandLine } from '../lib/safe-exec.mjs';
 import { chromium } from 'playwright';
 import { SYSTEM_DESIGN_CLAUDE_CODE_BEATS } from './systemDesignClaudeCodeScript.ts';
 import { karaokeChunks, karaokeHTML, KARAOKE_CSS } from './karaokeSubtitles.mjs';
@@ -277,7 +278,7 @@ async function assembleClaudeCodeFilm() {
             }
         }
 
-        execSync(ffmpegCmd, { stdio: 'pipe' });
+        execCommandLine(ffmpegCmd, { stdio: 'pipe' });
         fs.rmSync(framesDir, { recursive: true, force: true });
         beatVideoFiles.push(beatMp4);
     }

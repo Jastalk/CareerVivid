@@ -4,7 +4,7 @@
  * Uploads the 3 missing videos (TikTok, WhatsApp, Claude Code) to the active Careervivid channel.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 
 const UPLOADER_SCRIPT = '/Users/jiawenzhu/.config/hackathon-youtube-uploader/uploader.js';
@@ -39,8 +39,13 @@ async function main() {
         console.log(`========================================================`);
 
         try {
-            const cmd = `node "${UPLOADER_SCRIPT}" --video "${filePath}" --title "${v.title.replace(/"/g, '\\"')}" --description "${v.description.replace(/"/g, '\\"')}" --privacy public`;
-            const out = execSync(cmd, { encoding: 'utf8' });
+            const out = execFileSync('node', [
+                UPLOADER_SCRIPT,
+                '--video', filePath,
+                '--title', v.title,
+                '--description', v.description,
+                '--privacy', 'public',
+            ], { encoding: 'utf8', shell: false });
 
             const match = out.match(/https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
             const url = match ? match[0] : 'Uploaded';

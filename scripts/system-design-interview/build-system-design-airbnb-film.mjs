@@ -17,6 +17,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execCommandLine } from '../lib/safe-exec.mjs';
 import { chromium } from 'playwright';
 import { SYSTEM_DESIGN_AIRBNB_BEATS } from './systemDesignAirbnbScript.ts';
 import { karaokeChunks, karaokeHTML, KARAOKE_CSS } from './karaokeSubtitles.mjs';
@@ -275,7 +276,7 @@ async function assembleAirbnbFilm() {
             }
         }
 
-        execSync(ffmpegCmd, { stdio: 'pipe' });
+        execCommandLine(ffmpegCmd, { stdio: 'pipe' });
         fs.rmSync(framesDir, { recursive: true, force: true });
         beatVideoFiles.push(beatMp4);
     }

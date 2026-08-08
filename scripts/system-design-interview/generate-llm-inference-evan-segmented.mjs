@@ -12,7 +12,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { LLM_INFERENCE_BEATS } from './systemDesignLlmInferenceScript.ts';
 
 const REF_AUDIO = 'assets/voice_cloning/evan_intro.wav';
@@ -48,10 +48,19 @@ async function main() {
         console.log(`   Text (${genText.length} chars): "${genText.slice(0, 75)}..."`);
 
         const bStart = Date.now();
-        const cmd = `./.venv-f5/bin/python scripts/generate-f5-voice-segmented.py --ref-audio "${REF_AUDIO}" --ref-text "${REF_TEXT.replace(/"/g, '\\"')}" --gen-text "${genText.replace(/"/g, '\\"')}" --output "${outFile}" --nfe-step 16`;
-
         try {
-            execSync(cmd, { stdio: 'inherit', env: { ...process.env, PYTHONHASHSEED: 'random' } });
+            execFileSync('./.venv-f5/bin/python', [
+                'scripts/generate-f5-voice-segmented.py',
+                '--ref-audio', REF_AUDIO,
+                '--ref-text', REF_TEXT,
+                '--gen-text', genText,
+                '--output', outFile,
+                '--nfe-step', '16',
+            ], {
+                stdio: 'inherit',
+                env: { ...process.env, PYTHONHASHSEED: 'random' },
+                shell: false,
+            });
             const elapsedSec = ((Date.now() - bStart) / 1000).toFixed(2);
             console.log(`   ✅ Beat [${beatId}] synthesized in ${elapsedSec} seconds.`);
             timingReport.push({ beatId, elapsedSec: parseFloat(elapsedSec), textLength: genText.length, cached: false });
@@ -78,7 +87,10 @@ async function main() {
     fs.writeFileSync(path.join(OUT_DIR, 'synthesis_timing.json'), JSON.stringify({ totalSec: parseFloat(totalSec), timingReport }, null, 2));
 
     console.log('🎬 Launching Master Video Assembly with Evan Cloned Voice...');
-    execSync('node scripts/system-design-interview/build-llm-inference-evan-voice-film.mjs', { stdio: 'inherit' });
+    execFileSync('node', ['scripts/system-design-interview/build-llm-inference-evan-voice-film.mjs'], {
+        stdio: 'inherit',
+        shell: false,
+    });
 }
 
 main().catch(console.error);

@@ -8,6 +8,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const TARGET_BASE_DIR = '/Volumes/Lenovo/CareerVivid_Veo_Videos';
 
@@ -42,9 +43,15 @@ async function backupVeoVideos() {
         console.log(`========================================================`);
 
         // Use rsync to efficiently copy files while displaying progress
-        const rsyncCmd = `rsync -av --include="*/" --include="*.mp4" --exclude="*" "${path.resolve(item.src)}/" "${path.resolve(item.dest)}/"`;
         try {
-            const out = execSync(rsyncCmd, { encoding: 'utf8', cwd: process.cwd() });
+            const out = execFileSync('rsync', [
+                '-av',
+                '--include=*/',
+                '--include=*.mp4',
+                '--exclude=*',
+                `${path.resolve(item.src)}/`,
+                `${path.resolve(item.dest)}/`,
+            ], { encoding: 'utf8', cwd: process.cwd(), shell: false });
             const lines = out.trim().split('\n');
             const files = lines.filter(l => l.endsWith('.mp4'));
             totalFilesCopied += files.length;

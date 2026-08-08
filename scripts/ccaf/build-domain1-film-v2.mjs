@@ -25,6 +25,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { execCommandLine } from '../lib/safe-exec.mjs';
 import { chromium } from 'playwright';
 import { DOMAIN_1_FILM, assertFullCoverage, assertContentMatchesMissions } from './domain1Script.ts';
 import { listDomains } from '../../src/lib/questSource.ts';
@@ -463,7 +464,7 @@ async function main() {
         const audioIn = spoken
             ? `-i "${wav}"`
             : `-f lavfi -i anullsrc=r=24000:cl=mono -t ${duration.toFixed(2)}`;
-        execSync(
+        execCommandLine(
             `ffmpeg -y -framerate ${FPS} -i "${framesDir}/f%05d.jpg" ${audioIn} ` +
             `-c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -c:a aac -b:a 192k -shortest "${clip}"`,
             { stdio: 'pipe' });

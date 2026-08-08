@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const VIDEO_PUBLISH_CONFIGS = [
     {
@@ -92,9 +92,14 @@ async function publishAll() {
 
         // 1. YouTube Upload via CLI
         console.log(`📺 Publishing to YouTube (@CareerVividSystemDesign)...`);
-        const ytCmd = `node scripts/upload-careervivid-youtube-video.mjs --video "${absoluteMp4}" --thumbnail "${absoluteThumb}" --title "${v.ytTitle.replace(/"/g, '\\"')}" --description "${v.ytDescription.replace(/"/g, '\\"')}"`;
         try {
-            const ytOut = execSync(ytCmd, { encoding: 'utf8', cwd: process.cwd() });
+            const ytOut = execFileSync('node', [
+                'scripts/upload-careervivid-youtube-video.mjs',
+                '--video', absoluteMp4,
+                '--thumbnail', absoluteThumb,
+                '--title', v.ytTitle,
+                '--description', v.ytDescription,
+            ], { encoding: 'utf8', cwd: process.cwd(), shell: false });
             console.log(ytOut);
         } catch (err) {
             console.error(`❌ YouTube Upload Error for ${v.id}:`, err.message);
@@ -102,9 +107,13 @@ async function publishAll() {
 
         // 2. TikTok Upload via CLI (using unified 16:9 master MP4 file)
         console.log(`\n📱 Publishing 16:9 Master Video to TikTok...`);
-        const tiktokCmd = `node scripts/upload-tiktok-video.mjs --video "${absoluteMp4}" --thumbnail "${absoluteThumb}" --caption "${v.tiktokCaption.replace(/"/g, '\\"')}"`;
         try {
-            const ttOut = execSync(tiktokCmd, { encoding: 'utf8', cwd: process.cwd() });
+            const ttOut = execFileSync('node', [
+                'scripts/upload-tiktok-video.mjs',
+                '--video', absoluteMp4,
+                '--thumbnail', absoluteThumb,
+                '--caption', v.tiktokCaption,
+            ], { encoding: 'utf8', cwd: process.cwd(), shell: false });
             console.log(ttOut);
         } catch (err) {
             console.error(`❌ TikTok Upload Error for ${v.id}:`, err.message);
