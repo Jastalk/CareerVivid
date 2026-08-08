@@ -100,6 +100,7 @@ export function useLiveCareerAgent(opts: {
     const [capMinutes, setCap] = useState<number | null>(null);
     const [agentSpeaking, setAgentSpeaking] = useState(false);
     const [billedCredits, setBilledCredits] = useState(0);
+    const [muted, setMuted] = useState(false);
     const [plan, setPlan] = useState<LivePlan | null>(null);
 
     const sessionRef = useRef<Promise<any> | null>(null);
@@ -114,6 +115,7 @@ export function useLiveCareerAgent(opts: {
     const beatRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const playingRef = useRef<Set<AudioBufferSourceNode>>(new Set());
     const closingRef = useRef(false);
+    const mutedRef = useRef(false);
     const optsRef = useRef(opts);
     optsRef.current = opts;
 
@@ -215,6 +217,33 @@ export function useLiveCareerAgent(opts: {
         return data;
     }, []);
 
+    /** Mute the microphone. The agent keeps talking; it just stops hearing you. */
+    const toggleMute = useCallback(() => {
+        setMuted((m) => {
+            const next = !m;
+            mutedRef.current = next;
+            streamRef.current?.getAudioTracks().forEach((t) => { t.enabled = !next; });
+            return next;
+        });
+    }, []);
+
+    /**
+     * Cut the agent off mid-sentence.
+     *
+     * Dropping queued buffers locally is not enough — the model would keep
+     * streaming the rest of its turn. `sendClientContent` with an empty turn
+     * signals the interruption so it actually stops and listens.
+     */
+    const interrupt = useCallback(() => {
+        playingRef.current.forEach((n) => { try { n.stop(); } catch { /* ended */ } });
+        playingRef.current.clear();
+        playheadRef.current = 0;
+        setAgentSpeaking(false);
+        sessionRef.current?.then((s) =>
+            s.sendClientContent({ turns: [{ role: 'user', parts: [{ text: '' }] }], turnComplete: true }),
+        ).catch(() => {});
+    }, []);
+
     /** Tell the model an approval landed, so it can react without being asked again. */
     const notifyApproval = useCallback((proposalId: string, approved: boolean, result?: unknown) => {
         sessionRef.current?.then((s) =>
@@ -257,6 +286,8 @@ export function useLiveCareerAgent(opts: {
         setPlan(null);
         setElapsed(0);
         setBilledCredits(0);
+        setMuted(false);
+        mutedRef.current = false;
         setStatus('connecting');
         closingRef.current = false;
 
@@ -315,7 +346,10 @@ export function useLiveCareerAgent(opts: {
                         procRef.current = proc;
 
                         proc.onaudioprocess = (ev) => {
-                            if (closingRef.current) return;
+                            // Muting stops the upload, not just the track. A
+                            // disabled track still fires this callback with
+                            // silence, and silence is still billed as input audio.
+                            if (closingRef.current || mutedRef.current) return;
                             const pcm: GenAIBlob = {
                                 data: toPcm16Base64(ev.inputBuffer.getChannelData(0), inCtx.sampleRate),
                                 mimeType: 'audio/pcm;rate=16000',
@@ -466,6 +500,9 @@ export function useLiveCareerAgent(opts: {
         capMinutes,
         billedCredits,
         agentSpeaking,
+        muted,
+        toggleMute,
+        interrupt,
         start,
         stop,
         resolveProposal,

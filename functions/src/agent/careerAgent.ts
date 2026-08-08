@@ -149,7 +149,7 @@ function sanitizeAttachment(raw: any): Record<string, unknown> | null {
 
 export const careerAgentTurn = functions
     .region(REGION)
-    .runWith({ timeoutSeconds: 120, memory: "512MB", secrets: ["GEMINI_API_KEY"] })
+    .runWith({ timeoutSeconds: 120, memory: "512MB" })
     .https.onCall(async (data, context) => {
         const uid = requireAuth(context);
         const message = String(data?.message ?? "").trim().slice(0, 8_000);
@@ -181,7 +181,11 @@ export const careerAgentTurn = functions
 
         try {
             const ctx = await buildContext(uid, route, entity);
-            const ai = getAIClient(process.env.GEMINI_API_KEY, getVertexLocationForModel(model));
+            // Vertex ADC, not the Gemini API. getAIClient routes to
+            // generativelanguage.googleapis.com the moment an apiKey is passed,
+            // and the Gemini key was retired when this project moved to Vertex —
+            // passing it produced "API key not valid" on every turn.
+            const ai = getAIClient(undefined, getVertexLocationForModel(model));
 
             // A resume the user uploaded, already parsed client-side by
             // `parseResumeFromFile`. Parsing stays on the client because that

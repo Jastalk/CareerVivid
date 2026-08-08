@@ -27,6 +27,7 @@ const WhiteboardsPage = React.lazy(() => import('./pages/WhiteboardsPage'));
 const WhiteboardEditor = React.lazy(() => import('./pages/WhiteboardEditor'));
 const AgentWorkspace = React.lazy(() => import('./pages/AgentWorkspace'));
 const AgentDrawer = React.lazy(() => import('./features/agent/AgentDrawer'));
+import { AgentSessionProvider } from './features/agent/AgentSessionContext';
 const GenerationHub = React.lazy(() => import('./pages/GenerationHub')); // Protected
 const InterviewStudio = lazyWithPreload(() => import('./pages/InterviewStudio')); // Protected
 const CompanyQuestPage = React.lazy(() => import('./pages/CompanyQuestPage')); // Protected
@@ -878,10 +879,12 @@ const AppContent: React.FC = () => {
                 ].some(p => path.startsWith(p))}
               />
             )}
-            <RouteSuspense routeKey={path}>
-              {content}
-              {showChatbot && <AgentDrawer path={path} />}
-            </RouteSuspense>
+            <AgentSessionProvider path={path}>
+              <RouteSuspense routeKey={path}>
+                {content}
+                {showChatbot && <AgentDrawer path={path} />}
+              </RouteSuspense>
+            </AgentSessionProvider>
           </div>
         </NavigationProvider>
       </CartProvider>

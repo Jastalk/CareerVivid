@@ -10,13 +10,12 @@ import React, { useEffect, useRef, useState } from 'react';
 // This app has no <Router>: routing is pushState + a popstate listener in
 // App.tsx. react-router's hooks throw outside a Router provider.
 import { navigate } from '../../utils/navigation';
-import { Send, Sparkles, RotateCcw, AlertCircle, Paperclip, Loader2, Mic, PhoneOff, AudioLines } from 'lucide-react';
-import { useCareerAgent, type AgentEffect } from './useCareerAgent';
+import { Send, Sparkles, RotateCcw, AlertCircle, Paperclip, Loader2, Mic, MicOff, PhoneOff, AudioLines, Hand } from 'lucide-react';
 import { ProposedChanges } from './ProposedChanges';
 import { FREE_AGENT_TURNS_PER_DAY } from '../../config/creditCosts';
 import { parseResumeFromFile } from '../../services/geminiService';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLiveCareerAgent } from './useLiveCareerAgent';
+import { useAgentSession } from './AgentSessionContext';
 import { TaskPlan } from './TaskPlan';
 
 const ACCEPTED_UPLOAD = '.pdf,.doc,.docx,.txt';
@@ -51,31 +50,11 @@ export const CareerAgentPanel: React.FC<Props> = ({
     const endRef = useRef<HTMLDivElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    // The realtime agent: talks, plans, and calls tools mid-conversation.
-    const live = useLiveCareerAgent({ route, entity, onEffect: (e) => handleEffect(e as AgentEffect) });
 
-    const handleEffect = (effect: AgentEffect) => {
-        // A tool asked to open voice. The user already approved it on the card —
-        // startVoiceSession is a high_write tool — so this is the execution step.
-        if (effect.startVoice) {
-            void live.start();
-            return;
-        }
+    const { text: agent, live } = useAgentSession();
 
-        const target = effect.navigate ?? effect.route;
-        // Same-origin app paths only. The tool already validates this server-side;
-        // re-checking here means a compromised response still cannot redirect.
-        if (target && target.startsWith('/') && !target.startsWith('//')) {
-            navigate(target);
-        }
-    };
 
-    const { messages, send, resolve, reset, isThinking, error, credits } = useCareerAgent({
-        route,
-        entity,
-        autoExecTools,
-        onEffect: handleEffect,
-    });
+    const { messages, send, resolve, reset, isThinking, error, credits } = agent;
 
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -285,12 +264,41 @@ export const CareerAgentPanel: React.FC<Props> = ({
                         {live.status === 'connecting'
                             ? 'Connecting…'
                             : `Live · ${Math.floor(live.elapsedSeconds / 60)}:${String(live.elapsedSeconds % 60).padStart(2, '0')}`}
+                        {live.muted && <span className="ml-1.5 font-medium text-red-600 dark:text-red-400">· muted</span>}
                         {live.status === 'live' && (
                             <span className="ml-1.5 text-xs text-gray-500 dark:text-gray-400">
                                 · {live.billedCredits} credits used{live.capMinutes ? ` · ends at ${live.capMinutes}:00` : ''}
                             </span>
                         )}
                     </span>
+                    {live.status === 'live' && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={live.toggleMute}
+                                title={live.muted ? 'Unmute' : 'Mute your microphone'}
+                                aria-label={live.muted ? 'Unmute' : 'Mute'}
+                                aria-pressed={live.muted}
+                                className={`rounded-lg p-1.5 transition-colors ${
+                                    live.muted
+                                        ? 'bg-red-600 text-white'
+                                        : 'text-gray-600 hover:bg-black/5 dark:text-gray-300 dark:hover:bg-white/10'
+                                }`}
+                            >
+                                {live.muted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={live.interrupt}
+                                disabled={!live.agentSpeaking}
+                                title="Stop the agent talking"
+                                aria-label="Stop the agent talking"
+                                className="rounded-lg p-1.5 text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-30 dark:text-gray-300 dark:hover:bg-white/10"
+                            >
+                                <Hand className="h-3.5 w-3.5" />
+                            </button>
+                        </>
+                    )}
                     <button
                         type="button"
                         onClick={() => void live.stop()}
