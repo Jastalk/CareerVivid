@@ -1,8 +1,8 @@
 /**
  * generate-api-omni-master.mjs
  *
- * Generates missing Clip 4 and Clip 5 using the user's Gemini API key with
- * veo-3.1-lite-generate-preview and Chirp3-HD Voice Narration, crops 93% bottom watermark,
+ * Generates missing Clip 4 and Clip 5 with Vertex AI authentication and
+ * veo-3.1-lite-generate-001 plus Chirp3-HD Voice Narration, crops 93% bottom watermark,
  * and concatenates all 6 clips into the master film.
  */
 
@@ -12,16 +12,18 @@ import { execSync } from 'child_process';
 import { GoogleGenAI } from '@google/genai';
 import { GoogleAuth } from 'google-auth-library';
 
-const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-if (!API_KEY) {
-    throw new Error('Set GEMINI_API_KEY or GOOGLE_API_KEY before generating Omni clips.');
-}
-const MODEL = "veo-3.1-lite-generate-preview";
+const PROJECT = process.env.GOOGLE_CLOUD_PROJECT || 'jastalk-firebase';
+const LOCATION = process.env.GOOGLE_CLOUD_LOCATION || 'us-central1';
+const MODEL = 'veo-3.1-lite-generate-001';
 
 const CLIPS_DIR = path.resolve('public/system-design-lessons/clips');
 const MASTER_OUTPUT = path.resolve('public/system-design-lessons/design-whatsapp-omni.mp4');
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync('firebase-service-account.json')) {
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve('firebase-service-account.json');
+}
+
+const ai = new GoogleGenAI({ vertexai: true, project: PROJECT, location: LOCATION });
 
 const clipPrompts = {
     clip4: {
@@ -46,8 +48,7 @@ async function pollVideo(op) {
 }
 
 async function downloadFile(url, destFile) {
-    const fullUrl = url.includes('key=') ? url : `${url}&key=${API_KEY}`;
-    const res = await fetch(fullUrl);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP download error: ${res.status} ${res.statusText}`);
     const buffer = Buffer.from(await res.arrayBuffer());
     fs.writeFileSync(destFile, buffer);
@@ -84,7 +85,7 @@ async function generateClipWithAudio(key, info) {
     const audioWav = path.join(CLIPS_DIR, `whatsapp-api-audio-${key}.wav`);
     const combinedMp4 = path.join(CLIPS_DIR, `whatsapp-raw-${key.slice(-1)}-fixed.mp4`);
 
-    console.log(`🎥 Generating ${key} video via Gemini API (${MODEL})...`);
+    console.log(`🎥 Generating ${key} video via Vertex AI (${MODEL})...`);
     const op = await ai.models.generateVideos({
         model: MODEL,
         prompt: info.visual,
