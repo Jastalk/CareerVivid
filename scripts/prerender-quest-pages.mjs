@@ -34,6 +34,58 @@ const escapeHtml = (value) => value
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+/**
+ * Remove a known SEO shell element without treating HTML as a character
+ * sanitization problem. The marker must occur inside the named opening tag.
+ */
+const removeHeadElementByMarker = (html, tagName, marker, hasClosingTag = false) => {
+    let output = html;
+    const openingPrefix = `<${tagName}`;
+    const closingTag = `</${tagName}>`;
+
+    while (true) {
+        const lowerHtml = output.toLowerCase();
+        const headEnd = lowerHtml.indexOf('</head>');
+        const markerIndex = lowerHtml.indexOf(marker);
+        if (markerIndex === -1 || headEnd === -1 || markerIndex > headEnd) return output;
+
+        const elementStart = lowerHtml.lastIndexOf(openingPrefix, markerIndex);
+        const openingEnd = lowerHtml.indexOf('>', markerIndex);
+        if (elementStart === -1 || openingEnd === -1 || openingEnd > headEnd) return output;
+
+        let elementEnd = openingEnd + 1;
+        if (hasClosingTag) {
+            const closingStart = lowerHtml.indexOf(closingTag, elementEnd);
+            if (closingStart === -1 || closingStart > headEnd) return output;
+            elementEnd = closingStart + closingTag.length;
+        }
+
+        output = output.slice(0, elementStart) + output.slice(elementEnd);
+    }
+};
+
+const removeGenericSeoTags = (html) => {
+    const metaMarkers = [
+        'name="description"',
+        'name="robots"',
+        'property="og:title"',
+        'property="og:description"',
+        'property="og:url"',
+        'property="og:type"',
+        'name="twitter:title"',
+        'name="twitter:description"',
+        'name="twitter:url"',
+    ];
+
+    let output = html;
+    for (const marker of metaMarkers) {
+        output = removeHeadElementByMarker(output, 'meta', marker);
+    }
+    output = removeHeadElementByMarker(output, 'link', 'rel="canonical"');
+    output = removeHeadElementByMarker(output, 'script', 'type="application/ld+json"', true);
+    return output;
+};
+
 /** Replace generic shell SEO tags instead of leaving duplicate canonicals. */
 const renderPage = ({ title, description, canonical, jsonLd }) => {
     const headBits = [
@@ -46,10 +98,7 @@ const renderPage = ({ title, description, canonical, jsonLd }) => {
         `<script type="application/ld+json" data-prerender="true">${JSON.stringify(jsonLd)}</script>`,
     ].join('\n    ');
 
-    const pageShell = shell
-        .replace(/<meta\b[^>]*(?:name|property)=["'](?:description|robots|og:title|og:description|og:url|og:type|twitter:title|twitter:description|twitter:url)["'][^>]*>\s*/gi, '')
-        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, '')
-        .replace(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+    const pageShell = removeGenericSeoTags(shell);
 
     return pageShell
         .replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
