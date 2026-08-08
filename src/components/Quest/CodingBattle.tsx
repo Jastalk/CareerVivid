@@ -22,6 +22,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import MobileExperienceGate from './MobileExperienceGate';
 import { analyzeCodingSubmission, voiceToCode, VoiceCoachMessage, VoiceToCodeResult } from '../../services/geminiService';
+import { publishWorkspace, clearWorkspace } from '../../features/agent/workspaceSnapshot';
 import { InterviewAnalysis, QuestCodingArtifact, QuestCodingDraft } from '../../types';
 import {
     CODING_LANGUAGES,
@@ -298,6 +299,28 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     }, [voiceTranscript, language, codeByLanguage, challenge, coachHistory]);
 
     const code = codeByLanguage[language];
+
+    /**
+     * Publish the buffer for the Career Agent to read when asked.
+     *
+     * Unlike the whiteboard, everything here is already React state, so this
+     * tracks edits exactly rather than polling. Published, not sent: the agent
+     * only reads it when the user asks it to look.
+     */
+    useEffect(() => {
+        publishWorkspace({
+            kind: 'coding',
+            company,
+            stageTitle,
+            problem: brief.prompt,
+            code: codeByLanguage[language],
+            language,
+            testSummary: runSummary ? { passed: runSummary.passed, total: runSummary.total } : undefined,
+        });
+    }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary]);
+
+    useEffect(() => () => clearWorkspace(), []);
+
     const hasUndoableVoiceCode = voiceCodeChange?.language === language && code === voiceCodeChange.appliedCode;
     const canRunLocally = isExecutableCodingLanguage(language);
 

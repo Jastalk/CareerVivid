@@ -17,7 +17,11 @@ import {
     MOBILE_INTERVIEW_GUIDE_QUESTIONS,
     type MobileInterviewGuideStageQuestions,
 } from "../mobileInterviewGuideQuestions.generated";
+import * as admin from "firebase-admin";
 import { type AgentTool } from "./types";
+
+if (!admin.apps.length) admin.initializeApp();
+const db = admin.firestore();
 
 const STAGES = ["screening", "coding", "systemDesign", "behavioral", "values", "final"] as const;
 type StageKey = (typeof STAGES)[number];
@@ -35,6 +39,9 @@ const S = (v: unknown, field: string, max = 200): string => {
     if (typeof v !== "string" || !v.trim()) throw new Error(`${field} is required.`);
     return v.trim().slice(0, max);
 };
+
+const optS = (v: unknown, max = 2_000): string | undefined =>
+    typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined;
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -231,6 +238,63 @@ export const openInterviewStage: AgentTool = {
             // `?stage=` is what CompanyQuestPage reads to auto-launch the round.
             route: `${hit.route}?stage=${stage}`,
             note: "Call navigateToRoute with this exact route. The round opens over the page and you stay reachable beside it — keep coaching while they work.",
+        };
+    },
+};
+
+/**
+ * Record what a practice round exposed, so the next one starts smarter.
+ *
+ * This is the compounding part: without it every session begins from zero and
+ * the agent asks the same diagnostic questions forever. With it, "you skipped
+ * capacity estimation again" becomes possible.
+ *
+ * A read tool by intent but it does persist — under the user's own profile,
+ * additive only, and it stores an assessment rather than anything the user
+ * would be surprised to find written down.
+ */
+export const recordPracticeOutcome: AgentTool = {
+    name: "recordPracticeOutcome",
+    description:
+        "After a practice round, record what went well and what to work on. Call this when a round finishes or the user moves on — not mid-problem. Keep each point short and specific to what actually happened.",
+    parameters: {
+        type: "object",
+        properties: {
+            company: { type: "string" },
+            stage: { type: "string", enum: [...QUEST_STAGES] },
+            strengths: { type: "array", items: { type: "string" }, description: "What they did well. Max 3." },
+            gaps: { type: "array", items: { type: "string" }, description: "What to work on next. Max 3." },
+            summary: { type: "string", description: "One sentence the user would recognise." },
+        },
+        required: ["stage", "gaps"],
+    },
+    phase: 3,
+    risk: "read",
+    writes: false,
+    execute: async (ctx, a) => {
+        const list = (v: unknown, n: number) =>
+            Array.isArray(v) ? v.slice(0, n).map((x) => String(x).slice(0, 200)) : [];
+
+        const gaps = list(a.gaps, 3);
+        if (!gaps.length) throw new Error("gaps must contain at least one point.");
+
+        const doc = {
+            uid: ctx.uid,
+            taskId: ctx.taskId,
+            company: optS(a.company, 120) ?? null,
+            stage: S(a.stage, "stage", 40),
+            strengths: list(a.strengths, 3),
+            gaps,
+            summary: optS(a.summary, 400) ?? null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+        await db.collection("users").doc(ctx.uid).collection("practiceOutcomes").add(doc);
+
+        return {
+            kind: "practice_outcome",
+            ...doc,
+            createdAt: undefined,
+            note: "Saved to their profile. Say the gaps back in one line; the card shows the detail.",
         };
     },
 };

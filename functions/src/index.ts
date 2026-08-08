@@ -156,7 +156,7 @@ export { careerAgentTurn, careerAgentResolve, getAgentVoiceToken, endAgentVoiceS
 export { getAgentLiveToken, careerAgentLiveTool, agentVoiceHeartbeat } from "./agent/careerAgentLive";
 export { sweepStaleVoiceSessions } from "./agent/voiceSweeper";
 export { careerAgentStream } from "./agent/careerAgentStream";
-export { listAgentConversations, getAgentConversation, deleteAgentConversation } from "./agent/conversations";
+export { listAgentConversations, getAgentConversation, deleteAgentConversation, saveAgentTurns } from "./agent/conversations";
 export { llmGateway } from "./llmGateway.js";
 export { publicResumeApi } from "./publicResumeApi";
 export { resolveImageForAIEdit } from "./imageProxy";

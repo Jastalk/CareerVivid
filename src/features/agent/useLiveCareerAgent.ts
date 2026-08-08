@@ -91,6 +91,8 @@ export function useLiveCareerAgent(opts: {
     route: string;
     entity?: { type: 'resume' | 'job' | 'course'; id: string };
     onEffect?: (effect: { navigate?: string; route?: string }) => void;
+    /** Finished voice turns go here so the session is one timeline, and saved. */
+    onVoiceTurn?: (role: 'user' | 'agent', text: string) => void;
 }) {
     const [status, setStatus] = useState<LiveStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -130,6 +132,7 @@ export function useLiveCareerAgent(opts: {
             }
             return [...t, { id: rid(), role, text }];
         });
+        optsRef.current.onVoiceTurn?.(role, text);
     }, []);
 
     const teardown = useCallback(() => {

@@ -23,7 +23,7 @@ const relative = (ms: number): string => {
 interface Props {
     conversations: ConversationSummary[];
     activeId: string | null;
-    onOpen: (id: string) => void;
+    onOpen: (id: string, title: string) => void;
     onDelete: (id: string) => void;
     onDeleteAll: () => void;
     onNew: () => void;
@@ -70,7 +70,7 @@ export const AgentHistory: React.FC<Props> = ({
                             <li key={c.id} className="group relative">
                                 <button
                                     type="button"
-                                    onClick={() => onOpen(c.id)}
+                                    onClick={() => onOpen(c.id, c.title)}
                                     className={`w-full rounded-xl px-2.5 py-2 pr-8 text-left transition-colors ${
                                         c.id === activeId
                                             ? 'bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-soft-text)]'

@@ -33,6 +33,14 @@ export interface StoredTurn {
     text: string;
     /** Rich payloads (question cards, company cards) so a reopened thread looks the same. */
     effects?: unknown[];
+    /**
+     * Which surface produced this turn.
+     *
+     * A session is one timeline: the user speaks, mutes and types, then speaks
+     * again. Splitting voice and text into separate records would cut that in
+     * half and lose the order, so both land here and the surface is a label.
+     */
+    via?: "text" | "voice";
     at: number;
 }
 
@@ -163,4 +171,42 @@ export const deleteAgentConversation = functions
 
         await ref.delete();
         return { deleted: 1 };
+    });
+
+/**
+ * Persist turns the client produced outside a streamed text turn.
+ *
+ * Voice sessions had no persistence at all: `appendTurns` was only reachable
+ * from careerAgentStream, so an entire spoken coaching session vanished when
+ * the panel closed. The live transcript arrives here instead.
+ *
+ * Turns are trusted only as the caller's OWN transcript — they are stored and
+ * replayed to the model as history, never used to authorize anything.
+ */
+export const saveAgentTurns = functions
+    .region(REGION)
+    .runWith({ timeoutSeconds: 30, memory: "256MB" })
+    .https.onCall(async (data, context) => {
+        const uid = requireAuth(context);
+        const raw = Array.isArray(data?.turns) ? data.turns : [];
+        if (!raw.length) return { conversationId: data?.conversationId ?? null, saved: 0 };
+
+        const turns: StoredTurn[] = raw.slice(-40).flatMap((t: any) => {
+            const text = typeof t?.text === "string" ? t.text.trim().slice(0, 8_000) : "";
+            if (!text) return [];
+            return [{
+                role: t?.role === "assistant" ? "assistant" as const : "user" as const,
+                text,
+                via: t?.via === "voice" ? "voice" as const : "text" as const,
+                at: typeof t?.at === "number" ? t.at : Date.now(),
+            }];
+        });
+        if (!turns.length) return { conversationId: data?.conversationId ?? null, saved: 0 };
+
+        const saved = await appendTurns({
+            uid,
+            conversationId: data?.conversationId ? String(data.conversationId) : undefined,
+            turns,
+        });
+        return { ...saved, saved: turns.length };
     });

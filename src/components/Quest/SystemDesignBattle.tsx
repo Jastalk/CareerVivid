@@ -32,6 +32,7 @@ import {
 } from '../../services/geminiService';
 import { InterviewAnalysis, QuestSystemDesignArtifact } from '../../types';
 import { SystemDesignBrief } from '../../lib/companyQuests';
+import { publishWorkspace, clearWorkspace } from '../../features/agent/workspaceSnapshot';
 import { buildSystemDesignDiagramElements } from '../../lib/systemDesignCanvas';
 import { toTranscriptEntries } from '../../lib/voiceTranscript';
 
@@ -204,6 +205,39 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
             setIsGenerating(false);
         }
     };
+
+    /**
+     * Publish the canvas for the Career Agent to read when asked.
+     *
+     * Polled rather than pushed: Excalidraw is imperative, so element changes
+     * never pass through React state and there is nothing to hang an effect on.
+     * Three seconds is well inside human drawing pace and costs one array scan.
+     *
+     * Reuses the same label extraction the voice coach uses, so both see the
+     * canvas the same way.
+     */
+    useEffect(() => {
+        const readLabels = (): string[] => {
+            const api = excalidrawAPIRef.current;
+            const elements = api?.getSceneElements().filter((el: any) => !el.isDeleted) ?? [];
+            const labels = elements
+                .filter((el: any) => el.type === 'text' && el.text?.trim())
+                .map((el: any) => el.text.trim());
+            return [...new Set(labels)] as string[];
+        };
+
+        const tick = () => publishWorkspace({
+            kind: 'system_design',
+            company,
+            stageTitle,
+            problem: brief.prompt,
+            components: readLabels(),
+        });
+
+        tick();
+        const id = setInterval(tick, 3_000);
+        return () => { clearInterval(id); clearWorkspace(); };
+    }, [company, stageTitle, brief.prompt]);
 
     const focusDiagram = useCallback(() => {
         const api = excalidrawAPIRef.current;

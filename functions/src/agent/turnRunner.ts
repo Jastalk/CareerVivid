@@ -86,6 +86,19 @@ code editor, system_design opens the whiteboard — both as a modal over the pag
 with you still reachable beside it. Never drop them on the quest index and make
 them pick the round themselves.
 
+## Practice memory
+
+practiceGaps in your context is what earlier rounds exposed. Use it: open with
+what they were working on, and watch for the same gap recurring. Do not read the
+list aloud — refer to one thing, specifically.
+
+When a round finishes, call recordPracticeOutcome with what actually happened.
+Skip it if they abandoned the problem early; a record of nothing is noise.
+
+If open_workspace is present, that is what is on their screen RIGHT NOW.
+Coach against what is actually there — never ask for a component they already
+drew, and name their own labels back to them.
+
 ## Tone
 
 Direct and concrete. No filler, no "Great question!". Short paragraphs. When the user
@@ -155,6 +168,32 @@ export function sanitizeAttachment(raw: any): Record<string, unknown> | null {
     return Object.values(out).some((v) => v !== undefined) ? out : null;
 }
 
+/**
+ * Trim the client-reported workspace.
+ *
+ * Caller-controlled, like the resume attachment: it reaches the model as text
+ * and authorizes nothing. Capping keeps a large buffer from blowing out a turn
+ * the user is paying for.
+ */
+function sanitizeWorkspace(raw: any): Record<string, unknown> | null {
+    if (!raw || typeof raw !== "object") return null;
+    if (raw.kind !== "system_design" && raw.kind !== "coding") return null;
+
+    const str = (v: unknown, n: number) => (typeof v === "string" ? v.slice(0, n) : undefined);
+    return {
+        kind: raw.kind,
+        company: str(raw.company, 120),
+        stageTitle: str(raw.stageTitle, 120),
+        problem: str(raw.problem, 1_000),
+        components: Array.isArray(raw.components) ? raw.components.slice(0, 40).map((c: any) => String(c).slice(0, 80)) : undefined,
+        code: str(raw.code, 6_000),
+        language: str(raw.language, 40),
+        testSummary: raw.testSummary && typeof raw.testSummary === "object"
+            ? { passed: Number(raw.testSummary.passed) || 0, total: Number(raw.testSummary.total) || 0 }
+            : undefined,
+    };
+}
+
 /** Thrown when the monthly allowance cannot cover the turn. */
 export class CreditLimitError extends Error {
     constructor(
@@ -177,6 +216,8 @@ export interface TurnEmit {
 export interface TurnInput {
     uid: string;
     message: string;
+    /** What the user has open right now — sent only when they ask about it. */
+    workspace?: unknown;
     route: string;
     entity?: { type: "resume" | "job" | "course"; id: string };
     history: any[];
@@ -219,6 +260,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
         const ai = getAIClient(undefined, getVertexLocationForModel(model));
 
         const attachment = sanitizeAttachment(input.attachment);
+        const workspace = sanitizeWorkspace(input.workspace);
         const contents: any[] = [
             ...history,
             {
@@ -231,6 +273,11 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
                                 ? `<uploaded_resume>\n${JSON.stringify(attachment)}\n</uploaded_resume>\n` +
                                   `The user uploaded this resume. Map it onto createResumeDraft arguments and propose the draft. ` +
                                   `Do not invent details it does not contain; ask about anything important that is missing.\n`
+                                : "") +
+                            (workspace
+                                ? `<open_workspace>\n${JSON.stringify(workspace)}\n</open_workspace>\n` +
+                                  `This is what the user has on screen right now. Coach against what is ACTUALLY there — ` +
+                                  `do not ask for something they already have, and name their own components back to them.\n`
                                 : "") +
                             `\n${message}`,
                     },

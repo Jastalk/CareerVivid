@@ -83,6 +83,7 @@ export const careerAgentStream = functions
                     history: body.history ?? [],
                     autoExecTools: body.autoExecTools ?? [],
                     attachment: body.attachment,
+                    workspace: body.workspace,
                     emit: {
                         chunk: (text) => send("chunk", { text }),
                         proposal: (p) => send("proposal", p),
@@ -97,8 +98,8 @@ export const careerAgentStream = functions
                     : undefined;
                 try {
                     const turns: StoredTurn[] = [
-                        { role: "user", text: message, at: Date.now() },
-                        { role: "assistant", text: out.text, effects: out.effects, at: Date.now() },
+                        { role: "user", text: message, via: "text", at: Date.now() },
+                        { role: "assistant", text: out.text, effects: out.effects, via: "text", at: Date.now() },
                     ];
                     const saved = await appendTurns({ uid, conversationId, turns });
                     conversationId = saved.conversationId;

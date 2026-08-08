@@ -12,11 +12,12 @@
  * reset it either.
  */
 
-import React, { createContext, useContext, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, useRef, type ReactNode } from 'react';
 import { navigate } from '../../utils/navigation';
 import { useCareerAgent, type AgentEffect } from './useCareerAgent';
 import { useLiveCareerAgent } from './useLiveCareerAgent';
 import { useAutoExec } from './useAutoExec';
+import { useSessionSwitcher } from './useSessionSwitcher';
 
 type TextAgent = ReturnType<typeof useCareerAgent>;
 type LiveAgent = ReturnType<typeof useLiveCareerAgent>;
@@ -25,6 +26,7 @@ interface AgentSession {
     text: TextAgent;
     live: LiveAgent;
     autoExec: ReturnType<typeof useAutoExec>;
+    sessions: ReturnType<typeof useSessionSwitcher>;
     route: string;
 }
 
@@ -44,12 +46,30 @@ export const AgentSessionProvider: React.FC<{ path: string; children: ReactNode 
     };
 
     const autoExec = useAutoExec();
-    const live = useLiveCareerAgent({ route: path, onEffect: handleEffect });
     const text = useCareerAgent({ route: path, autoExecTools: autoExec.tools, onEffect: handleEffect });
 
+    // Voice turns land in the text agent's timeline: one session is one
+    // conversation whether the user is speaking or typing at that moment.
+    const textRef = useRef(text);
+    textRef.current = text;
+    const live = useLiveCareerAgent({
+        route: path,
+        onEffect: handleEffect,
+        onVoiceTurn: (role, t) =>
+            void textRef.current.appendVoiceTurn(role === 'agent' ? 'assistant' : 'user', t),
+    });
+
+    const sessions = useSessionSwitcher({
+        snapshot: text.snapshot,
+        restore: text.restore,
+        reset: text.reset,
+        load: text.openConversation,
+        conversationId: text.conversationId,
+    });
+
     const value = useMemo(
-        () => ({ text, live, autoExec, route: path }),
-        [text, live, autoExec, path],
+        () => ({ text, live, autoExec, sessions, route: path }),
+        [text, live, autoExec, sessions, path],
     );
 
     return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

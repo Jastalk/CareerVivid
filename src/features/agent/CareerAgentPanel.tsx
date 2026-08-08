@@ -48,7 +48,7 @@ interface Props {
 
 export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     const { currentUser } = useAuth();
-    const { text: agent, live, autoExec } = useAgentSession();
+    const { text: agent, live, autoExec, sessions } = useAgentSession();
     const [input, setInput] = useState('');
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
@@ -110,11 +110,14 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                 <aside className={`${isFull ? 'w-64' : 'w-52'} shrink-0 border-r border-[var(--cv-border-subtle)]`}>
                     <AgentHistory
                         conversations={agent.conversations}
-                        activeId={agent.conversationId}
-                        onOpen={(id) => { void agent.openConversation(id); if (!isFull) setShowHistory(false); }}
-                        onDelete={(id) => void agent.deleteConversation(id)}
-                        onDeleteAll={() => void agent.deleteAllConversations()}
-                        onNew={() => { reset(); if (!isFull) setShowHistory(false); }}
+                        onOpen={(id, title) => {
+                            void sessions.switchTo(id, title);
+                            if (!isFull) setShowHistory(false);
+                        }}
+                        onDelete={(id) => { sessions.forget(id); void agent.deleteConversation(id); }}
+                        onDeleteAll={() => { sessions.startNew(); void agent.deleteAllConversations(); }}
+                        onNew={() => { sessions.startNew(); if (!isFull) setShowHistory(false); }}
+                        activeId={sessions.activeId}
                         onClose={() => setShowHistory(false)}
                     />
                 </aside>
@@ -182,7 +185,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                 )}
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-                    {messages.length === 0 && live.turns.length === 0 && (
+                    {messages.length === 0 && (
                         <div className="pt-3">
                             <p className="font-heading text-lg font-extrabold leading-tight tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
                                 What are we working on?
@@ -216,6 +219,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                                 <div className={m.role === 'user' ? 'max-w-[85%]' : 'w-full'}>
                                     {m.role === 'user' ? (
                                         <p className="rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2 text-sm text-white shadow-sm">
+                                            {m.via === 'voice' && <Mic className="mr-1 inline h-3 w-3 opacity-70" />}
                                             {m.text}
                                         </p>
                                     ) : (
@@ -247,16 +251,6 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                         )}
 
                         {live.plan && <TaskPlan plan={live.plan} />}
-
-                        {live.turns.map((t) => (
-                            <div key={t.id} className={t.role === 'user' ? 'flex justify-end' : ''}>
-                                <p className={t.role === 'user'
-                                    ? 'max-w-[85%] rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2 text-sm text-white'
-                                    : 'text-sm leading-relaxed text-[var(--cv-text-body-product)]'}>
-                                    {t.text}
-                                </p>
-                            </div>
-                        ))}
 
                         {live.proposals.map((p) => (
                             <ProposedChanges key={p.id} proposal={p}

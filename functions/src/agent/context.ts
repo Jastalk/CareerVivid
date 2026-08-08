@@ -27,12 +27,13 @@ export async function buildContext(
 ): Promise<AgentContext> {
     const userRef = db.collection("users").doc(uid);
 
-    const [profileSnap, resumesSnap, jobsSnap, progressSnap, tasksSnap] = await Promise.all([
+    const [profileSnap, resumesSnap, jobsSnap, progressSnap, tasksSnap, outcomesSnap] = await Promise.all([
         userRef.collection("careerProfile").doc("profile").get(),
         userRef.collection("resumes").orderBy("updatedAt", "desc").limit(10).get(),
         userRef.collection("jobTracker").limit(200).get(),
         userRef.collection("courseProgress").limit(20).get(),
         userRef.collection("agentTasks").orderBy("createdAt", "desc").limit(RECENT_TASKS).get(),
+        userRef.collection("practiceOutcomes").orderBy("createdAt", "desc").limit(5).get(),
     ]);
 
     const profile = profileSnap.exists ? profileSnap.data()! : null;
@@ -81,6 +82,16 @@ export async function buildContext(
             title: d.data().title || d.id,
             percentComplete: Math.round(d.data().percentComplete ?? 0),
         })),
+        // What earlier rounds exposed. This is what makes the agent improve with
+        // use instead of re-diagnosing the same weakness every session.
+        practiceGaps: outcomesSnap.docs.flatMap((d) => {
+            const o = d.data();
+            return (o.gaps ?? []).slice(0, 3).map((g: string) => ({
+                gap: String(g).slice(0, 160),
+                stage: o.stage,
+                company: o.company ?? undefined,
+            }));
+        }).slice(0, 8),
         recentTasks: tasksSnap.docs.map((d) => ({
             taskId: d.id,
             summary: String(d.data().summary ?? "").slice(0, 140),
@@ -103,6 +114,9 @@ function enforceBudget(ctx: AgentContext): AgentContext {
     if (size() <= MAX_CONTEXT_BYTES) return ctx;
 
     ctx.recentTasks = [];
+    if (size() <= MAX_CONTEXT_BYTES) return ctx;
+
+    ctx.practiceGaps = ctx.practiceGaps.slice(0, 3);
     if (size() <= MAX_CONTEXT_BYTES) return ctx;
 
     ctx.profile.cvExcerpt = truncate(ctx.profile.cvExcerpt, 400);

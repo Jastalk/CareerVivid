@@ -112,6 +112,8 @@ export interface AgentContext {
         recent: Array<{ id: string; title: string; company: string; status: string }>;
     };
     learning: Array<{ courseId: string; title: string; percentComplete: number }>;
+    /** Weaknesses earlier rounds surfaced, so coaching builds on itself. */
+    practiceGaps: Array<{ gap: string; stage: string; company?: string }>;
     recentTasks: Array<{ taskId: string; summary: string; at: string }>;
 }
 

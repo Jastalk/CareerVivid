@@ -17,6 +17,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../contexts/AuthContext';
+import { readWorkspace } from './workspaceSnapshot';
 
 export interface ProposalDiff {
     kind: 'create' | 'update' | 'batch';
@@ -48,6 +49,15 @@ export interface AgentMessage {
     proposals?: Proposal[];
     cards?: AgentCard[];
     streaming?: boolean;
+    /** Which surface produced it. One session is one timeline across both. */
+    via?: 'text' | 'voice';
+}
+
+/** Everything needed to put a session back exactly as the user left it. */
+export interface SessionSnapshot {
+    messages: AgentMessage[];
+    history: Array<{ role: string; parts: Array<{ text: string }> }>;
+    conversationId: string | null;
 }
 
 export interface AgentEffect {
@@ -73,6 +83,16 @@ const STREAM_URL =
     'https://us-west1-jastalk-firebase.cloudfunctions.net/careerAgentStream';
 
 const rid = () => Math.random().toString(36).slice(2, 10);
+
+/**
+ * Whether this message is asking the agent to look at what the user is doing.
+ *
+ * Attaching the workspace on every turn would bill for a canvas nobody
+ * mentioned. Matching intent keeps it to the turns where it earns its tokens,
+ * and the agent can always ask the user to say "take a look" if it needs more.
+ */
+const WORKSPACE_CUES = /\b(my (code|diagram|design|solution|architecture)|this code|look at|review|check|stuck|why (isn'?t|doesn'?t|does not)|what'?s wrong|feedback|critique|am i missing|failing|bug|next step)\b/i;
+const wantsWorkspace = (text: string): boolean => WORKSPACE_CUES.test(text);
 
 /** Kinds the panel knows how to render. Anything else stays a plain effect. */
 const CARD_KINDS = new Set(['company_guides', 'interview_questions']);
@@ -123,9 +143,9 @@ export function useCareerAgent(opts: {
             }
 
             setError(null);
-            const userMsg: AgentMessage = { id: rid(), role: 'user', text: trimmed };
+            const userMsg: AgentMessage = { id: rid(), role: 'user', text: trimmed, via: 'text' };
             const replyId = rid();
-            setMessages((m) => [...m, userMsg, { id: replyId, role: 'assistant', text: '', streaming: true }]);
+            setMessages((m) => [...m, userMsg, { id: replyId, role: 'assistant', text: '', streaming: true, via: 'text' }]);
             setIsThinking(true);
 
             const controller = new AbortController();
@@ -139,6 +159,7 @@ export function useCareerAgent(opts: {
                     signal: controller.signal,
                     body: JSON.stringify({
                         message: trimmed,
+                        workspace: wantsWorkspace(trimmed) ? readWorkspace() : undefined,
                         route: optsRef.current.route,
                         entity: optsRef.current.entity,
                         history: historyRef.current,
@@ -229,6 +250,60 @@ export function useCareerAgent(opts: {
         [currentUser, isThinking, conversationId, refreshConversations],
     );
 
+    /**
+     * Append a finished voice turn to the same timeline and persist it.
+     *
+     * Voice had no persistence at all: appendTurns was only reachable from the
+     * streamed text path, so a whole spoken session vanished on close. It also
+     * belongs in `messages` rather than a parallel list, because the user
+     * speaks, mutes, types, and speaks again — that is one conversation.
+     */
+    const appendVoiceTurn = useCallback(async (role: 'user' | 'assistant', text: string) => {
+        const trimmed = text.trim();
+        if (!trimmed || !currentUser) return;
+
+        setMessages((m) => {
+            const last = m[m.length - 1];
+            // Live transcription arrives in fragments; merge consecutive ones
+            // from the same speaker instead of one bubble per phrase.
+            if (last?.via === 'voice' && last.role === role) {
+                return [...m.slice(0, -1), { ...last, text: `${last.text} ${trimmed}`.trim() }];
+            }
+            return [...m, { id: rid(), role, text: trimmed, via: 'voice' }];
+        });
+
+        historyRef.current = [
+            ...historyRef.current,
+            { role: role === 'user' ? 'user' : 'model', parts: [{ text: trimmed }] },
+        ].slice(-20);
+
+        try {
+            const fn = httpsCallable<unknown, { conversationId: string }>(fns(), 'saveAgentTurns');
+            const { data } = await fn({
+                conversationId,
+                turns: [{ role: role === 'user' ? 'user' : 'assistant', text: trimmed, via: 'voice', at: Date.now() }],
+            });
+            if (data?.conversationId) setConversationId(data.conversationId);
+            void refreshConversations();
+        } catch {
+            // History is a convenience; losing it must not break a live call.
+        }
+    }, [currentUser, conversationId, refreshConversations]);
+
+    /** Capture / restore so switching sessions does not discard the current one. */
+    const snapshot = useCallback((): SessionSnapshot => ({
+        messages,
+        history: historyRef.current,
+        conversationId,
+    }), [messages, conversationId]);
+
+    const restore = useCallback((s: SessionSnapshot) => {
+        setMessages(s.messages);
+        historyRef.current = s.history;
+        setConversationId(s.conversationId);
+        setError(null);
+    }, []);
+
     /** Stop generating but keep what has already arrived. */
     const stopGenerating = useCallback(() => abortRef.current?.abort(), []);
 
@@ -277,6 +352,7 @@ export function useCareerAgent(opts: {
                 role: t.role,
                 text: t.text,
                 cards: (t.effects ?? []).filter((e: any) => e?.kind && CARD_KINDS.has(e.kind)) as AgentCard[],
+                via: (t as any).via === 'voice' ? 'voice' : 'text',
             })));
             historyRef.current = data.turns
                 .map((t) => ({ role: t.role === 'user' ? 'user' : 'model', parts: [{ text: t.text }] }))
@@ -311,6 +387,7 @@ export function useCareerAgent(opts: {
 
     return {
         messages, send, resolve, reset, stopGenerating,
+        appendVoiceTurn, snapshot, restore,
         isThinking, error, credits,
         conversations, conversationId, openConversation, deleteConversation, deleteAllConversations, refreshConversations,
     };
