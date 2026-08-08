@@ -143,6 +143,9 @@ export { agentDeductCredits } from "./agentCredits";
 
 // CLI Agent Proxy (routes agent Gemini calls through server-side key)
 export { agentProxy } from "./agentProxy";
+export { careerAgentTurn, careerAgentResolve, getAgentVoiceToken, endAgentVoiceSession } from "./agent/careerAgent";
+export { getAgentLiveToken, careerAgentLiveTool, agentVoiceHeartbeat } from "./agent/careerAgentLive";
+export { sweepStaleVoiceSessions } from "./agent/voiceSweeper";
 export { llmGateway } from "./llmGateway.js";
 export { publicResumeApi } from "./publicResumeApi";
 export { resolveImageForAIEdit } from "./imageProxy";

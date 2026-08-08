@@ -25,7 +25,8 @@ import * as admin from "firebase-admin";
 import { secureCorsHandler } from "./utils/corsUtils.js";
 import { getAIClient, getVertexLocationForModel } from "./utils/ai";
 import { Content } from "@google/genai";
-import { getPlanMonthlyLimitForUser, getPlanMonthlyLimit as resolvePlanMonthlyLimit } from "./utils/planLimits";
+import { getPlanMonthlyLimitForUser } from "./utils/planLimits";
+import { quoteCliTurn, isBillableModel, CLI_MODELS } from "./generated/credits";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -34,22 +35,10 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const corsHandler = secureCorsHandler;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Credit costs per model (must match agentCredits.ts)
-// ─────────────────────────────────────────────────────────────────────────────
-const MODEL_CREDIT_COST: Record<string, number> = {
-  "gemini-2.5-flash-lite": 0.5,
-  "gemini-2.5-flash": 1,
-  "gemini-2.5-pro": 2,
-  "gemini-2.0-pro-exp-02-05": 3,
-  "gemini-3.1-flash-lite": 0.75,
-  "gemini-3.5-flash": 1.5,
-  default: 1,
-};
+// Credit costs come from shared/credits.ts. The "must match agentCredits.ts"
+// comment that used to sit here was the whole problem: it asked a human to
+// keep two tables in sync, and they drifted.
 
-function getMonthlyLimit(plan?: string): number {
-  return resolvePlanMonthlyLimit(plan);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resolve user from API key and deduct credits atomically
@@ -83,7 +72,7 @@ async function resolveAndDeduct(
   // Path: users/{uid}/private/{docId} → segments[0]=users, segments[1]=uid
   const uid = pathSegments[1];
 
-  const costPerCall = MODEL_CREDIT_COST[model] ?? MODEL_CREDIT_COST["default"];
+  const costPerCall = quoteCliTurn(model).credits;
   const userRef = db.collection("users").doc(uid);
 
   const result = await db.runTransaction(async (tx) => {
@@ -195,11 +184,8 @@ export const agentProxy = functions
       // Only bill models we have a price for. Falling through to the `default`
       // cost meant an unpriced — typically more expensive — model was charged
       // at the cheapest rate.
-      if (!Object.prototype.hasOwnProperty.call(MODEL_CREDIT_COST, model) || model === "default") {
-        res.status(400).json({
-          error: `Unsupported model: ${model}`,
-          supported: Object.keys(MODEL_CREDIT_COST).filter((m) => m !== "default"),
-        });
+      if (!isBillableModel(model) || !CLI_MODELS.includes(model)) {
+        res.status(400).json({ error: `Unsupported model: ${model}`, supported: CLI_MODELS });
         return;
       }
       if (!Array.isArray(contents) || contents.length === 0) {

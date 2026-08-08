@@ -119,6 +119,9 @@ export default defineConfig({
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        // Canonical cross-surface source (credits, pricing). functions/ gets a
+        // generated copy via scripts/sync-shared.mjs — it cannot use this alias.
+        '@shared': path.resolve(__dirname, './shared'),
       }
     }
 });

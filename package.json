@@ -19,7 +19,8 @@
     "test": "vitest run",
     "generate:interview-guides": "node scripts/generate-interview-guide-summaries.mjs",
     "verify:interview-guides": "node scripts/generate-interview-guide-summaries.mjs --check",
-    "test:autofill": "vitest run src/autofill/__tests__"
+    "test:autofill": "vitest run src/autofill/__tests__",
+    "sync:shared": "node scripts/sync-shared.mjs"
   },
   "dependencies": {
     "@blocknote/core": "^0.47.0",
@@ -67,7 +68,7 @@
     "mermaid": "^11.15.0",
     "node-pty": "^1.1.0",
     "pdf-lib": "^1.17.1",
-    "pdfjs-dist": "^5.4.449",
+    "pdfjs-dist": "^6.2.108",
     "prettier": "^3.9.4",
     "react": "^18.2.0",
     "react-dnd": "^16.0.1",

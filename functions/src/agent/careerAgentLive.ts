@@ -1,0 +1,280 @@
+/**
+ * Career Agent — realtime Live session.
+ *
+ * The same agent as the text surface, but over the Gemini Live API: it talks,
+ * listens, and calls tools mid-conversation instead of taking turns.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Where each piece runs, and why
+ *
+ * The Live socket is necessarily browser↔Vertex — audio cannot round-trip
+ * through a Cloud Function without ruining latency. That means the model's
+ * tool calls arrive at the CLIENT.
+ *
+ * They are not executed there. The client relays each call to
+ * `careerAgentLiveTool`, which is where validation, authorization, billing, and
+ * the approval gate live. The browser is a transport for tool calls, never an
+ * executor of them.
+ *
+ * So the security properties are identical to the text agent:
+ *   - reads are authorized server-side and scoped to the caller's uid
+ *   - writes become proposals; the model is told "awaiting approval" and keeps
+ *     talking; nothing is written until the user approves the stored arguments
+ *   - the browser never holds a Gemini key, only a short-lived Vertex token
+ */
+
+import * as functions from "firebase-functions/v1";
+import * as admin from "firebase-admin";
+import { GoogleAuth } from "google-auth-library";
+import { buildContext } from "./context";
+import { TOOLS_BY_NAME, toolDeclarations } from "./tools";
+import { createProposal } from "./proposals";
+import { reserve, settle, release } from "../credits/ledger";
+import { billVoiceSlice, closeVoiceSession, affordableMinutes, HEARTBEAT_INTERVAL_MS } from "./voiceBilling";
+import {
+    ACTION_PRICES,
+    VOICE_SESSION_CAP_MINUTES,
+    VOICE_CREDITS_PER_MINUTE,
+    resolvePlan,
+    type ActionKey,
+} from "../generated/credits";
+
+if (!admin.apps.length) admin.initializeApp();
+const db = admin.firestore();
+
+const REGION = "us-west1";
+const ENABLED_PHASE = Number(process.env.AGENT_MAX_PHASE ?? 4);
+
+const requireAuth = (context: functions.https.CallableContext): string => {
+    const uid = context.auth?.uid;
+    if (!uid) throw new functions.https.HttpsError("unauthenticated", "Sign in to use the Career Agent.");
+    return uid;
+};
+
+const LIVE_SYSTEM_PROMPT = `
+You are the CareerVivid Career Agent, speaking with the user in real time.
+
+## Speaking
+
+You are on a voice call. Talk like a person on a call, not like documentation.
+Short sentences. One idea at a time. No bullet points, no markdown, no lists read
+aloud. If you need three things from them, ask for the first one and wait.
+
+Never read out IDs, URLs, or JSON. Say "your Google application" — not the doc id.
+
+## Doing
+
+You have tools and you should use them while you talk. Do not narrate that you are
+about to call a tool; just call it and speak the result.
+
+For anything needing more than one action — "get my job search in order", "help me
+get ready for this role", "set me up from scratch" — call planTasks FIRST. It puts a
+checklist on their screen so they can see what you are doing and how much is left.
+Then work the steps in order, calling updateTaskStatus as each one finishes. Say what
+you found as you go; do not narrate the checklist itself, they can see it.
+
+Skip planning for a single action. "What's my next follow-up?" is one tool call, not
+a plan.
+
+Writes work differently from reads:
+- READ tools return their result immediately. Use them freely.
+- WRITE tools return "awaiting_approval". That is NOT an error. It means a card
+  appeared on the user's screen showing exactly what will change. Tell them in one
+  sentence what you put there and let them approve it. Do NOT call the tool again,
+  and do NOT claim the change is saved. You will be told separately when they
+  approve, and only then is it real.
+
+If a tool returns an error, say plainly what went wrong. Never retry silently with
+different arguments.
+
+## Pacing
+
+The user can interrupt you at any time — expect it and stop talking when they do.
+Keep the session short and finish the task. When the task is done, say so and offer
+to end the call rather than filling silence.
+`.trim();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getAgentLiveToken — open a realtime session
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getAgentLiveToken = functions
+    .region(REGION)
+    .runWith({ timeoutSeconds: 60, memory: "512MB" })
+    .https.onCall(async (data, context) => {
+        const uid = requireAuth(context);
+        const route = String(data?.route ?? "/");
+        const entity = data?.entity;
+
+        const userSnap = await db.collection("users").doc(uid).get();
+        if (!userSnap.exists) throw new functions.https.HttpsError("not-found", "User not found.");
+
+        const userData = userSnap.data()!;
+        const plan = resolvePlan(userData.plan);
+
+        // Refuse to open a session the user cannot afford to finish. Cutting
+        // someone off mid-sentence is worse than not starting.
+        const affordable = affordableMinutes(userData, VOICE_CREDITS_PER_MINUTE);
+        if (affordable < 2) {
+            throw new functions.https.HttpsError(
+                "resource-exhausted",
+                "Not enough credits for a voice session.",
+            );
+        }
+        const capMinutes = Math.min(VOICE_SESSION_CAP_MINUTES[plan], affordable);
+
+        const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
+        const client = await auth.getClient();
+        const token = await client.getAccessToken();
+        if (!token?.token) throw new functions.https.HttpsError("internal", "Could not mint a Vertex token.");
+
+        const ctx = await buildContext(uid, route, entity);
+        const sessionRef = db.collection("voiceSessions").doc();
+        const taskId = db.collection("_").doc().id;
+
+        await sessionRef.set({
+            uid,
+            taskId,
+            purpose: "career_agent_live",
+            plan,
+            capMinutes,
+            route,
+            startedAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastBilledAt: admin.firestore.FieldValue.serverTimestamp(),
+            lastHeartbeatAt: admin.firestore.FieldValue.serverTimestamp(),
+            billedCredits: 0,
+            billedSeconds: 0,
+            status: "open",
+        });
+
+        return {
+            accessToken: token.token,
+            project: process.env.GCLOUD_PROJECT,
+            location: REGION,
+            sessionId: sessionRef.id,
+            taskId,
+            capMinutes,
+            creditsPerMinute: VOICE_CREDITS_PER_MINUTE,
+            heartbeatIntervalMs: HEARTBEAT_INTERVAL_MS,
+            // Declarations come from the server so the tool surface cannot drift
+            // from what the server is willing to execute.
+            tools: toolDeclarations(ENABLED_PHASE),
+            systemInstruction:
+                `${LIVE_SYSTEM_PROMPT}\n\n<workspace_context>\n${JSON.stringify(ctx)}\n</workspace_context>`,
+        };
+    });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// careerAgentLiveTool — execute (or propose) one tool call from the Live socket
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const careerAgentLiveTool = functions
+    .region(REGION)
+    .runWith({ timeoutSeconds: 60, memory: "512MB" })
+    .https.onCall(async (data, context) => {
+        const uid = requireAuth(context);
+        const sessionId = String(data?.sessionId ?? "");
+        const name = String(data?.name ?? "");
+        const args = data?.args ?? {};
+
+        // The session must exist, be open, and belong to the caller. Without
+        // this the endpoint would be a way to drive tools outside any session.
+        const sessionSnap = await db.collection("voiceSessions").doc(sessionId).get();
+        if (!sessionSnap.exists || sessionSnap.data()!.uid !== uid || sessionSnap.data()!.status !== "open") {
+            throw new functions.https.HttpsError("failed-precondition", "No open session.");
+        }
+        const taskId: string = sessionSnap.data()!.taskId ?? sessionId;
+
+        const tool = TOOLS_BY_NAME.get(name);
+        if (!tool || tool.phase > ENABLED_PHASE) {
+            return { ok: false, error: `Unknown tool: ${name}` };
+        }
+
+        let validated: any;
+        try {
+            validated = tool.validate ? tool.validate(args) : args;
+        } catch (e: any) {
+            // Returned rather than thrown: the model should hear the problem and
+            // ask the user, not have the call fail opaquely.
+            return { ok: false, error: `Invalid arguments: ${e.message}` };
+        }
+
+        if (tool.writes) {
+            const proposal = await createProposal({
+                uid,
+                taskId,
+                tool: tool.name,
+                args: validated,
+                summary: tool.summarize?.(validated) ?? `Run ${tool.name}`,
+            });
+            return {
+                ok: true,
+                status: "awaiting_approval",
+                proposal,
+                // Phrased for the model, which reads this verbatim.
+                note: "A card is on the user's screen. Tell them what you proposed and wait. Do not call this tool again.",
+            };
+        }
+
+        const credits = tool.action ? (ACTION_PRICES[tool.action as ActionKey] ?? 0) : 0;
+        const res = await reserve({ uid, surface: "web", action: tool.action ?? tool.name, credits, taskId });
+        if (!res.ok) {
+            return { ok: false, error: "Out of credits for this action." };
+        }
+
+        try {
+            const result = await tool.execute({ uid, taskId }, validated);
+            await settle({ uid, entryId: res.entryId, result: "ok" });
+            return { ok: true, status: "done", result, creditsRemaining: res.creditsRemaining };
+        } catch (e: any) {
+            await release({ uid, entryId: res.entryId, reason: e?.message ?? String(e) });
+            return { ok: false, error: e?.message ?? "Tool failed." };
+        }
+    });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// agentVoiceHeartbeat — meter the call while it is happening
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Charges the slice since the last tick and says whether to keep going.
+ *
+ * This is what makes closing the tab cost the user what they used: billing
+ * advances continuously, so the most that can ever go uncharged is one
+ * heartbeat interval. It is also where the session cap and the credit balance
+ * are actually enforced — the client's own timer is a courtesy, not a control.
+ */
+export const agentVoiceHeartbeat = functions
+    .region(REGION)
+    .runWith({ timeoutSeconds: 30, memory: "256MB" })
+    .https.onCall(async (data, context) => {
+        const uid = requireAuth(context);
+        const sessionId = String(data?.sessionId ?? "");
+        if (!sessionId) throw new functions.https.HttpsError("invalid-argument", "sessionId is required.");
+
+        const ref = db.collection("voiceSessions").doc(sessionId);
+        const snap = await ref.get();
+        if (!snap.exists || snap.data()!.uid !== uid) {
+            throw new functions.https.HttpsError("not-found", "Session not found.");
+        }
+        if (snap.data()!.status !== "open") {
+            return { ok: true, shouldStop: true, stopReason: "closed" };
+        }
+
+        // Billed against server time, never a client-reported duration.
+        const now = Date.now();
+        const tick = await billVoiceSlice({ sessionRef: ref, uid, upToMs: now, reason: "heartbeat" });
+        await ref.update({ lastHeartbeatAt: admin.firestore.Timestamp.fromMillis(now) });
+
+        if (tick.shouldStop) {
+            await closeVoiceSession({ sessionRef: ref, uid, upToMs: now, reason: "heartbeat" });
+        }
+
+        return {
+            ok: true,
+            shouldStop: tick.shouldStop,
+            stopReason: tick.stopReason,
+            billedCredits: tick.billedTotal,
+            billedSeconds: Math.round(tick.billedSeconds),
+        };
+    });

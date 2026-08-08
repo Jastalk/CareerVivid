@@ -25,7 +25,8 @@ const Dashboard = lazyWithPreload(() => import('./pages/Dashboard')); // Protect
 const Editor = lazyWithPreload(() => import('./pages/Editor'));
 const WhiteboardsPage = React.lazy(() => import('./pages/WhiteboardsPage'));
 const WhiteboardEditor = React.lazy(() => import('./pages/WhiteboardEditor'));
-const AgentPage = React.lazy(() => import('./pages/AgentPage'));
+const AgentWorkspace = React.lazy(() => import('./pages/AgentWorkspace'));
+const AgentDrawer = React.lazy(() => import('./features/agent/AgentDrawer'));
 const GenerationHub = React.lazy(() => import('./pages/GenerationHub')); // Protected
 const InterviewStudio = lazyWithPreload(() => import('./pages/InterviewStudio')); // Protected
 const CompanyQuestPage = React.lazy(() => import('./pages/CompanyQuestPage')); // Protected
@@ -34,7 +35,6 @@ const CoursePage = React.lazy(() => import('./pages/CoursePage')); // Protected
 const InteractiveLessonPage = React.lazy(() => import('./pages/InteractiveLessonPage')); // Protected
 const CourseResumePage = React.lazy(() => import('./pages/CourseResumePage'));
 const ProfilePage = React.lazy(() => import('./pages/ProfilePage')); // Protected
-const ChatBot = React.lazy(() => import('./components/ChatBot'));
 const AuthPage = React.lazy(() => import('./pages/AuthPage'));
 const SignInPage = React.lazy(() => import('./pages/SignInPage'));
 const SignUpPage = React.lazy(() => import('./pages/SignUpPage'));
@@ -407,7 +407,9 @@ const AppContent: React.FC = () => {
   let showChatbot = false;
 
   if (currentUser && !(!isEmailVerified && currentUser.providerData[0]?.providerId === 'password')) {
-    showChatbot = path === '/dashboard';
+    // The Career Agent drawer is available on every authenticated route; it
+    // suppresses itself on the few pages it would obstruct (see AgentDrawer).
+    showChatbot = true;
   }
 
   // 1. Verify Email Handling via specific route or override
@@ -645,7 +647,7 @@ const AppContent: React.FC = () => {
       content = <Editor resumeId="guest" />;
     }
     else if (path === '/agent') {
-      content = <AgentPage />;
+      content = <AgentWorkspace />;
     }
     else if (path.startsWith('/edit/')) {
       const id = path.split('/')[2];
@@ -860,7 +862,7 @@ const AppContent: React.FC = () => {
             )}
             <RouteSuspense routeKey={path}>
               {content}
-              {showChatbot && <ChatBot />}
+              {showChatbot && <AgentDrawer path={path} />}
             </RouteSuspense>
           </div>
         </NavigationProvider>

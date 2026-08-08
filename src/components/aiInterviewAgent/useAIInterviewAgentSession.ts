@@ -2,6 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleGenAI, Modality, Session, LiveServerMessage } from '@google/genai';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { analyzeInterviewTranscript } from '../../services/geminiService';
+import {
+  encodeBase64 as encode,
+  decodeBase64 as decode,
+  decodeAudioData,
+  downsampleBuffer,
+} from '../../utils/liveAudio';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePracticeHistory } from '../../hooks/useJobHistory';
 import { GenAIBlob, InterviewAnalysis, InterviewSessionDraft, InterviewStatus, PracticeHistoryEntry, TranscriptEntry } from '../../types';
@@ -36,63 +42,9 @@ const DRAFT_SAVE_DEBOUNCE_MS = 1200;
 
 type AgentPrewarmStatus = 'idle' | 'preparing' | 'ready' | 'error';
 
-const encode = (bytes: Uint8Array) => {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-};
+// PCM helpers live in src/utils/liveAudio.ts so the Career Agent's voice
+// session shares one implementation instead of a divergent copy.
 
-const decode = (base64: string) => {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-};
-
-const decodeAudioData = async (
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
-): Promise<AudioBuffer> => {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
-
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
-    }
-  }
-  return buffer;
-};
-
-const downsampleBuffer = (buffer: Float32Array, inputSampleRate: number, outputSampleRate: number): Float32Array => {
-  if (inputSampleRate === outputSampleRate) return buffer;
-  if (inputSampleRate < outputSampleRate) return buffer;
-  const sampleRateRatio = inputSampleRate / outputSampleRate;
-  const newLength = Math.round(buffer.length / sampleRateRatio);
-  const result = new Float32Array(newLength);
-  for (let i = 0; i < newLength; i++) {
-    const start = Math.floor(i * sampleRateRatio);
-    const end = Math.floor((i + 1) * sampleRateRatio);
-    let sum = 0;
-    let count = 0;
-    for (let j = start; j < end && j < buffer.length; j++) {
-      sum += buffer[j];
-      count++;
-    }
-    result[i] = count > 0 ? sum / count : 0;
-  }
-  return result;
-};
 
 const cleanInterviewLabel = (value?: string) =>
   (value || '').replace(/\s*<[^>]+>\s*$/g, '').trim();

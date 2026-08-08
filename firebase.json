@@ -362,6 +362,7 @@
         "firebase-debug.*.log"
       ],
       "predeploy": [
+        "node \"$PROJECT_DIR/scripts/sync-shared.mjs\" --check",
         "npm --prefix \"$RESOURCE_DIR\" install --install-links",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]

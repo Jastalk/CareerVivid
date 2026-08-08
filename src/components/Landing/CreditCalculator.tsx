@@ -7,6 +7,14 @@ import {
     PRO_MAX_PLAN_CREDIT_LIMIT,
     AI_CREDIT_COSTS,
 } from '../../config/creditCosts';
+import { MODEL_RATES } from '@shared/credits';
+
+/** Per-turn CLI prices, read from the one rate table rather than a parallel copy. */
+const CLI_TURN_COST = {
+    'gemini-2.5-flash-lite': MODEL_RATES['gemini-2.5-flash-lite'].cliTurnCost ?? 0.5,
+    'gemini-2.5-flash': MODEL_RATES['gemini-2.5-flash'].cliTurnCost ?? 1,
+    'gemini-2.5-pro': MODEL_RATES['gemini-2.5-pro'].cliTurnCost ?? 2,
+} as const;
 import { SUBSCRIPTION_CATALOG } from '../../config/subscriptionCatalog';
 
 interface SliderConfig {
@@ -26,7 +34,7 @@ const SLIDERS: SliderConfig[] = [
         label: 'CLI Agent turns (Flash, 1 cr)',
         description: 'Each message to cv agent costs 1 credit (Gemini 2.5 Flash)',
         icon: <Bot size={16} />,
-        costPerUse: AI_CREDIT_COSTS.CLI_AGENT_FLASH,
+        costPerUse: CLI_TURN_COST['gemini-2.5-flash'],
         max: 500,
         step: 10,
         color: '#6366f1',
@@ -36,7 +44,7 @@ const SLIDERS: SliderConfig[] = [
         label: 'CLI Agent turns (Flash Lite, 0.5 cr)',
         description: 'Fastest model at the lowest cost',
         icon: <Bot size={16} />,
-        costPerUse: AI_CREDIT_COSTS.CLI_AGENT_FLASH_LITE,
+        costPerUse: CLI_TURN_COST['gemini-2.5-flash-lite'],
         max: 500,
         step: 10,
         color: '#8b5cf6',
@@ -46,7 +54,7 @@ const SLIDERS: SliderConfig[] = [
         label: 'CLI Agent turns (Pro, 2 cr)',
         description: 'Deep reasoning with Gemini Pro (Pro plan required)',
         icon: <Bot size={16} />,
-        costPerUse: AI_CREDIT_COSTS.CLI_AGENT_PRO,
+        costPerUse: CLI_TURN_COST['gemini-2.5-pro'],
         max: 200,
         step: 5,
         color: '#a855f7',

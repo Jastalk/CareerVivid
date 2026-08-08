@@ -10,7 +10,8 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { defineSecret } from "firebase-functions/params";
-import { getPlanMonthlyLimit as resolvePlanMonthlyLimit, getPlanMonthlyLimitForUser } from "./utils/planLimits";
+import { getPlanMonthlyLimitForUser } from "./utils/planLimits";
+import { quoteCliTurn, CLI_MODELS } from "./generated/credits";
 
 const novuSecretKey = defineSecret("NOVU_SECRET_KEY");
 
@@ -20,26 +21,10 @@ if (!admin.apps.length) {
 
 const db = admin.firestore();
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Credit costs per model (CareerVivid-managed usage)
-// ─────────────────────────────────────────────────────────────────────────────
-const MODEL_CREDIT_COST: Record<string, number> = {
-  "gemini-2.5-flash-lite": 0.5,
-  "gemini-2.5-flash": 1,
-  "gemini-2.5-pro": 2,
-  "gemini-2.0-pro-exp-02-05": 3,
-  "gemini-3.1-flash-lite": 0.75,
-  "gemini-3.5-flash": 1.5,
-  // Fallback for any other Gemini model
-  default: 1,
-};
+// Credit costs come from shared/credits.ts — the single source of truth.
+// This file used to carry its own table whose model IDs disagreed with both
+// the web config and agentProxy.ts.
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Monthly credit limits by plan
-// ─────────────────────────────────────────────────────────────────────────────
-function getMonthlyLimit(plan?: string): number {
-  return resolvePlanMonthlyLimit(plan);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // agentDeductCredits — HTTPS Callable
@@ -96,8 +81,17 @@ export const agentDeductCredits = functions
       const uid = pathSegments[1]; // users/[uid]/private/[docId]
 
       // ── 3. Compute cost ──────────────────────────────────────────────────
-      const costPerCall = MODEL_CREDIT_COST[model] ?? MODEL_CREDIT_COST["default"];
-      const totalCost = costPerCall * calls;
+      // Rejects unpriced models outright rather than billing them at the
+      // cheapest rate — the allowlist is derived from the rate table.
+      let totalCost: number;
+      try {
+        totalCost = quoteCliTurn(model).credits * calls;
+      } catch {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          `Unsupported model: ${model}. Supported: ${CLI_MODELS.join(", ")}`
+        );
+      }
 
       // ── 4. Deduct in a transaction ───────────────────────────────────────
       const userRef = db.collection("users").doc(uid);
