@@ -348,7 +348,7 @@ const BillingDashboard: React.FC = () => {
                                             onClick={() => setBillingInterval(interval)}
                                             className={`min-w-[112px] rounded-full px-5 py-2.5 text-xs font-black transition-all ${
                                                 billingInterval === interval
-                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[#211b16]'
+                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
                                                     : 'text-[#766955] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'
                                             }`}
                                         >
@@ -377,7 +377,7 @@ const BillingDashboard: React.FC = () => {
                                         className={`relative flex min-h-[500px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[#37332d] dark:bg-[#262522]`}
                                     >
                                         {p.featured && (
-                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[#211b16]">
+                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
                                                 Popular
                                             </div>
                                         )}
@@ -573,7 +573,7 @@ const BillingDashboard: React.FC = () => {
                                             onChange={(e) => setNewTeamMember(e.target.value)}
                                             className="min-w-0 flex-1 rounded-xl border border-[#e4d3bc] bg-white px-4 py-3 text-sm font-semibold text-[#211b16] outline-none transition focus:border-[#caa26c] focus:ring-2 focus:ring-[#caa26c]/30 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9]"
                                         />
-                                        <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#211b16]">
+                                        <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
                                             <Plus size={16} /> Invite
                                         </button>
                                     </div>
@@ -675,7 +675,7 @@ const BillingDashboard: React.FC = () => {
                                 type="button"
                                 onClick={handleCancelSubscription}
                                 disabled={isCanceling}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-wait disabled:opacity-70 dark:bg-[#f4f1e9] dark:text-[#211b16]"
+                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-wait disabled:opacity-70 dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]"
                             >
                                 {isCanceling ? 'Scheduling...' : 'Cancel to Free'}
                             </button>

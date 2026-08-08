@@ -188,8 +188,13 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
         });
     });
 
-    it('Test 1: Render sidebar and verify all document files are visible by default in chronological order', () => {
+    const renderFiles = () => {
         render(<Sidebar />);
+        fireEvent.click(screen.getByRole('button', { name: 'Open Files' }));
+    };
+
+    it('Test 1: Render sidebar and verify all document files are visible by default in chronological order', () => {
+        renderFiles();
 
         const items = screen.getAllByText(/(First Resume|Second Portfolio|Third Whiteboard|Fourth Interview)/);
         expect(items).toHaveLength(4);
@@ -203,7 +208,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
     });
 
     it('Test 2: Clicking the Sort/Filter menu button displays the options dropdown', () => {
-        render(<Sidebar />);
+        renderFiles();
         
         // Find dropdown button
         const dropdownButton = screen.getByTitle('Filter & Sort');
@@ -215,7 +220,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
     });
 
     it('Test 3: Select type filter and verify only selected file type is displayed', () => {
-        render(<Sidebar />);
+        renderFiles();
         
         const dropdownButton = screen.getByTitle('Filter & Sort');
         fireEvent.click(dropdownButton);
@@ -232,7 +237,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
     });
 
     it('Test 4: Sort by Recently Modified (updatedAt) and verify chronological descending sorting order', () => {
-        render(<Sidebar />);
+        renderFiles();
         
         const dropdownButton = screen.getByTitle('Filter & Sort');
         fireEvent.click(dropdownButton);
@@ -275,7 +280,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
             setActiveNode: vi.fn()
         });
 
-        render(<Sidebar />);
+        renderFiles();
         
         const dropdownButton = screen.getByTitle('Filter & Sort');
         fireEvent.click(dropdownButton);
@@ -290,7 +295,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
     });
 
     it('Test 6: Selecting filter and sorting options writes the selections to localStorage', () => {
-        render(<Sidebar />);
+        renderFiles();
 
         const dropdownButton = screen.getByTitle('Filter & Sort');
         fireEvent.click(dropdownButton);
@@ -318,7 +323,7 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
             sortBy: 'updatedAt'
         }));
 
-        render(<Sidebar />);
+        renderFiles();
 
         // Should only render the interview item: 'Fourth Interview'
         expect(screen.getByText('Fourth Interview')).toBeInTheDocument();

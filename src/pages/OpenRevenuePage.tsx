@@ -246,7 +246,7 @@ const InteractiveRevenueChart: React.FC<{
                                 type="button"
                                 onClick={() => switchRange(option)}
                                 className={`rounded-[10px] px-3 py-1.5 text-xs font-black transition ${range === option
-                                    ? 'bg-[#211b16] text-[#fffaf1] dark:bg-[#f4f1e9] dark:text-[#211b16]'
+                                    ? 'bg-[#211b16] text-[#fffaf1] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
                                     : 'text-[#8a7a66] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'}`}
                             >
                                 {option === 'daily' ? '30 days' : '12 months'}

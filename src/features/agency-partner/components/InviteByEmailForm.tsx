@@ -108,7 +108,7 @@ const InviteByEmailForm: React.FC<InviteByEmailFormProps> = ({ branchId, demo })
         <button
           type="submit"
           disabled={isSending}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#211b16] px-4 py-2 text-[13px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[#211b16] dark:hover:bg-[#e8e1d2]"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#211b16] px-4 py-2 text-[13px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)] dark:hover:bg-[#e8e1d2]"
         >
           {isSending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
           {isSending ? 'Sending…' : `Send invite${demo ? ' (demo)' : ''}`}

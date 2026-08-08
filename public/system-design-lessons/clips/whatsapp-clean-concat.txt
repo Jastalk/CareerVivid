@@ -1,0 +1,4 @@
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clean-1.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clean-2.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clean-3.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clean-4.mp4'

@@ -1,0 +1,7 @@
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/00-ux-open.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/01-ux-numbers.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/02-ux-shape.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/03-ux-naive.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/04-ux-fix.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/05-ux-break.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_design-uber/06-ux-cta.mp4'

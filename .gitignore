@@ -54,6 +54,9 @@ output/
 .playwright-cli/
 experiments/
 
+# Local video renders are release artifacts, not source files.
+*.mp4
+
 # Environment variables and local credential files. Only intentionally
 # non-sensitive templates belong in source control.
 .env
@@ -130,4 +133,3 @@ functions/src/mobileInterviewGuideQuestions.generated.ts
 # them stay tracked for compliance record-keeping.
 third_party/learning-sources/*/
 !third_party/learning-sources/LICENSES/
-

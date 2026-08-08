@@ -68,7 +68,7 @@ const LearnPracticeHiredSection: React.FC = () => (
                         className="group flex flex-col rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-6 shadow-sm shadow-[#8b5a16]/5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8b5a16]/10 dark:border-[#37332d] dark:bg-[#262522]"
                     >
                         <div className="flex items-center justify-between">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#211b16] text-[#f4e8d4] shadow-md dark:bg-[#f4f1e9] dark:text-[#211b16]">
+                            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#211b16] text-[#f4e8d4] shadow-md dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
                                 <Icon size={22} />
                             </span>
                             <span className="text-4xl font-black tracking-tight text-[#e4d3bc] dark:text-[#37332d]">{step}</span>

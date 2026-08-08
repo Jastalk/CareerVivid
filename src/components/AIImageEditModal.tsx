@@ -486,7 +486,7 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
                                 type="button"
                                 onClick={handleGenerate}
                                 disabled={!canGenerate}
-                                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#211b16] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#362a21] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f4f1e9] dark:text-[#211b16]"
+                                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#211b16] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#362a21] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]"
                             >
                                 {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Wand2 size={16} />}
                                 Generate image

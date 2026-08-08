@@ -463,53 +463,53 @@
 }
 
 @layer utilities {
-  html.dark [class*="bg-[#f7f1e7]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#fbfbfe]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-gray-50"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-gray-100"]:not([class*="dark:bg-"]) {
+  html.dark [class*="bg-[#f7f1e7]"],
+  html.dark [class*="bg-[#fbfbfe]"],
+  html.dark [class*="bg-gray-50"],
+  html.dark [class*="bg-gray-100"] {
     background-color: #1f1f1d !important;
   }
 
-  html.dark [class*="bg-[#fffaf1]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-white"]:not([class*="dark:bg-"]) {
+  html.dark [class*="bg-[#fffaf1]"],
+  html.dark [class*="bg-white"] {
     background-color: #262522 !important;
   }
 
-  html.dark [class*="bg-gray-200"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-gray-300"]:not([class*="dark:bg-"]) {
+  html.dark [class*="bg-gray-200"],
+  html.dark [class*="bg-gray-300"] {
     background-color: #37332d !important;
   }
 
-  html.dark [class*="bg-[#f9efe0]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#f6ecd9]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#f4e5cf]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#f4ead8]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#f2dfc2]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#f0dfc6]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#eadbc5]"]:not([class*="dark:bg-"]),
-  html.dark [class*="bg-[#ead9c3]"]:not([class*="dark:bg-"]) {
+  html.dark [class*="bg-[#f9efe0]"],
+  html.dark [class*="bg-[#f6ecd9]"],
+  html.dark [class*="bg-[#f4e5cf]"],
+  html.dark [class*="bg-[#f4ead8]"],
+  html.dark [class*="bg-[#f2dfc2]"],
+  html.dark [class*="bg-[#f0dfc6]"],
+  html.dark [class*="bg-[#eadbc5]"],
+  html.dark [class*="bg-[#ead9c3]"] {
     background-color: #302e2a !important;
   }
 
-  html.dark [class*="text-[#211b16]"]:not([class*="dark:text-"]),
-  html.dark [class*="text-black"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-950"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-900"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-800"]:not([class*="dark:text-"]) {
+  html.dark [class*="text-[#211b16]"],
+  html.dark [class*="text-black"],
+  html.dark [class*="text-gray-950"],
+  html.dark [class*="text-gray-900"],
+  html.dark [class*="text-gray-800"] {
     color: #f4f1e9 !important;
   }
 
-  html.dark [class*="text-[#665a4a]"]:not([class*="dark:text-"]),
-  html.dark [class*="text-[#7d6e5e]"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-700"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-600"]:not([class*="dark:text-"]),
-  html.dark [class*="text-gray-500"]:not([class*="dark:text-"]) {
+  html.dark [class*="text-[#665a4a]"],
+  html.dark [class*="text-[#7d6e5e]"],
+  html.dark [class*="text-gray-700"],
+  html.dark [class*="text-gray-600"],
+  html.dark [class*="text-gray-500"] {
     color: #aaa39a !important;
   }
 
-  html.dark [class*="text-[#9a651f]"]:not([class*="dark:text-"]),
-  html.dark [class*="text-[#a97935]"]:not([class*="dark:text-"]),
-  html.dark [class*="text-[#8b5a16]"]:not([class*="dark:text-"]) {
+  html.dark [class*="text-[#9a651f]"],
+  html.dark [class*="text-[#a97935]"],
+  html.dark [class*="text-[#8b5a16]"] {
     color: #caa26c !important;
   }
 

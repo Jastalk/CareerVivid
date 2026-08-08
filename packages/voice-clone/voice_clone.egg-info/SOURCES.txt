@@ -1,0 +1,16 @@
+pyproject.toml
+voice_clone/__init__.py
+voice_clone/adapters.py
+voice_clone/cli.py
+voice_clone/engines.py
+voice_clone/quiet.py
+voice_clone/record.py
+voice_clone/synth.py
+voice_clone/templates.py
+voice_clone/ui.py
+voice_clone.egg-info/PKG-INFO
+voice_clone.egg-info/SOURCES.txt
+voice_clone.egg-info/dependency_links.txt
+voice_clone.egg-info/entry_points.txt
+voice_clone.egg-info/requires.txt
+voice_clone.egg-info/top_level.txt

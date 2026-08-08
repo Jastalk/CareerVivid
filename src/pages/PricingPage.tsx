@@ -247,7 +247,7 @@ const PricingPage: React.FC = () => {
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <button
                                 onClick={() => handleChoosePlan(plans[0])}
-                                className="inline-flex items-center justify-center gap-3 rounded-xl bg-[#211b16] px-6 py-4 text-sm font-black text-white shadow-xl shadow-[#8b5a16]/10 transition hover:-translate-y-0.5 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#211b16] dark:hover:bg-white"
+                                className="inline-flex items-center justify-center gap-3 rounded-xl bg-[#211b16] px-6 py-4 text-sm font-black text-white shadow-xl shadow-[#8b5a16]/10 transition hover:-translate-y-0.5 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)] dark:hover:bg-white"
                             >
                                 Start for free <ArrowRight size={18} />
                             </button>
@@ -286,7 +286,7 @@ const PricingPage: React.FC = () => {
                                             onClick={() => setBillingInterval(interval)}
                                             className={`min-w-[112px] rounded-full px-5 py-2.5 text-xs font-black transition-all ${
                                                 billingInterval === interval
-                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[#211b16]'
+                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
                                                     : 'text-[#766955] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'
                                             }`}
                                         >
@@ -309,7 +309,7 @@ const PricingPage: React.FC = () => {
                                         className={`relative flex min-h-[520px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[#37332d] dark:bg-[#262522]`}
                                     >
                                         {plan.featured && (
-                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[#211b16]">
+                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
                                                 Popular
                                             </div>
                                         )}

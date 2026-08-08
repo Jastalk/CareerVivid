@@ -9,10 +9,11 @@ import {
     Sun,
     Moon,
     Monitor,
-    Users,
     CreditCard,
     Gift,
+    FolderOpen,
     LayoutDashboard,
+    Settings,
     Sparkles,
     GraduationCap,
 } from 'lucide-react';
@@ -118,31 +119,7 @@ const Sidebar: React.FC = () => {
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     
-    // Visited tags tracking for navigation items
-    const [visitedTags, setVisitedTags] = useState<Record<string, boolean>>(() => {
-        const initial: Record<string, boolean> = {};
-        ['/interview-studio', '/learning', '/jobs/recommend'].forEach(path => {
-            initial[path] = localStorage.getItem(`visited_tag_${path}`) === 'true';
-        });
-        return initial;
-    });
-
-    useEffect(() => {
-        const path = currentPath;
-        if (['/interview-studio', '/learning', '/jobs/recommend'].includes(path)) {
-            localStorage.setItem(`visited_tag_${path}`, 'true');
-            setVisitedTags(prev => {
-                if (prev[path]) return prev;
-                return { ...prev, [path]: true };
-            });
-        }
-    }, [currentPath]);
-
     const handleLinkClick = (path: string) => {
-        if (['/interview-studio', '/learning', '/jobs/recommend'].includes(path)) {
-            localStorage.setItem(`visited_tag_${path}`, 'true');
-            setVisitedTags(prev => ({ ...prev, [path]: true }));
-        }
         navigate(path);
     };
     
@@ -184,6 +161,7 @@ const Sidebar: React.FC = () => {
     });
     const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
     const filterDropdownRef = useRef<HTMLDivElement>(null);
+    const [isFilesOpen, setIsFilesOpen] = useState(false);
 
     const savePreference = (key: 'filterType' | 'sortBy', value: string) => {
         try {
@@ -367,19 +345,17 @@ const Sidebar: React.FC = () => {
         { value: 'system', icon: <Monitor size={14} />, label: 'System' },
     ] as const;
 
-    const quickLinks = [
+    const primaryLinks = [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Quick Start', path: '/onboarding', icon: Sparkles },
-        { label: 'Jobs', path: '/jobs/recommend', icon: Briefcase, tag: 'New' },
-        { label: 'Community', path: '/community', icon: Users },
-        { label: 'Interview', path: '/interview-studio', icon: Mic, tag: 'New' },
-        { label: 'Job Tracker', path: '/job-tracker', icon: Briefcase },
-        { label: 'Course', path: '/learning', icon: GraduationCap, tag: 'New' },
+        { label: 'Job tracker', path: '/job-tracker', icon: Briefcase },
+        { label: 'Interview practice', path: '/interview-studio', icon: Mic },
+        { label: 'Learning', path: '/learning', icon: GraduationCap },
+        { label: 'Resume', path: '/newresume', icon: Sparkles },
     ];
 
     const accountLinks = [
         { label: 'Subscription', path: '/subscription', icon: CreditCard },
-        { label: 'Developer', path: '/developer', icon: Monitor },
+        { label: 'Settings', path: '/developer', icon: Settings },
         { label: 'Referrals', path: '/referrals', icon: Gift },
     ];
 
@@ -395,7 +371,7 @@ const Sidebar: React.FC = () => {
         <aside 
             style={{ width: `${activeSidebarWidth}px` }}
             data-sidebar-mode={sidebarMode}
-            className="fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto overscroll-contain border-r border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card)] text-[var(--cv-text-heading)] shadow-[4px_0_24px_rgba(55,38,18,0.06)] backdrop-blur-2xl transition-[width] duration-200 ease-in-out [scrollbar-width:thin] md:flex"
+            className="fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto overscroll-contain border-r border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] text-[var(--cv-text-heading)] shadow-[4px_0_24px_rgba(16,24,40,0.04)] transition-[width] duration-200 ease-in-out [scrollbar-width:thin] md:flex"
         >
             {/* Header / Logo */}
             <div className={`relative flex h-16 shrink-0 items-center border-b border-[var(--cv-border-subtle)] sm:h-20 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
@@ -419,11 +395,11 @@ const Sidebar: React.FC = () => {
             </div>
 
             {/* Navigation main section */}
-            <nav className={`min-h-0 select-none ${isCollapsed ? 'flex flex-1 flex-col items-center gap-2 px-2 py-4' : 'flex-[0_0_570px] px-3 py-3'}`}>
+            <nav className={`min-h-0 select-none ${isCollapsed ? 'flex flex-1 flex-col items-center gap-2 px-2 py-4' : 'flex flex-1 flex-col px-3 py-4'}`}>
                 {isCollapsed ? (
-                    quickLinks.map(({ label, path, icon: Icon, tag }) => {
+                    <>
+                    {primaryLinks.map(({ label, path, icon: Icon }) => {
                         const isActive = isActivePath(path);
-                        const isVisited = visitedTags[path] || isActive;
                         return (
                             <button
                                 key={path}
@@ -434,26 +410,27 @@ const Sidebar: React.FC = () => {
                                 className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${isActive ? 'border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-primary)] shadow-sm' : 'border-transparent text-[var(--cv-text-muted)] hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
                             >
                                 <Icon size={18} />
-                                {tag && (
-                                    <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
-                                        {!isVisited && (
-                                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--cv-action-primary)] opacity-75"></span>
-                                        )}
-                                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--cv-action-primary)]"></span>
-                                    </span>
-                                )}
                             </button>
                         );
-                    })
+                    })}
+                    <div className="my-1 h-px w-7 bg-[var(--cv-border-subtle)]" />
+                    <button
+                        type="button"
+                        onClick={() => setIsFilesOpen(true)}
+                        title="Files"
+                        aria-label="Open Files"
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl border border-transparent text-[var(--cv-text-muted)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
+                    >
+                        <FolderOpen size={18} />
+                    </button>
+                    </>
                 ) : (
-                    <div className="flex h-full min-h-0 flex-col">
-                        {/* Primary navigation — first thing under the logo, one item per row */}
-                        <div className="shrink-0 pb-3">
-                            <span className="cv-design-eyebrow mb-1.5 block px-1 text-[10px]">Navigate</span>
+                    <div className="flex min-h-0 flex-1 flex-col">
+                        <div className="shrink-0">
+                            <span className="cv-design-eyebrow mb-2 block px-1 text-[10px]">Workspace</span>
                             <div className="space-y-0.5">
-                                {quickLinks.map(({ label, path, icon: Icon, tag }) => {
+                                {primaryLinks.map(({ label, path, icon: Icon }) => {
                                     const isActive = isActivePath(path);
-                                    const isVisited = visitedTags[path] || isActive;
                                     return (
                                         <button
                                             key={path}
@@ -462,38 +439,23 @@ const Sidebar: React.FC = () => {
                                         >
                                             <Icon size={15} className="shrink-0" />
                                             <span className="min-w-0 truncate">{label}</span>
-                                            {tag && (
-                                                <span className={`ml-auto inline-flex items-center rounded-md bg-[var(--cv-action-soft-bg)] px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[var(--cv-action-primary)] border border-[var(--cv-action-border)]/20 shadow-sm ${!isVisited ? 'animate-pulse' : ''}`}>
-                                                    {tag}
-                                                </span>
-                                            )}
                                         </button>
                                     );
                                 })}
                             </div>
                         </div>
 
-                        {/* Files — below navigation; the list scrolls internally */}
-                        <div className="min-h-0 flex-1 border-t border-[var(--cv-border-subtle)] pt-2">
-                            <SidebarDocumentList
-                                activeDocuments={activeDocuments}
-                                activeNodeId={activeNodeId}
-                                editingNodeId={editingNodeId}
-                                editValue={editValue}
-                                filterType={filterType}
-                                sortBy={sortBy}
-                                isFilterDropdownOpen={isFilterDropdownOpen}
-                                filterDropdownRef={filterDropdownRef}
-                                setActiveNode={setActiveNode}
-                                setEditValue={setEditValue}
-                                setEditingNodeId={setEditingNodeId}
-                                setContextMenu={setContextMenu}
-                                setFilterType={setFilterType}
-                                setSortBy={setSortBy}
-                                setIsFilterDropdownOpen={setIsFilterDropdownOpen}
-                                savePreference={savePreference}
-                                saveRename={saveRename}
-                            />
+                        <div className="mt-4 border-t border-[var(--cv-border-subtle)] pt-3">
+                            <button
+                                type="button"
+                                onClick={() => setIsFilesOpen(true)}
+                                aria-label="Open Files"
+                                className="flex w-full items-center gap-2.5 rounded-xl border border-transparent px-2.5 py-2 text-left text-xs font-bold text-[var(--cv-text-muted)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
+                            >
+                                <FolderOpen size={15} className="shrink-0" />
+                                <span>Files</span>
+                                <span className="ml-auto text-[10px] font-semibold text-[var(--cv-text-muted)]">{activeDocuments.length}</span>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -547,13 +509,14 @@ const Sidebar: React.FC = () => {
                 <XpStatusCard onClick={() => navigate('/interview-studio')} />
 
                 {aiUsage && (
-                    <div className="cv-design-card mb-2 cursor-pointer px-3 py-2 transition hover:border-[var(--cv-action-border)]" onClick={() => navigate('/subscription')}>
+                    <button type="button" onClick={() => navigate('/subscription')} className="mb-2 w-full rounded-xl border border-[var(--cv-border-product)] bg-[var(--cv-surface)] px-3 py-2 text-left shadow-sm transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-purple-25)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)] dark:bg-slate-900/70 dark:hover:bg-[#17152d]" aria-label="View credits and subscription">
+                        <span className="mb-1.5 flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--cv-text-muted)]"><CreditCard size={12} /> Credits</span>
                         <AIUsageProgressBar used={aiUsage.count || 0} limit={aiUsage.limit || 10} isPremium={isPremium} variant="minimal" planLabel={getPlanDisplayName(userProfile?.plan)} />
-                    </div>
+                    </button>
                 )}
 
                 {/* One settings group: account links, language, theme, sign out */}
-                <div className="rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] p-1">
+                <div className="rounded-xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-muted)] p-1 dark:bg-slate-900/40">
                     {accountLinks.map(({ label, path, icon: Icon }) => {
                         const isActive = isActivePath(path);
                         return (
@@ -639,6 +602,44 @@ const Sidebar: React.FC = () => {
                     </div>
                 </div>
             </div>
+            )}
+
+            {isFilesOpen && createPortal(
+                <div className="fixed inset-0 z-[70] flex justify-end bg-slate-950/20 p-3 sm:p-5" role="dialog" aria-modal="true" aria-label="Files">
+                    <button type="button" className="absolute inset-0 cursor-default" aria-label="Close Files" onClick={() => setIsFilesOpen(false)} />
+                    <section className="relative flex h-full w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] shadow-[var(--cv-shadow-modal)]">
+                        <header className="flex items-center justify-between border-b border-[var(--cv-border-subtle)] px-5 py-4">
+                            <div>
+                                <h2 className="cv-design-title text-base">Files</h2>
+                                <p className="mt-0.5 text-xs font-medium text-[var(--cv-text-muted)]">Your resumes, portfolios, whiteboards, and practice sessions.</p>
+                            </div>
+                            <button type="button" onClick={() => setIsFilesOpen(false)} className="rounded-lg border border-[var(--cv-border-subtle)] px-2.5 py-1.5 text-xs font-bold text-[var(--cv-text-muted)] transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Close</button>
+                        </header>
+                        <div className="min-h-0 flex-1 p-3">
+                            <SidebarDocumentList
+                                activeDocuments={activeDocuments}
+                                activeNodeId={activeNodeId}
+                                editingNodeId={editingNodeId}
+                                editValue={editValue}
+                                filterType={filterType}
+                                sortBy={sortBy}
+                                isFilterDropdownOpen={isFilterDropdownOpen}
+                                filterDropdownRef={filterDropdownRef}
+                                setActiveNode={setActiveNode}
+                                setEditValue={setEditValue}
+                                setEditingNodeId={setEditingNodeId}
+                                setContextMenu={setContextMenu}
+                                setFilterType={setFilterType}
+                                setSortBy={setSortBy}
+                                setIsFilterDropdownOpen={setIsFilterDropdownOpen}
+                                savePreference={savePreference}
+                                saveRename={saveRename}
+                                onDocumentOpen={() => setIsFilesOpen(false)}
+                            />
+                        </div>
+                    </section>
+                </div>,
+                document.body,
             )}
 
             {/* Context Menu Portal */}

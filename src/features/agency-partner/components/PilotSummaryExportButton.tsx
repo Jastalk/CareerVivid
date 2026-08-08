@@ -67,7 +67,7 @@ const PilotSummaryExportButton: React.FC<PilotSummaryExportButtonProps> = ({ bra
       <button
         onClick={handleDownload}
         disabled={isPreparing || sessions.length === 0}
-        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#211b16] px-3 py-2 text-[13px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[#211b16] dark:hover:bg-[#e8e1d2]"
+        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#211b16] px-3 py-2 text-[13px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)] dark:hover:bg-[#e8e1d2]"
       >
         <Download size={13} /> Download CSV
       </button>

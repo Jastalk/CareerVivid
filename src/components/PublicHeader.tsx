@@ -336,8 +336,8 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
                                     <a href={`/signup${context === 'bio-link' ? '?source=bio-link' : ''}`} className={`font-bold text-sm transition-all transform hover:scale-105 ${isBrutalist
                                         ? 'px-6 py-2.5 bg-[#8b5cf6] text-white border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase'
                                         : isEditorial
-                                            ? 'rounded-full bg-[#211b16] px-5 py-2.5 text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-white'
-                                        : 'px-5 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full hover:bg-gray-800 dark:hover:bg-gray-100 shadow-lg hover:shadow-xl'
+                                            ? 'rounded-full bg-[#211b16] px-5 py-2.5 text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-[#ffffff]'
+                                        : 'px-5 py-2.5 bg-gray-900 dark:bg-[#ffffff] text-white dark:text-gray-900 rounded-full hover:bg-gray-800 dark:hover:bg-gray-100 shadow-lg hover:shadow-xl'
                                         }`}>
                                         {t('nav.signup')}
                                     </a>
@@ -386,7 +386,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
                                     <a href="/dashboard" onClick={() => setIsMenuOpen(false)} className={`w-full text-center py-3 font-bold transition-all ${isBrutalist
                                         ? 'bg-[#8b5cf6] text-white border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wide'
                                         : isEditorial
-                                            ? 'rounded-lg bg-[#211b16] text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-white'
+                                            ? 'rounded-lg bg-[#211b16] text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-[#ffffff]'
                                         : 'bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-lg'
                                         }`}>
                                         {t('nav.go_to_dashboard')}
@@ -413,7 +413,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
                                     <a href="/signup" onClick={() => setIsMenuOpen(false)} className={`w-full text-center py-3 font-bold transition-all ${isBrutalist
                                         ? 'bg-[#8b5cf6] text-white border-3 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-wide'
                                         : isEditorial
-                                            ? 'rounded-lg bg-[#211b16] text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-white'
+                                            ? 'rounded-lg bg-[#211b16] text-white shadow-lg shadow-[#6b4b1f]/15 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[#1f1f1d] dark:hover:bg-[#ffffff]'
                                         : 'bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-lg'
                                         }`}>
                                         {t('nav.signup')}

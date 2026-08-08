@@ -970,8 +970,14 @@ export const PricingPreviewSection = () => (
                     <article
                         key={name}
                         className={`rounded-[22px] border p-6 shadow-sm ${
+                            // The featured card needs its own dark background.
+                            // Its sibling uses bg-[#fffaf1], which index.css
+                            // auto-darkens; #f3f2ff is not on that list, so this
+                            // card stayed light in dark mode while its
+                            // text-[#211b16] children were lightened by the same
+                            // sweep — pale text on a pale card, contrast 1.02:1.
                             featured
-                                ? 'border-[#625bd5] bg-[#f3f2ff]/90 shadow-[#625bd5]/10'
+                                ? 'border-[#625bd5] bg-[#f3f2ff]/90 dark:bg-[#2b2740]/90 shadow-[#625bd5]/10'
                                 : 'border-[#e4d3bc] bg-[#fffaf1]/88 shadow-[#8b5a16]/5'
                         }`}
                     >

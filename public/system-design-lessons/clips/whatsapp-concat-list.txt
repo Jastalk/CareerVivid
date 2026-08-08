@@ -1,0 +1,6 @@
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-1-hook.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-2-websockets.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-3-encryption.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-4-queues.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-5-media.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips/whatsapp-omni-clip-6-outro.mp4'

@@ -1,0 +1,352 @@
+{
+  "voices": [
+    {
+      "id": "charon",
+      "gender": "male",
+      "label": {
+        "en": "Steady lecturer",
+        "zh": "稳重讲师"
+      },
+      "voice": "Charon"
+    },
+    {
+      "id": "puck",
+      "gender": "male",
+      "label": {
+        "en": "Bright and brisk",
+        "zh": "年轻干练"
+      },
+      "voice": "Puck"
+    },
+    {
+      "id": "enceladus",
+      "gender": "male",
+      "label": {
+        "en": "Low narrator",
+        "zh": "低沉叙述"
+      },
+      "voice": "Enceladus"
+    },
+    {
+      "id": "zephyr",
+      "gender": "female",
+      "label": {
+        "en": "Clear and bright",
+        "zh": "清晰明亮"
+      },
+      "voice": "Zephyr"
+    },
+    {
+      "id": "aoede",
+      "gender": "female",
+      "label": {
+        "en": "Warm and friendly",
+        "zh": "温和亲切"
+      },
+      "voice": "Aoede"
+    },
+    {
+      "id": "kore",
+      "gender": "female",
+      "label": {
+        "en": "Calm professional",
+        "zh": "冷静专业"
+      },
+      "voice": "Kore"
+    }
+  ],
+  "lessons": [
+    {
+      "missionId": "domain-1-overview",
+      "locale": "zh",
+      "voice": "aoede",
+      "totalMs": 306560,
+      "beats": [
+        {
+          "id": "open-buried",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "roadmap",
+          "kind": "diagram",
+          "ms": 13480,
+          "file": "domain-1-overview/zh/aoede/roadmap.wav"
+        },
+        {
+          "id": "no-brakes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "stop-reason",
+          "kind": "code",
+          "ms": 15160,
+          "file": "domain-1-overview/zh/aoede/stop-reason.wav"
+        },
+        {
+          "id": "three-coats",
+          "kind": "compare",
+          "ms": 12640,
+          "file": "domain-1-overview/zh/aoede/three-coats.wav"
+        },
+        {
+          "id": "queue-of-helpers",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "dont-delegate",
+          "kind": "compare",
+          "ms": 18120,
+          "file": "domain-1-overview/zh/aoede/dont-delegate.wav"
+        },
+        {
+          "id": "three-passes",
+          "kind": "diagram",
+          "ms": 18720,
+          "file": "domain-1-overview/zh/aoede/three-passes.wav"
+        },
+        {
+          "id": "script-vs-goal",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "brief-with-goals",
+          "kind": "compare",
+          "ms": 18200,
+          "file": "domain-1-overview/zh/aoede/brief-with-goals.wav"
+        },
+        {
+          "id": "dominoes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "forced-first",
+          "kind": "code",
+          "ms": 18000,
+          "file": "domain-1-overview/zh/aoede/forced-first.wav"
+        },
+        {
+          "id": "twelve-at-once",
+          "kind": "compare",
+          "ms": 15560,
+          "file": "domain-1-overview/zh/aoede/twelve-at-once.wav"
+        },
+        {
+          "id": "canyon-shout",
+          "kind": "veo",
+          "ms": 8000,
+          "silent": true
+        },
+        {
+          "id": "no-inheritance",
+          "kind": "rows",
+          "ms": 13600,
+          "file": "domain-1-overview/zh/aoede/no-inheritance.wav"
+        },
+        {
+          "id": "two-numbers",
+          "kind": "compare",
+          "ms": 15360,
+          "file": "domain-1-overview/zh/aoede/two-numbers.wav"
+        },
+        {
+          "id": "citation-id",
+          "kind": "rows",
+          "ms": 17280,
+          "file": "domain-1-overview/zh/aoede/citation-id.wav"
+        },
+        {
+          "id": "burst-pipes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "tell-it-what-changed",
+          "kind": "compare",
+          "ms": 18320,
+          "file": "domain-1-overview/zh/aoede/tell-it-what-changed.wav"
+        },
+        {
+          "id": "checkpoint",
+          "kind": "rows",
+          "ms": 17200,
+          "file": "domain-1-overview/zh/aoede/checkpoint.wav"
+        },
+        {
+          "id": "three-hundred",
+          "kind": "compare",
+          "ms": 21640,
+          "file": "domain-1-overview/zh/aoede/three-hundred.wav"
+        },
+        {
+          "id": "thirteen-doors",
+          "kind": "veo",
+          "ms": 8000,
+          "silent": true
+        },
+        {
+          "id": "go-find-out",
+          "kind": "card",
+          "ms": 15280,
+          "file": "domain-1-overview/zh/aoede/go-find-out.wav"
+        }
+      ]
+    },
+    {
+      "missionId": "domain-1-overview",
+      "locale": "en",
+      "voice": "aoede",
+      "totalMs": 273800,
+      "beats": [
+        {
+          "id": "open-buried",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "roadmap",
+          "kind": "diagram",
+          "ms": 11120,
+          "file": "domain-1-overview/en/aoede/roadmap.wav"
+        },
+        {
+          "id": "no-brakes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "stop-reason",
+          "kind": "code",
+          "ms": 14280,
+          "file": "domain-1-overview/en/aoede/stop-reason.wav"
+        },
+        {
+          "id": "three-coats",
+          "kind": "compare",
+          "ms": 12560,
+          "file": "domain-1-overview/en/aoede/three-coats.wav"
+        },
+        {
+          "id": "queue-of-helpers",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "dont-delegate",
+          "kind": "compare",
+          "ms": 12560,
+          "file": "domain-1-overview/en/aoede/dont-delegate.wav"
+        },
+        {
+          "id": "three-passes",
+          "kind": "diagram",
+          "ms": 16480,
+          "file": "domain-1-overview/en/aoede/three-passes.wav"
+        },
+        {
+          "id": "script-vs-goal",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "brief-with-goals",
+          "kind": "compare",
+          "ms": 15160,
+          "file": "domain-1-overview/en/aoede/brief-with-goals.wav"
+        },
+        {
+          "id": "dominoes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "forced-first",
+          "kind": "code",
+          "ms": 17680,
+          "file": "domain-1-overview/en/aoede/forced-first.wav"
+        },
+        {
+          "id": "twelve-at-once",
+          "kind": "compare",
+          "ms": 13640,
+          "file": "domain-1-overview/en/aoede/twelve-at-once.wav"
+        },
+        {
+          "id": "canyon-shout",
+          "kind": "veo",
+          "ms": 8000,
+          "silent": true
+        },
+        {
+          "id": "no-inheritance",
+          "kind": "rows",
+          "ms": 12040,
+          "file": "domain-1-overview/en/aoede/no-inheritance.wav"
+        },
+        {
+          "id": "two-numbers",
+          "kind": "compare",
+          "ms": 14160,
+          "file": "domain-1-overview/en/aoede/two-numbers.wav"
+        },
+        {
+          "id": "citation-id",
+          "kind": "rows",
+          "ms": 14000,
+          "file": "domain-1-overview/en/aoede/citation-id.wav"
+        },
+        {
+          "id": "burst-pipes",
+          "kind": "veo",
+          "ms": 7000,
+          "silent": true
+        },
+        {
+          "id": "tell-it-what-changed",
+          "kind": "compare",
+          "ms": 13440,
+          "file": "domain-1-overview/en/aoede/tell-it-what-changed.wav"
+        },
+        {
+          "id": "checkpoint",
+          "kind": "rows",
+          "ms": 13880,
+          "file": "domain-1-overview/en/aoede/checkpoint.wav"
+        },
+        {
+          "id": "three-hundred",
+          "kind": "compare",
+          "ms": 20280,
+          "file": "domain-1-overview/en/aoede/three-hundred.wav"
+        },
+        {
+          "id": "thirteen-doors",
+          "kind": "veo",
+          "ms": 8000,
+          "silent": true
+        },
+        {
+          "id": "go-find-out",
+          "kind": "card",
+          "ms": 14520,
+          "file": "domain-1-overview/en/aoede/go-find-out.wav"
+        }
+      ]
+    }
+  ]
+}

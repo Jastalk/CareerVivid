@@ -1,0 +1,15 @@
+{
+  "guestPreviews": {
+    "system-design-interview": {
+      "startExerciseId": "sd01-reading",
+      "exerciseIdPrefixes": ["sd01-", "sd02-", "sd03-", "sd04-"],
+      "exerciseIds": [
+        "sd-ordering-phases",
+        "sd-latency-cards",
+        "sd-capacity-quickfire",
+        "sd-ordering-deploy",
+        "sd-spot-flaw"
+      ]
+    }
+  }
+}

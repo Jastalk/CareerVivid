@@ -83,7 +83,7 @@ const DecodeResult: React.FC<{ decode: JobDecode }> = ({ decode }) => (
             <ol className="mt-3 space-y-2.5">
                 {decode.interviewLoop.map((stage, i) => (
                     <li key={stage.stage} className="flex gap-3">
-                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#211b16] text-[10px] font-bold text-white dark:bg-[#caa26c] dark:text-[#211b16]">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#211b16] text-[10px] font-bold text-white dark:bg-[#caa26c] dark:text-[rgb(33,27,22)]">
                             {i + 1}
                         </span>
                         <p className="text-sm leading-snug text-[#4a3f35] dark:text-[#cfc7b8]">
@@ -167,7 +167,7 @@ const DecodeJobHero: React.FC = () => {
                                     aria-pressed={isActive}
                                     className={`rounded-lg px-3 py-1.5 text-[13px] font-bold transition ${
                                         isActive
-                                            ? 'bg-[#211b16] text-white shadow-sm dark:bg-[#caa26c] dark:text-[#211b16]'
+                                            ? 'bg-[#211b16] text-white shadow-sm dark:bg-[#caa26c] dark:text-[rgb(33,27,22)]'
                                             : 'border border-[#e4d3bc] bg-white/60 text-[#6b6055] hover:border-[#bfa782] dark:border-[#3f3931] dark:bg-[#262522]/60 dark:text-[#a89e90]'
                                     }`}
                                 >
