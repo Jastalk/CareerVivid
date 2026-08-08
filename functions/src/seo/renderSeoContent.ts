@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import { isbot } from "isbot";
 import { algoliasearch } from "algoliasearch";
 import { getLearningSeoPage, isLearningPageFree } from "./learningSeo";
+import { getSearchPage, SEARCH_ORIGIN, SearchPageDefinition } from "./searchIndexPolicy";
 
 const db = admin.firestore();
 
@@ -54,7 +55,7 @@ async function getIndexHtml(): Promise<string> {
 // ── Shared helpers ────────────────────────────────────────────────────────────
 const DEFAULT_OG_IMAGE = "https://firebasestorage.googleapis.com/v0/b/jastalk-firebase.firebasestorage.app/o/public%2Flogo_assets%2Fog_image.png?alt=media";
 const LOGO_URL = "https://firebasestorage.googleapis.com/v0/b/jastalk-firebase.firebasestorage.app/o/public%2Flogo_assets%2Flogo_light_mode.png?alt=media";
-const BASE_URL = "https://careervivid.app";
+const BASE_URL = SEARCH_ORIGIN;
 
 const esc = (s: string) => (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
@@ -67,18 +68,18 @@ const stripMarkdown = (md: string): string => (md || "")
     .trim();
 
 const buildHtml = ({
-    title, description, canonicalUrl, imageUrl, structuredData, bodyContent, siteSuffix
+    title, description, canonicalUrl, imageUrl, structuredData, bodyContent, siteSuffix, indexable = true
 }: {
     title: string; description: string; canonicalUrl: string; imageUrl: string;
-    structuredData: object; bodyContent: string; siteSuffix: string;
+    structuredData: object; bodyContent: string; siteSuffix: string; indexable?: boolean;
 }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${esc(title)} | ${esc(siteSuffix)}</title>
+  <title>${esc(title)}${siteSuffix ? ` | ${esc(siteSuffix)}` : ""}</title>
   <meta name="description" content="${esc(description)}" />
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="robots" content="${indexable ? "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" : "noindex, follow"}" />
   <link rel="canonical" href="${canonicalUrl}" />
   <link rel="icon" href="${LOGO_URL}" />
 
@@ -101,11 +102,9 @@ const buildHtml = ({
   <!-- Structured Data -->
   <script type="application/ld+json">${JSON.stringify(structuredData)}</script>
 
-  <!-- SPA Bootstrap (human visitors rendered by React after this) -->
-  <script type="module" src="/assets/main.js"></script>
 </head>
 <body>
-  <!-- SEO Content: visible to crawlers, React replaces this on load -->
+  <!-- Semantic HTML served only to crawlers; human requests receive index.html. -->
   <div id="root">
     <main style="max-width:780px;margin:0 auto;padding:48px 24px;font-family:sans-serif;color:#111;">
       ${bodyContent}
@@ -115,6 +114,40 @@ const buildHtml = ({
 </html>`;
 
 // ── Route handlers ────────────────────────────────────────────────────────────
+
+function handleStaticPage(page: SearchPageDefinition): string {
+    const canonicalUrl = `${BASE_URL}${page.path === "/" ? "/" : page.path}`;
+    const indexable = page.indexable !== false;
+    const links = (page.links || []).map(({ href, label }) =>
+        `<li><a href="${BASE_URL}${href}" style="color:#4f46e5;font-weight:700;">${esc(label)}</a></li>`
+    ).join("");
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        name: page.title,
+        description: page.description,
+        url: canonicalUrl,
+        isPartOf: { "@type": "WebSite", name: "CareerVivid", url: `${BASE_URL}/` },
+    };
+    const bodyContent = `
+        <nav aria-label="Breadcrumb" style="font-size:0.9rem;margin-bottom:20px;"><a href="${BASE_URL}/" style="color:#4f46e5;">CareerVivid</a></nav>
+        <h1 style="font-size:2.2rem;font-weight:800;line-height:1.2;margin:0 0 16px;">${esc(page.heading)}</h1>
+        <p style="font-size:1.1rem;color:#555;line-height:1.7;margin:0;">${esc(page.summary)}</p>
+        ${links ? `<ul style="padding-left:20px;line-height:1.9;margin-top:28px;">${links}</ul>` : ""}
+        <p style="margin-top:32px;"><a href="${canonicalUrl}" style="color:#4f46e5;font-weight:700;">Open ${esc(page.heading)} on CareerVivid</a></p>`;
+
+    return buildHtml({
+        title: page.title,
+        description: page.description,
+        canonicalUrl,
+        imageUrl: DEFAULT_OG_IMAGE,
+        structuredData,
+        bodyContent,
+        siteSuffix: "",
+        indexable,
+    });
+}
 
 async function handleArticle(postId: string): Promise<string> {
     const snap = await db.collection("community_posts").doc(postId).get();
@@ -527,6 +560,13 @@ export const renderSeoContent = onRequest(
                 html = await handlePortfolio(routeParts[1]);
             } else if (routeType === "whiteboard") {
                 html = await handleWhiteboard(routeParts.slice(1));
+            } else if (language === "en") {
+                const page = getSearchPage(path);
+                if (!page) {
+                    res.status(404).send("Not Found");
+                    return;
+                }
+                html = handleStaticPage(page);
             } else {
                 res.status(404).send("Not Found");
                 return;

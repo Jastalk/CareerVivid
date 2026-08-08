@@ -1,7 +1,7 @@
 import { onRequest } from "firebase-functions/v2/https";
 import { algoliasearch } from "algoliasearch";
+import { communityHitToSitemapUrl, SITEMAP_STATIC_ROUTES } from "./searchIndexPolicy";
 
-const BASE_URL = "https://careervivid.app";
 const INDEX_NAME = "community_posts";
 
 const xmlEsc = (s: string) =>
@@ -18,62 +18,18 @@ const toIsoDate = (ts: number | string | undefined): string => {
     return isNaN(d.getTime()) ? new Date().toISOString().split("T")[0] : d.toISOString().split("T")[0];
 };
 
-const hitToUrl = (hit: any): string | null => {
-    const id: string = hit.objectID;
-    const type: string = hit.type || "article";
-    switch (type) {
-        case "article": return `${BASE_URL}/community/post/${id}`;
-        case "resume": return hit.authorId ? `${BASE_URL}/shared/${hit.authorId}/${id}` : null;
-        case "portfolio": return hit.authorId ? `${BASE_URL}/portfolio/${hit.authorId}` : null;
-        case "whiteboard": return `${BASE_URL}/whiteboard/${id}`;
-        default: return `${BASE_URL}/community/post/${id}`;
-    }
-};
-
-const STATIC_ROUTES = [
-    { loc: BASE_URL, changefreq: "daily", priority: "1.0" },
-    { loc: `${BASE_URL}/learning`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/learning/coding-interview-patterns`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/learning/system-design-interview`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/learning/ai-agent-curriculum`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/interview-studio`, changefreq: "weekly", priority: "0.9" },
-    { loc: `${BASE_URL}/community`, changefreq: "hourly", priority: "0.9" },
-    { loc: `${BASE_URL}/pricing`, changefreq: "weekly", priority: "0.8" },
-    { loc: `${BASE_URL}/blog`, changefreq: "daily", priority: "0.8" },
-    { loc: `${BASE_URL}/job-market`, changefreq: "daily", priority: "0.7" },
-    { loc: `${BASE_URL}/contact`, changefreq: "monthly", priority: "0.6" },
-    { loc: `${BASE_URL}/product`, changefreq: "monthly", priority: "0.6" },
-    { loc: `${BASE_URL}/community/guidelines`, changefreq: "monthly", priority: "0.5" },
-];
-
 // Guest-browsable company interview quest pages (/quest/{slug}) — regenerated
 // by scripts/generate-sitemap.mjs whenever interview guides change.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { QUEST_ROUTE_SLUGS } from "./questRoutes.generated";
 
 const QUEST_ROUTES = QUEST_ROUTE_SLUGS.map((slug) => ({
-    loc: `${BASE_URL}/quest/${slug}`,
+    loc: `https://careervivid.app/quest/${slug}`,
     changefreq: "weekly",
     priority: "0.6",
 }));
 
-// Add localized versions for each static route (excluding root which handles 'en' by default)
-const SUPPORTED_LANGUAGE_CODES = ["es", "fr", "de", "zh", "ja", "ko"];
-
-const LOCALIZED_STATIC_ROUTES = SUPPORTED_LANGUAGE_CODES.flatMap(code => {
-    return STATIC_ROUTES.map(route => {
-        const path = route.loc.replace(BASE_URL, "");
-        // If it's the home page, just /lang
-        const loc = path === "" ? `${BASE_URL}/${code}` : `${BASE_URL}/${code}${path}`;
-        return {
-            ...route,
-            loc,
-            priority: (parseFloat(route.priority) * 0.9).toFixed(1) // slightly lower priority for localized versions
-        };
-    });
-});
-
-const ALL_STATIC_ROUTES = [...STATIC_ROUTES, ...LOCALIZED_STATIC_ROUTES, ...QUEST_ROUTES];
+const ALL_STATIC_ROUTES = [...SITEMAP_STATIC_ROUTES, ...QUEST_ROUTES];
 
 export const generateSitemap = onRequest(
     {
@@ -110,7 +66,7 @@ export const generateSitemap = onRequest(
                     aggregator: (response: any) => {
                         const hits: any[] = response.hits || [];
                         for (const hit of hits) {
-                            const url = hitToUrl(hit);
+                            const url = communityHitToSitemapUrl(hit);
                             if (!url || seenUrls.has(url)) continue;
                             seenUrls.add(url);
 
@@ -126,7 +82,7 @@ export const generateSitemap = onRequest(
                     },
                 });
 
-                console.log(`[generateSitemap] ${seenUrls.size} dynamic + ${STATIC_ROUTES.length} static URLs.`);
+                console.log(`[generateSitemap] ${seenUrls.size} public articles + ${ALL_STATIC_ROUTES.length} static URLs.`);
             } else {
                 console.warn("[generateSitemap] Missing ALGOLIA_WRITE_KEY — serving static-only sitemap.");
             }

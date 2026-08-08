@@ -1,5 +1,5 @@
 /**
- * Post-build prerender for AEO/SEO: writes dist/quest/{slug}/index.html for
+ * Post-build prerender for AEO/SEO: writes dist/quest/{slug}.html for
  * every company interview guide, each a copy of the built SPA shell with the
  * page's real <title>, meta description, canonical, OG tags, and JSON-LD
  * injected into <head>.
@@ -7,8 +7,6 @@
  * Firebase Hosting serves exact static files BEFORE rewrites, so crawlers and
  * answer engines that don't execute JS get correct metadata, while human
  * visitors get the normal SPA (React takes over on hydration).
- *
- * Also prerenders /learning with the course-catalog metadata.
  *
  * Runs automatically at the end of scripts/build.mjs; safe to run manually:
  *   node scripts/prerender-quest-pages.mjs
@@ -36,7 +34,7 @@ const escapeHtml = (value) => value
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-/** Replace the shell's <title> and inject head tags right before </head>. */
+/** Replace generic shell SEO tags instead of leaving duplicate canonicals. */
 const renderPage = ({ title, description, canonical, jsonLd }) => {
     const headBits = [
         `<meta name="description" content="${escapeHtml(description)}" data-prerender="true">`,
@@ -48,15 +46,20 @@ const renderPage = ({ title, description, canonical, jsonLd }) => {
         `<script type="application/ld+json" data-prerender="true">${JSON.stringify(jsonLd)}</script>`,
     ].join('\n    ');
 
-    return shell
+    const pageShell = shell
+        .replace(/<meta\b[^>]*(?:name|property)=["'](?:description|robots|og:title|og:description|og:url|og:type|twitter:title|twitter:description|twitter:url)["'][^>]*>\s*/gi, '')
+        .replace(/<link\b[^>]*rel=["']canonical["'][^>]*>\s*/gi, '')
+        .replace(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>\s*/gi, '');
+
+    return pageShell
         .replace(/<title>[\s\S]*?<\/title>/, `<title>${escapeHtml(title)}</title>`)
         .replace('</head>', `    ${headBits}\n  </head>`);
 };
 
 const writePage = (routePath, html) => {
-    const dir = path.join(DIST, routePath);
+    const dir = path.join(DIST, path.dirname(routePath));
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'index.html'), html);
+    fs.writeFileSync(path.join(DIST, `${routePath}.html`), html);
 };
 
 /* ---------------- Quest pages ---------------- */
@@ -100,35 +103,4 @@ for (const guide of guides) {
     questCount += 1;
 }
 
-/* ---------------- /learning ---------------- */
-
-const courseFiles = fs.readdirSync(path.join(ROOT, 'data', 'courses')).filter((f) => f.endsWith('.json'));
-const courses = courseFiles
-    .map((file) => JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'courses', file), 'utf-8')))
-    .filter((course) => course.status === 'published')
-    .sort((a, b) => a.order - b.order);
-
-writePage('learning', renderPage({
-    title: 'Free AI Courses — Learn Agents by Doing | CareerVivid',
-    description: `${courses.length} hands-on AI courses from LLM foundations to a shipped portfolio project. Interactive playgrounds, quizzes, and code labs — the Foundations course is free, no account needed.`,
-    canonical: `${ORIGIN}/learning`,
-    jsonLd: {
-        '@context': 'https://schema.org',
-        '@type': 'ItemList',
-        name: 'CareerVivid AI-agent curriculum',
-        numberOfItems: courses.length,
-        itemListElement: courses.map((course, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            item: {
-                '@type': 'Course',
-                name: course.title.replace(/^\d+\.\s*/, ''),
-                description: course.tagline,
-                provider: { '@type': 'Organization', name: 'CareerVivid', url: `${ORIGIN}/` },
-                isAccessibleForFree: course.id === 'ai-foundations-map',
-            },
-        })),
-    },
-}));
-
-console.log(`Prerendered ${questCount} quest pages + /learning into dist/.`);
+console.log(`Prerendered ${questCount} canonical quest pages into dist/.`);
