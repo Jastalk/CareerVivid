@@ -56,45 +56,45 @@
               "id": "q1-what-llm-does",
               "prompt": "At its core, what does a large language model do?",
               "options": [
-                "It searches a database of stored answers written by experts",
-                "It predicts the next token over and over, based on the text so far",
-                "It runs your prompt as code and returns the output"
+                "It looks up the closest match in its training data and paraphrases it",
+                "It plans the whole answer internally, then writes that plan out as text",
+                "It predicts the next token over and over, based on the text so far"
               ],
-              "correctIndex": 1,
-              "explanation": "An LLM is a next-token predictor. Every capability you see — reasoning, code, summaries — emerges from repeatedly scoring and picking the next token."
+              "correctIndex": 2,
+              "explanation": "An LLM is a next-token predictor. Every capability you see — reasoning, code, summaries — emerges from repeatedly scoring and picking the next token. The second option is the most tempting wrong answer, and the reason it matters: there is no stored plan, so the model cannot go back and revise a sentence it has already emitted. That single fact explains why it commits to a bad opening and then rationalises it, and why 'think step by step' works at all — reasoning has to happen *in* the output, because there is nowhere else for it to happen."
             },
             {
               "id": "q2-same-prompt",
               "prompt": "You send the exact same prompt twice and get two different answers. Why?",
               "options": [
-                "The model is broken — identical prompts must give identical answers",
-                "Generation involves sampling from a probability distribution, so outputs vary",
+                "Generation samples from a probability distribution, so outputs vary",
+                "The two calls were served by different versions of the model",
                 "The model remembers your first question and avoids repeating itself"
               ],
-              "correctIndex": 1,
-              "explanation": "LLMs are non-deterministic by default: they sample from the token distribution. Settings like temperature control how much the response varies."
+              "correctIndex": 0,
+              "explanation": "LLMs are non-deterministic by default: they sample from the token distribution. Settings like temperature control how much the response varies. Silent version rollouts are a real phenomenon and worth pinning your model version against — but they change behaviour over weeks, not between two calls a second apart. And nothing is remembered between API calls: each request is stateless, and 'memory' in a chat product is just prior turns being re-sent."
             },
             {
               "id": "q3-history",
               "prompt": "What was the key shift that machine learning introduced over early rule-based chatbots?",
               "options": [
+                "Faster hardware, which let the same hand-written rules run over far bigger keyword tables",
                 "Learning patterns from data instead of following hand-written rules",
-                "Faster hardware that could store bigger keyword lists",
-                "Connecting the chatbot to the internet"
+                "Bigger rule sets, maintained by larger teams of domain experts"
               ],
-              "correctIndex": 0,
-              "explanation": "Rule-based bots needed experts to write every answer. ML models learn from (text, label) pairs, so they can handle inputs no one explicitly programmed."
+              "correctIndex": 1,
+              "explanation": "Rule-based bots needed experts to write every answer. ML models learn from (text, label) pairs, so they can handle inputs no one explicitly programmed. Both wrong answers describe scaling up the old approach — more hardware, more rules, more experts — and that is exactly what the field tried for decades. It plateaued, because language has an unbounded number of ways to say the same thing and you cannot enumerate them by hand."
             },
             {
               "id": "q4-expectations",
               "prompt": "What's a realistic expectation when using an LLM for work?",
               "options": [
-                "It's perfect at math and always produces working code",
-                "It gives you a strong first draft that you should verify and improve",
-                "It only works if you write prompts in a programming language"
+                "It's dependable on anything factual, and only gets shaky on creative work",
+                "It's unreliable enough that checking its output costs more than doing the work yourself",
+                "It gives you a strong first draft that you should verify and improve"
               ],
-              "correctIndex": 1,
-              "explanation": "LLMs do the heavy lifting — great first drafts of text or code — but they make mistakes. Treat output as a draft to verify, not a final answer."
+              "correctIndex": 2,
+              "explanation": "LLMs do the heavy lifting — great first drafts of text or code — but they make mistakes. Treat output as a draft to verify, not a final answer. The first option has the reliability backwards: facts are where models fail most confidently, because a fluent wrong citation and a fluent right one are generated the same way. The second is the opposite over-correction, and it fails on the economics: verifying a draft is usually far cheaper than producing one, which is exactly why the draft-then-check loop pays."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }
@@ -144,45 +144,45 @@
               "id": "q1-open-vs-proprietary",
               "prompt": "Your startup handles sensitive medical records that cannot leave your servers. Which model choice fits best?",
               "options": [
-                "A proprietary API model — they're always more secure",
                 "An open-weight model self-hosted on your own infrastructure",
-                "No model can be used with sensitive data"
+                "A proprietary API under a zero-retention agreement and a signed BAA",
+                "A proprietary API, with records de-identified before every call"
               ],
-              "correctIndex": 1,
-              "explanation": "Open-weight models run entirely on infrastructure you control, so data never leaves. Proprietary APIs can be compliant too, but self-hosting gives the hard guarantee described here."
+              "correctIndex": 0,
+              "explanation": "Open-weight models run entirely on infrastructure you control, so the data never leaves — that is the hard guarantee the requirement asks for. The other two are real, widely-shipped compliance designs, and in a different question either could be the right answer: a BAA plus zero retention is how most regulated products actually use frontier models. But both move a legal control into the place a technical one was demanded, and de-identification adds a re-identification risk you now own. Read the constraint literally: 'cannot leave your servers' rules out sending it anywhere."
             },
             {
               "id": "q2-embeddings",
               "prompt": "What are embedding models mainly used for?",
               "options": [
-                "Generating longer, more creative answers",
-                "Turning text into vectors so you can search by meaning (the backbone of RAG)",
-                "Compressing a model so it runs on a phone"
+                "Compressing long documents so they fit inside the context window",
+                "Shrinking a model's weights so it runs on a phone",
+                "Turning text into vectors so you can search by meaning (the backbone of RAG)"
               ],
-              "correctIndex": 1,
-              "explanation": "Embeddings map text to vectors where similar meanings land close together — that's what powers semantic search and the retrieval step of RAG."
+              "correctIndex": 2,
+              "explanation": "Embeddings map text to vectors where similar meanings land close together — that's what powers semantic search and the retrieval step of RAG. The first option is the most common misreading: an embedding is lossy and one-way, so you cannot feed a vector to a chat model and get the document back. Embeddings *find* the chunk; the raw text of that chunk is what goes into the prompt. The second describes quantisation, which shrinks the model rather than representing the text."
             },
             {
               "id": "q3-improve-results",
               "prompt": "The model keeps answering questions about your product wrongly because it never saw your internal docs. What's the right *first* escalation?",
               "options": [
                 "Fine-tune the model on your documentation",
-                "Train a new model from scratch",
-                "Use RAG — retrieve relevant doc chunks into the prompt"
+                "Use RAG — retrieve relevant doc chunks into the prompt",
+                "Paste the entire documentation set into the system prompt"
               ],
-              "correctIndex": 2,
-              "explanation": "Missing knowledge is a retrieval problem: RAG injects current, private facts at question time. Fine-tuning shapes *behavior*, not knowledge freshness, and costs far more to keep updated."
+              "correctIndex": 1,
+              "explanation": "Missing knowledge is a retrieval problem: RAG injects current, private facts at question time. Fine-tuning shapes *behavior*, not knowledge freshness, and costs far more to keep updated. The third option is the modern trap — long context windows make it look free, but you pay for those tokens on every single request, and recall degrades as the window fills, so the fact you needed gets skipped over anyway. Retrieval sends the ten relevant chunks instead of the ten thousand irrelevant ones."
             },
             {
               "id": "q4-service-vs-model",
               "prompt": "What does a model *service* (like Azure OpenAI or the Anthropic API) add on top of the raw model?",
               "options": [
                 "Hosting, safety filters, SLAs, and billing around the model",
-                "A bigger neural network with more parameters",
-                "Nothing — service and model are the same thing"
+                "Extra reasoning passes the provider runs before the model sees your prompt",
+                "Nothing that affects your build — you're paying for the same weights either way"
               ],
               "correctIndex": 0,
-              "explanation": "The service wraps the model with production plumbing. When you pick a provider you're evaluating the service — latency, reliability, compliance — as much as the model."
+              "explanation": "The service wraps the model with production plumbing. When you pick a provider you're evaluating the service — latency, reliability, compliance — as much as the model. The last option is the one worth arguing with: the weights really can be identical across two providers serving the same open model, and teams still switch between them, because rate limits, region availability, p99 latency, and data-retention terms are what actually break a product in production."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

@@ -233,7 +233,7 @@ const fetchResumeById = async (resumeId: string) => {
 
 export const publicResumeApi = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onRequest((req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {

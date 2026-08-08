@@ -1,0 +1,6 @@
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_01_cold_open_hook.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_02_the_problem.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_03_compare_trap.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_04_the_solution.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_05_code_in_action.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/retention_render/block_06_payoff_takeaway.mp4'

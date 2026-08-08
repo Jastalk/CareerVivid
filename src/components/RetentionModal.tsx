@@ -85,7 +85,7 @@ const RetentionModal: React.FC<RetentionModalProps> = ({ isOpen, step, onAccept,
                             type="button"
                             onClick={onAccept}
                             disabled={isLoading}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3.5 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-wait disabled:opacity-70 dark:bg-[#f4f1e9] dark:text-[#211b16]"
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3.5 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-wait disabled:opacity-70 dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]"
                         >
                             {isLoading ? 'Applying...' : content.accept}
                             {!isLoading && <ArrowRight size={16} />}

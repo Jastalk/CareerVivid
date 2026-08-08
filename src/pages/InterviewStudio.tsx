@@ -762,7 +762,7 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                             </h2>
                         </div>
                         <p className="cv-design-body mt-1.5 text-sm">
-                            Interview stages, key topics, and sample questions sourced from real engineers at each company — powered by{' '}
+                            Interview stages, key topics, and realistic practice questions our frontier AI generates from thousands of real interview reviews on{' '}
                             <a href="https://www.techinterview.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:opacity-80">techinterview.org</a>.
                         </p>
                     </div>

@@ -195,7 +195,7 @@ function createPracticeId(jobTitle: string, company: string): string {
  */
 export const mobileInterviewQuestions = functions.region("us-west1").runWith({
     timeoutSeconds: 15,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method === "OPTIONS") {
@@ -552,7 +552,7 @@ Return a strict JSON object with:
 
 export const mobileInterviewLiveToken = functions.region("us-west1").runWith({
     timeoutSeconds: 15,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method === "OPTIONS") {

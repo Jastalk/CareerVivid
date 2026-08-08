@@ -54,6 +54,9 @@ output/
 .playwright-cli/
 experiments/
 
+# Local video renders are release artifacts, not source files.
+*.mp4
+
 # Environment variables and local credential files. Only intentionally
 # non-sensitive templates belong in source control.
 .env

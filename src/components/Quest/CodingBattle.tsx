@@ -5,6 +5,7 @@ import { python } from '@codemirror/lang-python';
 import {
     Bot,
     CheckCircle2,
+    ChevronDown,
     ClipboardList,
     Code2,
     Lightbulb,
@@ -18,6 +19,8 @@ import {
     XCircle,
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
+import MobileExperienceGate from './MobileExperienceGate';
 import { analyzeCodingSubmission, voiceToCode, VoiceCoachMessage, VoiceToCodeResult } from '../../services/geminiService';
 import { InterviewAnalysis, QuestCodingArtifact, QuestCodingDraft } from '../../types';
 import {
@@ -181,6 +184,11 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     const [coachHistory, setCoachHistory] = useState<VoiceCoachMessage[]>([]);
     const [lastCoachResult, setLastCoachResult] = useState<VoiceToCodeResult | null>(null);
     const [coachPanelOpen, setCoachPanelOpen] = useState(false);
+    // Mobile: the brief starts collapsed so the code editor gets the full screen.
+    const [briefOpen, setBriefOpen] = useState(false);
+    // Mobile: show a "better on desktop" gate before opening the round.
+    const isMobileViewport = useMediaQuery('(max-width: 1023px)');
+    const [mobileGateAcknowledged, setMobileGateAcknowledged] = useState(false);
     const recognitionRef = useRef<any>(null);
     const voiceTranscriptRef = useRef('');
     const coachScrollRef = useRef<HTMLDivElement | null>(null);
@@ -451,6 +459,16 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
         }
     }, [language, code]);
 
+    if (isMobileViewport && !mobileGateAcknowledged) {
+        return (
+            <MobileExperienceGate
+                roundType="coding"
+                onContinue={() => setMobileGateAcknowledged(true)}
+                onBack={handleClose}
+            />
+        );
+    }
+
     if (reportEntry) {
         const historyEntry = {
             id: reportEntry.id,
@@ -496,7 +514,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             </p>
                         </div>
                     </div>
-                    <div className="flex w-full shrink-0 items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] sm:w-auto sm:overflow-visible sm:pb-0 [&::-webkit-scrollbar]:hidden">
+                    <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap sm:overflow-visible">
                         <div className="flex shrink-0 overflow-hidden rounded-lg border border-gray-200 text-xs font-bold dark:border-gray-700">
                             {CODING_LANGUAGES
                                 .filter((lang) => !isGuestPractice || isExecutableCodingLanguage(lang))
@@ -642,10 +660,36 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                 )}
 
                 {/* Body: brief + editor + results */}
-                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
-                    {/* Brief panel */}
-                    <aside className="max-h-[42svh] shrink-0 overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]">
-                        <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
+                    {/* Mobile: collapsed brief summary bar (tap to expand) */}
+                    <button
+                        type="button"
+                        onClick={() => setBriefOpen(true)}
+                        className="flex shrink-0 items-center gap-2 border-b border-[#ececf4] bg-[#fbfbfe] px-4 py-2.5 text-left lg:hidden dark:border-gray-800 dark:bg-gray-900/60"
+                    >
+                        <ClipboardList size={14} className="shrink-0 text-[#625bd5] dark:text-[#9b96ef]" />
+                        <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-gray-700 dark:text-gray-200">{challenge.title}</span>
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#f3f2ff] px-2 py-1 text-[11px] font-bold text-[#625bd5] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff]">
+                            Brief <ChevronDown size={12} />
+                        </span>
+                    </button>
+
+                    {/* Brief panel — overlay on mobile when expanded, static column on desktop */}
+                    <aside className={`${briefOpen ? 'flex' : 'hidden'} absolute inset-0 z-30 flex-col overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:static lg:z-auto lg:flex lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]`}>
+                        <div className="mb-3 flex items-center justify-between lg:hidden">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                                <ClipboardList size={13} /> Coding brief
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setBriefOpen(false)}
+                                aria-label="Close brief"
+                                className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        <div className="hidden items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] lg:flex dark:text-[#9b96ef]">
                             <ClipboardList size={13} /> Coding brief
                         </div>
                         <p className="mt-2.5 text-base font-bold leading-snug text-gray-900 dark:text-gray-100">{challenge.title}</p>
@@ -685,8 +729,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                     </aside>
 
                     {/* Editor + results */}
-                    <div className="flex min-h-[52svh] flex-1 flex-col lg:min-h-0">
-                        <div className="h-[52svh] min-h-[52svh] flex-1 overflow-auto lg:h-auto lg:min-h-0">
+                    <div className="flex min-h-0 flex-1 flex-col">
+                        <div className="min-h-0 flex-1 overflow-auto lg:h-auto lg:min-h-0">
                             <CodeMirror
                                 value={code}
                                 height="100%"

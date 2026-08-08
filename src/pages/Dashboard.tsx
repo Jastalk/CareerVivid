@@ -1,4 +1,4 @@
-import React, { Suspense, useRef, useEffect } from 'react';
+import React, { Suspense, useRef, useEffect, useState } from 'react';
 import { PlusCircle, FileText, Mic, Briefcase, Loader2, Globe, User as UserIcon, ChevronDown, FolderPlus, PenTool, LayoutGrid, List, Users, MessageSquare, Sparkles } from 'lucide-react';
 
 // Hooks & Logic
@@ -19,7 +19,6 @@ import { getPlanDisplayName } from '../config/subscriptionCatalog';
 
 // Refactored Sections
 import { 
-    WorkspaceSummaryCards, 
     ResumesSection, 
     PortfoliosSection, 
     InterviewStudioSection, 
@@ -32,7 +31,7 @@ import DashboardPostCard from '../components/Dashboard/DashboardPostCard';
 import { MobilePostCard } from '../components/Dashboard/DashboardMobileCards';
 import ReorderDashboardModal from '../components/Dashboard/ReorderDashboardModal';
 import JobDetailModal from '../components/JobTracker/JobDetailModal';
-import CareerProfileGraphCard from '../components/Dashboard/CareerProfileGraphCard';
+import DashboardOverview from '../components/Dashboard/DashboardOverview';
 
 // Lazy load modal
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
@@ -129,6 +128,7 @@ const Dashboard: React.FC = () => {
 
     const userMenuRef = useRef<HTMLDivElement>(null);
     const newMenuRef = useRef<HTMLDivElement>(null);
+    const [isWorkspaceDetailsOpen, setIsWorkspaceDetailsOpen] = useState(false);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -271,7 +271,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </header>
 
-                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
                     <div className="mb-6 md:hidden">
                         <h1 className="cv-design-title text-[22px] transition-all">{dashboardTitle}</h1>
                         <p className="cv-design-body mt-0.5 text-[13px]">{t('dashboard.subtitle', "Here's your job search at a glance.")}</p>
@@ -284,24 +284,40 @@ const Dashboard: React.FC = () => {
 
                     <MobileWorkflowLauncher />
 
-                    <div>
-                        <WorkspaceSummaryCards />
-                    </div>
-
-                    <CareerProfileGraphCard
+                    <DashboardOverview
                         resumes={resumes}
                         portfolios={portfolios}
                         practiceHistory={practiceHistory}
                         jobApplications={jobApplications}
+                        communityPostCount={myCommunityPosts.length}
+                        onInterviewSelect={setSelectedJobForReport}
                     />
 
-                    <div className="hidden justify-end mt-6 mb-2 pr-1 md:flex">
-                        <button onClick={() => setViewMode(viewMode === 'row' ? 'grid' : 'row')} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-500 dark:text-gray-400 flex items-center gap-2 text-sm font-medium" title={viewMode === 'row' ? 'Switch to Grid View' : 'Switch to Row View'}>
-                            {viewMode === 'row' ? (<><LayoutGrid size={18} /> <span className="hidden sm:inline">Grid View</span></>) : (<><List size={18} /> <span className="hidden sm:inline">Row View</span></>)}
-                        </button>
-                    </div>
+                    <section className="mt-8 border-t border-[var(--cv-border-subtle)] pt-5" aria-labelledby="workspace-details-heading">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <h2 id="workspace-details-heading" className="font-heading text-base font-extrabold text-[var(--cv-text-heading-product)] dark:text-white">Workspace details</h2>
+                                <p className="mt-1 text-xs text-[var(--cv-text-muted)]">Open your full collections when you need to manage individual items.</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsWorkspaceDetailsOpen((open) => !open)}
+                                aria-expanded={isWorkspaceDetailsOpen}
+                                className="inline-flex items-center gap-2 rounded-lg border border-[var(--cv-border-product)] bg-[var(--cv-surface)] px-3 py-2 text-xs font-bold text-[var(--cv-text-heading-product)] transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)] dark:bg-slate-900 dark:text-white"
+                            >
+                                {isWorkspaceDetailsOpen ? 'Hide details' : 'View workspace details'}
+                                <ChevronDown size={15} className={`transition-transform ${isWorkspaceDetailsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+                            </button>
+                        </div>
 
-                    {sectionOrder.map(sectionId => {
+                        {isWorkspaceDetailsOpen && <>
+                            <div className="hidden justify-end mt-6 mb-2 pr-1 md:flex">
+                                <button onClick={() => setViewMode(viewMode === 'row' ? 'grid' : 'row')} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading-product)] dark:hover:bg-slate-800" title={viewMode === 'row' ? 'Switch to Grid View' : 'Switch to Row View'}>
+                                    {viewMode === 'row' ? (<><LayoutGrid size={18} /> <span className="hidden sm:inline">Grid View</span></>) : (<><List size={18} /> <span className="hidden sm:inline">Row View</span></>)}
+                                </button>
+                            </div>
+
+                            {sectionOrder.map(sectionId => {
                         const commonProps = {
                             viewMode,
                             sectionName: sectionNames[sectionId],
@@ -338,7 +354,9 @@ const Dashboard: React.FC = () => {
                             default:
                                 return null;
                         }
-                    })}
+                            })}
+                        </>}
+                    </section>
                 </div>
 
                 {/* Modals & Overlays */}

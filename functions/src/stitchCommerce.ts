@@ -9,7 +9,7 @@ const db = admin.firestore();
  */
 export const createOrder = functions
     .region('us-west1')
-    .runWith({ timeoutSeconds: 60, memory: "256MB" })
+    .runWith({ timeoutSeconds: 60, memory: "512MB" })
     .https.onCall(async (data, context) => {
         // 1. Authentication Check
         if (!context.auth) {

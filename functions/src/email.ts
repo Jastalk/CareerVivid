@@ -130,7 +130,7 @@ export const submitContactMessage = functions
     .runWith({
         secrets: [smtpEmail, smtpPassword],
         timeoutSeconds: 60,
-        memory: "256MB",
+        memory: "512MB",
     })
     .https.onCall(async (input: ContactMessageInput) => {
         const data = normalizeContactMessage(input);
@@ -185,7 +185,7 @@ export const onEmailRequestCreated = functions
     .runWith({
         secrets: [smtpEmail, smtpPassword],
         timeoutSeconds: 60,
-        memory: "256MB",
+        memory: "512MB",
     })
     .firestore.document("mail/{mailId}")
     .onCreate(async (snapshot, context) => {
@@ -247,7 +247,7 @@ export const onContactMessageCreated = functions
     .runWith({
         secrets: [smtpEmail, smtpPassword],
         timeoutSeconds: 60,
-        memory: "256MB",
+        memory: "512MB",
     })
     .firestore.document("contact_messages/{messageId}")
     .onCreate(async (snapshot, context) => {

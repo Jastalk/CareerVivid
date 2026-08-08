@@ -1,0 +1,6 @@
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_00.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_01.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_02.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_03.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_04.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_cache_rate/beat_05.mp4'

@@ -41,7 +41,7 @@ const getMockTikTokStats = (username: string) => {
 
 export const getSocialStats = onCall(
     {
-        region: "us-west1",
+        region: "us-west1", memory: "512MiB",
     },
     async (request) => {
         const { platform, username } = request.data;
@@ -91,7 +91,7 @@ export const getSocialStats = onCall(
 
 // 1. Initiate OAuth Flow
 export const initiateTikTokAuth = onCall(
-    { region: "us-west1" },
+    { region: "us-west1", memory: "512MiB" },
     async (request) => {
         if (!request.auth) {
             throw new HttpsError('unauthenticated', 'User must be logged in.');
@@ -107,7 +107,7 @@ export const initiateTikTokAuth = onCall(
 
 // 2. Handle Callback
 export const handleTikTokCallback = onRequest(
-    { region: "us-west1" },
+    { region: "us-west1", memory: "512MiB" },
     async (req, res) => {
         const { code, state } = req.query;
 

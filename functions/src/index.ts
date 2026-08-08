@@ -1,7 +1,16 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
+// `@sparticuz/chromium` and `puppeteer-core` are deliberately NOT imported at
+// module scope. Firebase loads this file for EVERY function in the codebase, so
+// a top-level import made all 31 containers pay the cost of loading the Chromium
+// bindings — ~256-282 MiB before a single request was handled. The 18 functions
+// configured at 256MiB could not finish booting and failed their startup probe,
+// which took down getOpenRevenueStats, generateSitemap, renderSeoContent and the
+// rest with an infrastructure 500 that never reached their handlers.
+//
+// They are now loaded on demand inside generatePdfBuffer(), the only consumer.
+// `Page` stays a type-only import: types are erased at compile time and cost
+// nothing at runtime.
 import type { Page } from "puppeteer-core";
 import { secureCorsHandler } from "./utils/corsUtils.js";
 import { randomUUID } from "crypto";
@@ -189,6 +198,14 @@ const injectPreviewPayload = (page: Page, payload: { resumeData: ResumeData; tem
 
 const generatePdfBuffer = async (resumeData: ResumeData, templateId: string) => {
   console.log(`Rendering template "${templateId}" via preview page: ${PDF_PREVIEW_URL}`);
+
+  // Loaded here rather than at module scope — see the note on the imports at the
+  // top of this file. Only the PDF path pays this cost, and Node caches the
+  // modules after the first call so warm invocations are unaffected.
+  const [{ default: chromium }, { default: puppeteer }] = await Promise.all([
+    import("@sparticuz/chromium"),
+    import("puppeteer-core"),
+  ]);
 
   const executablePath = await chromium.executablePath();
   const browser = await puppeteer.launch({
@@ -539,7 +556,7 @@ export const uploadImageHttp = functions.region('us-west1').runWith({ timeoutSec
 
 // --- NEW: Public Access Functions ---
 
-export const getPublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "256MB" }).https.onRequest((req, res) => {
+export const getPublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest((req, res) => {
   console.log("getPublicResume called");
   try {
     // WRAP EVERYTHING in CORS. If you don't, it crashes.
@@ -635,7 +652,7 @@ export const getPublicResume = functions.region('us-west1').runWith({ timeoutSec
   }
 });
 
-export const updatePublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "256MB" }).https.onRequest(async (req, res) => {
+export const updatePublicResume = functions.region('us-west1').runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     if (req.method === 'OPTIONS') {
       res.status(204).send('');
@@ -793,7 +810,7 @@ export const getInterviewAuthToken = functions.region('us-west1').https.onCall(a
  */
 export const getInterviewVertexToken = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Verify user authentication
     if (!context.auth) {
@@ -895,7 +912,7 @@ export const getInterviewVertexToken = functions
  */
 export const billInterviewSession = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Verify user authentication
     if (!context.auth) {
@@ -1030,7 +1047,7 @@ export const billInterviewSession = functions
  */
 export const cliGetInterviewToken = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1145,7 +1162,7 @@ export const cliGetInterviewToken = functions
  */
 export const cliInterviewBill = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1365,7 +1382,7 @@ export const cliInterviewBill = functions
  */
 export const cliGetInterviewContext = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1457,7 +1474,7 @@ export const cliGetInterviewContext = functions
  */
 export const cliLog = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 15, memory: "256MB" })
+  .runWith({ timeoutSeconds: 15, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1543,7 +1560,7 @@ export const cliLog = functions
  */
 export const cliGetLogs = functions
   .region("us-west1")
-  .runWith({ timeoutSeconds: 30, memory: "256MB" })
+  .runWith({ timeoutSeconds: 30, memory: "512MB" })
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method === "OPTIONS") {
@@ -1644,7 +1661,7 @@ export * from "./social";
 
 export const connectTikTok = functions
   .region('us-west1')
-  .runWith({ timeoutSeconds: 60, memory: "256MB" }) // No need to defineSecrets if using .env
+  .runWith({ timeoutSeconds: 60, memory: "512MB" }) // No need to defineSecrets if using .env
   .https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
       // 1. Method Check
@@ -1788,7 +1805,7 @@ export const connectTikTok = functions
 
 export const authWithTikTok = functions
   .region('us-west1')
-  .runWith({ timeoutSeconds: 60, memory: "256MB" })
+  .runWith({ timeoutSeconds: 60, memory: "512MB" })
   .https.onCall(async (data, context) => {
     // Note: This is a Callable function, but we might be calling it from a public context (login page),
     // so we can't enforce context.auth. However, we are minting a token, so we need to be careful.

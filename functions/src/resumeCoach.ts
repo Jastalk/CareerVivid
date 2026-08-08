@@ -67,7 +67,7 @@ export const resumeCoachCreate = functions.region("us-west1").runWith({
                 title,
                 baseContent: `Resume coach conversation:\n\n${transcript}`,
                 creationSource: "coach",
-                model: "gemini-3.5-flash",
+                model: "gemini-2.5-flash",
             });
 
             res.json({
@@ -92,7 +92,7 @@ export const resumeCoachCreate = functions.region("us-west1").runWith({
 
 export const resumeCoachLiveToken = functions.region("us-west1").runWith({
     timeoutSeconds: 15,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method === "OPTIONS") {

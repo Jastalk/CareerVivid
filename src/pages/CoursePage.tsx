@@ -3,19 +3,15 @@ import {
     ArrowLeft,
     ArrowRight,
     BookOpen,
-    Braces,
     CheckCircle2,
     ChevronDown,
     Clock3,
     ExternalLink,
     GraduationCap,
-    Layers3,
     Loader2,
     Lock,
-    Network,
     Play,
     Rocket,
-    ShieldCheck,
     Sparkles,
     Target,
     Zap,
@@ -23,6 +19,7 @@ import {
 import AppLayout from '../components/Layout/AppLayout';
 import CodingInterviewRoadmap from '../components/Course/CodingInterviewRoadmap';
 import SystemDesignInterviewRoadmap from '../components/Course/SystemDesignInterviewRoadmap';
+import LearningCatalog from '../components/Course/LearningCatalog';
 import { navigate } from '../utils/navigation';
 import {
     getInteractiveCourses,
@@ -31,6 +28,7 @@ import {
     getCourseExerciseCount,
     getCourseExercises,
     firstIncompleteExerciseId,
+    locateExercise,
     type InteractiveCourse,
 } from '../lib/interactiveCourses';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +38,7 @@ import { useCourseProgress } from '../hooks/useCourseProgress';
 import { useAllCourseProgress } from '../hooks/useAllCourseProgress';
 import SEOHelper from '../components/SEOHelper';
 import AuthGateModal, { AuthGateModalProps } from '../components/AuthGateModal';
-import { canAccessCourse, isCourseFreeForGuests } from '../config/accessPolicy';
+import { canAccessCourse, canAccessLesson, hasFreeEntryPoint } from '../config/accessPolicy';
 import { stripLanguagePrefix } from '../utils/languagePreference';
 import {
     CourseModuleWithState,
@@ -126,11 +124,33 @@ const CoursePage: React.FC = () => {
 
     /** Opens the saved next lesson when callers do not name a specific lesson. */
     const openCourse = (courseId: string, destination = `/learn/${courseId}`) => {
-        if (canAccessCourse(courseId, { isSignedIn: Boolean(currentUser), isPremium: Boolean(isPremium) })) {
-            const course = getInteractiveCourse(courseId);
-            const resumeDestination = course && destination === `/learn/${courseId}`
-                ? `/learn/${courseId}/${firstIncompleteExerciseId(course, progressByCourse[courseId]?.completedModuleIds ?? [])}`
-                : destination;
+        const course = getInteractiveCourse(courseId);
+        const resumeDestination = course && destination === `/learn/${courseId}`
+            ? `/learn/${courseId}/${firstIncompleteExerciseId(course, progressByCourse[courseId]?.completedModuleIds ?? [])}`
+            : destination;
+
+        // Resolve the specific lesson first: a paid course can still have free
+        // chapters (System Design Interview's Core Design level), so entitlement
+        // is decided per lesson rather than per course.
+        const targetExerciseId = resumeDestination.startsWith('/learn/')
+            ? resumeDestination.split('/')[3] ?? ''
+            : '';
+        const targetChapterId = targetExerciseId
+            ? locateExercise(courseId, targetExerciseId)?.chapter.id
+            : undefined;
+        const auth = { isSignedIn: Boolean(currentUser), isPremium: Boolean(isPremium) };
+
+        // `/learning/<id>` is the course's roadmap PAGE, not a lesson — browsing
+        // it should never be gated when any part of the course is free, or the
+        // catalog advertises a free level behind a sign-in wall.
+        const isBrowseDestination = resumeDestination.startsWith('/learning/');
+        const chapterIds = course?.chapters.map((chapter) => chapter.id) ?? [];
+
+        if (
+            canAccessCourse(courseId, auth)
+            || canAccessLesson(courseId, targetChapterId, auth)
+            || (isBrowseDestination && hasFreeEntryPoint(courseId, chapterIds))
+        ) {
             navigate(resumeDestination);
             return;
         }
@@ -191,183 +211,23 @@ const CoursePage: React.FC = () => {
             <div className="cv-design-page cv-design-grid relative min-h-screen pb-16 text-left">
                 <div className="@container/course-page mx-auto max-w-screen-2xl px-4 py-6 text-left sm:px-6 lg:px-8 lg:py-8">
                     {!selectedCourseId ? (
-                        <div className="max-w-none space-y-5">
-                            {/* Hero */}
-                            <section className="cv-design-card p-4 sm:p-6">
-                                <div className="flex flex-wrap items-end justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <div className="cv-design-eyebrow mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-2.5 py-1 text-xs">
-                                            <GraduationCap size={14} />
-                                            <span>{t('courses.title_catalog', 'Course catalog')}</span>
-                                        </div>
-                                        <h1 className="cv-design-title text-2xl sm:text-3xl">{t('courses.pick_course', 'Pick a course — learn by doing.')}</h1>
-                                        <p className="cv-design-body mt-1.5 max-w-2xl text-sm">
-                                            {t('courses.desc_catalog', 'Interactive courses built around animations, playgrounds, quizzes, and code labs. Open a course to see its modules and start learning.')}
-                                        </p>
-                                        <p className="cv-design-body mt-3 text-xs font-bold">
-                                            {t('courses.lessons_finished', { completed: completedLessonCount, total: totalLessonCount, defaultValue: '{{completed}} / {{total}} lessons finished across all courses' })}
-                                        </p>
-                                    </div>
-                                    <div className="flex shrink-0 flex-wrap gap-2">
-                                        {activeLab && !courseComplete && (
-                                            <button
-                                                type="button"
-                                                onClick={() => openCourse(activeLab.id)}
-                                                className="cv-design-button-primary inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm"
-                                            >
-                                                <Play size={15} /> {t('courses.continue_learning', 'Continue learning')}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </section>
-
-                            {/* Course-level cards — each card is a whole course; its modules live on the course page */}
-                            <div className="grid gap-4 md:grid-cols-2">
-                                {/* AI Agent Builder Curriculum */}
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/learning/ai-agent-curriculum')}
-                                    className="cv-design-card cv-design-card-hover group flex flex-col p-6 text-left transition-all hover:-translate-y-1"
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <span className="cv-design-icon-well flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-                                            <GraduationCap size={20} />
-                                        </span>
-                                        <div className="flex flex-wrap justify-end gap-1.5">
-                                            <span className="rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong,transparent)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-text-muted)]">
-                                                {t('courses.difficulty_beginner', 'Beginner → Advanced')}
-                                            </span>
-                                            <span className="rounded-full border border-[var(--cv-success-600)]/30 bg-[var(--cv-success-50)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-success-600)]">
-                                                {t('courses.module_1_free', 'Module 1 free')}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <h2 className="cv-design-title mt-4 text-xl leading-snug">AI Agent Builder Curriculum</h2>
-                                    <p className="cv-design-body mt-1.5 flex-1 text-sm">
-                                        {curriculumCourses.length} modules from LLM foundations to a shipped agent portfolio project — readings, animated playgrounds, quizzes, and code labs curated from Microsoft, OpenAI, Anthropic, Google, and Hugging Face's open courses.
-                                    </p>
-                                    <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--cv-border-warm)] pt-3 text-xs font-bold text-[var(--cv-text-muted)]">
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <Layers3 size={13} /> {t('courses.modules_count', { count: curriculumCourses.length, defaultValue: '{{count}} modules' })}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <BookOpen size={13} /> {t('courses.lessons_count', { count: curriculumLessonTotal, defaultValue: '{{count}} lessons' })}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <Clock3 size={13} /> ~{t('courses.hours_approx', { count: Math.max(1, Math.round(curriculumMinutes / 60)), defaultValue: '~{{count}} h' })}
-                                        </span>
-                                        <span className="ml-auto inline-flex items-center gap-1 text-[var(--cv-action-primary)] transition-all group-hover:gap-2">
-                                            {curriculumLessonsDone >= curriculumLessonTotal && curriculumLessonTotal > 0 ? t('courses.review', 'Review') : curriculumLessonsDone > 0 ? t('courses.continue', 'Continue') : t('courses.start', 'Start')} <ArrowRight size={13} />
-                                        </span>
-                                    </div>
-                                    <div className="mt-3 flex items-center gap-2">
-                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
-                                            <div
-                                                className={`h-full rounded-full transition-[width] duration-500 ${curriculumLessonTotal > 0 && curriculumLessonsDone >= curriculumLessonTotal ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-primary)]'}`}
-                                                style={{ width: `${Math.max(curriculumLessonTotal ? Math.round((curriculumLessonsDone / curriculumLessonTotal) * 100) : 0, curriculumLessonsDone > 0 ? 6 : 0)}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-[10px] font-bold tabular-nums text-[var(--cv-text-muted)]">{curriculumLessonsDone}/{curriculumLessonTotal}</span>
-                                    </div>
-                                </button>
-
-                                {/* Coding Interview Patterns */}
-                                {patternsCourse && (
-                                    <button
-                                        type="button"
-                                        onClick={() => openCourse(patternsCourse.id, `/learning/${patternsCourse.id}`)}
-                                        className="cv-design-card cv-design-card-hover group flex flex-col p-6 text-left transition-all hover:-translate-y-1"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span className="cv-design-icon-well flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-                                                <Braces size={20} />
-                                            </span>
-                                            <div className="flex flex-wrap justify-end gap-1.5">
-                                                <span className="rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong,transparent)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-text-muted)]">
-                                                    {patternsCourse.difficulty}
-                                                </span>
-                                                {isCourseFreeForGuests(patternsCourse.id) && (
-                                                    <span className="rounded-full border border-[var(--cv-success-600)]/30 bg-[var(--cv-success-50)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-success-600)]">
-                                                        {t('courses.free', 'Free')}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <h2 className="cv-design-title mt-4 text-xl leading-snug">Coding Interview Patterns</h2>
-                                        <p className="cv-design-body mt-1.5 flex-1 text-sm">{patternsCourse.tagline}</p>
-                                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--cv-action-primary)]">
-                                            <Sparkles size={13} /> {t('courses.patterns_desc', { count: patternsCourse.chapters.length, defaultValue: '{{count}} patterns, each with its own step-through animation' })}
-                                        </p>
-                                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--cv-border-warm)] pt-3 text-xs font-bold text-[var(--cv-text-muted)]">
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <Layers3 size={13} /> {t('courses.patterns_count', { count: patternsCourse.chapters.length, defaultValue: '{{count}} patterns' })}
-                                            </span>
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <BookOpen size={13} /> {t('courses.lessons_count', { count: patternsLessonTotal, defaultValue: '{{count}} lessons' })}
-                                            </span>
-                                            {patternsCourse.estimatedMinutes && (
-                                                <span className="inline-flex items-center gap-1.5">
-                                                    <Clock3 size={13} /> ~{t('courses.hours_approx', { count: Math.max(1, Math.round(patternsCourse.estimatedMinutes / 60)), defaultValue: '~{{count}} h' })}
-                                                </span>
-                                            )}
-                                            <span className="ml-auto inline-flex items-center gap-1 text-[var(--cv-action-primary)] transition-all group-hover:gap-2">
-                                                {patternsLessonsDone >= patternsLessonTotal && patternsLessonTotal > 0 ? t('courses.review', 'Review') : patternsLessonsDone > 0 ? t('courses.continue', 'Continue') : t('courses.start', 'Start')} <ArrowRight size={13} />
-                                            </span>
-                                        </div>
-                                        <div className="mt-3 flex items-center gap-2">
-                                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
-                                                <div
-                                                    className={`h-full rounded-full transition-[width] duration-500 ${patternsLessonTotal > 0 && patternsLessonsDone >= patternsLessonTotal ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-primary)]'}`}
-                                                    style={{ width: `${Math.max(patternsLessonTotal ? Math.round((patternsLessonsDone / patternsLessonTotal) * 100) : 0, patternsLessonsDone > 0 ? 6 : 0)}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-[10px] font-bold tabular-nums text-[var(--cv-text-muted)]">{patternsLessonsDone}/{patternsLessonTotal}</span>
-                                        </div>
-                                    </button>
-                                )}
-
-                                {systemDesignCourse && (
-                                    <button
-                                        type="button"
-                                        onClick={() => openCourse(systemDesignCourse.id, `/learning/${systemDesignCourse.id}`)}
-                                        className="cv-design-card cv-design-card-hover group flex flex-col p-6 text-left transition-all hover:-translate-y-1"
-                                    >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span className="cv-design-icon-well flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"><Network size={20} /></span>
-                                            <span className="rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong,transparent)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-text-muted)]">0-1 → 5+ years</span>
-                                        </div>
-                                        <h2 className="cv-design-title mt-4 text-xl leading-snug">System Design Interview</h2>
-                                        <p className="cv-design-body mt-1.5 flex-1 text-sm">{systemDesignCourse.tagline}</p>
-                                        <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-[var(--cv-action-primary)]"><Sparkles size={13} /> 12 modules with deterministic simulations and Company Quest practice</p>
-                                        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--cv-border-warm)] pt-3 text-xs font-bold text-[var(--cv-text-muted)]"><span className="inline-flex items-center gap-1.5"><Layers3 size={13} /> 12 modules</span><span className="inline-flex items-center gap-1.5"><BookOpen size={13} /> {systemDesignLessonTotal} lessons</span><span className="inline-flex items-center gap-1.5"><Clock3 size={13} /> ~12 h</span><span className="ml-auto inline-flex items-center gap-1 text-[var(--cv-action-primary)] transition-all group-hover:gap-2">{systemDesignLessonsDone ? 'Continue' : 'Start'} <ArrowRight size={13} /></span></div>
-                                        <div className="mt-3 flex items-center gap-2"><div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--cv-border-warm)]"><div className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500" style={{ width: `${Math.max(systemDesignLessonTotal ? Math.round((systemDesignLessonsDone / systemDesignLessonTotal) * 100) : 0, systemDesignLessonsDone > 0 ? 6 : 0)}%` }} /></div><span className="text-[10px] font-bold tabular-nums text-[var(--cv-text-muted)]">{systemDesignLessonsDone}/{systemDesignLessonTotal}</span></div>
-                                    </button>
-                                )}
-
-                                {/* Coming soon */}
-                                {[
-                                    { id: 'advanced-rag', icon: Layers3, title: 'Advanced RAG & Vector Databases', tagline: 'Chunking strategies, hybrid search, re-ranking, and production retrieval pipelines.' },
-                                    { id: 'agent-security', icon: ShieldCheck, title: 'Agent Security & Guardrails', tagline: 'Prompt injection defense, sandboxing, permissions, and evaluation for safe agents.' },
-                                ].map(({ id, icon: Icon, title, tagline }) => (
-                                    <div key={id} className="cv-design-card flex flex-col p-6 text-left opacity-70">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-muted,transparent)] text-[var(--cv-text-muted)]">
-                                                <Icon size={20} />
-                                            </span>
-                                            <span className="rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong,transparent)] px-2.5 py-0.5 text-[10px] font-bold uppercase text-[var(--cv-text-muted)]">
-                                                {t('courses.coming_soon', 'Coming soon')}
-                                            </span>
-                                        </div>
-                                        <h2 className="cv-design-title mt-4 text-xl leading-snug">{title}</h2>
-                                        <p className="cv-design-body mt-1.5 flex-1 text-sm">{tagline}</p>
-                                        <div className="mt-4 border-t border-[var(--cv-border-warm)] pt-3 text-xs font-bold text-[var(--cv-text-muted)]">
-                                            {t('courses.in_development', 'In development — follow along in the community.')}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <LearningCatalog
+                            patternsCourse={patternsCourse}
+                            systemDesignCourse={systemDesignCourse}
+                            patternsLessonTotal={patternsLessonTotal}
+                            patternsLessonsDone={patternsLessonsDone}
+                            curriculumLessonTotal={curriculumLessonTotal}
+                            curriculumLessonsDone={curriculumLessonsDone}
+                            curriculumMinutes={curriculumMinutes}
+                            systemDesignLessonTotal={systemDesignLessonTotal}
+                            systemDesignLessonsDone={systemDesignLessonsDone}
+                            completedLessonCount={completedLessonCount}
+                            totalLessonCount={totalLessonCount}
+                            activeLabId={activeLab?.id}
+                            courseComplete={courseComplete}
+                            onOpenCourse={openCourse}
+                            onOpenQuest={() => navigate('/learning/ccaf-quest')}
+                        />
                     ) : selectedCourseId === patternsCourse?.id && patternsCourse ? (
                         <CodingInterviewRoadmap
                             course={patternsCourse}

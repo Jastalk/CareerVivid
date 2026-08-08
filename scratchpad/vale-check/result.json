@@ -1,0 +1,820 @@
+{
+  "narration.md": [
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        8,
+        19
+      ],
+      "Check": "ai-tells.OpeningCliches",
+      "Description": "",
+      "Link": "",
+      "Message": "AI opening: 'Picture this'. Start with your actual point instead of this generic lead-in.",
+      "Severity": "error",
+      "Match": "Picture this",
+      "Line": 3
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        72,
+        213
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'can physically get through. So you do what anyone would do. You get help. And that decision, right there, is the entire subject of this lesson'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "can physically get through. So you do what anyone would do. You get help. And that decision, right there, is the entire subject of this lesson",
+      "Line": 3
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        60,
+        81
+      ],
+      "Check": "ai-tells.ParallelStaccato",
+      "Description": "",
+      "Link": "",
+      "Message": "AI staccato: 'Then two. Then twelve.'. Combine these clipped parallel sentences or vary the structure.",
+      "Severity": "error",
+      "Match": "Then two. Then twelve.",
+      "Line": 7
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        83,
+        102
+      ],
+      "Check": "ai-tells.AffirmativeFormulas",
+      "Description": "",
+      "Link": "",
+      "Message": "AI affirmation: 'And here's the thing'. Cut the flourish and state the point plainly.",
+      "Severity": "error",
+      "Match": "And here's the thing",
+      "Line": 7
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        106,
+        202
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you a note that says tool_use. You swing the hammer, you hand the result back, and it keeps going'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you a note that says tool_use. You swing the hammer, you hand the result back, and it keeps going",
+      "Line": 23
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        137,
+        202
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You swing the hammer, you hand the result back, and it keeps going'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You swing the hammer, you hand the result back, and it keeps going",
+      "Line": 23
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        290,
+        312
+      ],
+      "Check": "ai-tells.ParallelStaccato",
+      "Description": "",
+      "Link": "",
+      "Message": "AI staccato: 'Two limits. Two places.'. Combine these clipped parallel sentences or vary the structure.",
+      "Severity": "error",
+      "Match": "Two limits. Two places.",
+      "Line": 27
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        30,
+        212
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you never mix them up again. On the left, the desk fills up and nothing more fits: that's model_context_window_exceeded. On the right, the pen runs dry mid-sentence: that's max_tokens'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you never mix them up again. On the left, the desk fills up and nothing more fits: that's model_context_window_exceeded. On the right, the pen runs dry mid-sentence: that's max_tokens",
+      "Line": 31
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        173,
+        180
+      ],
+      "Check": "ai-tells.FigurativeRuns",
+      "Description": "",
+      "Link": "",
+      "Message": "AI overused verb: 'runs dry'. Name the actual behavior. Disable this rule for athletics or plumbing prose.",
+      "Severity": "error",
+      "Match": "runs dry",
+      "Line": 31
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        23,
+        272
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'we go on, because this trips up more people than anything else on this list. Some of these names ship with the API. They arrive whether you ask or not. But citation_id and conflict_detected? Nobody gives you those. You invent them, in your own schema'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "we go on, because this trips up more people than anything else on this list. Some of these names ship with the API. They arrive whether you ask or not. But citation_id and conflict_detected? Nobody gives you those. You invent them, in your own schema",
+      "Line": 35
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        120,
+        123
+      ],
+      "Check": "ai-tells.ShipOveruse",
+      "Description": "",
+      "Link": "",
+      "Message": "AI overused word: 'ship'. Name the specific action or object. Disable this rule for maritime or logistics writing.",
+      "Severity": "error",
+      "Match": "ship",
+      "Line": 35
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        238,
+        309
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You invent them, in your own schema, and you agree on them with yourself'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You invent them, in your own schema, and you agree on them with yourself",
+      "Line": 35
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        29,
+        41
+      ],
+      "Check": "ai-tells.UnpackExplore",
+      "Description": "",
+      "Link": "",
+      "Message": "AI explainer prompt: 'let's look at'. Explain it directly instead of announcing it.",
+      "Severity": "error",
+      "Match": "let's look at",
+      "Line": 39
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        53,
+        144
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you already built. One agent, running in a loop. And a loop, as anyone who's built one knows'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you already built. One agent, running in a loop. And a loop, as anyone who's built one knows",
+      "Line": 39
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        309,
+        334
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Three completely unrelated'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Three completely unrelated",
+      "Line": 51
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        421,
+        429
+      ],
+      "Check": "ai-tells.SycophancyMarkers",
+      "Description": "",
+      "Link": "",
+      "Message": "AI sycophancy: 'Of course'. Delete this. It sounds robotic and insincere.",
+      "Severity": "error",
+      "Match": "Of course",
+      "Line": 51
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        24,
+        41
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Three sentences on'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Three sentences on",
+      "Line": 63
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        51,
+        154
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you walk it across the office, hand it to a colleague, and ask them to read it and tell you what it says'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you walk it across the office, hand it to a colleague, and ask them to read it and tell you what it says",
+      "Line": 63
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        168,
+        247
+      ],
+      "Check": "ai-tells.AffirmativeFormulas",
+      "Description": "",
+      "Link": "",
+      "Message": "AI affirmation: 'That's what spawning a subagent for something already in your context looks like'. Cut the flourish and state the point plainly.",
+      "Severity": "error",
+      "Match": "That's what spawning a subagent for something already in your context looks like",
+      "Line": 63
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        108,
+        261
+      ],
+      "Check": "ai-tells.ContrastiveFormulas",
+      "Description": "",
+      "Link": "",
+      "Message": "AI contrast: 'If the answer's already sitting in your own context, spinning up a helper to go read it again isn't clever architecture. It's just a slower version of you'. State the positive claim directly without the 'not X, but Y' formula.",
+      "Severity": "error",
+      "Match": "If the answer's already sitting in your own context, spinning up a helper to go read it again isn't clever architecture. It's just a slower version of you",
+      "Line": 67
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        16,
+        207
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you do split the work up, split it by how you're thinking. Not by file. Reviewing a pull request? Do a style pass. Then a security pass. Then a docs pass. Three clean sweeps, merged at the end'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you do split the work up, split it by how you're thinking. Not by file. Reviewing a pull request? Do a style pass. Then a security pass. Then a docs pass. Three clean sweeps, merged at the end",
+      "Line": 75
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        171,
+        188
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Three clean sweeps'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Three clean sweeps",
+      "Line": 75
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        1,
+        11
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Two ways to'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Two ways to",
+      "Line": 83
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        37,
+        108
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You can give turn-by-turn directions: left here, right there, third exit'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You can give turn-by-turn directions: left here, right there, third exit",
+      "Line": 83
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        9,
+        171
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you brief them? That's everything. Hand a subagent your exact search queries, and the moment reality doesn't match, it just shrugs and reports insufficient results'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you brief them? That's everything. Hand a subagent your exact search queries, and the moment reality doesn't match, it just shrugs and reports insufficient results",
+      "Line": 87
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        1,
+        15
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Twelve loads of'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Twelve loads of",
+      "Line": 103
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        17,
+        109
+      ],
+      "Check": "ai-tells.ParallelStaccato",
+      "Description": "",
+      "Link": "",
+      "Message": "AI staccato: 'This is where multi-agent systems actually die. Your subagent does not inherit what you know.'. Combine these clipped parallel sentences or vary the structure.",
+      "Severity": "error",
+      "Match": "This is where multi-agent systems actually die. Your subagent does not inherit what you know.",
+      "Line": 119
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        275,
+        287
+      ],
+      "Check": "ai-tells.FigurativeQuiet",
+      "Description": "",
+      "Link": "",
+      "Message": "AI overused word: 'quietly drops'. Name the actual behavior instead of dressing inaction as silence. Disable this rule for prose about sound.",
+      "Severity": "error",
+      "Match": "quietly drops",
+      "Line": 119
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        1,
+        22
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Two witnesses describe'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Two witnesses describe",
+      "Line": 123
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        92,
+        198
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you average them and put out a description of a person of medium height, who nobody saw, who does not exist'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you average them and put out a description of a person of medium height, who nobody saw, who does not exist",
+      "Line": 123
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        1,
+        15
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Two agents come'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Two agents come",
+      "Line": 127
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        45,
+        61
+      ],
+      "Check": "ai-tells.ContrastiveNegation",
+      "Description": "",
+      "Link": "",
+      "Message": "AI contrast by negation: ', no methodology.'. State the positive directly without the trailing negation.",
+      "Severity": "error",
+      "Match": ", no methodology.",
+      "Line": 127
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        51,
+        57
+      ],
+      "Check": "ai-tells.OverusedVocabulary",
+      "Description": "",
+      "Link": "",
+      "Message": "AI vocabulary: 'crucial'. Replace with a more specific or common word.",
+      "Severity": "error",
+      "Match": "crucial",
+      "Line": 135
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        45,
+        55
+      ],
+      "Check": "ai-tells.ParallelStaccato",
+      "Description": "",
+      "Link": "",
+      "Message": "AI staccato: 'Will break.'. Combine these clipped parallel sentences or vary the structure.",
+      "Severity": "error",
+      "Match": "Will break.",
+      "Line": 139
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        1,
+        106
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You get back from two weeks off. Two hundred emails. Now, a colleague could say 'read all of it, good luck'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You get back from two weeks off. Two hundred emails. Now, a colleague could say 'read all of it, good luck",
+      "Line": 143
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        71,
+        158
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'could say 'read all of it, good luck.' Or they could say 'honestly, three things changed'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "could say 'read all of it, good luck.' Or they could say 'honestly, three things changed",
+      "Line": 143
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        113,
+        173
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'they could say 'honestly, three things changed, here they are'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "they could say 'honestly, three things changed, here they are",
+      "Line": 143
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        129,
+        136
+      ],
+      "Check": "ai-tells.FillerPhrases",
+      "Description": "",
+      "Link": "",
+      "Message": "AI filler: 'honestly'. Delete this phrase. It adds no meaning.",
+      "Severity": "error",
+      "Match": "honestly",
+      "Line": 143
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        55,
+        190
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You reviewed twelve files, a developer edited three. Now, you could make the agent re-read all twelve and pay twice for the same reading'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You reviewed twelve files, a developer edited three. Now, you could make the agent re-read all twelve and pay twice for the same reading",
+      "Line": 147
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        196,
+        289
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you could just say: these three changed, go look at those. Same result, a fraction of the cost'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you could just say: these three changed, go look at those. Same result, a fraction of the cost",
+      "Line": 147
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        80,
+        188
+      ],
+      "Check": "ai-tells.ParallelStaccato",
+      "Description": "",
+      "Link": "",
+      "Message": "AI staccato: 'But you know that file's half-corrupted, and if you open it you inherit every bit of that mess. So you don't.'. Combine these clipped parallel sentences or vary the structure.",
+      "Severity": "error",
+      "Match": "But you know that file's half-corrupted, and if you open it you inherit every bit of that mess. So you don't.",
+      "Line": 151
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        84,
+        252
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you know that file's half-corrupted, and if you open it you inherit every bit of that mess. So you don't. You take the pages you know are good, you open a clean document'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you know that file's half-corrupted, and if you open it you inherit every bit of that mess. So you don't. You take the pages you know are good, you open a clean document",
+      "Line": 151
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        190,
+        275
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You take the pages you know are good, you open a clean document, and you paste them in'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You take the pages you know are good, you open a clean document, and you paste them in",
+      "Line": 151
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        32,
+        52
+      ],
+      "Check": "ai-tells.CataphoricForecasting",
+      "Description": "",
+      "Link": "",
+      "Message": "AI numbered lead-in: 'Twelve documents into'. Present the items or the measured figures directly instead of leading with a count.",
+      "Severity": "error",
+      "Match": "Twelve documents into",
+      "Line": 155
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        233,
+        291
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'to a structured checkpoint file, start fresh, and inject it'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "to a structured checkpoint file, start fresh, and inject it",
+      "Line": 155
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        79,
+        213
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'you throw out the entire banquet and start cooking from scratch? No. You find the three, you fix the three, you send the three back out'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "you throw out the entire banquet and start cooking from scratch? No. You find the three, you fix the three, you send the three back out",
+      "Line": 159
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        148,
+        213
+      ],
+      "Check": "ai-tells.VerbTricolon",
+      "Description": "",
+      "Link": "",
+      "Message": "AI tricolon: 'You find the three, you fix the three, you send the three back out'. Exactly three parallel verbs in series. Restructure or vary the count.",
+      "Severity": "error",
+      "Match": "You find the three, you fix the three, you send the three back out",
+      "Line": 159
+    },
+    {
+      "Action": {
+        "Name": "",
+        "Params": null
+      },
+      "Span": [
+        92,
+        106
+      ],
+      "Check": "ai-tells.AICompoundPhrases",
+      "Description": "",
+      "Link": "",
+      "Message": "AI fingerprint: 'a real question'. Rewrite with concrete specifics instead of this clichéd phrase.",
+      "Severity": "error",
+      "Match": "a real question",
+      "Line": 167
+    }
+  ]
+}

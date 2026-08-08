@@ -3,18 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gauge, ChevronRight, CheckCircle2 } from 'lucide-react';
 import type { CourseWidgetProps } from '../types';
 import { LATENCY_CARDS } from '../../../lib/systemDesignQuestionBank';
+import { shuffleWithSeed } from '../../../lib/deterministicShuffle';
 
 /**
  * "Latency numbers every programmer should know" as flashcards — pick the
  * right magnitude for each operation, learn the design insight behind it.
  * Numbers from the System Design Primer (CC BY 4.0) / Jeff Dean.
+ *
+ * Options are authored answer-first, so they are shuffled on the operation
+ * name: stable across retries, but never the same slot twice.
  */
-
-const stableShuffle = (options: string[]): string[] =>
-  [...options].sort((a, b) => {
-    const h = (s: string) => [...s].reduce((t, ch) => (t * 33 + ch.charCodeAt(0)) % 7919, 3);
-    return h(a) - h(b);
-  });
 
 const LatencyFlashcardsWidget: React.FC<CourseWidgetProps> = ({ completed, onComplete }) => {
   const [cardIdx, setCardIdx] = useState(0);
@@ -22,7 +20,7 @@ const LatencyFlashcardsWidget: React.FC<CourseWidgetProps> = ({ completed, onCom
   const [correctCount, setCorrectCount] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
   const card = LATENCY_CARDS[cardIdx];
-  const options = useMemo(() => stableShuffle([card.answer, ...card.distractors]), [card]);
+  const options = useMemo(() => shuffleWithSeed([card.answer, ...card.distractors], card.operation), [card]);
   const isLast = cardIdx === LATENCY_CARDS.length - 1;
   const finished = answeredCount === LATENCY_CARDS.length;
 

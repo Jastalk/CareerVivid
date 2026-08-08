@@ -143,7 +143,7 @@ export const cliJobsHunt = functions.region("us-west1").runWith({
 
 export const cliJobsCreate = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -215,7 +215,7 @@ const VALID_STATUSES: ApplicationStatus[] = ["To Apply", "Applied", "Interviewin
 
 export const cliJobsUpdate = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -286,7 +286,7 @@ export const cliJobsUpdate = functions.region("us-west1").runWith({
 
 export const cliJobsList = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -352,7 +352,7 @@ export const cliJobsList = functions.region("us-west1").runWith({
 
 export const cliResumeGet = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -451,7 +451,7 @@ export const cliResumeGet = functions.region("us-west1").runWith({
 
 export const cliResumesList = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -597,7 +597,7 @@ ${JSON.stringify(resumeJson)}`;
 
 export const cliResumeDelete = functions.region("us-west1").runWith({
     timeoutSeconds: 15,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -722,7 +722,7 @@ INSTRUCTIONS:
 
 export const cliCoverLettersList = functions.region("us-west1").runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         // Preflight handled automatically by secureCorsHandler
@@ -765,7 +765,7 @@ export const cliCoverLettersList = functions.region("us-west1").runWith({
 
 export const cliJobsDelete = functions.region("us-west1").runWith({
     timeoutSeconds: 15,
-    memory: "256MB",
+    memory: "512MB",
 }).https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method !== "POST" && req.method !== "DELETE") { res.status(405).json({ error: "Method Not Allowed" }); return; }

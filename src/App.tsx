@@ -31,6 +31,7 @@ const GenerationHub = React.lazy(() => import('./pages/GenerationHub')); // Prot
 const InterviewStudio = lazyWithPreload(() => import('./pages/InterviewStudio')); // Protected
 const CompanyQuestPage = React.lazy(() => import('./pages/CompanyQuestPage')); // Protected
 const SystemDesignCoursePracticePage = React.lazy(() => import('./pages/SystemDesignCoursePracticePage'));
+const CcafQuestPage = React.lazy(() => import('./pages/CcafQuestPage'));
 const CoursePage = React.lazy(() => import('./pages/CoursePage')); // Protected
 const InteractiveLessonPage = React.lazy(() => import('./pages/InteractiveLessonPage')); // Protected
 const CourseResumePage = React.lazy(() => import('./pages/CourseResumePage'));
@@ -44,6 +45,7 @@ const OnboardingPage = React.lazy(() => import('./pages/OnboardingPage'));
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const OpenRevenuePage = React.lazy(() => import('./pages/OpenRevenuePage'));
 const TechLandingPage = React.lazy(() => import('./pages/TechLandingPage'));
+const DemoPage = React.lazy(() => import('./pages/DemoPage'));
 const PricingPage = React.lazy(() => import('./pages/PricingPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminPage'));
@@ -118,7 +120,8 @@ const DndWorkspaceProvider = React.lazy(() => import('./components/DndWorkspaceP
 
 // Navigation utility
 import { navigate, getPathFromUrl } from './utils/navigation';
-import { isCourseFreeForGuests } from './config/accessPolicy';
+import { isCourseFreeForGuests, isLessonFreeForGuests } from './config/accessPolicy';
+import { locateExercise } from './lib/interactiveCourses';
 
 
 const LoadingFallback = () => (
@@ -524,29 +527,44 @@ const AppContent: React.FC = () => {
       content = <CompanyQuestPage slug={slug} />;
     }
 
+    // 3D Brick City Arcade Game Quest Course
+    else if (path === '/learning/ccaf-quest' || path === '/learning/quest-game' || path === '/learning/game') {
+      content = (
+        <React.Suspense fallback={<div className="flex h-screen w-full items-center justify-center bg-[#0d0f14] text-white">Loading 3D Quest...</div>}>
+          <CcafQuestPage />
+        </React.Suspense>
+      );
+    }
+
     // AI-agent learning curriculum / course catalog — browsable by guests.
     else if (path === '/learning' || path.startsWith('/learning/')) {
       content = <CoursePage />;
     }
 
     // Interactive code-along lesson: /learn/:courseId/:exerciseId
-    // The free course is open to everyone; the rest of the catalog needs an account.
+    // Free courses are open to everyone, and so are free CHAPTERS inside a paid
+    // course — System Design Interview's Core Design level. Anything else needs
+    // an account. Gating per lesson means resolving which chapter it lives in.
     else if (path.startsWith('/learn/')) {
       const parts = path.split('/');
       const courseId = parts[2];
       const exerciseId = parts[3] || '';
+      const chapterId = exerciseId ? locateExercise(courseId, exerciseId)?.chapter.id : undefined;
+      const isOpen = isLessonFreeForGuests(courseId, chapterId);
       if (!exerciseId) {
+        // No lesson named yet, so only a wholly free course can skip the gate —
+        // the resume page decides which lesson to open.
         const resume = <CourseResumePage courseId={courseId} />;
         content = isCourseFreeForGuests(courseId) ? resume : <ProtectedRoute>{resume}</ProtectedRoute>;
       }
       else if (parts[4] === 'mock') {
         const practice = <SystemDesignCoursePracticePage courseId={courseId} exerciseId={exerciseId} />;
-        content = isCourseFreeForGuests(courseId) ? practice : <ProtectedRoute>{practice}</ProtectedRoute>;
+        content = isOpen ? practice : <ProtectedRoute>{practice}</ProtectedRoute>;
       } else {
       const lesson = (
         <InteractiveLessonPage key={`${courseId}/${exerciseId}`} courseId={courseId} exerciseId={exerciseId} />
       );
-      content = isCourseFreeForGuests(courseId) ? lesson : (
+      content = isOpen ? lesson : (
         <ProtectedRoute>{lesson}</ProtectedRoute>
       );
       }
@@ -762,7 +780,7 @@ const AppContent: React.FC = () => {
     // Pages that are definitely public
     else if (path === '/pricing') { content = <PricingPage />; }
     else if (path === '/open') { content = <OpenRevenuePage />; }
-    else if (path === '/demo') { content = <NotFoundPage />; }
+    else if (path === '/demo') { content = <DemoPage />; }
     else if (path === '/contact') { content = <ContactPage />; }
     else if (path === '/services') { content = <ServicesPage />; }
     else if (path === '/service-portfolio') { content = <ServicePortfolioPage />; }

@@ -4,7 +4,7 @@ import {
   SearchServiceClient,
 } from "@google-cloud/discoveryengine";
 
-export const DEFAULT_VERTEX_TEXT_MODEL = process.env.DEFAULT_VERTEX_TEXT_MODEL || "gemini-2.5-flash-lite";
+export const DEFAULT_VERTEX_TEXT_MODEL = process.env.DEFAULT_VERTEX_TEXT_MODEL || "gemini-2.5-flash";
 
 export const GCP_PROJECT_ID =
   process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || "jastalk-firebase";
@@ -93,10 +93,10 @@ export function resolveVertexModelName(model?: string): string {
 }
 
 export function getVertexLocationForModel(model?: string): string {
-  if (model && (model.includes("gemini-3.5") || model.includes("gemini-3.1"))) {
+  if (model && /gemini-3[._-]/.test(model)) {
     return "global";
   }
-  return process.env.GOOGLE_CLOUD_LOCATION || process.env.GCLOUD_LOCATION || "us-west1";
+  return process.env.GOOGLE_CLOUD_LOCATION || process.env.GCLOUD_LOCATION || "us-central1";
 }
 
 /**
@@ -106,13 +106,12 @@ export function getVertexLocationForModel(model?: string): string {
  * Optionally accepts a client-provided apiKey (e.g., from a user's CareerVivid session).
  */
 export function getAIClient(apiKey?: string, location = getVertexLocationForModel()): GoogleGenAI {
-  // If an explicit API key is provided and it's NOT a CareerVivid proxy key, use it directly
+  // If an explicit non-proxy API key is passed by client, use it
   if (apiKey && !apiKey.startsWith('cv_live_')) {
     return new GoogleGenAI({ apiKey });
   }
-  
-  // Otherwise, use Vertex AI with default credentials
-  // This automatically uses the service account attached to the Cloud Function
+
+  // Use Vertex AI Application Default Credentials (ADC) for 100% server reliability
   return new GoogleGenAI({
     vertexai: true,
     project: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || "jastalk-firebase",

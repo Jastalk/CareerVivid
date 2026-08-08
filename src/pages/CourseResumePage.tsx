@@ -3,6 +3,8 @@ import { Loader2 } from 'lucide-react';
 import { getCourseExerciseCount, getInteractiveCourse, firstIncompleteExerciseId } from '../lib/interactiveCourses';
 import { useCourseProgress } from '../hooks/useCourseProgress';
 import { navigate } from '../utils/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import { getGuestCoursePreviewStartExerciseId, isCourseFreeForGuests } from '../config/accessPolicy';
 
 interface CourseResumePageProps {
   courseId: string;
@@ -16,12 +18,16 @@ const CourseResumePage: React.FC<CourseResumePageProps> = ({ courseId }) => {
   const course = useMemo(() => getInteractiveCourse(courseId), [courseId]);
   const totalCount = course ? getCourseExerciseCount(course) : 0;
   const { progress, isLoading } = useCourseProgress(courseId, totalCount);
+  const { currentUser, loading: isAuthLoading } = useAuth();
 
   useEffect(() => {
-    if (!course || isLoading) return;
-    const exerciseId = firstIncompleteExerciseId(course, progress?.completedModuleIds ?? []);
+    if (!course || isLoading || isAuthLoading) return;
+    const exerciseId = !currentUser && !isCourseFreeForGuests(courseId)
+      ? getGuestCoursePreviewStartExerciseId(courseId)
+      : firstIncompleteExerciseId(course, progress?.completedModuleIds ?? []);
+    if (!exerciseId) return;
     navigate(`/learn/${courseId}/${exerciseId}`);
-  }, [course, courseId, isLoading, progress?.completedModuleIds]);
+  }, [course, courseId, currentUser, isAuthLoading, isLoading, progress?.completedModuleIds]);
 
   return (
     <div className="cv-design-page flex min-h-screen items-center justify-center p-6" aria-live="polite">

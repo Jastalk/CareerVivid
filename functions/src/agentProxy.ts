@@ -210,10 +210,7 @@ export const agentProxy = functions
 
       // ── Call Gemini ─────────────────────────────────────────────────────
       try {
-        const clientKey = (model.includes("gemini-3.5") || model.includes("gemini-3.1"))
-          ? process.env.GEMINI_API_KEY
-          : undefined;
-        const ai = getAIClient(clientKey, getVertexLocationForModel(model));
+        const ai = getAIClient(undefined, getVertexLocationForModel(model));
 
         const config: Record<string, any> = {};
         if (systemInstruction) config.systemInstruction = systemInstruction;

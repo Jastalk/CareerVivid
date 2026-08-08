@@ -11,6 +11,7 @@ import { CAREER_PATHS } from '../data/careers';
 import { trackDemoEvent } from '../services/trackingService';
 import DemoResumeInfoModal from '../components/DemoResumeInfoModal';
 import { useTranslation } from 'react-i18next';
+import SEOHelper from '../components/SEOHelper';
 
 const ACADEMIA_RESEARCH_PATH = {
     name: 'Academia & Research',
@@ -245,6 +246,12 @@ const DemoPage: React.FC = () => {
 
     return (
         <>
+            <SEOHelper
+                title="CareerVivid Resume and Interview Demo"
+                description="Try CareerVivid's guided resume and interview preparation demo for your target role."
+                url="https://careervivid.app/demo"
+                schemaType="SoftwareApplication"
+            />
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col font-sans">
                 <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 pt-8 pb-6 px-4 sm:px-6 lg:px-8 sticky top-0 z-20">
                     <div className="max-w-7xl mx-auto">

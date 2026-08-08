@@ -1,0 +1,2 @@
+[console_scripts]
+voice = voice_clone.cli:main

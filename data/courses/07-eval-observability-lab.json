@@ -46,34 +46,34 @@
               "id": "q1-regression",
               "prompt": "You improved your prompt and want to ship. What does an eval suite give you that 'trying a few examples' doesn't?",
               "options": [
+                "It covers far more inputs, so rare edge cases get exercised too",
                 "Proof the change helps overall — and catches the cases it silently broke",
-                "Faster API responses",
-                "Better model weights"
+                "It removes your judgement from the loop, so results aren't biased by what you hoped to see"
               ],
-              "correctIndex": 0,
-              "explanation": "Prompt changes routinely fix 5 cases and break 3 others. Only a fixed suite run before/after makes that visible."
+              "correctIndex": 1,
+              "explanation": "Prompt changes routinely fix 5 cases and break 3 others. Only a *fixed* suite, run before and after, makes that visible — the value is in the set being the same both times, not in it being big. Coverage is a genuine benefit and the reason suites grow, but a hundred hand-picked inputs re-picked each run still hides regressions. And a suite does not remove your judgement; you chose the cases and wrote the rubric. It just records that judgement once instead of re-applying it, differently, every time you look."
             },
             {
               "id": "q2-judge",
               "prompt": "What's the main risk of using an LLM as your eval judge?",
               "options": [
-                "It costs too much to ever use",
-                "Uncalibrated, it can systematically share the generator's blind spots — validate it against human grades first",
-                "It refuses to grade other models"
+                "Judging is non-deterministic, so the same output can score differently between runs",
+                "It costs an extra model call per test case, which limits how often you can run the suite",
+                "Uncalibrated, it can systematically share the generator's blind spots — validate it against human grades first"
               ],
-              "correctIndex": 1,
-              "explanation": "LLM judges scale beautifully but must be calibrated: grade a sample by hand, check agreement, then trust it."
+              "correctIndex": 2,
+              "explanation": "LLM judges scale beautifully but must be calibrated: grade a sample by hand, check agreement, then trust it. Score variance is real, and it is also the easy problem — drop the temperature, average across runs, and it shrinks. The dangerous failure is the one that doesn't look like noise: a judge that is confidently, repeatably wrong in the same direction as the generator. It reports 94% and moves in the right direction on every change, and none of it means anything. Cost is a budget constraint, not a correctness risk."
             },
             {
               "id": "q3-triage",
               "prompt": "Your suite reports 82% passing. What's the most useful next step?",
               "options": [
-                "Celebrate — 82% is a B",
                 "Break the 18% failures down by rubric category to see what kind of failure dominates",
-                "Re-run until it randomly passes higher"
+                "Compare against the previous run to see whether 82% is a rise or a fall",
+                "Read through the failing cases one by one and fix whatever you find"
               ],
-              "correctIndex": 1,
-              "explanation": "'12 grounding failures, 2 safety' is an action plan (fix retrieval!). '82%' is just a mood."
+              "correctIndex": 0,
+              "explanation": "'12 grounding failures, 2 safety' is an action plan — fix retrieval. '82%' is just a mood. Comparing to the last run is worth doing and tells you the direction, but not what to do next: 82% up from 79% still leaves you staring at the same undifferentiated 18%. Reading every failure gets you to the same categories eventually, just slower and with a recency bias toward whatever you happened to read last — you will fix the vivid failure rather than the frequent one."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

@@ -72,7 +72,7 @@ const RecruiterNotesPanel: React.FC<RecruiterNotesPanelProps> = ({ sessionId, no
             <button
               onClick={handleAdd}
               disabled={!draft.trim() || isSaving}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#211b16] px-3 py-1.5 text-[12px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[#211b16] dark:hover:bg-[#e8e1d2]"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#211b16] px-3 py-1.5 text-[12px] font-bold text-[#fffaf1] transition hover:bg-[#3a2f26] disabled:cursor-not-allowed disabled:bg-[#9a8d7d] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)] dark:hover:bg-[#e8e1d2]"
             >
               {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
               {isSaving ? 'Saving…' : 'Add note'}

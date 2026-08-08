@@ -5,7 +5,7 @@ const PROVIDER = {
     url: `${BASE_URL}/`,
 };
 
-type LearningSeoKey = 'catalog' | 'ai-agent-curriculum' | 'coding-interview-patterns';
+type LearningSeoKey = 'catalog' | 'ai-agent-curriculum' | 'coding-interview-patterns' | 'system-design-interview';
 
 export interface LearningSeoPage {
     path: string;
@@ -77,9 +77,9 @@ const courseSchema = ({
 const PAGES: Record<LearningSeoKey, LearningSeoPage> = {
     catalog: {
         path: '/learning',
-        title: 'Interactive Courses: AI Agents and Coding Interview Patterns',
-        description: 'Learn by doing with CareerVivid interactive courses: build AI agents from LLM foundations or practice 20 coding interview patterns with step-through algorithm animations and code labs.',
-        keywords: 'interactive online courses, AI agent course, learn AI agents, coding interview patterns, algorithm visualization, data structures and algorithms practice',
+        title: 'Interactive Courses: Coding Interviews, System Design, AI Agents',
+        description: 'Learn by doing across 203 interactive lessons: 20 coding interview patterns with step-through algorithm animations, 13 modules of system design, and a 10-module AI agent curriculum. Coding Interview Patterns is free.',
+        keywords: 'interactive online courses, coding interview patterns, system design interview course, AI agent course, learn AI agents, algorithm visualization, data structures and algorithms practice, skills building, technical interview preparation',
         schemaData: {
             '@context': 'https://schema.org',
             '@graph': [
@@ -94,19 +94,25 @@ const PAGES: Record<LearningSeoKey, LearningSeoPage> = {
                 {
                     '@type': 'ItemList',
                     name: 'CareerVivid interactive courses',
-                    numberOfItems: 2,
+                    numberOfItems: 3,
                     itemListElement: [
                         {
                             '@type': 'ListItem',
                             position: 1,
-                            url: `${BASE_URL}/learning/ai-agent-curriculum`,
-                            name: 'AI Agent Builder Curriculum',
+                            url: `${BASE_URL}/learning/coding-interview-patterns`,
+                            name: 'Coding Interview Patterns',
                         },
                         {
                             '@type': 'ListItem',
                             position: 2,
-                            url: `${BASE_URL}/learning/coding-interview-patterns`,
-                            name: 'Coding Interview Patterns',
+                            url: `${BASE_URL}/learning/system-design-interview`,
+                            name: 'System Design Interview',
+                        },
+                        {
+                            '@type': 'ListItem',
+                            position: 3,
+                            url: `${BASE_URL}/learning/ai-agent-curriculum`,
+                            name: 'AI Agent Builder Curriculum',
                         },
                     ],
                 },
@@ -151,12 +157,44 @@ const PAGES: Record<LearningSeoKey, LearningSeoPage> = {
             ],
         }),
     },
+    'system-design-interview': {
+        path: '/learning/system-design-interview',
+        title: 'System Design Interview Course: 13 Modules, 85 Lessons',
+        description: 'Prepare for system design interviews across 85 lessons and 13 modules: an answer framework, capacity estimation, caching and rate limiting, data at scale, async processing, multi-region reliability, real-time systems, and a senior capstone.',
+        keywords: 'system design interview course, system design interview preparation, distributed systems course, capacity estimation, caching and rate limiting, scalability interview, senior engineer interview prep',
+        schemaData: courseSchema({
+            name: 'System Design Interview',
+            path: '/learning/system-design-interview',
+            description: 'Read the principle, watch a real request flow under load, choose between caches, queues, and partitions, draw the architecture, and explain every trade-off — across 13 modules and 85 lessons.',
+            hours: 12,
+            level: 'Advanced',
+            free: false,
+            topics: ['Interview framework', 'Capacity estimation', 'APIs and data models', 'Caching and rate limiting', 'Data at scale', 'Async and event processing', 'Reliability and multi-region', 'Real-time systems', 'Feeds, search, and analytics'],
+            faqs: [
+                { question: 'What does the System Design Interview course cover?', answer: 'The course covers an interview answer framework, capacity estimation, APIs and data models, core building blocks, caching and rate limiting, data at scale, async and event processing, reliability and multi-region design, real-time systems, feeds and search, distributed-system deep dives, a senior capstone, and a classic questions arena.' },
+                { question: 'What level is the System Design Interview course?', answer: 'It is an advanced course of roughly 12 hours, aimed at engineers preparing for senior and staff system design rounds. Each module is harder than the last.' },
+            ],
+        }),
+    },
 };
 
 export const getLearningSeoPage = (key: LearningSeoKey): LearningSeoPage => PAGES[key];
 
+/**
+ * Course id → SEO page. Only ids with their OWN page map to themselves;
+ * anything else falls back to the catalog.
+ *
+ * The fallback used to be 'ai-agent-curriculum', which meant every course
+ * without a dedicated entry emitted the AI curriculum's title, description,
+ * and — worst of all — its canonical URL. Google reads that as "this page is
+ * a duplicate of /learning/ai-agent-curriculum" and drops it from the index.
+ * System Design Interview (13 modules, 85 lessons) was invisible because of it.
+ * Falling back to the catalog keeps unknown /learning/* URLs consolidating
+ * into a page that actually lists them.
+ */
 export const getLearningSeoKey = (selectedCourseId: string | null): LearningSeoKey => {
-    if (selectedCourseId === 'coding-interview-patterns') return 'coding-interview-patterns';
-    if (selectedCourseId === 'ai-agent-curriculum') return 'ai-agent-curriculum';
-    return selectedCourseId ? 'ai-agent-curriculum' : 'catalog';
+    if (selectedCourseId && selectedCourseId in PAGES && selectedCourseId !== 'catalog') {
+        return selectedCourseId as LearningSeoKey;
+    }
+    return 'catalog';
 };

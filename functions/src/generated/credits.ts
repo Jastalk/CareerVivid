@@ -102,9 +102,21 @@ export interface ModelRate {
  * old failure where the advertised model IDs were rejected by the proxy.
  */
 const RATES = {
-    'gemini-2.5-flash-lite': { inputPerM: 0.10, outputPerM: 0.40, cliTurnCost: 0.5 },
-    'gemini-2.5-flash': { inputPerM: 0.30, outputPerM: 2.50, cliTurnCost: 1 },
-    'gemini-2.5-pro': { inputPerM: 1.25, outputPerM: 10.00, cliTurnCost: 2 },
+    // cliTurnCost is AUTHORITATIVE — these are the prices main actually charges
+    // (functions/src/agentProxy.ts + agentCredits.ts agreed on them before this
+    // file existed). Do not "tidy" them toward the token rates below.
+    //
+    // inputPerM/outputPerM are ESTIMATES used only for COGS reconciliation, and
+    // the 3.x figures are extrapolated. Verify against the Vertex bill before
+    // trusting any margin analysis built on them.
+    'gemini-3.1-flash-lite': { inputPerM: 0.10, outputPerM: 0.40, cliTurnCost: 1 },
+    'gemma-4': { inputPerM: 0.10, outputPerM: 0.40, cliTurnCost: 1 },
+    'gemini-3.5-flash-lite': { inputPerM: 0.10, outputPerM: 0.40, cliTurnCost: 1 },
+    'gemini-3.5-flash': { inputPerM: 0.30, outputPerM: 2.50, cliTurnCost: 3 },
+    'gemini-3.6-flash': { inputPerM: 1.25, outputPerM: 10.00, cliTurnCost: 5 },
+    'gemini-2.5-flash-lite': { inputPerM: 0.10, outputPerM: 0.40, cliTurnCost: 1 },
+    'gemini-2.5-flash': { inputPerM: 0.30, outputPerM: 2.50, cliTurnCost: 3 },
+    'gemini-2.5-pro': { inputPerM: 1.25, outputPerM: 10.00, cliTurnCost: 5 },
     'gemini-live-2.5-flash-native-audio': {
         inputPerM: 0.50,
         outputPerM: 2.00,
@@ -223,7 +235,7 @@ export const voiceCreditsForSeconds = (seconds: number): number => {
 export const FREE_AGENT_TURNS_PER_DAY = 30;
 
 /** The model that backs free conversation. */
-export const FREE_AGENT_MODEL: ModelId = 'gemini-2.5-flash-lite';
+export const FREE_AGENT_MODEL: ModelId = 'gemini-3.1-flash-lite';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Quoting

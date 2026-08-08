@@ -13,22 +13,21 @@ import {
 
 // --- Configuration ---
 const PROXY_URL = import.meta.env.VITE_GEMINI_PROXY_URL || 'https://us-west1-jastalk-firebase.cloudfunctions.net/geminiProxy';
-export const DEFAULT_TEXT_MODEL = 'gemini-3.1-flash-lite';
+export const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL_FALLBACK = 'gemini-2.5-flash-image';
-const IMAGE_MODEL_PRIMARY = 'gemini-3-pro-image-preview';
+const IMAGE_MODEL_PRIMARY = 'gemini-2.5-flash-image';
 
 const TEXT_MODEL_ALIASES: Record<string, string> = {
-    'gemini-3.1-flash-lite': DEFAULT_TEXT_MODEL,
-    'gemini-3.1-flash-lite-preview': DEFAULT_TEXT_MODEL,
-    'gemini-2.5-flash-lite-preview': DEFAULT_TEXT_MODEL,
-    'gemini-2.5-flash-lite-preview-09-2025': DEFAULT_TEXT_MODEL,
-    'gemini-2.5-flash-preview': 'gemini-2.5-flash',
-    'gemini-2.5-flash-preview-09-2025': 'gemini-2.5-flash',
-    'gemini-2.5-flash-preview-05-20': 'gemini-2.5-flash',
+    'gemini-3.1-flash-lite': 'gemini-2.5-flash-lite',
+    'gemini-3.1-flash-lite-preview': 'gemini-2.5-flash-lite',
+    'gemini-3.5-flash-lite': 'gemini-2.5-flash-lite',
+    'gemini-3.5-flash': 'gemini-2.5-flash',
+    'gemini-3.6-flash': 'gemini-2.5-flash',
+    'gemini-3.1-pro-preview': 'gemini-2.5-pro',
     'gemini-3-flash-preview': 'gemini-2.5-flash',
     'gemini-3.1-flash-preview': 'gemini-2.5-flash',
+    'gemini-2.5-flash-preview': 'gemini-2.5-flash',
     'gemini-2.5-pro-preview': 'gemini-2.5-pro',
-    'gemini-3.1-pro-preview': 'gemini-2.5-pro',
 };
 
 const normalizeTextModelName = (modelName?: string): string | undefined =>

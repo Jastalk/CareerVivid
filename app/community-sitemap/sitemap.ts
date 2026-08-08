@@ -50,27 +50,18 @@ export default async function sitemap({
 
     const sitemapEntries: MetadataRoute.Sitemap = snapshot.docs.map((doc) => {
         const post = doc.data();
-        const slug = post.slug || doc.id;
 
         const lastModified = post.updatedAt
             ? post.updatedAt.toDate()
             : (post.createdAt ? post.createdAt.toDate() : new Date());
 
-        const route = `/community/${slug}`;
+        const route = `/community/post/${doc.id}`;
 
         return {
             url: `${BASE_URL}${route}`,
             lastModified,
             changeFrequency: 'weekly',
             priority: 0.7,
-            alternates: {
-                languages: {
-                    'en': `${BASE_URL}${route}`,
-                    'x-default': `${BASE_URL}${route}`,
-                    'zh': `${BASE_URL}/zh${route}`,
-                    'es': `${BASE_URL}/es${route}`,
-                }
-            }
         };
     });
 

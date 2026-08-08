@@ -315,7 +315,7 @@ export const generateLinkedInOutreach = functions
   .runWith({
     secrets: [],
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "512MB",
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
@@ -403,7 +403,7 @@ export const generateDeepResearch = functions
   .runWith({
     secrets: [],
     timeoutSeconds: 60,
-    memory: "256MB",
+    memory: "512MB",
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
@@ -478,7 +478,7 @@ export const saveCareerProfile = functions
   .region("us-west1")
   .runWith({
     timeoutSeconds: 30,
-    memory: "256MB",
+    memory: "512MB",
   })
   .https.onCall(async (data, context) => {
     if (!context.auth) {

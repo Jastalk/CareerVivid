@@ -41,7 +41,7 @@ const getSafeCommerceRedirectUrl = (redirectUrl: unknown): string => {
 export const createConnectAccount = onCall(
     {
         secrets: [stripeSecretKey],
-        region: "us-west1",
+        region: "us-west1", memory: "512MiB",
     },
     async (request) => {
         if (!request.auth) {
@@ -114,7 +114,7 @@ export const createConnectAccount = onCall(
 export const createLoginLink = onCall(
     {
         secrets: [stripeSecretKey],
-        region: "us-west1",
+        region: "us-west1", memory: "512MiB",
     },
     async (request) => {
         if (!request.auth) {
@@ -150,7 +150,7 @@ export const createLoginLink = onCall(
 export const getAccountStatus = onCall(
     {
         secrets: [stripeSecretKey],
-        region: "us-west1",
+        region: "us-west1", memory: "512MiB",
     },
     async (request) => {
         if (!request.auth) {
@@ -194,7 +194,7 @@ export const getAccountStatus = onCall(
 export const createProductCheckoutSession = onCall(
     {
         secrets: [stripeSecretKey],
-        region: "us-west1",
+        region: "us-west1", memory: "512MiB",
     },
     async (request) => {
         // Note: Buyers might be unauthenticated (public purchase), but currently onCall requires auth context?

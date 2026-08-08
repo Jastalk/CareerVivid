@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: voice-clone
+Version: 0.3.0
+Summary: Record a reference clip and synthesise speech in that voice, entirely from the terminal.
+Requires-Python: >=3.10
+Requires-Dist: rich>=13
+Requires-Dist: questionary>=2
+Requires-Dist: soundfile>=0.12
+Requires-Dist: numpy>=1.24
+Provides-Extra: tts
+Requires-Dist: f5-tts; extra == "tts"
+Requires-Dist: torch; extra == "tts"

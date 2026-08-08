@@ -1,0 +1,47 @@
+{
+  "totalSec": 675.27,
+  "timingReport": [
+    {
+      "beatId": "beat-1-hook",
+      "elapsedSec": 0,
+      "textLength": 335,
+      "cached": true
+    },
+    {
+      "beatId": "beat-2-requirements",
+      "elapsedSec": 118.65,
+      "textLength": 352,
+      "cached": false
+    },
+    {
+      "beatId": "beat-3-naive-approach",
+      "elapsedSec": 92,
+      "textLength": 294,
+      "cached": false
+    },
+    {
+      "beatId": "beat-4-why-it-breaks",
+      "elapsedSec": 100.61,
+      "textLength": 297,
+      "cached": false
+    },
+    {
+      "beatId": "beat-5-core-architecture",
+      "elapsedSec": 108.89,
+      "textLength": 347,
+      "cached": false
+    },
+    {
+      "beatId": "beat-6-deep-dive",
+      "elapsedSec": 117.6,
+      "textLength": 362,
+      "cached": false
+    },
+    {
+      "beatId": "beat-7-tradeoffs",
+      "elapsedSec": 121.95,
+      "textLength": 338,
+      "cached": false
+    }
+  ]
+}

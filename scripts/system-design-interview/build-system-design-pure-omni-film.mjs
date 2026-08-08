@@ -1,0 +1,285 @@
+/**
+ * build-system-design-pure-omni-film.mjs
+ *
+ * Assembles the full Gemini Omni AI Video for System Design: APIs and Data Models.
+ * Refinements:
+ *   1. Eliminates video looping repeats / frame jumps by smoothly stretching/pacing each AI clip
+ *      to match the narration duration using FFmpeg setpts filter.
+ *   2. Adds selective, elegant, non-blocking floating key concept badges on essential beats.
+ *   3. Preserves clean full-screen video visibility with dual subtitles & top badges.
+ *
+ * Output: public/ccaf-lessons/system-design-apis-and-data-models-omni.mp4
+ */
+
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { chromium } from 'playwright';
+import { SYSTEM_DESIGN_API_BEATS } from './systemDesignApiDataScript.ts';
+
+const OUT_DIR = path.resolve('scratchpad/film_render_sd_api_omni');
+const FINAL_MP4 = path.resolve('public/ccaf-lessons/system-design-apis-and-data-models-omni.mp4');
+const NARRATION_DIR = path.resolve('public/assets/ccaf-narration/sd-api-data/en/chirp-fenrir');
+const OMNI_CLIPS_DIR = path.resolve('public/ccaf-lessons/clips');
+const BGM_D12_PATH = path.resolve('public/assets/bgm-d12.mp3');
+
+if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
+
+function getMediaDurationSeconds(filePath) {
+    if (!fs.existsSync(filePath)) return 0;
+    try {
+        const out = execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`, { encoding: 'utf8' });
+        return parseFloat(out.trim()) || 0;
+    } catch {
+        return 0;
+    }
+}
+
+// Selective key concept badges for beats that benefit from subtle text reinforcement
+const SELECTIVE_BADGES = {
+    'sd-idempotency-story': {
+        tag: '⚠️ RETRY TIMEOUT: DOUBLE CHARGE RISK',
+        color: '#f87171',
+        bg: 'rgba(127, 29, 29, 0.75)',
+        border: '#ef4444',
+    },
+    'sd-idempotency-solution': {
+        tag: '🔑 IDEMPOTENCY KEY: EXACT-ONCE PROCESSING',
+        color: '#34d399',
+        bg: 'rgba(6, 78, 59, 0.75)',
+        border: '#10b981',
+    },
+    'sd-expand-contract': {
+        tag: '🔄 EXPAND ➔ DUAL-WRITE ➔ READ ➔ CONTRACT',
+        color: '#7dd3fc',
+        bg: 'rgba(12, 74, 110, 0.75)',
+        border: '#38bdf8',
+    },
+    'sd-read-model': {
+        tag: '⚡ PRIMARY STORE (ACID) ➔ DERIVED READ MODEL (CACHE)',
+        color: '#fde047',
+        bg: 'rgba(113, 63, 18, 0.75)',
+        border: '#eab308',
+    },
+};
+
+function buildHTML(beat, progressPercent) {
+    const subtitleEn = beat.narration?.en ?? '';
+    const subtitleZh = beat.narration?.zh ?? '';
+    const selectiveBadge = SELECTIVE_BADGES[beat.id];
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8"/>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+                width: 1920px; height: 1080px;
+                background: transparent;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                color: #ffffff;
+                position: relative;
+                overflow: hidden;
+            }
+            .overlay-container {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                padding: 40px 60px 50px 60px;
+                z-index: 10;
+            }
+            .top-bar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .ch-badge {
+                background: rgba(15, 23, 42, 0.88);
+                border: 2px solid #38bdf8;
+                padding: 12px 28px;
+                border-radius: 30px;
+                font-weight: 700;
+                font-size: 22px;
+                color: #38bdf8;
+                letter-spacing: 0.5px;
+                backdrop-filter: blur(12px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            }
+            .brand-badge {
+                background: rgba(15, 23, 42, 0.88);
+                border: 1px solid #334155;
+                padding: 10px 24px;
+                border-radius: 20px;
+                font-size: 19px;
+                color: #94a3b8;
+                backdrop-filter: blur(12px);
+            }
+
+            .selective-callout-rail {
+                position: absolute;
+                top: 130px; right: 60px;
+                z-index: 20;
+            }
+            .concept-pill {
+                padding: 12px 26px;
+                border-radius: 16px;
+                font-size: 20px;
+                font-weight: 800;
+                letter-spacing: 0.8px;
+                backdrop-filter: blur(16px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            }
+
+            .subtitle-container {
+                background: rgba(15, 23, 42, 0.92);
+                border: 2px solid #334155;
+                padding: 18px 40px;
+                border-radius: 20px;
+                text-align: center;
+                backdrop-filter: blur(14px);
+                max-width: 1600px;
+                margin: 0 auto;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            }
+            .sub-en { font-size: 26px; font-weight: 700; color: #ffffff; margin-bottom: 8px; line-height: 1.4; }
+            .sub-zh { font-size: 20px; color: #94a3b8; line-height: 1.4; }
+
+            .progress-bar {
+                position: absolute; bottom: 0; left: 0; height: 6px;
+                background: linear-gradient(90deg, #38bdf8, #10b981, #f59e0b, #ec4899);
+                width: ${progressPercent}%;
+                transition: width 0.3s linear;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="overlay-container">
+            <div class="top-bar">
+                <div class="ch-badge">${beat.title.en} · ${beat.title.zh}</div>
+                <div class="brand-badge">CareerVivid System Design</div>
+            </div>
+
+            ${selectiveBadge ? `
+            <div class="selective-callout-rail">
+                <div class="concept-pill" style="background: ${selectiveBadge.bg}; color: ${selectiveBadge.color}; border: 2px solid ${selectiveBadge.border};">
+                    ${selectiveBadge.tag}
+                </div>
+            </div>
+            ` : ''}
+
+            <div class="subtitle-container">
+                <div class="sub-en">${subtitleEn}</div>
+                <div class="sub-zh">${subtitleZh}</div>
+            </div>
+        </div>
+        <div class="progress-bar"></div>
+    </body>
+    </html>
+    `;
+}
+
+async function assembleOmniFilm() {
+    console.log('🎬 Assembling Refined Gemini Omni AI Video (No Looping Repeat + Selective Concept Badges)... \n');
+
+    const beatsToProcess = [];
+    let totalSeconds = 0;
+
+    for (const beat of SYSTEM_DESIGN_API_BEATS) {
+        const audioPath = path.join(NARRATION_DIR, `${beat.id}.wav`);
+        const omniVideoFile = path.join(OMNI_CLIPS_DIR, `sd-api--${beat.id}.mp4`);
+
+        let hasAudio = fs.existsSync(audioPath);
+        let durationSec = hasAudio ? getMediaDurationSeconds(audioPath) : 8.0;
+        let omniSec = fs.existsSync(omniVideoFile) ? getMediaDurationSeconds(omniVideoFile) : 8.0;
+
+        beatsToProcess.push({
+            beat,
+            durationSec: Math.max(durationSec, 3.5),
+            omniSec: omniSec || 8.0,
+            audioPath: hasAudio ? audioPath : null,
+            omniVideoPath: fs.existsSync(omniVideoFile) ? omniVideoFile : null,
+        });
+
+        totalSeconds += Math.max(durationSec, 3.5);
+    }
+
+    console.log(`📹 Beats to Assemble: ${beatsToProcess.length}`);
+    console.log(`⏱️ Total Video Duration: ${(totalSeconds / 60).toFixed(2)} mins (${totalSeconds.toFixed(1)}s)\n`);
+
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+
+    const beatVideoFiles = [];
+    let accumulatedTime = 0;
+
+    for (let i = 0; i < beatsToProcess.length; i++) {
+        const { beat, durationSec, omniSec, audioPath, omniVideoPath } = beatsToProcess[i];
+        accumulatedTime += durationSec;
+        const progressPercent = Math.round((accumulatedTime / totalSeconds) * 100);
+
+        console.log(`🎬 Assembling Beat [${i + 1}/${beatsToProcess.length}]: ${beat.id} (${durationSec.toFixed(1)}s narration, ${omniSec.toFixed(1)}s Omni clip)...`);
+
+        const html = buildHTML(beat, progressPercent);
+        await page.setContent(html, { waitUntil: 'load' });
+
+        const overlayPngPath = path.join(OUT_DIR, `overlay_${String(i).padStart(2, '0')}.png`);
+        await page.screenshot({ path: overlayPngPath, type: 'png', omitBackground: true });
+
+        const beatMp4 = path.join(OUT_DIR, `beat_${String(i).padStart(2, '0')}.mp4`);
+
+        // Smooth video speed adjustment ratio to stretch AI clip smoothly over narration WITHOUT looping repeats!
+        const setptsFactor = (durationSec / omniSec).toFixed(4);
+
+        let ffmpegCmd = '';
+        if (omniVideoPath && fs.existsSync(omniVideoPath)) {
+            // Smooth setpts stretch + overlay PNG + narration audio
+            if (audioPath) {
+                ffmpegCmd = `ffmpeg -y -i "${omniVideoPath}" -i "${overlayPngPath}" -i "${audioPath}" -filter_complex "[0:v]setpts=${setptsFactor}*PTS[v_stretched];[v_stretched][1:v]overlay=0:0[v]" -map "[v]" -map 2:a -c:v libx264 -c:a aac -b:a 192k -pix_fmt yuv420p -shortest "${beatMp4}"`;
+            } else {
+                ffmpegCmd = `ffmpeg -y -i "${omniVideoPath}" -i "${overlayPngPath}" -f lavfi -i anullsrc=r=24000:cl=mono -filter_complex "[0:v]setpts=${setptsFactor}*PTS[v_stretched];[v_stretched][1:v]overlay=0:0[v]" -map "[v]" -map 2:a -c:v libx264 -c:a aac -t ${durationSec.toFixed(2)} -pix_fmt yuv420p "${beatMp4}"`;
+            }
+        } else {
+            if (audioPath) {
+                ffmpegCmd = `ffmpeg -y -loop 1 -i "${overlayPngPath}" -i "${audioPath}" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest "${beatMp4}"`;
+            } else {
+                ffmpegCmd = `ffmpeg -y -loop 1 -i "${overlayPngPath}" -f lavfi -i anullsrc=r=24000:cl=mono -c:v libx264 -tune stillimage -c:a aac -t ${durationSec.toFixed(2)} -pix_fmt yuv420p "${beatMp4}"`;
+            }
+        }
+
+        execSync(ffmpegCmd, { stdio: 'pipe' });
+        beatVideoFiles.push(beatMp4);
+    }
+
+    await browser.close();
+
+    console.log('\n🎞️ Concatenating all non-looping Gemini Omni beat MP4 files into continuous film...');
+    const rawConcatMp4 = path.join(OUT_DIR, 'raw_concat.mp4');
+    const concatListPath = path.join(OUT_DIR, 'concat_list.txt');
+    const concatContent = beatVideoFiles.map(f => `file '${f}'`).join('\n');
+    fs.writeFileSync(concatListPath, concatContent);
+
+    execSync(`ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -c copy "${rawConcatMp4}"`, { stdio: 'pipe' });
+
+    console.log('\n🎵 Muxing soft intro BGM (bgm-d12.mp3, volume=0.05, fading out by sec 7.0)...');
+
+    if (fs.existsSync(BGM_D12_PATH)) {
+        const muxCmd = `ffmpeg -y -i "${rawConcatMp4}" -i "${BGM_D12_PATH}" -filter_complex "[1:a]volume=0.05,afade=t=out:st=3.5:d=3.5[bgm];[0:a][bgm]amix=inputs=2:duration=first:dropout_transition=2[aout]" -map 0:v -map "[aout]" -c:v copy -c:a aac -b:a 192k "${FINAL_MP4}"`;
+        execSync(muxCmd, { stdio: 'pipe' });
+    } else {
+        fs.copyFileSync(rawConcatMp4, FINAL_MP4);
+    }
+
+    const finalSize = fs.existsSync(FINAL_MP4) ? (fs.readFileSync(FINAL_MP4).length / (1024 * 1024)).toFixed(2) : 0;
+    const finalDuration = getMediaDurationSeconds(FINAL_MP4);
+
+    console.log(`\n🎉 Refined Gemini Omni AI Video Successfully Compiled!`);
+    console.log(`📹 Output Video: ${FINAL_MP4}`);
+    console.log(`⏱️ Duration: ${(finalDuration / 60).toFixed(2)} mins (${finalDuration.toFixed(1)}s)`);
+    console.log(`📦 Size: ${finalSize} MB`);
+}
+
+assembleOmniFilm().catch(console.error);

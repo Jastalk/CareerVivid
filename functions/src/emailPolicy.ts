@@ -208,8 +208,11 @@ export function canonicalCareerVividUrl(path: string, params?: Record<string, st
   return url.toString();
 }
 
-export function canonicalInterviewStudioUrl(jobId: string, source = "scheduled_practice_email"): string {
-  return canonicalCareerVividUrl(`/interview-studio/${encodeURIComponent(jobId)}`, { source });
+export function canonicalInterviewStudioUrl(jobId: string, source?: string): string {
+  return canonicalCareerVividUrl(
+    `/interview-studio/${encodeURIComponent(jobId)}`,
+    source ? { source } : undefined
+  );
 }
 
 export function canonicalSignupUrl(source = "lifecycle_email"): string {

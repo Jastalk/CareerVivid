@@ -5,6 +5,7 @@ import { defineSecret } from "firebase-functions/params";
 import { getAIClient } from "./utils/ai.js";
 import { runPassiveDeepResearchTask } from "./deepResearch";
 import { purgeExpiredJobsCTS } from "./talentSolution";
+import { canonicalInterviewStudioUrl } from "./emailPolicy";
 
 if (!admin.apps.length) {
     admin.initializeApp();
@@ -133,7 +134,7 @@ export const sendPracticeEmails = onSchedule({
                 });
 
                 // Send Email
-                const emailLink = `https://careervivid.web.app/#/interview-studio/${jobId}`;
+                const emailLink = canonicalInterviewStudioUrl(jobId);
 
                 await db.collection('mail').add({
                     to: userData.email,
@@ -178,7 +179,7 @@ export const cleanupJobSearchCache = onSchedule({
     schedule: "every 24 hours",
     timeZone: "America/Los_Angeles",
     timeoutSeconds: 300,
-    memory: "256MiB",
+    memory: "512MiB",
     region: "us-west1"
 }, async (event) => {
     console.log("[cleanupJobSearchCache] Starting cache cleanup...");
@@ -226,7 +227,7 @@ export const cleanupUsageLogs = onSchedule({
     schedule: "every 24 hours",
     timeZone: "America/Los_Angeles",
     timeoutSeconds: 300,
-    memory: "256MiB",
+    memory: "512MiB",
     region: "us-west1"
 }, async (event) => {
     console.log("[cleanupUsageLogs] Starting usage logs cleanup...");

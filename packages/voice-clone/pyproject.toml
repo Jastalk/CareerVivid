@@ -1,0 +1,30 @@
+[project]
+name = "voice-clone"
+version = "0.3.0"
+description = "Record a reference clip and synthesise speech in that voice, entirely from the terminal."
+requires-python = ">=3.10"
+
+# Deliberately light. The CLI itself only needs a terminal UI and a way to read
+# wav headers; F5-TTS and torch are a two-gigabyte stack that is imported lazily
+# and lives wherever it is already installed.
+#
+# Declaring f5-tts here makes the resolver drag in librosa → numba → llvmlite and
+# backtrack to a 2021 llvmlite that cannot build on modern Python, which fails
+# the install for everyone regardless of whether they already had a working
+# F5-TTS. `voice doctor` reports what is missing instead.
+dependencies = [
+    "rich>=13",
+    "questionary>=2",
+    "soundfile>=0.12",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+tts = ["f5-tts", "torch"]
+
+[project.scripts]
+voice = "voice_clone.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"

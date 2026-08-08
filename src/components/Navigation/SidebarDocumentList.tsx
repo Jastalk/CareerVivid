@@ -22,6 +22,7 @@ interface SidebarDocumentListProps {
     setIsFilterDropdownOpen: (isOpen: boolean) => void;
     savePreference: (key: 'filterType' | 'sortBy', value: string) => void;
     saveRename: (id: string) => void;
+    onDocumentOpen?: () => void;
 }
 
 const getDocIcon = (type: string) => {
@@ -59,6 +60,7 @@ const SidebarDocumentList: React.FC<SidebarDocumentListProps> = ({
     setIsFilterDropdownOpen,
     savePreference,
     saveRename,
+    onDocumentOpen,
 }) => {
     const listRef = React.useRef<HTMLDivElement>(null);
     const [scrollState, setScrollState] = React.useState({
@@ -223,6 +225,7 @@ const SidebarDocumentList: React.FC<SidebarDocumentListProps> = ({
                                 onClick={() => {
                                     setActiveNode(doc.id.toString());
                                     navigate(getPathForNodeId(doc.id, doc.data?.type));
+                                    onDocumentOpen?.();
                                 }}
                                 onContextMenu={(event) => {
                                     event.preventDefault();

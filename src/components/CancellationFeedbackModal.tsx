@@ -114,7 +114,7 @@ const CancellationFeedbackModal: React.FC<CancellationFeedbackModalProps> = ({
                             type="button"
                             onClick={handleSubmit}
                             disabled={!selectedReason || isLoading}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f4f1e9] dark:text-[#211b16]"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]"
                         >
                             Continue cancellation
                             <ArrowRight size={16} />

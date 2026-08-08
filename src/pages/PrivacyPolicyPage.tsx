@@ -1,7 +1,7 @@
 import React from 'react';
 import PublicHeader from '../components/PublicHeader';
 import Footer from '../components/Footer';
-import { Shield, Lock, Eye, CheckCircle, Smartphone } from 'lucide-react';
+import { Lock, Eye, CheckCircle, Sparkles } from 'lucide-react';
 
 const PrivacyPolicyPage: React.FC = () => {
     return (
@@ -12,7 +12,7 @@ const PrivacyPolicyPage: React.FC = () => {
                     <div className="text-center mb-16">
                         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">Privacy Policy</h1>
                         <p className="text-xl text-gray-600 dark:text-gray-400">
-                            Your privacy is our priority. Effective Date: January 19, 2026
+                            Your privacy is our priority. Effective Date: July 20, 2026
                         </p>
                     </div>
 
@@ -26,31 +26,35 @@ const PrivacyPolicyPage: React.FC = () => {
                                 <h2 className="text-2xl font-bold">Information We Collect</h2>
                             </div>
                             <div className="space-y-4 text-gray-600 dark:text-gray-300">
-                                <p><strong>Account Information:</strong> We collect your name, email address, and password when you register.</p>
+                                <p><strong>Account Information:</strong> When you register, we collect your name, username, email address, and password. This account data is stored securely within CareerVivid; passwords are always encrypted and are never stored in plain text.</p>
+                                <p><strong>Resume &amp; Interview Content:</strong> When you use our coaching tools, we process the content you provide — such as resume text, practice answers, and interview transcripts — so we can generate your feedback and reports.</p>
                                 <p><strong>Usage Data:</strong> We automatically collect log data such as your IP address, browser type, and pages visited to improve platform performance and security.</p>
-                                <p><strong>Third-Party Integrations:</strong> If you connect accounts like TikTok or Google, we collect only the information you explicitly authorize (e.g., public profile stats). We do NOT access private messages or passwords.</p>
+                                <p><strong>Google Sign-In (Optional):</strong> If you choose to sign in with Google, we receive basic profile information (your name and email) to create and secure your account. We never receive your Google password.</p>
                                 <p><strong>Cookies:</strong> We use cookies to maintain your session and preference settings.</p>
                             </div>
                         </section>
 
-                        {/* TikTok Specific Policy */}
+                        {/* AI Analysis (Google Gemini) */}
                         <section className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-3xl p-8 md:p-12">
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 p-3 rounded-xl">
-                                    <Smartphone size={24} />
+                                    <Sparkles size={24} />
                                 </div>
-                                <h2 className="text-2xl font-bold">TikTok Data Transparency</h2>
+                                <h2 className="text-2xl font-bold">AI Analysis with Google Gemini</h2>
                             </div>
                             <div className="space-y-4 text-gray-600 dark:text-gray-300">
                                 <p>
-                                    Our "Media Kit" feature integrates with the official TikTok API. This integration is strictly <strong>READ-ONLY</strong>.
+                                    CareerVivid uses Google's <strong>Gemini API</strong> to power its resume and interview coaching. When you request feedback, the relevant content you provide — such as resume text, practice answers, and interview transcripts — is sent to the Gemini API solely to generate your analysis and results.
                                 </p>
                                 <ul className="list-disc pl-5 space-y-2">
-                                    <li>We only fetch <strong>Public Data</strong>: Follower count, video views, likes, and profile avatar.</li>
-                                    <li>We do <strong>NOT</strong> have access to your Direct Messages (DMs).</li>
-                                    <li>We do <strong>NOT</strong> have the ability to post video content on your behalf.</li>
-                                    <li>We do <strong>NOT</strong> sell your TikTok engagement data to third-party advertisers.</li>
+                                    <li>We send <strong>only</strong> the content needed for the analysis you request.</li>
+                                    <li>We do <strong>NOT</strong> send your password or payment details to the AI provider.</li>
+                                    <li>Your account credentials and profile stay within CareerVivid and are <strong>not</strong> shared with the AI provider.</li>
+                                    <li>We do <strong>NOT</strong> sell your data or use it for third-party advertising.</li>
                                 </ul>
+                                <p>
+                                    Content sent for analysis is processed only to provide the Service and is handled in accordance with Google's API data policies.
+                                </p>
                             </div>
                         </section>
 
@@ -66,10 +70,11 @@ const PrivacyPolicyPage: React.FC = () => {
                                 <p>We use your data to:</p>
                                 <ul className="list-disc pl-5 space-y-2">
                                     <li>Provide and maintain the Service.</li>
+                                    <li>Generate AI-powered resume and interview feedback via Google's Gemini API.</li>
                                     <li>Process payments (via Stripe - we do not store credit card numbers).</li>
                                     <li>Send service notifications (e.g., billing, security alerts).</li>
                                 </ul>
-                                <p className="mt-4"><strong>Data Sharing:</strong> We do NOT sell your personal data. We only share data with trusted processors (like Firebase for hosting, Stripe for payments) necessary to operate the service.</p>
+                                <p className="mt-4"><strong>Data Sharing:</strong> We do NOT sell your personal data. We only share data with trusted processors necessary to operate the Service — Firebase for secure hosting and account storage, Google's Gemini API for AI analysis, and Stripe for payments.</p>
                             </div>
                         </section>
 

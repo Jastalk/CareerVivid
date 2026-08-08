@@ -37,14 +37,29 @@ if (!admin.apps.length) admin.initializeApp();
 
 const corsHandler = secureCorsHandler;
 
-// ── Supported Gemini models ───────────────────────────────────────────────────
+// ── Supported Gemini & Gemma models ───────────────────────────────────────────
 const SUPPORTED_MODELS = new Set([
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+  "gemini-3.5-flash-lite",
+  "gemini-3.1-flash-lite",
+  "gemma-4",
   "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.5-pro",
   "gemini-2.5-pro-preview",
   "gemini-3.1-pro-preview",
 ]);
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const MODEL_ALIASES: Record<string, string> = {
+  "gemini-2.5-flash-lite": "gemini-3.1-flash-lite",
+  "gemini-2.5-flash": "gemini-3.5-flash",
+  "gemini-2.5-pro": "gemini-3.6-flash",
+  "gemini-2.5-pro-preview": "gemini-3.6-flash",
+  "gemini-3.1-pro-preview": "gemini-3.6-flash",
+};
+
+const DEFAULT_MODEL = "gemini-3.6-flash";
 
 // ── OpenAI-compatible types ───────────────────────────────────────────────────
 interface OpenAIMessage {
@@ -236,8 +251,9 @@ export const llmGateway = onRequest(
         return;
       }
 
-      const requestedModel = body.model ?? DEFAULT_MODEL;
-      const model = SUPPORTED_MODELS.has(requestedModel) ? requestedModel : DEFAULT_MODEL;
+      const rawModel = body.model ?? DEFAULT_MODEL;
+      const resolvedModel = MODEL_ALIASES[rawModel] || rawModel;
+      const model = SUPPORTED_MODELS.has(resolvedModel) ? resolvedModel : DEFAULT_MODEL;
       const isStreaming = body.stream === true;
 
       // ── Auth: determine which key mode ──────────────────────────────────────

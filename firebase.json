@@ -4,12 +4,68 @@
       "node scripts/sync-questions-to-firebase.mjs"
     ],
     "public": "dist",
+    "cleanUrls": true,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
     "redirects": [
+      {
+        "source": "/en",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/es",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/fr",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/de",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/zh",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/ja",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/ko",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "regex": "/(?:en|es|fr|de|zh|ja|ko)/(?P<path>.+)",
+        "destination": "/:path",
+        "type": 301
+      },
+      {
+        "regex": "/(.+)/$",
+        "destination": "/:1",
+        "type": 301
+      },
+      {
+        "source": "/topic/ai-job-search-workspace",
+        "destination": "/product",
+        "type": 301
+      },
+      {
+        "source": "/topic/chrome-extension-job-autofill",
+        "destination": "/product",
+        "type": 301
+      },
       {
         "source": "/auth",
         "destination": "/signin",
@@ -134,6 +190,81 @@
         "region": "us-west1"
       },
       {
+        "source": "/interview-studio",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/pricing",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/blog",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/job-market",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/demo",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/contact",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/product",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/community/guidelines",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/partners",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/partners/business",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/partners/agency",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/topic/ai-native-developer-portfolios",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/topic/vibe-coding-platform",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/signin",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/signup",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
         "source": "/jobs/open/**",
         "function": "openRecommendedJob",
         "region": "us-west1"
@@ -145,16 +276,6 @@
       },
       {
         "source": "/learning/**",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/:locale/learning",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/:locale/learning/**",
         "function": "renderSeoContent",
         "region": "us-west1"
       },
@@ -188,106 +309,12 @@
         "region": "us-west1"
       },
       {
-        "source": "/zh/shared/**",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/es/shared/**",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/zh/community",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/zh/community/post/**",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/es/community",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/es/community/post/**",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/zh/demo",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/es/demo",
-        "destination": "/index.html"
-      },
-      {
         "source": "/_next/static/**",
         "destination": "/nextjs/_next/static/:splat"
       },
       {
         "source": "/_next/**",
         "destination": "/nextjs/_next/:splat"
-      },
-      {
-        "source": "/zh/pricing",
-        "destination": "/nextjs/zh/pricing.html"
-      },
-      {
-        "source": "/zh/contact",
-        "destination": "/nextjs/zh/contact.html"
-      },
-      {
-        "source": "/zh/signin",
-        "destination": "/nextjs/zh/signin.html"
-      },
-      {
-        "source": "/zh/signup",
-        "destination": "/nextjs/zh/signup.html"
-      },
-      {
-        "source": "/zh/blog",
-        "destination": "/nextjs/zh/blog.html"
-      },
-      {
-        "source": "/es/pricing",
-        "destination": "/nextjs/es/pricing.html"
-      },
-      {
-        "source": "/es/contact",
-        "destination": "/nextjs/es/contact.html"
-      },
-      {
-        "source": "/es/signin",
-        "destination": "/nextjs/es/signin.html"
-      },
-      {
-        "source": "/es/signup",
-        "destination": "/nextjs/es/signup.html"
-      },
-      {
-        "source": "/es/blog",
-        "destination": "/nextjs/es/blog.html"
-      },
-      {
-        "source": "/zh",
-        "destination": "/nextjs/zh.html"
-      },
-      {
-        "source": "/zh/",
-        "destination": "/nextjs/zh.html"
-      },
-      {
-        "source": "/es",
-        "destination": "/nextjs/es.html"
-      },
-      {
-        "source": "/es/",
-        "destination": "/nextjs/es.html"
       },
       {
         "source": "/j/*",

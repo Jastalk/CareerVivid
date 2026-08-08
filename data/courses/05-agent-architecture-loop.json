@@ -56,34 +56,34 @@
               "id": "q1-agent-vs-chatbot",
               "prompt": "What fundamentally separates an agent from a chatbot?",
               "options": [
-                "Agents use bigger models",
-                "Agents pursue a goal across multiple steps, acting through tools and reading the results",
-                "Agents don't need prompts"
+                "Agents can call tools; a chatbot only produces text",
+                "Agents keep memory between sessions, so they build up context over time",
+                "Agents pursue a goal across multiple steps, acting through tools and reading the results"
               ],
-              "correctIndex": 1,
-              "explanation": "The loop is the difference: think → act → observe → repeat until a verified stop condition. The model can be identical."
+              "correctIndex": 2,
+              "explanation": "The loop is the difference: think → act → observe → repeat until a verified stop condition. The model can be identical. Tool access is the closest wrong answer and the most commonly given: a chatbot that calls a weather API is still a chatbot, because it acts once and returns. What makes it an agent is that the *result* of the call feeds the next decision. Memory is orthogonal — plenty of agents are stateless per run, and plenty of chatbots remember you."
             },
             {
               "id": "q2-loop-guard",
               "prompt": "Why does every production agent need an iteration cap?",
               "options": [
-                "To make the code shorter",
                 "A confused agent with no cap loops forever — at output-token prices, that's an unbounded bill",
-                "APIs refuse more than 10 calls"
+                "Without a cap the agent's context grows until it overflows the window and errors out",
+                "Provider rate limits will reject the run once it exceeds a few dozen calls"
               ],
-              "correctIndex": 1,
-              "explanation": "Runaway loops are the classic agent failure. The cap converts 'infinite bill' into 'failed run you can inspect via the trace'."
+              "correctIndex": 0,
+              "explanation": "Runaway loops are the classic agent failure. The cap converts 'infinite bill' into 'failed run you can inspect via the trace'. Context overflow is real and does happen — but it is the *lucky* outcome, because it stops. The failure you are guarding against is the one that doesn't: an agent retrying a failing tool in a tight loop, each turn compacting or trimming so the window never fills, burning money until someone notices the graph. Rate limits are the provider protecting themselves, not you."
             },
             {
               "id": "q3-tool-descriptions",
               "prompt": "Your agent keeps calling the wrong tool. What's the highest-leverage fix?",
               "options": [
+                "Add explicit routing rules to the system prompt describing when to use each tool",
                 "Rewrite the tool descriptions — they're the prompt the model routes by",
-                "Add more tools so it has options",
-                "Raise the temperature so it explores more"
+                "Consolidate the tools into fewer, more general ones so there is less to choose between"
               ],
-              "correctIndex": 0,
-              "explanation": "The model picks tools by reading their descriptions. Vague descriptions produce vague routing — it's prompt engineering all the way down."
+              "correctIndex": 1,
+              "explanation": "The model picks tools by reading their descriptions. Vague descriptions produce vague routing — it's prompt engineering all the way down. Routing rules in the system prompt are the popular fix and they do help, but they duplicate the decision in two places that then drift apart, and they sit further from the point of choice than the description itself does. Consolidating tools is sometimes right — an overlapping surface is a real cause of misrouting — but it makes each remaining tool do more, which moves the ambiguity into its arguments rather than removing it."
             }
           ],
           "check": { "type": "quiz", "minCorrect": 3 }

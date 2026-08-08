@@ -10,6 +10,7 @@
  */
 
 import {
+    MODEL_RATES,
     PLAN_MONTHLY_CREDITS,
     ENTERPRISE_MINIMUM_SEATS as SHARED_MIN_SEATS,
     ACTION_PRICES,
@@ -44,6 +45,16 @@ export const ENTERPRISE_MINIMUM_SEATS = SHARED_MIN_SEATS;
  * call site — migrate consumers to `ACTION_PRICES` and delete this.
  */
 export const AI_CREDIT_COSTS = {
+    /**
+     * Legacy CLI keys, still read by the landing-page calculator.
+     * Values come from MODEL_RATES so they cannot drift from what the backend
+     * actually charges — which is exactly how the old table ended up quoting
+     * prices no function honoured.
+     */
+    CLI_AGENT_FLASH_LITE: MODEL_RATES['gemini-3.1-flash-lite'].cliTurnCost ?? 1,
+    CLI_AGENT_FLASH: MODEL_RATES['gemini-3.5-flash'].cliTurnCost ?? 3,
+    CLI_AGENT_PRO: MODEL_RATES['gemini-3.6-flash'].cliTurnCost ?? 5,
+
     JOB_SEARCH: ACTION_PRICES['job.search'],
     RESUME_TAILOR: ACTION_PRICES['resume.tailor'],
     JOB_PREP_NOTES_ALL: ACTION_PRICES['job.prep_notes'],
