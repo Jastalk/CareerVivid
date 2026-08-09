@@ -31,10 +31,12 @@ export {
 export type { ActionKey, ModelId, PlanKey } from '@shared/credits';
 
 // --- Tier limits (monthly) ---
-export const FREE_PLAN_CREDIT_LIMIT = PLAN_MONTHLY_CREDITS.free;
-export const PRO_PLAN_CREDIT_LIMIT = PLAN_MONTHLY_CREDITS.pro;
-export const PRO_MAX_PLAN_CREDIT_LIMIT = PLAN_MONTHLY_CREDITS.max;
-export const ENTERPRISE_PLAN_CREDIT_LIMIT = PLAN_MONTHLY_CREDITS.enterprise;
+// Limits vary by plan at runtime. Keep the public constants as numbers rather
+// than literal types so callers can safely choose between plans.
+export const FREE_PLAN_CREDIT_LIMIT: number = PLAN_MONTHLY_CREDITS.free;
+export const PRO_PLAN_CREDIT_LIMIT: number = PLAN_MONTHLY_CREDITS.pro;
+export const PRO_MAX_PLAN_CREDIT_LIMIT: number = PLAN_MONTHLY_CREDITS.max;
+export const ENTERPRISE_PLAN_CREDIT_LIMIT: number = PLAN_MONTHLY_CREDITS.enterprise;
 export const ENTERPRISE_MINIMUM_SEATS = SHARED_MIN_SEATS;
 
 /**

@@ -64,6 +64,8 @@ interface LiveTokenResponse {
     capMinutes: number;
     creditsPerMinute: number;
     heartbeatIntervalMs: number;
+    /** Chosen server-side; never hardcode a Live model on the client. */
+    liveModel?: string;
     tools: unknown[];
     systemInstruction: string;
 }
@@ -385,7 +387,10 @@ export function useLiveCareerAgent(opts: {
             }
 
             sessionRef.current = ai.live.connect({
-                model: `projects/${tok.project}/locations/${tok.location}/publishers/google/models/gemini-live-2.5-flash-native-audio`,
+                // Server-chosen. The client must not name a model here: the text
+                // agent escalates to gemini-3.6-flash for hard questions, and
+                // that model has no Live API — the socket would simply fail.
+                model: `projects/${tok.project}/locations/${tok.location}/publishers/google/models/${tok.liveModel ?? 'gemini-live-2.5-flash-native-audio'}`,
                 config: {
                     responseModalities: [Modality.AUDIO],
                     inputAudioTranscription: {},

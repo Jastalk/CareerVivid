@@ -59,6 +59,9 @@ export interface ToolContext {
     uid: string;
     /** Groups every model call and write of one user request. */
     taskId: string;
+    /** Latest browser route and bounded work surface, supplied on each tool relay. */
+    route?: string;
+    workspace?: import("./workspace").AgentWorkspace | null;
 }
 
 /** A change the agent wants to make, awaiting the user's decision. */

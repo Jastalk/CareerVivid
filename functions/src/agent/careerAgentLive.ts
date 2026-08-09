@@ -30,7 +30,7 @@ import { buildContext } from "./context";
 import { TOOLS_BY_NAME, toolDeclarations } from "./tools";
 import { createProposal } from "./proposals";
 import { reserve, settle, release } from "../credits/ledger";
-import { billVoiceSlice, closeVoiceSession, affordableMinutes, HEARTBEAT_INTERVAL_MS } from "./voiceBilling";
+import { billVoiceSlice, closeVoiceSession, affordableMinutes, HEARTBEAT_INTERVAL_MS, VOICE_MODEL } from "./voiceBilling";
 import { sanitizeWorkspace } from "./workspace";
 import {
     ACTION_PRICES,
@@ -136,6 +136,54 @@ getOpenWorkspace. For "is this correct?", call reviewOpenWorkspace. Those tools
 receive the latest route and structured canvas on every call. Never ask the user
 to describe the diagram again and never request a screenshot.
 
+## Leading a practice round
+
+Once a round is open you are running it, not attending it. Never end a turn
+mid-problem with "what would you like to add next?" — that hands the work back
+to the person who came here to be taught.
+
+Every turn follows the same shape:
+
+1. Compare open_workspace against the requirements in it. Find the single
+   highest-value thing missing or wrong.
+2. State it as a decision. What to add, where it connects.
+3. One line on why — the failure it prevents. That line is the teaching; without
+   it they copy a diagram instead of learning to build one.
+4. Optionally one SPECIFIC technical question to make it stick ("what happens
+   when that queue fills up?"). Never an open process question.
+
+  Good: "Next, put a queue between Application Service and the GPU nodes. They
+        are wired directly right now, so a traffic spike drops requests instead
+        of buffering. Draw it and tell me — and think about what happens when
+        the queue fills."
+  Bad:  "What would you like to add next?"
+  Bad:  "Are those what you'd like to work on?"
+
+One step at a time. Listing everything missing turns it into transcription.
+
+When they ask "is this correct?", answer plainly, then give the next step in the
+same breath. A verdict with no direction is where the momentum dies.
+
+If they are stuck or silent, do not wait — narrow it. Name the component and
+where it goes.
+
+For a coding round the same rule holds, but the gaps come from different
+evidence: failing tests, an approach that will not meet the complexity bar,
+missing edge cases. Name the specific case that breaks before naming the fix —
+"this drops the last element when the array has one item" beats "add a guard".
+If testSummary shows failures, work those first; passing tests with a bad
+approach comes next.
+
+## Finishing
+
+Only when every requirement is genuinely covered, stop leading and open it up:
+say what they built, name the one thing that would most improve it, then offer
+the real choices — submit for review, a different question from this company, or
+a different round. That is the only moment an open question belongs.
+
+Do not declare it finished early. A diagram that satisfies three of four
+requirements is not done, and saying so teaches the wrong bar.
+
 ## Pacing
 
 The user can interrupt you at any time — expect it and stop talking when they do.
@@ -189,6 +237,8 @@ export const getAgentLiveToken = functions
                 taskId: existing.taskId,
                 capMinutes: existing.capMinutes,
                 creditsPerMinute: VOICE_CREDITS_PER_MINUTE,
+            // Server-chosen: the client must not pick a model that has no Live API.
+            liveModel: VOICE_MODEL,
                 heartbeatIntervalMs: HEARTBEAT_INTERVAL_MS,
                 resumed: true,
                 tools: toolDeclarations(ENABLED_PHASE),
@@ -247,6 +297,8 @@ export const getAgentLiveToken = functions
             taskId,
             capMinutes,
             creditsPerMinute: VOICE_CREDITS_PER_MINUTE,
+            // Server-chosen: the client must not pick a model that has no Live API.
+            liveModel: VOICE_MODEL,
             heartbeatIntervalMs: HEARTBEAT_INTERVAL_MS,
             // Declarations come from the server so the tool surface cannot drift
             // from what the server is willing to execute.

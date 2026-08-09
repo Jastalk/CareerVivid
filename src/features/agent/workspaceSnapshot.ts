@@ -11,9 +11,9 @@
  * unrelated branches of the tree. Threading context through everything between
  * them would touch a dozen components that have no stake in this.
  *
- * Read only when the user asks — "look at my diagram", "I'm stuck". Polling it
- * every turn would cost tokens continuously and let the agent interrupt while
- * someone is mid-thought.
+ * The snapshot is attached only while a work surface is open. It is deliberately
+ * compact so text and Live tools can always resolve natural phrases such as
+ * "what is my current question?" without asking the user to repeat context.
  */
 
 export interface WorkspaceSnapshot {
@@ -21,8 +21,12 @@ export interface WorkspaceSnapshot {
     company: string;
     stageTitle: string;
     problem: string;
+    questionId?: string;
+    requirements?: string[];
     /** Component labels on the canvas, for system design. */
     components?: string[];
+    nodes?: Array<{ id: string; label: string; shape: string }>;
+    connections?: Array<{ id: string; from: string; to: string; label?: string }>;
     /** Current buffer, for coding. Capped — the agent needs the shape, not a file dump. */
     code?: string;
     language?: string;
@@ -57,6 +61,9 @@ export function readWorkspace(maxAgeMs = 5 * 60_000): WorkspaceSnapshot | null {
         ...current,
         code: current.code?.slice(0, 6_000),
         components: current.components?.slice(0, 40),
+        requirements: current.requirements?.slice(0, 12).map((item) => item.slice(0, 500)),
+        nodes: current.nodes?.slice(0, 60),
+        connections: current.connections?.slice(0, 100),
         problem: current.problem.slice(0, 1_000),
     };
 }

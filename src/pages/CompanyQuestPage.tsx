@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
     ArrowLeft,
@@ -25,6 +25,7 @@ import { useUserProgress } from '../hooks/useUserProgress';
 import { usePracticeHistory } from '../hooks/useJobHistory';
 import { useResumes } from '../hooks/useResumes';
 import { useAICreditCheck } from '../hooks/useAICreditCheck';
+import { useBrowserNavigationRequest } from '../hooks/useBrowserNavigationRequest';
 import { useCompanyQuest, StageAttemptOutcome } from '../hooks/useCompanyQuest';
 import {
     LocalInterviewGuide,
@@ -44,7 +45,7 @@ import {
     isStageCleared,
     selectNextSystemDesignChallenge,
 } from '../lib/companyQuests';
-import { CodingBrief, CodingChallenge, buildCodingBrief, getCodingPool, getPreferredCodingLanguage, selectNextCodingChallenge } from '../lib/codingChallenges';
+import { CodingBrief, CodingChallenge, buildCodingBrief, getCodingChallengeById, getCodingPool, getPreferredCodingLanguage, selectNextCodingChallenge } from '../lib/codingChallenges';
 import CodingChallengePicker from '../components/Quest/CodingChallengePicker';
 import SystemDesignChallengePicker from '../components/Quest/SystemDesignChallengePicker';
 import { XP_RULES } from '../lib/gamification';
@@ -57,10 +58,17 @@ import {
     QuestCodingArtifact,
     QuestCodingDraft,
     QuestSystemDesignArtifact,
+    QuestSystemDesignDraft,
     ResumeData,
     TranscriptEntry,
 } from '../types';
 import { navigate } from '../utils/navigation';
+import {
+    readLastQuestWorkspace,
+    readQuestCodingDraftLocal,
+    readQuestSystemDesignDraftLocal,
+    saveLastQuestWorkspace,
+} from '../lib/questWorkspacePersistence';
 
 const AIInterviewAgentModal = React.lazy(() => import('../components/AIInterviewAgentModal'));
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
@@ -99,6 +107,7 @@ interface DesignBattleState {
     brief: SystemDesignBrief;
     isGuestPractice?: boolean;
     initialArtifact?: QuestSystemDesignArtifact;
+    initialDraft?: QuestSystemDesignDraft;
 }
 
 interface CodingBattleState {
@@ -142,6 +151,18 @@ const getLatestCodingDraft = (
 ): QuestCodingDraft | undefined => Object.values(entry?.activeCodingDrafts ?? {})
     .sort((a, b) => b.updatedAt - a.updatedAt)[0];
 
+const getLatestSystemDesignDraft = (
+    entry: PracticeHistoryEntry | undefined,
+): QuestSystemDesignDraft | undefined => Object.values(entry?.activeSystemDesignDrafts ?? {})
+    .sort((a, b) => b.updatedAt - a.updatedAt)[0];
+
+const newestDraft = <T extends { updatedAt: number }>(
+    cloudDraft: T | undefined,
+    localDraft: T | null,
+): T | undefined => localDraft && (!cloudDraft || localDraft.updatedAt > cloudDraft.updatedAt)
+    ? localDraft
+    : cloudDraft;
+
 const getResumableDraft = (entry: PracticeHistoryEntry | undefined): InterviewSessionDraft | null => {
     const draft = entry?.activeInterviewDraft;
     const draftQuestions = draft?.questions?.length ? draft.questions : entry?.questions;
@@ -153,7 +174,15 @@ const getResumableDraft = (entry: PracticeHistoryEntry | undefined): InterviewSe
 const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     const { currentUser } = useAuth();
     const { levelInfo, isLoading: isLoadingLevel } = useUserProgress();
-    const { practiceHistory, addJob, addAnalysisToJob, saveInterviewDraft, saveCodingDraft } = usePracticeHistory();
+    const {
+        practiceHistory,
+        isLoading: isLoadingPracticeHistory,
+        addJob,
+        addAnalysisToJob,
+        saveInterviewDraft,
+        saveCodingDraft,
+        saveSystemDesignDraft,
+    } = usePracticeHistory();
     const { resumes } = useResumes();
     const { checkCredit, CreditLimitModal } = useAICreditCheck();
 
@@ -170,12 +199,32 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     const [error, setError] = useState('');
     const [showAuthGate, setShowAuthGate] = useState(false);
     const requestedPracticeRef = useRef<string | null>(null);
-    const requestedQuestStage = typeof window === 'undefined'
-        ? null
-        : new URLSearchParams(window.location.search).get('stage');
-    const requestedSystemDesignChallenge = typeof window === 'undefined'
-        ? null
-        : new URLSearchParams(window.location.search).get('systemDesignChallenge');
+    const workspaceOwner = currentUser?.uid ?? 'guest';
+    const navigationRequest = useBrowserNavigationRequest();
+    const requestedWorkspace = useMemo(() => {
+        const params = new URLSearchParams(navigationRequest.search);
+        const saved = readLastQuestWorkspace(workspaceOwner, slug);
+        const queryStageId = params.get('stage');
+        const stageId = queryStageId ?? saved?.stageId ?? null;
+        const queryCodingChallenge = params.get('codingChallenge');
+        const querySystemDesignChallenge = params.get('systemDesignChallenge');
+        return {
+            stageId,
+            codingChallengeId: queryCodingChallenge
+                ?? (stageId === 'coding' ? saved?.challengeId ?? null : null),
+            systemDesignChallengeId: querySystemDesignChallenge
+                ?? (stageId === 'system_design' ? saved?.challengeId ?? null : null),
+            restoredFromSavedWorkspace: !queryStageId && !!saved?.stageId,
+        };
+    }, [navigationRequest.search, slug, workspaceOwner]);
+    const requestedQuestStage = requestedWorkspace?.stageId ?? null;
+    const requestedSystemDesignChallenge = requestedWorkspace?.systemDesignChallengeId ?? null;
+    const requestedCodingChallenge = requestedWorkspace?.codingChallengeId ?? null;
+    const restoredFromSavedWorkspace = requestedWorkspace?.restoredFromSavedWorkspace ?? false;
+
+    useEffect(() => {
+        requestedPracticeRef.current = null;
+    }, [slug, workspaceOwner]);
 
     useEffect(() => {
         let cancelled = false;
@@ -251,7 +300,8 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                 && entry.job?.title === `${guide.company} quest — ${stage.title}`
                 && ((entry.interviewHistory?.length ?? 0) > 0
                     || !!getResumableDraft(entry)
-                    || (stage.id === 'coding' && Object.keys(entry.activeCodingDrafts ?? {}).length > 0)),
+                    || (stage.id === 'coding' && Object.keys(entry.activeCodingDrafts ?? {}).length > 0)
+                    || (stage.id === 'system_design' && Object.keys(entry.activeSystemDesignDrafts ?? {}).length > 0)),
             );
 
             const entry = entryByAnalysisId || entryByStageTitle;
@@ -300,7 +350,9 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         : selectNextCodingChallenge(guide, clearedChallengeIds);
                 const brief = buildCodingBrief(guide, challenge);
                 const artifact = getCodingArtifactForChallenge(stageEntry, brief.challenge.id);
-                const draft = stageEntry?.activeCodingDrafts?.[brief.challenge.id];
+                const cloudDraft = stageEntry?.activeCodingDrafts?.[brief.challenge.id];
+                const localDraft = readQuestCodingDraftLocal(workspaceOwner, slug, brief.challenge.id);
+                const draft = newestDraft(cloudDraft, localDraft);
                 const jobId = currentUser
                     ? await addJob({
                         title: `${guide.company} quest — ${stage.title}`,
@@ -318,6 +370,10 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     initialArtifact: artifact?.type === 'coding' ? artifact : undefined,
                     initialDraft: draft,
                 });
+                saveLastQuestWorkspace(workspaceOwner, slug, {
+                    stageId: stage.id,
+                    challengeId: brief.challenge.id,
+                });
                 return;
             }
 
@@ -326,17 +382,25 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                 const clearedChallengeIds = currentUser
                     ? quest?.stageResults?.[stage.id]?.clearedChallengeIds ?? []
                     : guestSystemDesignSolvedIds;
+                const stageEntry = practiceEntriesByStageId.get(stage.id);
+                const latestDesignDraft = getLatestSystemDesignDraft(stageEntry);
                 const challenge = challengeOverride && !('functionName' in challengeOverride)
                     ? challengeOverride
-                    : selectNextSystemDesignChallenge(guide, clearedChallengeIds);
+                    : latestDesignDraft
+                        ? systemDesignPool.find((candidate) => candidate.id === latestDesignDraft.challengeId)
+                            ?? selectNextSystemDesignChallenge(guide, clearedChallengeIds)
+                        : selectNextSystemDesignChallenge(guide, clearedChallengeIds);
                 const brief = buildSystemDesignBrief(guide, challenge);
                 const artifact = getAnalysisFromEntry(
-                    practiceEntriesByStageId.get(stage.id),
+                    stageEntry,
                     quest?.stageResults?.[stage.id]?.lastAnalysisId,
                 )?.questArtifact;
                 const matchingArtifact = artifact?.type === 'system_design' && artifact.challengeId === brief.challengeId
                     ? artifact
                     : undefined;
+                const cloudDraft = stageEntry?.activeSystemDesignDrafts?.[brief.challengeId];
+                const localDraft = readQuestSystemDesignDraftLocal(workspaceOwner, slug, brief.challengeId);
+                const draft = newestDraft(cloudDraft, localDraft);
                 const jobId = currentUser
                     ? await addJob({
                         title: `${guide.company} quest — ${stage.title}`,
@@ -352,6 +416,11 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     brief,
                     isGuestPractice: isGuestLocalPractice,
                     initialArtifact: matchingArtifact,
+                    initialDraft: draft,
+                });
+                saveLastQuestWorkspace(workspaceOwner, slug, {
+                    stageId: stage.id,
+                    challengeId: brief.challengeId,
                 });
                 return;
             }
@@ -369,6 +438,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     initialTranscript: draft.transcript,
                     resumeFromQuestionIndex: draft.questionIndex,
                 });
+                saveLastQuestWorkspace(workspaceOwner, slug, { stageId: stage.id });
                 return;
             }
 
@@ -409,6 +479,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                 isFirstTime: true,
                 resumeContext: activeResume ? formatResumeForContext(activeResume) : '',
             });
+            saveLastQuestWorkspace(workspaceOwner, slug, { stageId: stage.id });
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Failed to start this stage.');
         } finally {
@@ -416,38 +487,57 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         }
     };
 
-    // Course practice links select a canonical SystemDesignBrief directly.
-    // This deliberately bypasses getStageQuestionPool(), whose technical mode
-    // mixes coding and system-design prompts.
+    // Agent, course, and native handoffs all resolve through one route effect.
+    // A challenge id is authoritative: the workspace opens that exact prompt,
+    // while a stage-only route preserves the normal next-unsolved behavior.
     useEffect(() => {
-        if (!guide || !requestedSystemDesignChallenge || requestedPracticeRef.current === requestedSystemDesignChallenge) return;
-        const stage = stages.find((candidate) => candidate.id === 'system_design');
-        const challenge = getSystemDesignPatternById(requestedSystemDesignChallenge)
-            ?? systemDesignPool.find((candidate) => candidate.id === requestedSystemDesignChallenge);
-        if (!stage || !challenge) return;
-        requestedPracticeRef.current = requestedSystemDesignChallenge;
-        void handleStartStage(stage, challenge);
-    // The requested id is stable for a mounted quest route. Re-running after a
-    // pool refresh is guarded by the ref above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [guide, requestedSystemDesignChallenge, stages, systemDesignPool]);
-
-    // Native clients can hand off coding and system-design stages to the full
-    // web workspace. Other stages intentionally keep their normal quest flow.
-    useEffect(() => {
-        const stageId = requestedQuestStage === 'coding' || requestedQuestStage === 'system_design'
+        const stageId = requestedQuestStage
             ? requestedQuestStage
+            : requestedCodingChallenge
+                ? 'coding'
+                : requestedSystemDesignChallenge
+                    ? 'system_design'
+                    : null;
+        const challengeId = stageId === 'coding' ? requestedCodingChallenge : requestedSystemDesignChallenge;
+        const requestKey = stageId
+            ? `navigation:${navigationRequest.revision}:stage:${stageId}:challenge:${challengeId ?? 'next'}`
             : null;
-        const requestKey = stageId ? `stage:${stageId}` : null;
-        if (!guide || !stageId || !requestKey || requestedPracticeRef.current === requestKey) return;
+        if (!guide || isLoadingPracticeHistory || !stageId || !requestKey || requestedPracticeRef.current === requestKey) return;
         const stage = stages.find((candidate) => candidate.id === stageId);
         if (!stage) return;
+        const isTechnicalStage = stageId === 'coding' || stageId === 'system_design';
+        if (restoredFromSavedWorkspace
+            && !isTechnicalStage
+            && !getResumableDraft(practiceEntriesByStageId.get(stageId))) return;
+
+        const challenge = stageId === 'coding' && challengeId
+            ? getCodingChallengeById(challengeId) ?? codingPool.find((candidate) => candidate.id === challengeId)
+            : stageId === 'system_design' && challengeId
+                ? getSystemDesignPatternById(challengeId)
+                    ?? systemDesignPool.find((candidate) => candidate.id === challengeId)
+                : undefined;
+        if (challengeId && !challenge) {
+            setError('This practice question is no longer available. Ask the Career Agent to refresh the question list.');
+            return;
+        }
+
         requestedPracticeRef.current = requestKey;
-        void handleStartStage(stage);
-    // The query stays stable for this mounted route; the ref prevents a
-    // second editor/whiteboard launch after a re-render.
+        void handleStartStage(stage, challenge);
+    // The query and generated pools are stable for a mounted route; the ref
+    // prevents duplicate modal launches after re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [guide, requestedQuestStage, stages]);
+    }, [
+        codingPool,
+        guide,
+        isLoadingPracticeHistory,
+        navigationRequest.revision,
+        requestedCodingChallenge,
+        requestedQuestStage,
+        requestedSystemDesignChallenge,
+        restoredFromSavedWorkspace,
+        stages,
+        systemDesignPool,
+    ]);
 
     const handleStageAnalysis = (stage: QuestStage, analysis: InterviewAnalysis) => {
         void recordStageAttempt(stage, stages, analysis)
@@ -470,6 +560,16 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         if (!codingBattle?.jobId) throw new Error('No active signed-in coding stage');
         return addAnalysisToJob(codingBattle.jobId, analysisData);
     };
+
+    const handleCodingDraft = useCallback((draft: QuestCodingDraft) => {
+        if (!codingBattle?.jobId) return Promise.resolve();
+        return saveCodingDraft(codingBattle.jobId, draft);
+    }, [codingBattle?.jobId, saveCodingDraft]);
+
+    const handleSystemDesignDraft = useCallback((draft: QuestSystemDesignDraft) => {
+        if (!designBattle?.jobId) return Promise.resolve();
+        return saveSystemDesignDraft(designBattle.jobId, draft);
+    }, [designBattle?.jobId, saveSystemDesignDraft]);
 
     const handleGuestCodingSubmissionComplete = (challengeId: string) => {
         setGuestCodingSolvedIds((previous) => previous.includes(challengeId) ? previous : [...previous, challengeId]);
@@ -683,6 +783,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                         const reportEntry = (stageEntry?.interviewHistory?.length ?? 0) > 0 ? stageEntry : null;
                                         const draft = getResumableDraft(stageEntry);
                                         const hasCodingDraft = stage.id === 'coding' && Object.keys(stageEntry?.activeCodingDrafts ?? {}).length > 0;
+                                        const hasDesignDraft = stage.id === 'system_design' && Object.keys(stageEntry?.activeSystemDesignDrafts ?? {}).length > 0;
                                         const hasGuestLocalPractice = !currentUser && canGuestUseLocalQuestStage(slug, stage.id);
                                         const isStarting = startingStageId === stage.id;
                                         const isLast = index === stages.length - 1;
@@ -706,7 +807,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                                                         Up next
                                                                     </span>
                                                                 )}
-                                                                {(draft || hasCodingDraft) && (
+                                                                {(draft || hasCodingDraft || hasDesignDraft) && (
                                                                     <span className="rounded-full border border-amber-300/60 bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                                                                         In progress
                                                                     </span>
@@ -799,6 +900,8 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                                                         ? <RotateCcw size={13} />
                                                                         : hasCodingDraft
                                                                             ? <RotateCcw size={13} />
+                                                                        : hasDesignDraft
+                                                                            ? <RotateCcw size={13} />
                                                                         : state === 'cleared'
                                                                         ? <RotateCcw size={13} />
                                                                         : stage.id === 'system_design'
@@ -810,6 +913,8 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                                                     ? 'Resume session'
                                                                     : hasCodingDraft
                                                                         ? 'Resume coding'
+                                                                    : hasDesignDraft
+                                                                        ? 'Resume whiteboard'
                                                                     : state === 'cleared'
                                                                     ? 'Improve score'
                                                                     : stage.id === 'system_design'
@@ -961,13 +1066,14 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         key={`${codingBattle.brief.challenge.id}-${codingBattle.isGuestPractice ? 'guest' : 'signed'}`}
                         userId={currentUser?.uid}
                         company={guide.company}
+                        questSlug={slug}
                         stageTitle={codingBattle.stage.title}
                         brief={codingBattle.brief}
                         preferredLanguage={getPreferredCodingLanguage(guide)}
                         isGuestPractice={Boolean(codingBattle.isGuestPractice)}
                         initialArtifact={codingBattle.initialArtifact}
                         initialDraft={codingBattle.initialDraft}
-                        saveDraft={codingBattle.jobId ? (draft) => saveCodingDraft(codingBattle.jobId!, draft) : undefined}
+                        saveDraft={codingBattle.jobId ? handleCodingDraft : undefined}
                         saveAnalysis={handleCodingAnalysis}
                         onAnalysisComplete={(analysis) => handleStageAnalysis(codingBattle.stage, analysis)}
                         onGuestSubmissionComplete={handleGuestCodingSubmissionComplete}
@@ -983,10 +1089,13 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         key={`${designBattle.brief.challengeId}-${designBattle.isGuestPractice ? 'guest' : 'signed'}`}
                         userId={currentUser?.uid}
                         company={guide.company}
+                        questSlug={slug}
                         stageTitle={designBattle.stage.title}
                         brief={designBattle.brief}
                         isGuestPractice={Boolean(designBattle.isGuestPractice)}
                         initialArtifact={designBattle.initialArtifact}
+                        initialDraft={designBattle.initialDraft}
+                        saveDraft={designBattle.jobId ? handleSystemDesignDraft : undefined}
                         saveAnalysis={handleDesignAnalysis}
                         onAnalysisComplete={(analysis) => handleStageAnalysis(designBattle.stage, analysis)}
                         onGuestSubmissionComplete={handleGuestSystemDesignSubmissionComplete}

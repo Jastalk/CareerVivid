@@ -26,7 +26,10 @@ import { AUTO_EXEC_TOOLS } from './useAutoExec';
 import { FREE_AGENT_TURNS_PER_DAY } from '../../config/creditCosts';
 import { parseResumeFromFile } from '../../services/geminiService';
 import { useAuth } from '../../contexts/AuthContext';
-import { renderInlineMarkdown } from '../../utils/renderInlineMarkdown';
+import { AgentActivityIndicator, type AgentActivity } from './AgentActivityIndicator';
+import { AgentMessageText } from './AgentMessageText';
+import { getAgentTechnicalContext } from './technicalTermEmphasis';
+import { readWorkspace } from './workspaceSnapshot';
 
 const ACCEPTED_UPLOAD = '.pdf,.doc,.docx,.txt';
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -48,19 +51,46 @@ interface Props {
 
 export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     const { currentUser } = useAuth();
-    const { text: agent, live, autoExec, sessions } = useAgentSession();
+    const { text: agent, live, autoExec, sessions, route } = useAgentSession();
     const [input, setInput] = useState('');
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [showHistory, setShowHistory] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [waitingActivity, setWaitingActivity] = useState<AgentActivity | null>(null);
     const endRef = useRef<HTMLDivElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const { messages, send, resolve, reset, stopGenerating, isThinking, error, credits } = agent;
+    const { messages, send, resolve, reset, stopGenerating, isThinking, isRestoring, error, credits } = agent;
     const isFull = variant === 'full';
+    const workspace = readWorkspace();
+    const technicalContext = getAgentTechnicalContext(
+        route,
+        typeof window === 'undefined' ? '' : window.location.search,
+        workspace,
+    );
+    const streamingReply = [...messages].reverse().find((message) => message.role === 'assistant' && message.streaming);
+    const textActivity: AgentActivity | null = isRestoring
+        ? 'working'
+        : !isThinking
+        ? null
+        : streamingReply?.text.trim() ? 'working' : waitingActivity ?? 'thinking';
+    const visibleActivity: AgentActivity | null = live.activity ?? textActivity;
 
-    useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    useEffect(() => {
+        if (!isThinking) {
+            setWaitingActivity(null);
+            return;
+        }
+
+        setWaitingActivity('thinking');
+        const workingTimer = window.setTimeout(() => setWaitingActivity('working'), 1400);
+        return () => window.clearTimeout(workingTimer);
+    }, [isThinking]);
+
+    useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, visibleActivity]);
 
     const submit = (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -185,7 +215,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                 )}
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-                    {messages.length === 0 && (
+                    {messages.length === 0 && !isRestoring && (
                         <div className="pt-3">
                             <p className="font-heading text-lg font-extrabold leading-tight tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
                                 What are we working on?
@@ -216,39 +246,41 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                     <div className="space-y-4">
                         {messages.map((m) => (
                             <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
-                                <div className={m.role === 'user' ? 'max-w-[85%]' : 'w-full'}>
+                                <div className={m.role === 'user' ? 'min-w-0 max-w-[85%]' : 'min-w-0 w-full'}>
                                     {m.role === 'user' ? (
-                                        <p className="rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2 text-sm text-white shadow-sm">
+                                        <p className="break-words rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2.5 text-sm leading-6 text-white shadow-sm">
                                             {m.via === 'voice' && <Mic className="mr-1 inline h-3 w-3 opacity-70" />}
                                             {m.text}
                                         </p>
                                     ) : (
-                                        <>
-                                            <div className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--cv-text-body-product)]">
-                                                {renderInlineMarkdown(m.text)}
-                                                {m.streaming && (
-                                                    <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-[var(--cv-action-primary)] align-middle" />
-                                                )}
+                                        <div className="flex min-w-0 items-start gap-2.5">
+                                            <span aria-hidden="true" className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] text-[#625bd5] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]">
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="whitespace-pre-wrap break-words rounded-2xl rounded-tl-md border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] px-3.5 py-2.5 text-sm leading-6 text-[var(--cv-text-body-product)] shadow-sm">
+                                                    <AgentMessageText
+                                                        text={m.text}
+                                                        technicalContext={technicalContext}
+                                                        workspace={workspace}
+                                                    />
+                                                    {m.streaming && (
+                                                        <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-[var(--cv-action-primary)] align-middle" />
+                                                    )}
+                                                </div>
+                                                <AgentCards cards={m.cards} />
+                                                {m.proposals?.map((p) => (
+                                                    <ProposedChanges key={p.id} proposal={p}
+                                                        onResolve={(id, ok) => void resolve(id, ok)} disabled={isThinking} />
+                                                ))}
                                             </div>
-                                            <AgentCards cards={m.cards} />
-                                            {m.proposals?.map((p) => (
-                                                <ProposedChanges key={p.id} proposal={p}
-                                                    onResolve={(id, ok) => void resolve(id, ok)} disabled={isThinking} />
-                                            ))}
-                                        </>
+                                        </div>
                                     )}
                                 </div>
                             </div>
                         ))}
 
-                        {isThinking && !messages.some((m) => m.streaming && m.text) && (
-                            <div className="flex gap-1 py-1">
-                                {[0, 150, 300].map((d) => (
-                                    <span key={d} className="h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--cv-action-primary)]"
-                                        style={{ animationDelay: `${d}ms` }} />
-                                ))}
-                            </div>
-                        )}
+                        {visibleActivity && <AgentActivityIndicator activity={visibleActivity} />}
 
                         {live.plan && <TaskPlan plan={live.plan} />}
 

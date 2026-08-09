@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '../../contexts/AuthContext';
 import { readWorkspace } from './workspaceSnapshot';
+import { joinTranscriptFragments, mergeVoiceTranscriptTurns } from './conversationFormatting';
 
 export interface ProposalDiff {
     kind: 'create' | 'update' | 'batch';
@@ -84,16 +85,6 @@ const STREAM_URL =
 
 const rid = () => Math.random().toString(36).slice(2, 10);
 
-/**
- * Whether this message is asking the agent to look at what the user is doing.
- *
- * Attaching the workspace on every turn would bill for a canvas nobody
- * mentioned. Matching intent keeps it to the turns where it earns its tokens,
- * and the agent can always ask the user to say "take a look" if it needs more.
- */
-const WORKSPACE_CUES = /\b(my (code|diagram|design|solution|architecture)|this code|look at|review|check|stuck|why (isn'?t|doesn'?t|does not)|what'?s wrong|feedback|critique|am i missing|failing|bug|next step)\b/i;
-const wantsWorkspace = (text: string): boolean => WORKSPACE_CUES.test(text);
-
 /** Kinds the panel knows how to render. Anything else stays a plain effect. */
 const CARD_KINDS = new Set(['company_guides', 'interview_questions']);
 
@@ -106,6 +97,7 @@ export function useCareerAgent(opts: {
     const { currentUser } = useAuth();
     const [messages, setMessages] = useState<AgentMessage[]>([]);
     const [isThinking, setIsThinking] = useState(false);
+    const [isRestoring, setIsRestoring] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [credits, setCredits] = useState<{ free: boolean; freeTurnsRemaining: number; creditsRemaining: number } | null>(null);
     const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -117,26 +109,29 @@ export function useCareerAgent(opts: {
     const abortRef = useRef<AbortController | null>(null);
     const optsRef = useRef(opts);
     optsRef.current = opts;
+    const sessionStateRef = useRef({ messages, conversationId });
+    sessionStateRef.current = { messages, conversationId };
 
     const fns = () => getFunctions(undefined, REGION);
 
-    const refreshConversations = useCallback(async () => {
-        if (!currentUser) return;
+    const refreshConversations = useCallback(async (): Promise<ConversationSummary[] | null> => {
+        if (!currentUser) return [];
         try {
             const fn = httpsCallable<unknown, { conversations: ConversationSummary[] }>(fns(), 'listAgentConversations');
             const { data } = await fn({ limit: 30 });
-            setConversations(data.conversations ?? []);
+            const next = data.conversations ?? [];
+            setConversations(next);
+            return next;
         } catch {
             // A missing history list must not break the panel.
+            return null;
         }
     }, [currentUser]);
-
-    useEffect(() => { void refreshConversations(); }, [refreshConversations]);
 
     const send = useCallback(
         async (text: string, attachment?: { type: 'parsed_resume'; data: unknown }) => {
             const trimmed = text.trim();
-            if ((!trimmed && !attachment) || isThinking) return;
+            if ((!trimmed && !attachment) || isThinking || isRestoring) return;
             if (!currentUser) {
                 setError('Sign in to use the Career Agent.');
                 return;
@@ -159,7 +154,10 @@ export function useCareerAgent(opts: {
                     signal: controller.signal,
                     body: JSON.stringify({
                         message: trimmed,
-                        workspace: wantsWorkspace(trimmed) ? readWorkspace() : undefined,
+                        // The snapshot exists only while a work surface is open.
+                        // Always attach it so natural phrases such as "what's
+                        // the question?" do not miss the current page context.
+                        workspace: readWorkspace(),
                         route: optsRef.current.route,
                         entity: optsRef.current.entity,
                         history: historyRef.current,
@@ -247,7 +245,7 @@ export function useCareerAgent(opts: {
                 setIsThinking(false);
             }
         },
-        [currentUser, isThinking, conversationId, refreshConversations],
+        [currentUser, isThinking, isRestoring, conversationId, refreshConversations],
     );
 
     /**
@@ -267,7 +265,7 @@ export function useCareerAgent(opts: {
             // Live transcription arrives in fragments; merge consecutive ones
             // from the same speaker instead of one bubble per phrase.
             if (last?.via === 'voice' && last.role === role) {
-                return [...m.slice(0, -1), { ...last, text: `${last.text} ${trimmed}`.trim() }];
+                return [...m.slice(0, -1), { ...last, text: joinTranscriptFragments(last.text, trimmed) }];
             }
             return [...m, { id: rid(), role, text: trimmed, via: 'voice' }];
         });
@@ -342,27 +340,52 @@ export function useCareerAgent(opts: {
     }, []);
 
     const openConversation = useCallback(async (id: string) => {
+        setIsRestoring(true);
         try {
-            const fn = httpsCallable<unknown, { id: string; title: string; turns: Array<{ role: 'user' | 'assistant'; text: string; effects?: AgentCard[] }> }>(
+            const fn = httpsCallable<unknown, { id: string; title: string; turns: Array<{ role: 'user' | 'assistant'; text: string; effects?: AgentCard[]; via?: 'text' | 'voice' }> }>(
                 fns(), 'getAgentConversation');
             const { data } = await fn({ conversationId: id });
+            const turns = mergeVoiceTranscriptTurns(data.turns);
 
-            setMessages(data.turns.map((t) => ({
+            setMessages(turns.map((t) => ({
                 id: rid(),
                 role: t.role,
                 text: t.text,
                 cards: (t.effects ?? []).filter((e: any) => e?.kind && CARD_KINDS.has(e.kind)) as AgentCard[],
-                via: (t as any).via === 'voice' ? 'voice' : 'text',
+                via: t.via === 'voice' ? 'voice' : 'text',
             })));
-            historyRef.current = data.turns
+            historyRef.current = turns
                 .map((t) => ({ role: t.role === 'user' ? 'user' : 'model', parts: [{ text: t.text }] }))
                 .slice(-20);
             setConversationId(id);
             setError(null);
         } catch (e: any) {
             setError(e?.message ?? 'Could not open that conversation.');
+        } finally {
+            setIsRestoring(false);
         }
     }, []);
+
+    const restoredUserRef = useRef<string | null>(null);
+    useEffect(() => {
+        const uid = currentUser?.uid ?? null;
+        if (!uid) {
+            restoredUserRef.current = null;
+            return;
+        }
+        if (restoredUserRef.current === uid) return;
+
+        let cancelled = false;
+        void refreshConversations().then(async (latest) => {
+            if (cancelled || !latest) return;
+            restoredUserRef.current = uid;
+            const current = sessionStateRef.current;
+            if (latest[0] && !current.conversationId && current.messages.length === 0) {
+                await openConversation(latest[0].id);
+            }
+        });
+        return () => { cancelled = true; };
+    }, [currentUser?.uid, openConversation, refreshConversations]);
 
     const deleteConversation = useCallback(async (id: string) => {
         // Optimistic: a delete that appears to hang reads as "it kept my data".
@@ -388,7 +411,7 @@ export function useCareerAgent(opts: {
     return {
         messages, send, resolve, reset, stopGenerating,
         appendVoiceTurn, snapshot, restore,
-        isThinking, error, credits,
+        isThinking, isRestoring, error, credits,
         conversations, conversationId, openConversation, deleteConversation, deleteAllConversations, refreshConversations,
     };
 }

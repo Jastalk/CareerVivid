@@ -24,6 +24,7 @@ import MobileExperienceGate from './MobileExperienceGate';
 import { analyzeCodingSubmission, voiceToCode, VoiceCoachMessage, VoiceToCodeResult } from '../../services/geminiService';
 import { publishWorkspace, clearWorkspace } from '../../features/agent/workspaceSnapshot';
 import { InterviewAnalysis, QuestCodingArtifact, QuestCodingDraft } from '../../types';
+import { saveQuestCodingDraftLocal } from '../../lib/questWorkspacePersistence';
 import {
     CODING_LANGUAGES,
     CODING_LANGUAGE_LABELS,
@@ -45,6 +46,7 @@ interface CodingBattleProps {
     /** Omitted for browser-only guest practice. */
     userId?: string;
     company: string;
+    questSlug?: string;
     stageTitle: string;
     brief: CodingBrief;
     preferredLanguage: CodingLanguage;
@@ -133,6 +135,7 @@ const buildInitialCodeByLanguage = (
 const CodingBattle: React.FC<CodingBattleProps> = ({
     userId,
     company,
+    questSlug,
     stageTitle,
     brief,
     preferredLanguage,
@@ -324,16 +327,44 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     const hasUndoableVoiceCode = voiceCodeChange?.language === language && code === voiceCodeChange.appliedCode;
     const canRunLocally = isExecutableCodingLanguage(language);
 
+    const currentDraft = useMemo<QuestCodingDraft>(() => ({
+        challengeId: challenge.id,
+        language,
+        code,
+        codeByLanguage,
+        updatedAt: Date.now(),
+    }), [challenge.id, code, codeByLanguage, language]);
+
+    const persistLocalDraft = useCallback(() => {
+        if (!questSlug) return;
+        saveQuestCodingDraftLocal(userId ?? 'guest', questSlug, {
+            ...currentDraft,
+            updatedAt: Date.now(),
+        });
+    }, [currentDraft, questSlug, userId]);
+
     const persistCurrentDraft = useCallback(() => {
         if (!saveDraft || isSubmitting) return Promise.resolve();
         return saveDraft({
-            challengeId: challenge.id,
-            language,
-            code,
-            codeByLanguage,
+            ...currentDraft,
             updatedAt: Date.now(),
         });
-    }, [challenge.id, code, codeByLanguage, isSubmitting, language, saveDraft]);
+    }, [currentDraft, isSubmitting, saveDraft]);
+
+    useEffect(() => {
+        if (!questSlug) return;
+        const timeout = window.setTimeout(persistLocalDraft, 150);
+        return () => window.clearTimeout(timeout);
+    }, [persistLocalDraft, questSlug]);
+
+    useEffect(() => {
+        const flush = () => {
+            persistLocalDraft();
+            void persistCurrentDraft();
+        };
+        window.addEventListener('pagehide', flush);
+        return () => window.removeEventListener('pagehide', flush);
+    }, [persistCurrentDraft, persistLocalDraft]);
 
     useEffect(() => {
         if (!saveDraft || isSubmitting) return;
@@ -344,9 +375,10 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     }, [isSubmitting, persistCurrentDraft, saveDraft]);
 
     const handleClose = useCallback(() => {
+        persistLocalDraft();
         void persistCurrentDraft();
         onClose();
-    }, [onClose, persistCurrentDraft]);
+    }, [onClose, persistCurrentDraft, persistLocalDraft]);
 
     const extensions = useMemo(
         () => (language === 'python' ? [python()] : language === 'javascript' ? [javascript()] : []),

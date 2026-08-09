@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { ArrowUpRight, Building2, Layers, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Building2, Layers, Sparkles } from 'lucide-react';
 import { navigate } from '../../utils/navigation';
 import type { AgentCard } from './useCareerAgent';
 
@@ -68,9 +68,11 @@ const CompanyGuides: React.FC<{ card: AgentCard }> = ({ card }) => {
 };
 
 interface QuestionItem {
+    questionId?: string;
     stage: string;
     stageLabel: string;
     question: string;
+    route?: string;
 }
 
 const InterviewQuestions: React.FC<{ card: AgentCard }> = ({ card }) => {
@@ -90,12 +92,22 @@ const InterviewQuestions: React.FC<{ card: AgentCard }> = ({ card }) => {
             </div>
 
             <ol className="divide-y divide-[var(--cv-border-subtle)]">
-                {questions.map((q, i) => (
-                    <li key={i} className="px-3.5 py-2.5">
+                {questions.map((q) => (
+                    <li key={q.questionId ?? `${q.stage}:${q.question}`} className="px-3.5 py-2.5">
                         <span className={`text-[10px] font-semibold uppercase tracking-wide ${STAGE_TONE[q.stage] ?? 'text-[var(--cv-text-muted)]'}`}>
                             {q.stageLabel}
                         </span>
                         <p className="mt-1 text-sm leading-relaxed text-[var(--cv-text-body-product)]">{q.question}</p>
+                        {q.route && (
+                            <button
+                                type="button"
+                                onClick={() => navigate(q.route!)}
+                                className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-[var(--cv-action-primary)] transition-colors hover:text-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]"
+                            >
+                                Practice this exact question
+                                <ArrowRight className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </li>
                 ))}
             </ol>

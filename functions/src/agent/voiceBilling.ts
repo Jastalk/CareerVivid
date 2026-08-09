@@ -41,6 +41,17 @@ import { voiceCreditsForSeconds } from "../generated/credits";
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
 
+/**
+ * The only model a voice session may use.
+ *
+ * `gemini-3.6-flash` — which the text agent escalates to for hard questions —
+ * has NO Live API. Routing a call to it does not degrade gracefully; the socket
+ * simply fails. The two surfaces share tools, prompts and billing, so a model
+ * upgrade aimed at text reads like it should apply here too. It must not.
+ *
+ * Exported as the single source for both the billing rate lookup and the
+ * client's connect call, so the two cannot drift apart.
+ */
 export const VOICE_MODEL = "gemini-live-2.5-flash-native-audio";
 
 /** How often the client is expected to check in. */

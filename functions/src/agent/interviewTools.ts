@@ -17,8 +17,15 @@ import {
     MOBILE_INTERVIEW_GUIDE_QUESTIONS,
     type MobileInterviewGuideStageQuestions,
 } from "../mobileInterviewGuideQuestions.generated";
+import {
+    AGENT_CODING_QUESTIONS,
+    AGENT_PRACTICE_CATALOG,
+    AGENT_SYSTEM_DESIGN_QUESTIONS,
+} from "../agentPracticeCatalog.generated";
 import * as admin from "firebase-admin";
 import { type AgentTool } from "./types";
+import { getAIClient, getVertexLocationForModel } from "../utils/ai";
+import { normalizeSpokenCompanyQuery } from "./interviewIntent";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -43,7 +50,7 @@ const S = (v: unknown, field: string, max = 200): string => {
 const optS = (v: unknown, max = 2_000): string | undefined =>
     typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined;
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const norm = (s: string) => normalizeSpokenCompanyQuery(s);
 
 interface GuideHit {
     slug: string;
@@ -155,6 +162,41 @@ export const getCompanyQuestions: AgentTool = {
         const stage: StageKey | undefined = (STAGES as readonly string[]).includes(a.stage) ? a.stage : undefined;
         const count = Math.min(10, Math.max(1, Number(a.count) || 5));
 
+        // Coding and system design must come from the exact pools used by the
+        // browser workspaces. Each item carries the stable id and route that
+        // openInterviewStage later uses, so chat and screen cannot drift.
+        if (stage === "coding" || stage === "systemDesign") {
+            const practice = AGENT_PRACTICE_CATALOG[hit.slug];
+            const ids = stage === "coding" ? practice?.coding : practice?.systemDesign;
+            const questionById = stage === "coding"
+                ? AGENT_CODING_QUESTIONS
+                : AGENT_SYSTEM_DESIGN_QUESTIONS[hit.slug];
+            const pool = ids?.map((id) => questionById?.[id]).filter(Boolean) ?? [];
+            if (!pool.length) {
+                throw new Error(`${guide.company} has no executable ${STAGE_LABEL[stage]} questions available.`);
+            }
+            const questions = pool.slice(0, count).map((question) => ({
+                stage,
+                openStage: stage === "systemDesign" ? "system_design" : "coding",
+                stageLabel: STAGE_LABEL[stage],
+                question: question.question,
+                questionId: question.id,
+                route: `${hit.route}?stage=${stage === "systemDesign" ? "system_design" : "coding"}&${
+                    stage === "systemDesign" ? "systemDesignChallenge" : "codingChallenge"
+                }=${encodeURIComponent(question.id)}`,
+            }));
+            return {
+                kind: "interview_questions",
+                company: guide.company,
+                slug: hit.slug,
+                route: hit.route,
+                stage,
+                questions,
+                note:
+                    "Ask exactly one returned question. If the user wants to open it, call openInterviewStage with its exact questionId, company, and openStage. Never replace it with another question.",
+            };
+        }
+
         const pick = (sq: MobileInterviewGuideStageQuestions): Array<{ stage: StageKey; stageLabel: string; question: string }> => {
             const out: Array<{ stage: StageKey; stageLabel: string; question: string }> = [];
             const stages = stage ? [stage] : STAGES;
@@ -215,6 +257,10 @@ export const openInterviewStage: AgentTool = {
                 enum: [...QUEST_STAGES],
                 description: "coding and system_design open a working modal; the others open their quest round.",
             },
+            questionId: {
+                type: "string",
+                description: "Exact questionId returned by getCompanyQuestions. Required when opening a specific coding or system-design question already discussed in chat.",
+            },
         },
         required: ["company", "stage"],
     },
@@ -231,13 +277,135 @@ export const openInterviewStage: AgentTool = {
         const hit = findGuides(ref, 1)[0];
         if (!hit) throw new Error(`No interview guide for "${ref}". Try searchCompanyGuides first.`);
 
+        const questionId = optS(a.questionId, 200);
+        if (questionId && stage !== "coding" && stage !== "system_design") {
+            throw new Error("questionId is only supported for coding and system_design stages.");
+        }
+        const practiceStage = stage === "coding"
+            ? "coding"
+            : stage === "system_design"
+                ? "systemDesign"
+                : null;
+        const questionExists = Boolean(practiceStage && questionId
+            && AGENT_PRACTICE_CATALOG[hit.slug]?.[practiceStage].includes(questionId));
+        const question = questionExists && questionId
+            ? practiceStage === "coding"
+                ? AGENT_CODING_QUESTIONS[questionId]
+                : AGENT_SYSTEM_DESIGN_QUESTIONS[hit.slug]?.[questionId]
+            : undefined;
+        if (questionId && !question) {
+            throw new Error(
+                `Question "${questionId}" is not available in ${hit.company}'s ${stage.replace("_", " ")} workspace. Fetch the stage questions again.`,
+            );
+        }
+
         return {
             kind: "open_stage",
             company: hit.company,
             stage,
-            // `?stage=` is what CompanyQuestPage reads to auto-launch the round.
-            route: `${hit.route}?stage=${stage}`,
-            note: "Call navigateToRoute with this exact route. The round opens over the page and you stay reachable beside it — keep coaching while they work.",
+            questionId: question?.id,
+            question: question?.question,
+            // A question-specific generated route wins; otherwise preserve the
+            // existing next-unsolved behavior for a generic stage request.
+            route: question
+                ? `${hit.route}?stage=${stage}&${stage === "coding" ? "codingChallenge" : "systemDesignChallenge"}=${encodeURIComponent(question.id)}`
+                : `${hit.route}?stage=${stage}`,
+            note: question
+                ? "Navigate to this exact route. The workspace will open the same question that was asked in chat."
+                : "Navigate to this exact route. No specific question was selected, so the workspace will use its normal next-unsolved question.",
+        };
+    },
+};
+
+/** Read the latest route, question, and structured canvas relayed by the browser. */
+export const getOpenWorkspace: AgentTool = {
+    name: "getOpenWorkspace",
+    description:
+        "Read what is open on the user's screen right now: route, company, current question, requirements, canvas nodes and connections, or coding buffer. Call for questions like 'what is my current question?' or 'can you see my solution?'. Never substitute a question-bank item.",
+    parameters: { type: "object", properties: {} },
+    phase: 3,
+    risk: "read",
+    writes: false,
+    execute: async (ctx) => {
+        if (!ctx.workspace) {
+            return {
+                kind: "open_workspace",
+                route: ctx.route ?? "/",
+                available: false,
+                note: "No active coding or system-design workspace is currently open in the browser.",
+            };
+        }
+        return {
+            kind: "open_workspace",
+            route: ctx.route ?? "/",
+            available: true,
+            workspace: ctx.workspace,
+            note: "Answer from this exact question and scene graph. Do not ask the user to describe it again.",
+        };
+    },
+};
+
+const WORKSPACE_REVIEW_MODEL = "gemini-3.6-flash";
+
+/** Score the structured graph against the active prompt without a screenshot. */
+export const reviewOpenWorkspace: AgentTool = {
+    name: "reviewOpenWorkspace",
+    description:
+        "Review the active system-design solution against its current question and requirements. Uses the structured canvas nodes and connections, not a screenshot. Call for 'is this correct?', 'grade this', or feedback on the current diagram.",
+    parameters: { type: "object", properties: {} },
+    phase: 3,
+    risk: "read",
+    writes: false,
+    action: "agent.turn",
+    execute: async (ctx) => {
+        const workspace = ctx.workspace;
+        if (!workspace || workspace.kind !== "system_design") {
+            throw new Error("Open a system-design whiteboard before asking for a diagram review.");
+        }
+        if (!workspace.problem) throw new Error("The active whiteboard has no current question yet.");
+
+        const ai = getAIClient(undefined, getVertexLocationForModel(WORKSPACE_REVIEW_MODEL));
+        const result = await ai.models.generateContent({
+            model: WORKSPACE_REVIEW_MODEL,
+            contents:
+                "You are a senior system-design interviewer. Evaluate only the supplied structured graph " +
+                "against the exact prompt and requirements. Do not assume unlabeled components or invisible edges. " +
+                "Give practical next edits.\n\n" +
+                JSON.stringify({
+                    company: workspace.company,
+                    question: workspace.problem,
+                    requirements: workspace.requirements ?? [],
+                    nodes: workspace.nodes ?? [],
+                    connections: workspace.connections ?? [],
+                }),
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        score: { type: "NUMBER", description: "Overall coverage score from 0 to 100." },
+                        verdict: { type: "STRING", description: "One concise sentence stating whether the design is on track." },
+                        strengths: { type: "ARRAY", items: { type: "STRING" } },
+                        missingOrWeak: { type: "ARRAY", items: { type: "STRING" } },
+                        nextEdits: { type: "ARRAY", items: { type: "STRING" } },
+                    },
+                    required: ["score", "verdict", "strengths", "missingOrWeak", "nextEdits"],
+                },
+            },
+        });
+        let review: Record<string, unknown>;
+        try {
+            review = JSON.parse(result.text || "{}");
+        } catch {
+            throw new Error("The diagram review returned an invalid result. Please try once more.");
+        }
+        return {
+            kind: "workspace_review",
+            model: WORKSPACE_REVIEW_MODEL,
+            question: workspace.problem,
+            reviewedNodes: workspace.nodes?.length ?? 0,
+            reviewedConnections: workspace.connections?.length ?? 0,
+            ...review,
         };
     },
 };

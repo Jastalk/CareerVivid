@@ -1,10 +1,13 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Excalidraw, exportToBlob } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import {
     Bot,
     CheckCircle2,
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
     ClipboardList,
     Layers,
     Lightbulb,
@@ -30,11 +33,13 @@ import {
     voiceSystemDesignCoach,
     VoiceCoachMessage,
 } from '../../services/geminiService';
-import { InterviewAnalysis, QuestSystemDesignArtifact } from '../../types';
+import { InterviewAnalysis, QuestSystemDesignArtifact, QuestSystemDesignDraft } from '../../types';
 import { SystemDesignBrief } from '../../lib/companyQuests';
 import { publishWorkspace, clearWorkspace } from '../../features/agent/workspaceSnapshot';
 import { buildSystemDesignDiagramElements } from '../../lib/systemDesignCanvas';
+import { extractSystemDesignSceneGraph } from '../../lib/systemDesignSceneGraph';
 import { toTranscriptEntries } from '../../lib/voiceTranscript';
+import { saveQuestSystemDesignDraftLocal } from '../../lib/questWorkspacePersistence';
 
 const InterviewReportModal = React.lazy(() => import('../InterviewReportModal'));
 
@@ -42,6 +47,7 @@ interface SystemDesignBattleProps {
     /** Omitted for browser-only guest practice. */
     userId?: string;
     company: string;
+    questSlug?: string;
     stageTitle: string;
     brief: SystemDesignBrief;
     /** Course practice reuses the battle UI but owns an independent result record. */
@@ -49,6 +55,8 @@ interface SystemDesignBattleProps {
     /** Guest mode never calls Gemini or persists progress. */
     isGuestPractice?: boolean;
     initialArtifact?: QuestSystemDesignArtifact;
+    initialDraft?: QuestSystemDesignDraft;
+    saveDraft?: (draft: QuestSystemDesignDraft) => Promise<void>;
     saveAnalysis?: (analysis: Omit<InterviewAnalysis, 'id' | 'timestamp'>) => Promise<InterviewAnalysis>;
     onAnalysisComplete?: (analysis: InterviewAnalysis) => void;
     onGuestSubmissionComplete?: (challengeId: string) => void;
@@ -116,11 +124,14 @@ const StyleIcon: React.FC<{ style: DiagramStyle; size?: number }> = ({ style, si
 const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
     userId,
     company,
+    questSlug,
     stageTitle,
     brief,
     practiceContext = 'quest',
     isGuestPractice = false,
     initialArtifact,
+    initialDraft,
+    saveDraft,
     saveAnalysis,
     onAnalysisComplete,
     onGuestSubmissionComplete,
@@ -138,6 +149,44 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
     const [isCanvasGuideVisible, setIsCanvasGuideVisible] = useState(true);
     // Mobile: the brief starts collapsed so the canvas gets the full screen.
     const [briefOpen, setBriefOpen] = useState(false);
+    /**
+     * Desktop-only: fold the brief into a slim rail so the canvas gets the
+     * width. The brief is reference material — read once, then in the way for
+     * the rest of a drawing session on smaller screens.
+     */
+    const [briefCollapsed, setBriefCollapsed] = useState<boolean>(
+        () => localStorage.getItem('cv_sd_brief_collapsed') === '1',
+    );
+    /** Which requirement's card is open on the collapsed rail, if any. */
+    const [peekedRequirement, setPeekedRequirement] = useState<number | null>(null);
+    const peekCardRef = useRef<HTMLDivElement | null>(null);
+    const peekRailRef = useRef<HTMLDivElement | null>(null);
+
+    /**
+     * Dismiss on an outside click by listening, never by covering.
+     *
+     * An overlay is the usual trick and it is wrong here: the rail sits in its
+     * own stacking context above the canvas, so any full-screen child of it
+     * blankets the drawing surface. Excalidraw then stops receiving clicks and
+     * a multi-point arrow can never be closed.
+     */
+    useEffect(() => {
+        if (peekedRequirement === null) return;
+        const onPointerDown = (e: PointerEvent) => {
+            const t = e.target as Node;
+            if (peekCardRef.current?.contains(t) || peekRailRef.current?.contains(t)) return;
+            setPeekedRequirement(null);
+        };
+        document.addEventListener('pointerdown', onPointerDown);
+        return () => document.removeEventListener('pointerdown', onPointerDown);
+    }, [peekedRequirement]);
+    const toggleBriefCollapsed = () => {
+        setPeekedRequirement(null);
+        setBriefCollapsed((v) => {
+            localStorage.setItem('cv_sd_brief_collapsed', v ? '0' : '1');
+            return !v;
+        });
+    };
     // Mobile: show a "better on desktop" gate before opening the round.
     const isMobileViewport = useMediaQuery('(max-width: 1023px)');
     const [mobileGateAcknowledged, setMobileGateAcknowledged] = useState(false);
@@ -146,12 +195,69 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
 
     const matchingInitialArtifact = initialArtifact?.type === 'system_design' && initialArtifact.challengeId === brief.challengeId
         ? initialArtifact : undefined;
+    const matchingInitialDraft = initialDraft?.type === 'system_design' && initialDraft.challengeId === brief.challengeId
+        ? initialDraft : undefined;
+    const initialScene = matchingInitialDraft ?? matchingInitialArtifact;
 
     const initialData = useMemo(() => ({
-        elements: getArtifactElements(matchingInitialArtifact),
+        elements: getArtifactElements(initialScene),
         appState: { viewBackgroundColor: resolvedTheme === 'dark' ? '#1f2937' : '#ffffff' },
-        files: getArtifactFiles(matchingInitialArtifact),
-    }), [matchingInitialArtifact, resolvedTheme]);
+        files: getArtifactFiles(initialScene),
+    }), [initialScene, resolvedTheme]);
+
+    const latestDraftRef = useRef<QuestSystemDesignDraft | null>(null);
+    const localSaveTimerRef = useRef<number | null>(null);
+    const cloudSaveTimerRef = useRef<number | null>(null);
+
+    const persistLatestDraft = useCallback(() => {
+        const draft = latestDraftRef.current;
+        if (!draft) return;
+        if (questSlug) saveQuestSystemDesignDraftLocal(userId ?? 'guest', questSlug, draft);
+        if (saveDraft) void saveDraft(draft);
+    }, [questSlug, saveDraft, userId]);
+
+    const handleSceneChange = useCallback((elements: readonly any[], _appState: unknown, files: Record<string, any>) => {
+        const serializedElements = toSerializableScene(elements.filter((element: any) => !element.isDeleted));
+        const serializedFiles = toSerializableScene(files) ?? {};
+        const elementsJson = JSON.stringify(serializedElements);
+        const filesJson = Object.keys(serializedFiles).length ? JSON.stringify(serializedFiles) : undefined;
+        const previousDraft = latestDraftRef.current;
+        if (previousDraft?.elementsJson === elementsJson && previousDraft.filesJson === filesJson) return;
+        const draft: QuestSystemDesignDraft = {
+            type: 'system_design',
+            challengeId: brief.challengeId,
+            elementsJson,
+            ...(filesJson ? { filesJson } : {}),
+            updatedAt: Date.now(),
+        };
+        latestDraftRef.current = draft;
+
+        if (localSaveTimerRef.current) window.clearTimeout(localSaveTimerRef.current);
+        localSaveTimerRef.current = window.setTimeout(() => {
+            if (questSlug) saveQuestSystemDesignDraftLocal(userId ?? 'guest', questSlug, draft);
+        }, 180);
+
+        if (cloudSaveTimerRef.current) window.clearTimeout(cloudSaveTimerRef.current);
+        cloudSaveTimerRef.current = window.setTimeout(() => {
+            if (saveDraft) void saveDraft(draft);
+        }, 1200);
+    }, [brief.challengeId, questSlug, saveDraft, userId]);
+
+    useEffect(() => {
+        const flush = () => persistLatestDraft();
+        window.addEventListener('pagehide', flush);
+        return () => {
+            window.removeEventListener('pagehide', flush);
+            if (localSaveTimerRef.current) window.clearTimeout(localSaveTimerRef.current);
+            if (cloudSaveTimerRef.current) window.clearTimeout(cloudSaveTimerRef.current);
+            flush();
+        };
+    }, [persistLatestDraft]);
+
+    const handleClose = useCallback(() => {
+        persistLatestDraft();
+        onClose();
+    }, [onClose, persistLatestDraft]);
 
     // ── Diagram style picker ─────────────────────────────────────────────────
     const [selectedStyle, setSelectedStyle] = useState<DiagramStyle>('auto');
@@ -217,27 +323,31 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
      * canvas the same way.
      */
     useEffect(() => {
-        const readLabels = (): string[] => {
+        const readScene = () => {
             const api = excalidrawAPIRef.current;
             const elements = api?.getSceneElements().filter((el: any) => !el.isDeleted) ?? [];
-            const labels = elements
-                .filter((el: any) => el.type === 'text' && el.text?.trim())
-                .map((el: any) => el.text.trim());
-            return [...new Set(labels)] as string[];
+            return extractSystemDesignSceneGraph(elements);
         };
 
-        const tick = () => publishWorkspace({
-            kind: 'system_design',
-            company,
-            stageTitle,
-            problem: brief.prompt,
-            components: readLabels(),
-        });
+        const tick = () => {
+            const scene = readScene();
+            publishWorkspace({
+                kind: 'system_design',
+                company,
+                stageTitle,
+                problem: brief.prompt,
+                questionId: brief.challengeId,
+                requirements: brief.requirements,
+                components: scene.nodes.map((node) => node.label),
+                nodes: scene.nodes,
+                connections: scene.connections,
+            });
+        };
 
         tick();
         const id = setInterval(tick, 3_000);
         return () => { clearInterval(id); clearWorkspace(); };
-    }, [company, stageTitle, brief.prompt]);
+    }, [company, stageTitle, brief.challengeId, brief.prompt, brief.requirements]);
 
     const focusDiagram = useCallback(() => {
         const api = excalidrawAPIRef.current;
@@ -435,7 +545,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
             <MobileExperienceGate
                 roundType="system-design"
                 onContinue={() => setMobileGateAcknowledged(true)}
-                onBack={onClose}
+                onBack={handleClose}
             />
         );
     }
@@ -460,14 +570,19 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
             <Suspense fallback={<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" size={28} /></div>}>
                 <InterviewReportModal
                     jobHistoryEntry={historyEntry}
-                    onClose={onClose}
+                    onClose={handleClose}
                     onImprove={() => setReportEntry(null)}
                 />
             </Suspense>
         );
     }
 
-    return (
+    // AppLayout intentionally uses CSS `zoom` to provide the compact product
+    // density. Excalidraw calculates pointer coordinates against the physical
+    // viewport, so keeping it inside that zoomed tree offsets drawing, erasing,
+    // selection, and drag gestures. A body portal gives the full-screen editor
+    // an unscaled 1:1 coordinate space while preserving the surrounding shell.
+    return createPortal((
         <div className="fixed inset-0 z-50 flex flex-col bg-white p-0 sm:bg-[#171411]/70 sm:p-3 sm:backdrop-blur-sm dark:bg-gray-900 sm:dark:bg-[#171411]/70">
             <div className="mx-auto flex h-[100dvh] w-full max-w-[1800px] flex-col overflow-hidden border-gray-200 bg-white sm:h-full sm:rounded-3xl sm:border sm:shadow-[0_24px_70px_rgba(17,24,39,0.24)] dark:border-gray-700 dark:bg-gray-900">
 
@@ -597,7 +712,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
 
                         <button
                             type="button"
-                            onClick={onClose}
+                            onClick={handleClose}
                             aria-label="Close"
                             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                         >
@@ -675,8 +790,99 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         </span>
                     </button>
 
+                    {/*
+                      * Collapsed brief rail.
+                      *
+                      * The requirements are the grading criteria — "pass this stage by
+                      * covering the core requirements" — so they are what you need at a
+                      * glance while drawing. An earlier version rotated the challenge
+                      * title down the rail instead: it filled the full height, was barely
+                      * readable, and hid the four things actually being marked.
+                      *
+                      * Numbered badges reuse the expanded list's visual language, so the
+                      * two states read as the same content at different densities.
+                      */}
+                    {briefCollapsed && (
+                        <div ref={peekRailRef} className="relative z-50 hidden shrink-0 flex-col items-center gap-2 border-r border-[#ececf4] bg-[#fbfbfe] py-3 lg:flex dark:border-gray-800 dark:bg-gray-900/60" style={{ width: 44 }}>
+                            <button
+                                type="button"
+                                onClick={toggleBriefCollapsed}
+                                aria-label="Expand the brief"
+                                title="Show the design brief"
+                                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f3f2ff] text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                            >
+                                <ChevronRight size={15} />
+                            </button>
+
+                            <div className="my-0.5 h-px w-5 bg-[#e4e4ef] dark:bg-gray-700" />
+
+                            {brief.requirements.map((req, i) => (
+                                <button
+                                    key={req}
+                                    type="button"
+                                    onClick={() => setPeekedRequirement((cur) => (cur === i ? null : i))}
+                                    aria-label={`Requirement ${i + 1}: ${req}`}
+                                    aria-expanded={peekedRequirement === i}
+                                    title={req}
+                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-extrabold ring-1 transition-colors ${
+                                        peekedRequirement === i
+                                            ? 'bg-[#625bd5] text-white ring-[#625bd5]'
+                                            : 'bg-[#f3f2ff] text-[#625bd5] ring-[#dfe2ff] hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40 dark:hover:bg-[#312d6b]'
+                                    }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+
+                            {/*
+                              * Click, not hover: while drawing the pointer is constantly
+                              * crossing this edge, and a hover card would flicker open
+                              * over the canvas unbidden.
+                              *
+                              * Floats over the canvas rather than widening the rail, so
+                              * reading a requirement never costs drawing width.
+                              */}
+                            {peekedRequirement !== null && (
+                                <>
+                                    <div
+                                        ref={peekCardRef}
+                                        className="absolute left-[52px] top-12 z-50 w-72 rounded-xl border border-[#dfe2ff] bg-white p-3 shadow-xl dark:border-[#625bd5]/40 dark:bg-gray-900"
+                                    >
+                                        <p className="mb-2 text-[13px] font-bold leading-snug text-gray-900 dark:text-gray-100">
+                                            {brief.challenge}
+                                        </p>
+                                        <ul className="space-y-1.5">
+                                            {brief.requirements.map((req, i) => (
+                                                <li
+                                                    key={req}
+                                                    className={`flex gap-2 rounded-md p-1.5 text-[12px] leading-relaxed transition-colors ${
+                                                        peekedRequirement === i
+                                                            ? 'bg-[#f3f2ff] text-gray-900 dark:bg-[#312d6b]/50 dark:text-gray-100'
+                                                            : 'text-gray-500 dark:text-gray-400'
+                                                    }`}
+                                                >
+                                                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#f3f2ff] text-[10px] font-extrabold text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40">
+                                                        {i + 1}
+                                                    </span>
+                                                    {req}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setPeekedRequirement(null); toggleBriefCollapsed(); }}
+                                            className="mt-2.5 w-full rounded-lg bg-[#f3f2ff] py-1.5 text-[11px] font-bold text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                                        >
+                                            Open the full brief
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
                     {/* Brief panel — overlay on mobile when expanded, static column on desktop */}
-                    <aside className={`${briefOpen ? 'flex' : 'hidden'} absolute inset-0 z-30 flex-col overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:static lg:z-auto lg:flex lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]`}>
+                    <aside className={`${briefOpen ? 'flex' : 'hidden'} absolute inset-0 z-30 flex-col overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:static lg:z-auto ${briefCollapsed ? 'lg:hidden' : 'lg:flex'} lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]`}>
                         <div className="mb-3 flex items-center justify-between lg:hidden">
                             <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
                                 <ClipboardList size={13} /> Design brief
@@ -690,8 +896,19 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                 <X size={16} />
                             </button>
                         </div>
-                        <div className="hidden items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] lg:flex dark:text-[#9b96ef]">
-                            <ClipboardList size={13} /> Design brief
+                        <div className="hidden items-center justify-between lg:flex">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                                <ClipboardList size={13} /> Design brief
+                            </span>
+                            <button
+                                type="button"
+                                onClick={toggleBriefCollapsed}
+                                aria-label="Collapse the brief"
+                                title="Collapse the brief for more canvas"
+                                className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                            >
+                                <ChevronLeft size={15} />
+                            </button>
                         </div>
                         <p className="mt-2.5 text-base font-bold leading-snug text-gray-900 dark:text-gray-100">{brief.challenge}</p>
                         <p className="mt-5 text-[11px] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Requirements</p>
@@ -735,6 +952,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                             excalidrawAPI={(api: any) => { excalidrawAPIRef.current = api; }}
                             theme={resolvedTheme === 'dark' ? 'dark' : 'light'}
                             initialData={initialData}
+                            onChange={handleSceneChange}
                         />
                         {isCanvasGuideVisible && (
                             <div className="absolute bottom-4 left-4 z-10 hidden max-w-[320px] rounded-lg border border-[#dfe2ff] bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur sm:block dark:border-[#484273] dark:bg-gray-900/95">
@@ -841,7 +1059,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                 </div>
             </div>
         </div>
-    );
+    ), document.body);
 };
 
 export default SystemDesignBattle;

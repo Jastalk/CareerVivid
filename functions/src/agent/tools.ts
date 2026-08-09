@@ -16,7 +16,14 @@
 
 import * as admin from "firebase-admin";
 import { type AgentTool, type ToolContext } from "./types";
-import { searchCompanyGuides, getCompanyQuestions, openInterviewStage, recordPracticeOutcome } from "./interviewTools";
+import {
+    searchCompanyGuides,
+    getCompanyQuestions,
+    openInterviewStage,
+    getOpenWorkspace,
+    reviewOpenWorkspace,
+    recordPracticeOutcome,
+} from "./interviewTools";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -793,7 +800,7 @@ const recommendLearningPath: AgentTool = {
 const startInterviewPractice: AgentTool = {
     name: "startInterviewPractice",
     description:
-        "Open Interview Studio for the user. It opens unconfigured — they pick the company and round there — so tell them what to choose. Spends credits, so it always requires approval.",
+        "Open generic Interview Studio only when the user explicitly asks for non-company practice. For a named company's loop, use openInterviewStage instead. Never infer a missing mode.",
     parameters: {
         type: "object",
         properties: {
@@ -802,17 +809,22 @@ const startInterviewPractice: AgentTool = {
             resumeId: { type: "string", description: "Optional resume to load into the session." },
             mode: { type: "string", enum: ["behavioral", "coding", "system_design"] },
         },
-        required: ["role"],
+        required: ["role", "mode"],
     },
     phase: 3,
     risk: "high_write",
     writes: true,
     action: "interview.question_gen",
-    validate: (a) => ({
-        role: S(a.role, "role", 200),
-        jobId: optS(a.jobId, 60),
-        mode: ["behavioral", "coding", "system_design"].includes(a.mode) ? a.mode : "behavioral",
-    }),
+    validate: (a) => {
+        if (!["behavioral", "coding", "system_design"].includes(a.mode)) {
+            throw new Error("mode is required and must be behavioral, coding, or system_design.");
+        }
+        return {
+            role: S(a.role, "role", 200),
+            jobId: optS(a.jobId, 60),
+            mode: a.mode,
+        };
+    },
     summarize: (a) => `Start a ${a.mode.replace("_", " ")} practice interview for ${a.role}`,
     execute: async (ctx, a) => {
         if (a.jobId) {
@@ -1054,6 +1066,8 @@ export const REGISTRY: AgentTool[] = [
     searchCompanyGuides,
     getCompanyQuestions,
     openInterviewStage,
+    getOpenWorkspace,
+    reviewOpenWorkspace,
     recordPracticeOutcome,
     recommendLearningPath,
     startInterviewPractice,

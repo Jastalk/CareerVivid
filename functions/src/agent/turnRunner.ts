@@ -21,6 +21,8 @@ import { TOOLS_BY_NAME, toolDeclarations, isAutoExecEligible } from "./tools";
 import { createProposal, type CreatedProposal } from "./proposals";
 import { reserve, settle, release, consumeFreeAgentTurn } from "../credits/ledger";
 import { FREE_AGENT_MODEL, ACTION_PRICES } from "../generated/credits";
+import { sanitizeWorkspace } from "./workspace";
+import { shouldUseAdvancedCareerModel } from "./interviewIntent";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -28,6 +30,7 @@ const db = admin.firestore();
 /** Raise as phases ship. Everything above this is defined but not exposed. */
 export const ENABLED_PHASE = Number(process.env.AGENT_MAX_PHASE ?? 4);
 const MAX_ITERATIONS = 12;
+const ADVANCED_AGENT_MODEL = "gemini-3.6-flash";
 
 export const SYSTEM_PROMPT = `
 You are the CareerVivid Career Agent. You help users learn skills, build resumes,
@@ -81,10 +84,17 @@ approves its proposal. Never dump the whole question list into prose; the cards
 already show it.
 
 Opening a round: when the user agrees to practise something you are discussing,
-call openInterviewStage and navigate to the route it returns. coding opens the
-code editor, system_design opens the whiteboard — both as a modal over the page,
-with you still reachable beside it. Never drop them on the quest index and make
-them pick the round themselves.
+call openInterviewStage with the EXACT questionId and openStage returned by
+getCompanyQuestions, then navigate to the route it returns. coding opens the code
+editor, system_design opens the whiteboard — both on the SAME question you asked
+in chat. Never omit or replace a known questionId. If there is no questionId,
+fetch the stage questions first. Never drop them on the quest index and make them
+pick the round themselves.
+
+Speech recognition may transcribe OpenAI as "open eye" or "open A I". Treat those
+as OpenAI. If the company is known but the round is not, ask only which round.
+Never default a missing round to behavioral or coding. For a company quest, use
+searchCompanyGuides and openInterviewStage; do not call startInterviewPractice.
 
 ## Practice memory
 
@@ -98,12 +108,69 @@ Skip it if they abandoned the problem early; a record of nothing is noise.
 If open_workspace is present, that is what is on their screen RIGHT NOW.
 Coach against what is actually there — never ask for a component they already
 drew, and name their own labels back to them.
+For "what is my current question?", "can you see my solution?", or equivalent,
+call getOpenWorkspace and answer only from it. For "is this correct?" or a request
+to grade/review the current solution, call reviewOpenWorkspace. Do not ask the user
+to describe the diagram and do not request a screenshot.
+
+## Leading a practice round
+
+Once a round is open you are running it, not attending it. Never end a turn
+mid-problem with "what would you like to add next?" — that hands the work back
+to the person who came here to be taught.
+
+Every turn follows the same shape:
+
+1. Compare open_workspace against the requirements in it. Find the single
+   highest-value thing missing or wrong.
+2. State it as a decision. What to add, where it connects.
+3. One line on why — the failure it prevents. That line is the teaching; without
+   it they copy a diagram instead of learning to build one.
+4. Optionally one SPECIFIC technical question to make it stick ("what happens
+   when that queue fills up?"). Never an open process question.
+
+  Good: "Next, put a queue between Application Service and the GPU nodes. They
+        are wired directly right now, so a traffic spike drops requests instead
+        of buffering. Draw it and tell me — and think about what happens when
+        the queue fills."
+  Bad:  "What would you like to add next?"
+  Bad:  "Are those what you'd like to work on?"
+
+One step at a time. Listing everything missing turns it into transcription.
+
+When they ask "is this correct?", answer plainly, then give the next step in the
+same breath. A verdict with no direction is where the momentum dies.
+
+If they are stuck or silent, do not wait — narrow it. Name the component and
+where it goes.
+
+For a coding round the same rule holds, but the gaps come from different
+evidence: failing tests, an approach that will not meet the complexity bar,
+missing edge cases. Name the specific case that breaks before naming the fix —
+"this drops the last element when the array has one item" beats "add a guard".
+If testSummary shows failures, work those first; passing tests with a bad
+approach comes next.
+
+## Finishing
+
+Only when every requirement is genuinely covered, stop leading and open it up:
+say what they built, name the one thing that would most improve it, then offer
+the real choices — submit for review, a different question from this company, or
+a different round. That is the only moment an open question belongs.
+
+Do not declare it finished early. A diagram that satisfies three of four
+requirements is not done, and saying so teaches the wrong bar.
 
 ## Tone
 
 Direct and concrete. No filler, no "Great question!". Short paragraphs. When the user
 is new and has nothing set up, offer two or three specific starting points rather than
 an open-ended "what would you like to do?".
+
+When coaching coding or system design in text, use Markdown bold for two to five
+solution-specific concepts the user should notice (for example an algorithm, data
+structure, component, protocol, or complexity). Never bold ordinary words, filler,
+or a full sentence. The spoken answer should remain natural; do not read formatting.
 
 ## Boundaries
 
@@ -168,32 +235,6 @@ export function sanitizeAttachment(raw: any): Record<string, unknown> | null {
     return Object.values(out).some((v) => v !== undefined) ? out : null;
 }
 
-/**
- * Trim the client-reported workspace.
- *
- * Caller-controlled, like the resume attachment: it reaches the model as text
- * and authorizes nothing. Capping keeps a large buffer from blowing out a turn
- * the user is paying for.
- */
-function sanitizeWorkspace(raw: any): Record<string, unknown> | null {
-    if (!raw || typeof raw !== "object") return null;
-    if (raw.kind !== "system_design" && raw.kind !== "coding") return null;
-
-    const str = (v: unknown, n: number) => (typeof v === "string" ? v.slice(0, n) : undefined);
-    return {
-        kind: raw.kind,
-        company: str(raw.company, 120),
-        stageTitle: str(raw.stageTitle, 120),
-        problem: str(raw.problem, 1_000),
-        components: Array.isArray(raw.components) ? raw.components.slice(0, 40).map((c: any) => String(c).slice(0, 80)) : undefined,
-        code: str(raw.code, 6_000),
-        language: str(raw.language, 40),
-        testSummary: raw.testSummary && typeof raw.testSummary === "object"
-            ? { passed: Number(raw.testSummary.passed) || 0, total: Number(raw.testSummary.total) || 0 }
-            : undefined,
-    };
-}
-
 /** Thrown when the monthly allowance cannot cover the turn. */
 export class CreditLimitError extends Error {
     constructor(
@@ -239,9 +280,13 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
     const history = Array.isArray(input.history) ? input.history.slice(-20) : [];
     const taskId = db.collection("_").doc().id;
 
-    // Free conversation runs on the cheapest model. Anything stronger is billed.
+    const workspace = sanitizeWorkspace(input.workspace);
+    // General chat stays inexpensive. Interview reasoning and anything tied to
+    // the live work surface use the stronger Vertex model the user approved.
     const { free, remaining } = await consumeFreeAgentTurn(uid);
-    const model = FREE_AGENT_MODEL;
+    const model = shouldUseAdvancedCareerModel(message, Boolean(workspace))
+        ? ADVANCED_AGENT_MODEL
+        : FREE_AGENT_MODEL;
 
     const res = await reserve({
         uid,
@@ -260,7 +305,6 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
         const ai = getAIClient(undefined, getVertexLocationForModel(model));
 
         const attachment = sanitizeAttachment(input.attachment);
-        const workspace = sanitizeWorkspace(input.workspace);
         const contents: any[] = [
             ...history,
             {
@@ -369,7 +413,7 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
                 }
 
                 try {
-                    const out = await tool.execute({ uid, taskId }, args);
+                    const out = await tool.execute({ uid, taskId, route, workspace }, args);
                     if (out && typeof out === "object") {
                         effects.push(out);
                         emit?.effect?.(out);
