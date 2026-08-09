@@ -312,6 +312,11 @@ export interface QuestSystemDesignArtifact {
   files?: Record<string, any>;
 }
 
+export interface QuestSystemDesignDraft extends QuestSystemDesignArtifact {
+  /** Allows the newest local or cloud draft to win without overwriting a submitted artifact. */
+  updatedAt: number;
+}
+
 export type QuestPracticeArtifact = QuestCodingArtifact | QuestSystemDesignArtifact;
 
 export interface InterviewAnalysis {
@@ -353,6 +358,8 @@ export interface PracticeHistoryEntry {
   activeInterviewDraft?: InterviewSessionDraft | null;
   /** Coding work is keyed by challenge so changing problems never replaces another draft. */
   activeCodingDrafts?: Record<string, QuestCodingDraft>;
+  /** Whiteboard work is also keyed by challenge so every prompt keeps its own canvas. */
+  activeSystemDesignDrafts?: Record<string, QuestSystemDesignDraft>;
 }
 
 // --- Job Tracker Types ---

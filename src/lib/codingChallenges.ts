@@ -1,4 +1,4 @@
-import { LocalInterviewGuide } from './localInterviewGuides';
+import type { LocalInterviewGuide } from './localInterviewGuideCore';
 
 /**
  * Curated coding challenges for the quest coding stage.

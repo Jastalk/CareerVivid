@@ -13,16 +13,26 @@
 
 import React from 'react';
 
+export interface InlineMarkdownOptions {
+  strongClassName?: string;
+  strongTitle?: string;
+  highlightClassName?: string;
+  highlightTitle?: string;
+}
+
+export const TECHNICAL_TERM_OPEN = '\uE000';
+export const TECHNICAL_TERM_CLOSE = '\uE001';
+
 /**
  * Parses inline markdown tokens from a string and returns an array of
  * React elements/strings that can be rendered inside any tag.
  */
-export function renderInlineMarkdown(text: string): React.ReactNode[] {
+export function renderInlineMarkdown(text: string, options: InlineMarkdownOptions = {}): React.ReactNode[] {
   if (!text) return [];
 
-  // Regex: match bold (**...**), italic (*...*), or inline code (`...`)
+  // Regex: match a Career Agent key term, bold, italic, or inline code.
   // Order matters: bold must come before italic to avoid partial matches.
-  const TOKEN_RE = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/gs;
+  const TOKEN_RE = /(\uE000(.+?)\uE001|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/gs;
 
   const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -34,11 +44,26 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
       nodes.push(text.slice(lastIndex, match.index));
     }
 
-    const [full, , boldContent, italicContent, codeContent] = match;
+    const [full, , highlightContent, boldContent, italicContent, codeContent] = match;
 
-    if (boldContent !== undefined) {
+    if (highlightContent !== undefined) {
       nodes.push(
-        <strong key={match.index} style={{ fontWeight: 'bold' }}>
+        <mark
+          key={match.index}
+          className={options.highlightClassName}
+          title={options.highlightTitle}
+        >
+          {highlightContent}
+        </mark>
+      );
+    } else if (boldContent !== undefined) {
+      nodes.push(
+        <strong
+          key={match.index}
+          className={options.strongClassName}
+          title={options.strongTitle}
+          style={{ fontWeight: 'bold' }}
+        >
           {boldContent}
         </strong>
       );

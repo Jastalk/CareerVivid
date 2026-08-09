@@ -1,4 +1,5 @@
-import { LocalInterviewGuide, buildLocalInterviewGuidePrompt, getGuideQuestionPool } from './localInterviewGuides';
+import { buildLocalInterviewGuidePrompt, getGuideQuestionPool } from './localInterviewGuideCore';
+import type { LocalInterviewGuide } from './localInterviewGuideCore';
 import { normalizeScore } from './gamification';
 import {
   CompanyCategory,
