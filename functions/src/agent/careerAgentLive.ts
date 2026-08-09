@@ -31,6 +31,7 @@ import { TOOLS_BY_NAME, toolDeclarations } from "./tools";
 import { createProposal } from "./proposals";
 import { reserve, settle, release } from "../credits/ledger";
 import { billVoiceSlice, closeVoiceSession, affordableMinutes, HEARTBEAT_INTERVAL_MS } from "./voiceBilling";
+import { sanitizeWorkspace } from "./workspace";
 import {
     ACTION_PRICES,
     VOICE_SESSION_CAP_MINUTES,
@@ -99,10 +100,17 @@ You can reach the real interview questions of 301 companies via searchCompanyGui
 and getCompanyQuestions. Use them, do not invent questions.
 
 Opening a round: when the user agrees to practise something you are discussing,
-call openInterviewStage and navigate to the route it returns. coding opens the
-code editor, system_design opens the whiteboard — both as a modal over the page,
-with you still reachable beside it. Never drop them on the quest index and make
-them pick the round themselves.
+call openInterviewStage with the EXACT questionId and openStage returned by
+getCompanyQuestions, then navigate to the route it returns. coding opens the code
+editor, system_design opens the whiteboard — both on the SAME question you asked
+in chat. Never omit or replace a known questionId. If there is no questionId,
+fetch the stage questions first. Never drop them on the quest index and make them
+pick the round themselves.
+
+Speech recognition may transcribe OpenAI as "open eye" or "open A I". Treat those
+as OpenAI. If the company is known but the round is not, ask only which round.
+Never default a missing round to behavioral or coding. For a named company, use
+searchCompanyGuides and openInterviewStage; never call startInterviewPractice.
 
 Running an in-chat mock: fetch questions for the company, ask exactly ONE, wait for
 the full answer, then coach — two things that worked, two to sharpen, one line on
@@ -122,6 +130,11 @@ Skip it if they abandoned the problem early; a record of nothing is noise.
 If open_workspace is present, that is what is on their screen RIGHT NOW.
 Coach against what is actually there — never ask for a component they already
 drew, and name their own labels back to them.
+The browser route and workspace can change while this voice session stays open.
+For "what is my current question?" or "can you see my solution?", call
+getOpenWorkspace. For "is this correct?", call reviewOpenWorkspace. Those tools
+receive the latest route and structured canvas on every call. Never ask the user
+to describe the diagram again and never request a screenshot.
 
 ## Pacing
 
@@ -141,6 +154,49 @@ export const getAgentLiveToken = functions
         const uid = requireAuth(context);
         const route = String(data?.route ?? "/");
         const entity = data?.entity;
+        const workspace = sanitizeWorkspace(data?.workspace);
+
+        /**
+         * Reconnect path.
+         *
+         * The server ends Live sessions well before our own cap, so the client
+         * reconnects with a resumption handle to keep the conversation alive.
+         * That must NOT open a second session: a new row would restart the
+         * clock, re-run the affordability check, and bill the same call twice.
+         * A resume therefore returns a fresh token against the existing row.
+         */
+        const resumeSessionId = String(data?.resumeSessionId ?? "");
+        if (resumeSessionId) {
+            const snap = await db.collection("voiceSessions").doc(resumeSessionId).get();
+            if (!snap.exists || snap.data()!.uid !== uid || snap.data()!.status !== "open") {
+                throw new functions.https.HttpsError("failed-precondition", "That session is no longer open.");
+            }
+            const existing = snap.data()!;
+
+            const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
+            const client = await auth.getClient();
+            const token = await client.getAccessToken();
+            if (!token?.token) throw new functions.https.HttpsError("internal", "Could not mint a Vertex token.");
+
+            // Rebuilt, not reused: the user may have moved to another company or
+            // opened a different round since the session started.
+            const ctx = await buildContext(uid, route, entity);
+            return {
+                accessToken: token.token,
+                project: process.env.GCLOUD_PROJECT,
+                location: REGION,
+                sessionId: resumeSessionId,
+                taskId: existing.taskId,
+                capMinutes: existing.capMinutes,
+                creditsPerMinute: VOICE_CREDITS_PER_MINUTE,
+                heartbeatIntervalMs: HEARTBEAT_INTERVAL_MS,
+                resumed: true,
+                tools: toolDeclarations(ENABLED_PHASE),
+                systemInstruction:
+                    `${LIVE_SYSTEM_PROMPT}\n\n<workspace_context>\n${JSON.stringify(ctx)}\n</workspace_context>` +
+                    (workspace ? `\n<open_workspace>\n${JSON.stringify(workspace)}\n</open_workspace>` : ""),
+            };
+        }
 
         const userSnap = await db.collection("users").doc(uid).get();
         if (!userSnap.exists) throw new functions.https.HttpsError("not-found", "User not found.");
@@ -196,7 +252,8 @@ export const getAgentLiveToken = functions
             // from what the server is willing to execute.
             tools: toolDeclarations(ENABLED_PHASE),
             systemInstruction:
-                `${LIVE_SYSTEM_PROMPT}\n\n<workspace_context>\n${JSON.stringify(ctx)}\n</workspace_context>`,
+                `${LIVE_SYSTEM_PROMPT}\n\n<workspace_context>\n${JSON.stringify(ctx)}\n</workspace_context>` +
+                (workspace ? `\n<open_workspace>\n${JSON.stringify(workspace)}\n</open_workspace>` : ""),
         };
     });
 
@@ -212,6 +269,8 @@ export const careerAgentLiveTool = functions
         const sessionId = String(data?.sessionId ?? "");
         const name = String(data?.name ?? "");
         const args = data?.args ?? {};
+        const route = String(data?.route ?? "/").slice(0, 500);
+        const workspace = sanitizeWorkspace(data?.workspace);
 
         // The session must exist, be open, and belong to the caller. Without
         // this the endpoint would be a way to drive tools outside any session.
@@ -220,6 +279,9 @@ export const careerAgentLiveTool = functions
             throw new functions.https.HttpsError("failed-precondition", "No open session.");
         }
         const taskId: string = sessionSnap.data()!.taskId ?? sessionId;
+        if (route !== sessionSnap.data()!.route) {
+            await sessionSnap.ref.update({ route, routeUpdatedAt: admin.firestore.FieldValue.serverTimestamp() });
+        }
 
         const tool = TOOLS_BY_NAME.get(name);
         if (!tool || tool.phase > ENABLED_PHASE) {
@@ -259,7 +321,7 @@ export const careerAgentLiveTool = functions
         }
 
         try {
-            const result = await tool.execute({ uid, taskId }, validated);
+            const result = await tool.execute({ uid, taskId, route, workspace }, validated);
             await settle({ uid, entryId: res.entryId, result: "ok" });
             return { ok: true, status: "done", result, creditsRemaining: res.creditsRemaining };
         } catch (e: any) {
