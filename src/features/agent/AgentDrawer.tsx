@@ -58,6 +58,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         return stored >= MIN_WIDTH && stored <= MAX_WIDTH ? stored : 416;
     });
     const draggingRef = useRef(false);
+    const rootRef = useRef<HTMLElement | null>(null);
     const { currentUser } = useAuth();
 
     // Cmd/Ctrl+K toggles, Esc closes — the panel is used mid-task, and reaching
@@ -72,6 +73,11 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                     return next;
                 });
             } else if (e.key === 'Escape' && !draggingRef.current) {
+                // Only when the panel itself has focus. Escape is load-bearing
+                // elsewhere — on the whiteboard it finishes a multi-point arrow,
+                // and stealing it closed the agent instead of ending the line.
+                const target = e.target as Node | null;
+                if (!target || !rootRef.current?.contains(target)) return;
                 setModeState((m) => {
                     if (m === 'closed') return m;
                     localStorage.setItem(MODE_KEY, 'closed');
@@ -127,7 +133,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         const last = text.messages[text.messages.length - 1];
         const onCall = live.status === 'live' || live.status === 'connecting';
         return (
-            <aside className="fixed bottom-5 right-5 z-[60] w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950">
+            <aside ref={rootRef} className="fixed bottom-5 right-5 z-[60] w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950">
                 <div className="flex items-center gap-1.5 border-b border-gray-100 px-2.5 py-1.5 dark:border-gray-800/60">
                     <Sparkles className="h-3 w-3 shrink-0 text-amber-500" />
                     <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-gray-700 dark:text-gray-200">
@@ -183,6 +189,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
 
     return (
         <aside
+            ref={rootRef}
             style={{ width: `min(${width}px, 100vw)` }}
             className="fixed bottom-0 right-0 z-[60] flex h-[min(38rem,88vh)] flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:bottom-5 sm:right-5 sm:rounded-2xl dark:border-gray-800 dark:bg-gray-950"
         >
