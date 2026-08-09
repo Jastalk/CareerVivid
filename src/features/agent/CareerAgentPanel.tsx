@@ -158,9 +158,20 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                     <span className="grid h-7 w-7 place-items-center rounded-xl bg-gradient-to-br from-[var(--cv-action-primary)] to-amber-500 text-white shadow-sm">
                         <Sparkles className="h-3.5 w-3.5" />
                     </span>
-                    <h2 className="font-heading text-sm font-extrabold tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
-                        Career Agent
-                    </h2>
+                    {/*
+                      * The subtitle exists because a practice round shows two
+                      * chats at once. Without it, "Career Agent" and "code
+                      * coach" look like the same thing twice, and people cannot
+                      * tell which one remembers them.
+                      */}
+                    <span className="min-w-0">
+                        <h2 className="font-heading text-sm font-extrabold leading-none tracking-tight text-[var(--cv-text-heading-product)] dark:text-white">
+                            Career Agent
+                        </h2>
+                        <span className="mt-0.5 block text-[10px] leading-none text-[var(--cv-text-muted)]">
+                            Live coach · remembers you across rounds
+                        </span>
+                    </span>
 
                     <div className="ml-auto flex items-center gap-1">
                         {credits && (

@@ -6,13 +6,14 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Sparkles, X, Maximize2, Minus, GripVertical, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Sparkles, X, Maximize2, Minus, GripVertical, GripHorizontal, Mic, MicOff, PhoneOff } from 'lucide-react';
 // No <Router> in this app — see src/utils/navigation.ts. The current path is
 // passed down from App.tsx, which already recomputes it on popstate.
 import { navigate } from '../../utils/navigation';
 import { CareerAgentPanel } from './CareerAgentPanel';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAgentSession } from './AgentSessionContext';
+import { useDrawerCorner, CORNER_STYLE, RESIZE_EDGE } from './useDrawerCorner';
 
 /**
  * Routes where a floating panel would obstruct the actual work.
@@ -27,6 +28,8 @@ const MIN_WIDTH = 320;
 const MAX_WIDTH = 720;
 const WIDTH_KEY = 'cv_agent_drawer_width';
 const MODE_KEY = 'cv_agent_drawer_mode';
+const CLOSED_AT_KEY = 'cv_agent_closed_at';
+const REOPEN_HINT_MS = 6_000;
 
 /**
  * closed → the pill. open → the full drawer. mini → a compact card that keeps
@@ -38,6 +41,42 @@ const MODE_KEY = 'cv_agent_drawer_mode';
  * every navigation would not feel like a companion.
  */
 type DrawerMode = 'closed' | 'open' | 'mini';
+
+
+/**
+ * The grip you drag the agent by.
+ *
+ * Hidden until hover so it never competes with the conversation, and separate
+ * from the panel body on purpose: click-to-move would fling the panel across
+ * the screen on a stray click while reading.
+ *
+ * The bubble appears once, the first time someone hovers, and never again —
+ * a permanent "you can drag me" label is clutter after the first day.
+ */
+const DragHandle: React.FC<{ onPointerDown: (e: React.PointerEvent) => void; hintSeen: boolean }> = ({
+    onPointerDown,
+    hintSeen,
+}) => {
+    const [hovered, setHovered] = useState(false);
+    return (
+        <div
+            onPointerDown={onPointerDown}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            role="button"
+            aria-label="Drag to move the Career Agent"
+            title="Drag to move"
+            className="group absolute left-1/2 top-0 z-10 flex h-4 w-16 -translate-x-1/2 cursor-grab items-center justify-center active:cursor-grabbing"
+        >
+            <GripHorizontal className="h-3 w-3 text-transparent transition-colors group-hover:text-[var(--cv-text-muted)]" />
+            {hovered && !hintSeen && (
+                <span className="pointer-events-none absolute top-5 whitespace-nowrap rounded-lg bg-gray-900 px-2 py-1 text-[10px] font-medium text-white shadow-lg dark:bg-white dark:text-gray-900">
+                    Drag here to move me to any corner
+                </span>
+            )}
+        </div>
+    );
+};
 
 export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     const [mode, setModeState] = useState<DrawerMode>(() => {
@@ -60,6 +99,37 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     const draggingRef = useRef(false);
     const rootRef = useRef<HTMLElement | null>(null);
     const { currentUser } = useAuth();
+    const { corner, dragging, dragPos, startDrag, hintSeen, dismissHint } = useDrawerCorner();
+    /**
+     * Shown briefly on close: dismissing a companion should not feel like
+     * losing it.
+     *
+     * Backed by a timestamp rather than component state because this component
+     * remounts when the drawer closes — plain state is wiped before the hint
+     * can render. `mode` and `width` only survive for the same reason.
+     */
+    const [closedAt, setClosedAt] = useState<number>(() => Number(localStorage.getItem(CLOSED_AT_KEY)) || 0);
+    const showReopenHint = closedAt > 0 && Date.now() - closedAt < REOPEN_HINT_MS;
+
+    const closeWithHint = () => {
+        const now = Date.now();
+        localStorage.setItem(CLOSED_AT_KEY, String(now));
+        setClosedAt(now);
+        setMode('closed');
+    };
+
+    // Re-render once the window lapses, so the toast disappears on its own.
+    useEffect(() => {
+        if (!showReopenHint) return;
+        const remaining = REOPEN_HINT_MS - (Date.now() - closedAt);
+        const id = window.setTimeout(() => setClosedAt(0), Math.max(0, remaining));
+        return () => window.clearTimeout(id);
+    }, [showReopenHint, closedAt]);
+
+    // While dragging the panel follows the cursor; on release it snaps.
+    const dragStyle = dragPos
+        ? { position: 'fixed' as const, left: dragPos.x - 40, top: dragPos.y - 20, right: 'auto', bottom: 'auto' }
+        : undefined;
 
     // Cmd/Ctrl+K toggles, Esc closes — the panel is used mid-task, and reaching
     // for the mouse breaks the thing it is meant to support.
@@ -116,16 +186,30 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
 
     if (mode === 'closed') {
         return (
-            <button
-                type="button"
-                onClick={() => setMode('open')}
-                aria-label="Open Career Agent"
-                title="Career Agent (⌘K)"
-                className="fixed bottom-5 right-5 z-[60] flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-gray-900"
-            >
-                <Sparkles className="h-4 w-4 text-amber-400 dark:text-amber-500" />
-                Career Agent
-            </button>
+            <>
+                {/* Says where it went. Dismissing a companion should not feel
+                    like losing it — and the sidebar entry is the durable answer
+                    once this toast is gone. */}
+                {showReopenHint && (
+                    <div
+                        style={{ ...CORNER_STYLE[corner], marginBottom: 64 }}
+                        className="fixed z-[61] max-w-[15rem] rounded-xl bg-gray-900 px-3 py-2 text-xs text-white shadow-xl dark:bg-white dark:text-gray-900"
+                    >
+                        Career Agent is hidden. Reopen it from the sidebar, or press ⌘K.
+                    </div>
+                )}
+                <button
+                    type="button"
+                    onClick={() => { localStorage.removeItem(CLOSED_AT_KEY); setClosedAt(0); setMode('open'); }}
+                    aria-label="Open Career Agent"
+                    title="Career Agent (⌘K)"
+                    style={CORNER_STYLE[corner]}
+                    className="fixed z-[60] flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-gray-900"
+                >
+                    <Sparkles className="h-4 w-4 text-amber-400 dark:text-amber-500" />
+                    Career Agent
+                </button>
+            </>
         );
     }
 
@@ -133,7 +217,12 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         const last = text.messages[text.messages.length - 1];
         const onCall = live.status === 'live' || live.status === 'connecting';
         return (
-            <aside ref={rootRef} className="fixed bottom-5 right-5 z-[60] w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950">
+            <aside
+                ref={rootRef}
+                style={dragStyle ?? CORNER_STYLE[corner]}
+                className={`fixed z-[60] w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950 ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
+            >
+                <DragHandle onPointerDown={startDrag} hintSeen={hintSeen} />
                 <div className="flex items-center gap-1.5 border-b border-gray-100 px-2.5 py-1.5 dark:border-gray-800/60">
                     <Sparkles className="h-3 w-3 shrink-0 text-amber-500" />
                     <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-gray-700 dark:text-gray-200">
@@ -162,7 +251,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                         className="rounded-md p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10">
                         <Maximize2 className="h-3 w-3" />
                     </button>
-                    <button type="button" onClick={() => setMode('closed')} title="Close"
+                    <button type="button" onClick={closeWithHint} title="Close"
                         className="rounded-md p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10">
                         <X className="h-3 w-3" />
                     </button>
@@ -190,15 +279,16 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     return (
         <aside
             ref={rootRef}
-            style={{ width: `min(${width}px, 100vw)` }}
-            className="fixed bottom-0 right-0 z-[60] flex h-[min(38rem,88vh)] flex-col overflow-hidden rounded-t-2xl border border-gray-200 bg-white shadow-2xl sm:bottom-5 sm:right-5 sm:rounded-2xl dark:border-gray-800 dark:bg-gray-950"
+            style={{ width: `min(${width}px, 100vw)`, ...(dragStyle ?? CORNER_STYLE[corner]) }}
+            className={`fixed z-[60] flex h-[min(38rem,88vh)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950 ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
         >
+            <DragHandle onPointerDown={startDrag} hintSeen={hintSeen} />
             <div
                 onPointerDown={startResize}
                 title="Drag to resize"
                 role="separator"
                 aria-orientation="vertical"
-                className="group absolute left-0 top-0 hidden h-full w-2 cursor-col-resize items-center justify-center hover:bg-[var(--cv-action-soft-bg)] sm:flex"
+                className={`group absolute top-0 hidden h-full w-2 cursor-col-resize items-center justify-center hover:bg-[var(--cv-action-soft-bg)] sm:flex ${RESIZE_EDGE[corner] === 'left' ? 'left-0' : 'right-0'}`}
             >
                 <GripVertical className="h-4 w-4 text-transparent transition-colors group-hover:text-[var(--cv-text-muted)]" />
             </div>
@@ -224,7 +314,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                 </button>
                 <button
                     type="button"
-                    onClick={() => setOpen(false)}
+                    onClick={closeWithHint}
                     title="Close"
                     className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
                 >

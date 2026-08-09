@@ -785,6 +785,15 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <p className="mt-1.5 text-[11px] leading-relaxed text-[#4a4499] dark:text-[#c8c5ff]">
                                 Use <strong>Talk to code coach</strong> to explain your idea. Choose <strong>Send to code coach</strong> when you want it translated into an editable draft and a targeted hint.
                             </p>
+                            {/*
+                              * Names the boundary, because this round shows two
+                              * chats at once. Without it people ask the coach
+                              * about their resume and wonder why it cannot help.
+                              */}
+                            <p className="mt-2 border-t border-[#dfe2ff] pt-2 text-[10px] leading-relaxed text-[#6b66a8] dark:border-[#625bd5]/30 dark:text-[#a8a3d8]">
+                                Writes code for this problem only. For a live conversation that
+                                remembers your practice across rounds, use <strong>Career Agent</strong>.
+                            </p>
                             </div>
                         )}
                     </aside>

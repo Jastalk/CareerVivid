@@ -16,6 +16,7 @@ import {
     Settings,
     Sparkles,
     GraduationCap,
+    Bot,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
@@ -347,6 +348,10 @@ const Sidebar: React.FC = () => {
 
     const primaryLinks = [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        // The durable way back to the agent. The floating panel can be closed
+        // or dragged off, and a companion you cannot find again is worse than
+        // one that was never there.
+        { label: 'Career Agent', path: '/agent', icon: Bot },
         { label: 'Job tracker', path: '/job-tracker', icon: Briefcase },
         { label: 'Interview practice', path: '/interview-studio', icon: Mic },
         { label: 'Learning', path: '/learning', icon: GraduationCap },
