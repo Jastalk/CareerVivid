@@ -323,6 +323,8 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
      * canvas the same way.
      */
     useEffect(() => {
+        // Keyed on the question, so switching questions counts as a new owner.
+        const ownerId = `system_design:${brief.challengeId ?? brief.prompt.slice(0, 40)}`;
         const readScene = () => {
             const api = excalidrawAPIRef.current;
             const elements = api?.getSceneElements().filter((el: any) => !el.isDeleted) ?? [];
@@ -341,12 +343,12 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                 components: scene.nodes.map((node) => node.label),
                 nodes: scene.nodes,
                 connections: scene.connections,
-            });
+            }, ownerId);
         };
 
         tick();
         const id = setInterval(tick, 3_000);
-        return () => { clearInterval(id); clearWorkspace(); };
+        return () => { clearInterval(id); clearWorkspace(ownerId); };
     }, [company, stageTitle, brief.challengeId, brief.prompt, brief.requirements]);
 
     const focusDiagram = useCallback(() => {

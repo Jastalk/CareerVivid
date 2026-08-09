@@ -362,6 +362,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         url: guide.url,
                     }, [])
                     : undefined;
+                setDesignBattle(null);
                 setCodingBattle({
                     stage,
                     jobId,
@@ -410,6 +411,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         url: guide.url,
                     }, [])
                     : undefined;
+                setCodingBattle(null);
                 setDesignBattle({
                     stage,
                     jobId,

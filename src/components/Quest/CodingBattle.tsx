@@ -311,6 +311,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
      * only reads it when the user asks it to look.
      */
     useEffect(() => {
+        const ownerId = `coding:${brief.challenge.id}`;
         publishWorkspace({
             kind: 'coding',
             company,
@@ -319,10 +320,15 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
             code: codeByLanguage[language],
             language,
             testSummary: runSummary ? { passed: runSummary.passed, total: runSummary.total } : undefined,
-        });
+        }, ownerId);
     }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary]);
 
-    useEffect(() => () => clearWorkspace(), []);
+    // Release only if still held: the replacement round may already have
+    // claimed the slot before this one unmounts.
+    useEffect(() => {
+        const ownerId = `coding:${brief.challenge.id}`;
+        return () => clearWorkspace(ownerId);
+    }, [brief.challenge.id]);
 
     const hasUndoableVoiceCode = voiceCodeChange?.language === language && code === voiceCodeChange.appliedCode;
     const canRunLocally = isExecutableCodingLanguage(language);

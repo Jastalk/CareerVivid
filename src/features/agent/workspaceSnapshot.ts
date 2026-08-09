@@ -36,15 +36,38 @@ export interface WorkspaceSnapshot {
 }
 
 let current: WorkspaceSnapshot | null = null;
+/** Which publisher owns the slot. Last writer wins; only the owner may clear. */
+let owner: string | null = null;
 
-/** Called by a battle as its state changes. Cheap: a plain assignment. */
-export function publishWorkspace(snapshot: Omit<WorkspaceSnapshot, 'updatedAt'>): void {
+/**
+ * Claim the slot and publish.
+ *
+ * Ownership matters because rounds overlap during a switch: React mounts the
+ * new one before unmounting the old, and the whiteboard republishes on a 3s
+ * interval. Without an owner the departing round kept overwriting the arriving
+ * one, and the agent went on coaching the round the user had just left.
+ *
+ * `ownerId` identifies the publisher, not the round — two whiteboards on
+ * different questions are different owners.
+ */
+export function publishWorkspace(
+    snapshot: Omit<WorkspaceSnapshot, 'updatedAt'>,
+    ownerId?: string,
+): void {
+    owner = ownerId ?? `${snapshot.kind}:${snapshot.problem.slice(0, 40)}`;
     current = { ...snapshot, updatedAt: Date.now() };
 }
 
-/** Called when a battle closes, so the agent stops referring to a finished round. */
-export function clearWorkspace(): void {
+/**
+ * Release the slot, but only if you still hold it.
+ *
+ * An unmounting round must not wipe the snapshot its replacement already
+ * published — that would leave the agent blind on a round that is open.
+ */
+export function clearWorkspace(ownerId?: string): void {
+    if (ownerId && owner !== ownerId) return;
     current = null;
+    owner = null;
 }
 
 /**
