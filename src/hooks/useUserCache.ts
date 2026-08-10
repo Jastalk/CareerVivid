@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { create } from 'zustand';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -58,8 +59,21 @@ export const useUserCacheStore = create<UserCacheState>((set, get) => ({
 
             return userData;
         } catch (error) {
+            /*
+             * Record the failure in the cache, not just in `loading`.
+             *
+             * Clearing `loading` alone left the id absent from `cache`, which is
+             * the exact condition the hook below uses to decide it should fetch.
+             * Every failure therefore scheduled another attempt on the next
+             * render: a profile the rules deny produced an unbounded stream of
+             * identical `permission-denied` reads rather than one.
+             *
+             * `null` already means "fetched, nothing to show" for the success
+             * path, so a denied read settles into the same state.
+             */
             console.error(`Error fetching user ${userId}:`, error);
             set((state) => ({
+                cache: { ...state.cache, [userId]: null },
                 loading: { ...state.loading, [userId]: false }
             }));
             return null;
@@ -76,11 +90,15 @@ export const useUserCache = (userId: string | null | undefined) => {
 
     const user = userId ? cache[userId] : null;
     const isLoading = userId ? loading[userId] : false;
+    const isCached = userId ? userId in cache : false;
 
-    // Trigger fetch if not in cache and not loading
-    if (userId && !(userId in cache) && !loading[userId]) {
-        fetchUser(userId);
-    }
+    // In an effect, not during render: a fetch is a side effect, and firing it
+    // from the render body runs it twice per mount under StrictMode.
+    useEffect(() => {
+        if (userId && !isCached && !loading[userId]) {
+            void fetchUser(userId);
+        }
+    }, [userId, isCached, loading, fetchUser]);
 
     return { user, isLoading };
 };

@@ -13,7 +13,7 @@ const OpenSourceAttribution: React.FC = () => {
                 href={PACKAGE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
+                className="group flex items-center justify-center gap-2 text-xs text-[var(--cv-text-muted)] transition-colors hover:text-[var(--cv-text-heading)]"
             >
                 <span className="font-medium">Powered by CareerVivid</span>
                 <span className="text-gray-300 dark:text-gray-600">·</span>

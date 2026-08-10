@@ -378,7 +378,7 @@ const PricingPage: React.FC = () => {
                                 Every plan refreshes on a predictable monthly cycle so active searches have a clear budget.
                             </p>
                         </article>
-                        <article className="rounded-2xl border border-[#e4d3bc] bg-[#211b16] p-6 text-[#f4f1e9] shadow-[0_18px_55px_rgba(33,27,22,0.18)] dark:border-[#37332d] dark:bg-[#262522]">
+                        <article className="cv-surface-inverted rounded-2xl border border-[#e4d3bc] bg-[#211b16] p-6 shadow-[0_18px_55px_rgba(33,27,22,0.18)] dark:border-[#37332d] dark:bg-[#262522]">
                             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff4cc] text-[#9a651f]">
                                 <Users size={22} />
                             </div>

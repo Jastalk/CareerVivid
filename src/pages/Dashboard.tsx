@@ -296,8 +296,10 @@ const Dashboard: React.FC = () => {
                     <section className="mt-8 border-t border-[var(--cv-border-subtle)] pt-5" aria-labelledby="workspace-details-heading">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <h2 id="workspace-details-heading" className="font-heading text-base font-extrabold text-[var(--cv-text-heading-product)] dark:text-white">Workspace details</h2>
-                                <p className="mt-1 text-xs text-[var(--cv-text-muted)]">Open your full collections when you need to manage individual items.</p>
+                                {/* "Workspace details" / "collections" name internal concepts.
+                                    The user came here for their resumes and files. */}
+                                <h2 id="workspace-details-heading" className="font-heading text-base font-extrabold text-[var(--cv-text-heading-product)] dark:text-white">All your files</h2>
+                                <p className="mt-1 text-xs text-[var(--cv-text-muted)]">Resumes, portfolios, and whiteboards.</p>
                             </div>
                             <button
                                 type="button"
@@ -305,7 +307,7 @@ const Dashboard: React.FC = () => {
                                 aria-expanded={isWorkspaceDetailsOpen}
                                 className="inline-flex items-center gap-2 rounded-lg border border-[var(--cv-border-product)] bg-[var(--cv-surface)] px-3 py-2 text-xs font-bold text-[var(--cv-text-heading-product)] transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)] dark:bg-slate-900 dark:text-white"
                             >
-                                {isWorkspaceDetailsOpen ? 'Hide details' : 'View workspace details'}
+                                {isWorkspaceDetailsOpen ? 'Hide' : 'Show'}
                                 <ChevronDown size={15} className={`transition-transform ${isWorkspaceDetailsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
                             </button>
                         </div>

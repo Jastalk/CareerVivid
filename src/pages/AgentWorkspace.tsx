@@ -17,8 +17,12 @@ export const AgentWorkspace: React.FC = () => {
     // App.tsx re-renders this on popstate, so reading the path here is enough.
     const path = getPathFromUrl();
 
+    // Full viewport, not `100vh - 4rem`: this route renders no app navbar, so
+    // the subtracted 4rem was a strip of page background sitting under the
+    // composer with nothing above it to account for. `dvh` also keeps the
+    // composer clear of the URL bar on mobile.
     return (
-        <div className="flex h-[calc(100vh-4rem)] flex-col bg-white dark:bg-gray-950">
+        <div className="flex h-[100dvh] flex-col bg-white dark:bg-gray-950">
             <Helmet>
                 <title>Career Agent | CareerVivid</title>
                 <meta name="robots" content="noindex" />

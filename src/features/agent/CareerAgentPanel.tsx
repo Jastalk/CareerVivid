@@ -33,6 +33,8 @@ import { readWorkspace } from './workspaceSnapshot';
 
 const ACCEPTED_UPLOAD = '.pdf,.doc,.docx,.txt';
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+/** Past this the composer scrolls instead of eating the conversation. */
+const MAX_INPUT_HEIGHT = 160;
 
 /** Concrete beats "how can I help?" — each maps to a real tool path. */
 const STARTERS = [
@@ -60,9 +62,11 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     const [waitingActivity, setWaitingActivity] = useState<AgentActivity | null>(null);
     const endRef = useRef<HTMLDivElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const { messages, send, resolve, reset, stopGenerating, isThinking, isRestoring, error, credits } = agent;
     const isFull = variant === 'full';
+    const callActive = live.status === 'connecting' || live.status === 'live';
     const workspace = readWorkspace();
     const technicalContext = getAgentTechnicalContext(
         route,
@@ -91,6 +95,20 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     useEffect(() => {
         endRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, visibleActivity]);
+
+    /**
+     * Grow the box to fit what has been typed.
+     *
+     * A fixed one-row height clipped mid-word as soon as the text wrapped —
+     * which the placeholder itself does in the docked panel, so the very first
+     * thing anyone saw was a sentence cut in half.
+     */
+    useEffect(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${Math.min(el.scrollHeight, MAX_INPUT_HEIGHT)}px`;
+    }, [input]);
 
     const submit = (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -131,8 +149,8 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
     };
 
     const iconBtn =
-        'rounded-xl p-2.5 text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-action-soft-bg)] ' +
-        'hover:text-[var(--cv-action-primary)] disabled:opacity-40';
+        'grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--cv-text-muted)] transition-colors ' +
+        'hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)] disabled:opacity-40';
 
     return (
         <div className="flex h-full min-h-0 bg-[var(--cv-bg-product)]">
@@ -196,7 +214,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
 
                 {showSettings && (
                     <div className="border-b border-[var(--cv-border-subtle)] bg-[var(--cv-surface-muted)] px-4 py-3">
-                        <p className="cv-design-eyebrow text-[10px]">Run without asking</p>
+                        <p className="cv-design-eyebrow">Run without asking</p>
                         <p className="mt-1 text-[11px] leading-relaxed text-[var(--cv-text-muted)]">
                             Creating resumes, adding jobs in bulk, and anything that spends credits always
                             asks first — that cannot be turned off.
@@ -209,7 +227,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                                         <button type="button" onClick={() => autoExec.toggle(t.name)}
                                             className="flex w-full items-start gap-2.5 rounded-xl p-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/10">
                                             <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-md border transition-colors ${
-                                                on ? 'border-[var(--cv-action-primary)] bg-[var(--cv-action-primary)] text-white'
+                                                on ? 'border-[var(--cv-action-primary)] bg-[var(--cv-action-solid)] text-white'
                                                    : 'border-[var(--cv-border-subtle)]'}`}>
                                                 {on && <Check className="h-3 w-3" />}
                                             </span>
@@ -259,7 +277,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                             <div key={m.id} className={m.role === 'user' ? 'flex justify-end' : ''}>
                                 <div className={m.role === 'user' ? 'min-w-0 max-w-[85%]' : 'min-w-0 w-full'}>
                                     {m.role === 'user' ? (
-                                        <p className="break-words rounded-2xl rounded-br-md bg-[var(--cv-action-primary)] px-3.5 py-2.5 text-sm leading-6 text-white shadow-sm">
+                                        <p className="break-words rounded-2xl rounded-br-md bg-[var(--cv-action-solid)] px-3.5 py-2.5 text-sm leading-6 text-white shadow-sm">
                                             {m.via === 'voice' && <Mic className="mr-1 inline h-3 w-3 opacity-70" />}
                                             {m.text}
                                         </p>
@@ -276,7 +294,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                                                         workspace={workspace}
                                                     />
                                                     {m.streaming && (
-                                                        <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-[var(--cv-action-primary)] align-middle" />
+                                                        <span className="ml-0.5 inline-block h-3.5 w-[2px] animate-pulse bg-[var(--cv-action-solid)] align-middle" />
                                                     )}
                                                 </div>
                                                 <AgentCards cards={m.cards} />
@@ -310,85 +328,126 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                     </div>
                 </div>
 
-                {(live.status === 'connecting' || live.status === 'live') && (
-                    <div className="flex items-center gap-2 border-t border-[var(--cv-border-subtle)] bg-gradient-to-r from-[var(--cv-action-soft-bg)] to-amber-500/10 px-4 py-2.5 text-sm">
-                        <Mic className={`h-4 w-4 shrink-0 text-[var(--cv-action-primary)] ${live.status === 'live' && !live.muted ? 'animate-pulse' : ''}`} />
-                        <span className="min-w-0 flex-1 truncate text-[var(--cv-text-body-product)]">
-                            {live.status === 'connecting'
-                                ? 'Connecting…'
-                                : `${Math.floor(live.elapsedSeconds / 60)}:${String(live.elapsedSeconds % 60).padStart(2, '0')}`}
-                            {live.muted && <span className="ml-1.5 font-semibold text-red-600 dark:text-red-400">· muted</span>}
+                {callActive && (
+                    <div className="flex items-center gap-2.5 border-t border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] px-3 py-2">
+                        {/* A live pulse reads as "on air" at a glance; the icon alone did not. */}
+                        <span aria-hidden="true" className="relative ml-1 flex h-2 w-2 shrink-0">
+                            {live.status === 'live' && !live.muted && (
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
+                            )}
+                            <span className={`relative inline-flex h-2 w-2 rounded-full ${
+                                live.status === 'connecting' ? 'bg-amber-500'
+                                    : live.muted ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                        </span>
+
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-semibold leading-tight tabular-nums text-[var(--cv-text-heading-product)] dark:text-white">
+                                {live.status === 'connecting'
+                                    ? 'Connecting…'
+                                    : `${Math.floor(live.elapsedSeconds / 60)}:${String(live.elapsedSeconds % 60).padStart(2, '0')}`}
+                                {live.muted && <span className="ml-1.5 text-xs font-semibold text-red-600 dark:text-red-400">muted</span>}
+                            </span>
                             {live.status === 'live' && (
-                                <span className="ml-1.5 text-[11px] text-[var(--cv-text-muted)]">
-                                    · {live.billedCredits} credits{live.capMinutes ? ` · ends ${live.capMinutes}:00` : ''}
+                                <span className="block truncate text-[10px] leading-tight text-[var(--cv-text-muted)]">
+                                    {live.billedCredits} credits{live.capMinutes ? ` · ends at ${live.capMinutes}:00` : ''}
                                 </span>
                             )}
                         </span>
+
                         {live.status === 'live' && (
                             <>
                                 <button type="button" onClick={live.toggleMute} aria-pressed={live.muted}
                                     title={live.muted ? 'Unmute' : 'Mute your microphone'}
-                                    className={`rounded-lg p-1.5 transition-colors ${live.muted ? 'bg-red-600 text-white' : 'text-[var(--cv-text-body-product)] hover:bg-black/5 dark:hover:bg-white/10'}`}>
-                                    {live.muted ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                                    className={`rounded-lg p-2 transition-colors ${live.muted ? 'bg-red-600 text-white hover:bg-red-500' : 'text-[var(--cv-text-body-product)] hover:bg-black/5 dark:hover:bg-white/10'}`}>
+                                    {live.muted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                                 </button>
                                 <button type="button" onClick={live.interrupt} disabled={!live.agentSpeaking}
                                     title="Stop the agent talking"
-                                    className="rounded-lg p-1.5 text-[var(--cv-text-body-product)] transition-colors hover:bg-black/5 disabled:opacity-30 dark:hover:bg-white/10">
-                                    <Hand className="h-3.5 w-3.5" />
+                                    className="rounded-lg p-2 text-[var(--cv-text-body-product)] transition-colors hover:bg-black/5 disabled:opacity-30 dark:hover:bg-white/10">
+                                    <Hand className="h-4 w-4" />
                                 </button>
                             </>
                         )}
                         <button type="button" onClick={() => void live.stop()}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-red-500">
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500">
                             <PhoneOff className="h-3.5 w-3.5" /> End
                         </button>
                     </div>
                 )}
 
-                <form onSubmit={submit} className="border-t border-[var(--cv-border-subtle)] p-3">
-                    <div className="flex items-end gap-1.5">
-                        <input ref={fileRef} type="file" accept={ACCEPTED_UPLOAD} className="hidden"
-                            onChange={(e) => void handleUpload(e.target.files?.[0])} />
-                        <button type="button" title="Upload a resume" aria-label="Upload a resume"
-                            disabled={uploading || isThinking} onClick={() => fileRef.current?.click()} className={iconBtn}>
-                            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                        </button>
+                {/*
+                  * One card, not a row of loose parts. The buttons used to sit
+                  * outside the field as free-floating icons, so at rest the
+                  * bottom of the panel read as four unrelated objects with the
+                  * text box stranded in the middle.
+                  */}
+                <form onSubmit={submit} className="shrink-0 border-t border-[var(--cv-border-subtle)] px-3 pb-3 pt-2.5">
+                    <input ref={fileRef} type="file" accept={ACCEPTED_UPLOAD} className="hidden"
+                        onChange={(e) => void handleUpload(e.target.files?.[0])} />
 
+                    <div className="rounded-[20px] border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] shadow-sm transition-colors focus-within:border-[var(--cv-action-primary)]">
+                        {/*
+                          * `border-0`: without a preflight reset the UA's own 1px border draws a
+                          * second box inside the card, and its 2px of height makes the auto-grow
+                          * effect overshoot by 2px on every keystroke.
+                          */}
                         <textarea
+                            ref={inputRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
                             }}
                             rows={1}
-                            placeholder={uploading ? 'Reading your resume…' : 'Ask, upload a resume, or start talking…'}
-                            className="max-h-32 min-h-[2.75rem] flex-1 resize-none rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] px-3.5 py-2.5 text-sm text-[var(--cv-text-body-product)] outline-none transition-colors placeholder:text-[var(--cv-text-muted)] focus:border-[var(--cv-action-primary)]"
+                            placeholder={uploading ? 'Reading your resume…' : callActive ? 'Type, or just keep talking…' : 'Ask anything, or start talking…'}
+                            className="block w-full resize-none overflow-y-auto border-0 bg-transparent px-4 pb-1 pt-3 text-sm leading-6 text-[var(--cv-text-body-product)] outline-none focus:outline-none focus:ring-0 placeholder:text-[var(--cv-text-muted)]"
+                            style={{ maxHeight: MAX_INPUT_HEIGHT }}
                         />
 
-                        <button type="button"
-                            title={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
-                            aria-label={live.status === 'live' ? 'End the call' : 'Talk to the agent'}
-                            disabled={live.status === 'connecting' || live.status === 'closing'}
-                            onClick={() => (live.status === 'live' ? void live.stop() : void live.start())}
-                            className={live.status === 'live'
-                                ? 'rounded-xl bg-red-600 p-2.5 text-white transition-colors hover:bg-red-500'
-                                : iconBtn}>
-                            {live.status === 'connecting' ? <Loader2 className="h-4 w-4 animate-spin" />
-                                : live.status === 'live' ? <PhoneOff className="h-4 w-4" />
-                                : <AudioLines className="h-4 w-4" />}
-                        </button>
+                        <div className="flex items-center gap-1 px-2 pb-2">
+                            <button type="button" title="Upload a resume" aria-label="Upload a resume"
+                                disabled={uploading || isThinking} onClick={() => fileRef.current?.click()} className={iconBtn}>
+                                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                            </button>
 
-                        {isThinking ? (
-                            <button type="button" onClick={stopGenerating} title="Stop generating"
-                                className="rounded-xl bg-[var(--cv-surface-muted)] p-2.5 text-[var(--cv-text-body-product)] transition-colors hover:bg-black/10">
-                                <Square className="h-4 w-4" />
-                            </button>
-                        ) : (
-                            <button type="submit" disabled={!input.trim()}
-                                className="rounded-xl bg-gradient-to-br from-[var(--cv-action-primary)] to-amber-500 p-2.5 text-white shadow-sm transition-transform hover:scale-105 disabled:scale-100 disabled:opacity-40">
-                                <Send className="h-4 w-4" />
-                            </button>
-                        )}
+                            {/*
+                              * While a call is up the bar above owns every call
+                              * control. Two End buttons a few pixels apart was
+                              * the old layout's worst moment.
+                              */}
+                            {!callActive && (
+                                <button type="button" onClick={() => void live.start()}
+                                    title="Talk to the agent" aria-label="Talk to the agent"
+                                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                    <AudioLines className="h-4 w-4" />
+                                    <span>Talk</span>
+                                </button>
+                            )}
+
+                            {/*
+                              * Always rendered, so its `ml-auto` is the single
+                              * thing pushing the send button right. A `sm:`
+                              * breakpoint cannot work here: the drawer is a
+                              * 384px panel inside a desktop viewport, so it
+                              * would show the hint and overflow the row.
+                              */}
+                            <span aria-hidden="true" className="ml-auto truncate pr-1.5 text-[10px] text-[var(--cv-text-muted)]">
+                                {!isFull ? '' : isThinking ? 'Generating…' : input.trim() ? 'Enter to send' : 'Shift + Enter for a new line'}
+                            </span>
+
+                            {isThinking ? (
+                                <button type="button" onClick={stopGenerating} title="Stop generating"
+                                    aria-label="Stop generating"
+                                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--cv-surface-muted)] text-[var(--cv-text-body-product)] transition-colors hover:bg-black/10 dark:hover:bg-white/20">
+                                    <Square className="h-3.5 w-3.5" />
+                                </button>
+                            ) : (
+                                <button type="submit" disabled={!input.trim()} aria-label="Send"
+                                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--cv-action-primary)] to-amber-500 text-white shadow-sm transition-all hover:scale-105 disabled:scale-100 disabled:opacity-30 disabled:shadow-none">
+                                    <Send className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </form>
             </div>

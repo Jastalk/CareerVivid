@@ -1054,7 +1054,7 @@ export const FAQSection = () => (
 );
 
 export const FinalCTA = () => (
-    <section className="cv-final-cta bg-[#211b16] py-16 text-[#fffaf1] sm:py-24">
+    <section className="cv-final-cta cv-surface-inverted bg-[#211b16] py-16 sm:py-24">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
             <p className="font-mono text-sm font-semibold uppercase tracking-[0.18em] text-[#d3a15e]">
                 <LocalizedCopy path="landing.public.final_cta.eyebrow" fallback="Ready when your next application is" />

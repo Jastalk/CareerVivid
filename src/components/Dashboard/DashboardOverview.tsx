@@ -105,7 +105,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                             <Target size={26} aria-hidden="true" />
                         </span>
                         <div className="min-w-0 flex-1">
-                            <p className="cv-design-eyebrow text-[10px]">Today's next step</p>
+                            <p className="cv-design-eyebrow">Today's next step</p>
                             <h2 className="mt-2 font-heading text-xl font-extrabold leading-tight tracking-tight text-[var(--cv-text-heading-product)] dark:text-white sm:text-2xl">
                                 {todayStep.label}
                             </h2>
@@ -115,7 +115,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                             <button
                                 type="button"
                                 onClick={() => navigate(todayStep.actionPath)}
-                                className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--cv-action-primary)] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]"
+                                className="mt-5 inline-flex min-h-10 items-center gap-2 rounded-lg bg-[var(--cv-action-solid)] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]"
                             >
                                 {todayStep.actionLabel}
                                 <ArrowRight size={16} aria-hidden="true" />
@@ -130,7 +130,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 <article className="rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.05)] dark:bg-slate-900/70 sm:p-6">
                     <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0">
-                            <p className="cv-design-eyebrow text-[10px]">Target role readiness</p>
+                            <p className="cv-design-eyebrow">Target role readiness</p>
                             <h2 className="mt-2 line-clamp-2 break-words font-heading text-lg font-extrabold leading-snug text-[var(--cv-text-heading-product)] dark:text-white xl:truncate">{roleGoal.title}</h2>
                         </div>
                         <button
@@ -146,7 +146,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                         <span className="pb-0.5 text-sm font-semibold text-[var(--cv-text-muted)]">{roleGoal.readinessLabel}</span>
                     </div>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-neutral-100)] dark:bg-slate-800">
-                        <div className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500" style={{ width: `${roleGoal.readinessScore}%` }} />
+                        <div className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500" style={{ width: `${roleGoal.readinessScore}%` }} />
                     </div>
                     <button
                         type="button"
@@ -164,7 +164,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             </div>
 
             <section aria-labelledby="dashboard-metrics-heading">
-                <h2 id="dashboard-metrics-heading" className="cv-design-eyebrow mb-3 text-[10px] text-[var(--cv-text-muted)]">Your job search at a glance</h2>
+                {/* The page subtitle already says "your job search at a glance" — repeating
+                    it as the section heading told the reader nothing new. */}
+                <h2 id="dashboard-metrics-heading" className="cv-design-eyebrow mb-3 text-[var(--cv-text-muted)]">Your numbers</h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5 xl:gap-4">
                     {metrics.map(({ label, value, icon: Icon, path }, index) => (
                         <button
@@ -184,8 +186,9 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <div className="grid gap-4 xl:grid-cols-2 xl:gap-6">
                 <section className="rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.05)] dark:bg-slate-900/70" aria-labelledby="setup-map-heading">
                     <div className="flex items-center justify-between gap-4">
-                        <h2 id="setup-map-heading" className="cv-design-eyebrow text-[10px]">Setup map</h2>
-                        <button type="button" onClick={() => navigate('/job-tracker')} className="text-xs font-bold text-[var(--cv-action-primary)] hover:text-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]">View all</button>
+                        {/* "Setup map" named the mechanism; this names what the reader gets. */}
+                        <h2 id="setup-map-heading" className="cv-design-eyebrow">Your next steps</h2>
+                        <button type="button" onClick={() => navigate('/job-tracker')} className="text-xs font-bold text-[var(--cv-action-primary)] hover:text-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]">All jobs</button>
                     </div>
                     <ol className="mt-3 divide-y divide-[var(--cv-border-subtle)]">
                         {roleGoal.steps.slice(0, 3).map((step, index) => (
@@ -205,8 +208,8 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
                 <section className="rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] p-5 shadow-[0_1px_2px_rgba(16,24,40,0.05)] dark:bg-slate-900/70" aria-labelledby="recent-interviews-heading">
                     <div className="flex items-center justify-between gap-4">
-                        <h2 id="recent-interviews-heading" className="cv-design-eyebrow text-[10px]">Recent interview sessions</h2>
-                        <button type="button" onClick={() => navigate('/interview-studio')} className="text-xs font-bold text-[var(--cv-action-primary)] hover:text-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]">View all</button>
+                        <h2 id="recent-interviews-heading" className="cv-design-eyebrow">Recent interview sessions</h2>
+                        <button type="button" onClick={() => navigate('/interview-studio')} className="text-xs font-bold text-[var(--cv-action-primary)] hover:text-[var(--cv-action-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]">All sessions</button>
                     </div>
                     {recentInterviews.length ? (
                         <ul className="mt-3 divide-y divide-[var(--cv-border-subtle)]">

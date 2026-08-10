@@ -16,7 +16,12 @@ const Footer: React.FC<FooterProps> = ({ variant = 'default', policyPath = '/pol
             ? 'bg-black border-white'
             : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800'
             }`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            {/*
+              * Extra bottom padding clears the floating Career Agent launcher,
+              * which is fixed to a bottom corner and was sitting on top of the
+              * copyright line.
+              */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center">
                         <Logo className={`h-8 w-auto ${isBrutalist ? 'text-white' : ''}`} />

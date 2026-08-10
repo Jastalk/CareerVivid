@@ -7,6 +7,7 @@ import { useWorkspaceItemActions } from '../../hooks/useWorkspaceItemActions';
 import { SidebarContextMenu } from '../Navigation/SidebarContextMenu';
 import { createPortal } from 'react-dom';
 import ConfirmationModal from '../ConfirmationModal';
+import { formatRelativeTime, formatAbsoluteTime } from '../../utils/relativeTime';
 
 interface ResumeCardProps {
     resume: ResumeData;
@@ -132,7 +133,7 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onUpdate, onDuplicate, 
                 ) : (
                     <h3 onDoubleClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }} className="font-bold text-lg text-gray-800 dark:text-gray-100 truncate" title="Double-click to rename">{resume.title}</h3>
                 )}
-                <p className="text-sm text-gray-500 dark:text-gray-400">Updated {new Date(resume.updatedAt).toLocaleString()}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Updated <time dateTime={new Date(resume.updatedAt).toISOString()} title={formatAbsoluteTime(resume.updatedAt)}>{formatRelativeTime(resume.updatedAt)}</time></p>
             </div>
             <div className="p-2.5 flex justify-between items-center bg-gray-50/50 dark:bg-[#10141a]">
                 <div className="flex gap-1.5">

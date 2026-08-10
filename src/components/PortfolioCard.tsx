@@ -9,6 +9,7 @@ import { useWorkspaceItemActions } from '../hooks/useWorkspaceItemActions';
 import { SidebarContextMenu } from './Navigation/SidebarContextMenu';
 import { createPortal } from 'react-dom';
 import ConfirmationModal from './ConfirmationModal';
+import { formatRelativeTime, formatAbsoluteTime } from '../utils/relativeTime';
 
 interface PortfolioCardProps {
     portfolio: PortfolioData;
@@ -164,7 +165,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
                     </h3>
                 )}
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Updated {new Date(portfolio.updatedAt).toLocaleString()}
+                    Updated <time dateTime={new Date(portfolio.updatedAt).toISOString()} title={formatAbsoluteTime(portfolio.updatedAt)}>{formatRelativeTime(portfolio.updatedAt)}</time>
                 </p>
             </div>
 

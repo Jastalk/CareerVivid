@@ -38,7 +38,7 @@ export const AgentHistory: React.FC<Props> = ({
     return (
         <div className="flex h-full flex-col bg-[var(--cv-surface-muted)] dark:bg-slate-950/60">
             <div className="flex items-center justify-between border-b border-[var(--cv-border-subtle)] px-3 py-2.5">
-                <span className="cv-design-eyebrow text-[10px]">History</span>
+                <span className="cv-design-eyebrow">History</span>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
