@@ -30,6 +30,7 @@ import {
 } from '../../utils/liveAudio';
 import type { Proposal } from './useCareerAgent';
 import { readWorkspace } from './workspaceSnapshot';
+import { createToolLoopBreaker } from './toolLoopBreaker';
 
 const REGION = 'us-west1';
 
@@ -141,10 +142,16 @@ export function useLiveCareerAgent(opts: {
     const optsRef = useRef(opts);
     optsRef.current = opts;
 
+    /** Stops a silent tool loop from running forever. See toolLoopBreaker.ts. */
+    const loopBreakerRef = useRef(createToolLoopBreaker());
+
     // Transcription arrives in fragments; merging into the trailing turn avoids
     // one bubble per syllable.
     const appendTurn = useCallback((role: LiveTurn['role'], text: string) => {
         if (!text) return;
+        // Words are progress. Either side speaking clears the repeat counter, so
+        // the breaker can only ever fire on a silent tool loop.
+        loopBreakerRef.current.spoke();
         setActivity(role === 'user' ? 'thinking' : null);
         setTurns((t) => {
             const last = t[t.length - 1];
@@ -484,9 +491,31 @@ export function useLiveCareerAgent(opts: {
 
                         // ── Tool calls: relay, never execute locally ──────────
                         if (msg.toolCall?.functionCalls?.length) {
+                            const calls = msg.toolCall.functionCalls;
+                            const refusal = loopBreakerRef.current.check(calls);
+
+                            if (refusal) {
+                                // Refuse rather than relay. Answering again with
+                                // the same result is what sustains the loop, and
+                                // the user sits in silence for as long as it runs.
+                                sessionRef.current
+                                    ?.then((s) =>
+                                        s.sendToolResponse({
+                                            functionResponses: calls.map((fc) => ({
+                                                id: fc.id,
+                                                name: fc.name,
+                                                response: { ok: false, error: refusal },
+                                            })),
+                                        }),
+                                    )
+                                    .catch(() => {});
+                                setActivity('thinking');
+                                return;
+                            }
+
                             setActivity('working');
                             const responses = await Promise.all(
-                                msg.toolCall.functionCalls.map(async (fc) => {
+                                calls.map(async (fc) => {
                                     let response: unknown;
                                     try {
                                         response = await runTool(fc.name ?? '', fc.args ?? {});

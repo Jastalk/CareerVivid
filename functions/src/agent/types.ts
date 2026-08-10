@@ -49,6 +49,21 @@ export interface AgentTool {
      * Throwing here rejects the call before anything is persisted.
      */
     validate?: (args: any) => any;
+    /**
+     * Reject a write whose eligibility depends on stored state, BEFORE a
+     * proposal exists.
+     *
+     * `validate` is synchronous and sees only the arguments, so a rule like
+     * "only after that round was scored well" cannot live there. Without this
+     * hook the card appears anyway and the rule fires on approval — the user
+     * gets a card the system was always going to refuse, and the model reads
+     * "proposed" as success and asks again.
+     *
+     * Throwing here puts the reason in front of the model instead, which is the
+     * only thing that stops it retrying. Writes re-check in `execute` as well:
+     * a proposal lives 30 minutes and the state can move underneath it.
+     */
+    precheck?: (ctx: ToolContext, args: any) => Promise<void>;
     /** One-line summary for the proposal card, e.g. "Add 3 jobs to your tracker". */
     summarize?: (args: any) => string;
     /** Executed for reads immediately, for writes only after approval. */

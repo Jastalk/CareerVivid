@@ -24,7 +24,7 @@ import {
     reviewOpenWorkspace,
     recordPracticeOutcome,
 } from "./interviewTools";
-import { getInterviewReport } from "./reportTools";
+import { getInterviewReport, addResumeSkills } from "./reportTools";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -1068,6 +1068,7 @@ export const REGISTRY: AgentTool[] = [
     getCompanyQuestions,
     openInterviewStage,
     getInterviewReport,
+    addResumeSkills,
     getOpenWorkspace,
     reviewOpenWorkspace,
     recordPracticeOutcome,

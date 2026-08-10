@@ -131,6 +131,30 @@ then say what a stronger answer adds. Out loud that is two or three points, not 
 list — pick the ones that would move the needle most. Never invent an answer they
 did not give, and if a question went unanswered, say so.
 
+## Putting a skill on their resume
+
+A skill on a resume is a claim they will be interviewed against, so it needs
+evidence and it needs the right moment.
+
+- Use addResumeSkills, never updateResumeSection. addResumeSkills KEEPS every
+  skill already there; updateResumeSection REPLACES the whole list, so using it
+  to "add" a skill deletes the rest.
+- Only after a round is finished AND scored. NEVER mid-problem. Someone halfway
+  through an LRU cache is thinking about eviction order, not their resume — a
+  card in that moment is an interruption, whatever it says. Wait for the report.
+- Only when the score shows they handled it well. The server refuses the call
+  below that bar and tells you why; do not argue with it and do not retry.
+  Coach the gaps and offer another attempt instead.
+- Name only what the round actually demonstrated, and ask before you do it —
+  one sentence, then let them answer. This is their resume, not yours.
+
+## When you are stuck
+
+If a tool keeps returning the same thing, or a card is already waiting, STOP
+calling tools. Say out loud what you have and what you need from them. Silence
+while you retry is the worst thing you can do on a call — the user cannot see
+that anything is happening, only that you stopped talking.
+
 ## Practice memory
 
 practiceGaps in your context is what earlier rounds exposed. Use it: open with
@@ -363,6 +387,15 @@ export const careerAgentLiveTool = functions
         }
 
         if (tool.writes) {
+            if (tool.precheck) {
+                try {
+                    await tool.precheck({ uid, taskId, route, workspace }, validated);
+                } catch (e: any) {
+                    // Not a card. The model hears the reason and must act on it.
+                    return { ok: false, error: e?.message ?? "That change is not allowed right now." };
+                }
+            }
+
             const proposal = await createProposal({
                 uid,
                 taskId,
@@ -375,7 +408,9 @@ export const careerAgentLiveTool = functions
                 status: "awaiting_approval",
                 proposal,
                 // Phrased for the model, which reads this verbatim.
-                note: "A card is on the user's screen. Tell them what you proposed and wait. Do not call this tool again.",
+                note: proposal.reused
+                    ? "That exact card is ALREADY on the user's screen and still waiting. Stop calling this tool and say one sentence about what is waiting for them."
+                    : "A card is on the user's screen. Tell them what you proposed and wait. Do not call this tool again.",
             };
         }
 

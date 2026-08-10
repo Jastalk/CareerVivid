@@ -126,6 +126,18 @@ export function buildDiff(toolName: string, args: any): ProposalDiff {
             };
         case "updateResumeSection":
             return resumeSectionDiff(String(args.section), String(args.value));
+        case "addResumeSkills":
+            return {
+                kind: "update",
+                entity: "resume",
+                // "Adds" rather than a count of the final list: the card has to
+                // make it obvious nothing is being removed, which is the whole
+                // difference between this tool and updateResumeSection.
+                changes: [{ label: "Adds", after: `${args.skills.length} new skill${args.skills.length === 1 ? "" : "s"}` }],
+                items: args.skills.map((s: any) =>
+                    [String(s?.name ?? ""), s?.level ? String(s.level) : ""].filter(Boolean).join(" · "),
+                ),
+            };
         case "addTrackedJob":
             return {
                 kind: args.jobs.length > 1 ? "batch" : "create",
@@ -193,6 +205,8 @@ export interface CreatedProposal {
     tool: string;
     summary: string;
     diff: ProposalDiff;
+    /** True when this is a pending card that already existed, not a new one. */
+    reused?: boolean;
 }
 
 /**
@@ -218,7 +232,21 @@ function removeUndefined<T>(value: T): T {
     return value;
 }
 
-/** Persist a validated write for the user to approve. Returns what the card renders. */
+/**
+ * Persist a validated write for the user to approve. Returns what the card renders.
+ *
+ * An identical pending proposal is returned as-is rather than duplicated.
+ *
+ * This is what breaks the loop the Live agent got stuck in. A write returns
+ * "awaiting_approval"; the model is told not to call it again; when it did
+ * anyway it got a brand-new proposal back, which reads like progress, so it
+ * called again — thinking, working, thinking, working, and never a word to the
+ * user. Returning the existing card makes the repeat visibly a no-op, and lets
+ * the caller tell the model plainly that it is repeating itself.
+ *
+ * It also fixes the user-facing half: one intent should be one card, not a
+ * stack of identical ones each of which would execute separately if approved.
+ */
 export async function createProposal(opts: {
     uid: string;
     taskId: string;
@@ -226,10 +254,42 @@ export async function createProposal(opts: {
     args: Record<string, unknown>;
     summary: string;
 }): Promise<CreatedProposal> {
+    const args = removeUndefined(opts.args);
+
+    /*
+     * One equality filter, everything else matched in memory.
+     *
+     * `taskId` scopes to a single request or voice session, so this reads a
+     * handful of documents at most, and a single-field filter needs only the
+     * automatic index — no composite index to deploy alongside the code, and
+     * nothing to go wrong if that deploy is forgotten. Should a task somehow
+     * exceed the cap, the worst case is a duplicate card: exactly the old
+     * behaviour, never a wrong one.
+     */
+    const pending = await db
+        .collection("agentProposals")
+        .where("taskId", "==", opts.taskId)
+        .limit(25)
+        .get();
+
+    const fingerprint = JSON.stringify(args);
+    const duplicate = pending.docs.find((d) => {
+        const p = d.data() as AgentProposal;
+        if (p.uid !== opts.uid || p.tool !== opts.tool || p.status !== "pending") return false;
+        if (JSON.stringify(p.args ?? {}) !== fingerprint) return false;
+        // An expired card is not on screen any more, so it is not a duplicate of
+        // anything the user can still act on.
+        return Date.now() - p.createdAt.toMillis() <= PROPOSAL_TTL_MS;
+    });
+
+    if (duplicate) {
+        const p = duplicate.data() as AgentProposal;
+        return { id: p.id, tool: p.tool, summary: p.summary, diff: p.diff, reused: true };
+    }
+
     // Top-level: users/{uid}/** is client-writable via a catch-all rule, and a
     // forgeable proposal makes the approval card meaningless.
     const ref = db.collection("agentProposals").doc();
-    const args = removeUndefined(opts.args);
     const proposal: AgentProposal = {
         id: ref.id,
         uid: opts.uid,

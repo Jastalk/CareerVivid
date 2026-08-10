@@ -175,6 +175,231 @@ export const getInterviewReport: AgentTool = {
     },
 };
 
+const SKILL_LEVELS = ["Novice", "Intermediate", "Advanced", "Expert"] as const;
+
+/**
+ * The score a round must reach before its skills can go on a resume.
+ *
+ * 75 is the floor of the report's own "Strong" band — "solid answers that
+ * demonstrate competence and relevant experience". Below that the report is
+ * telling the candidate they have work to do, and a resume claim would be the
+ * agent contradicting its own grading. Deliberately above the 70 stage-clear
+ * threshold: clearing a round means you can move on, not that you should
+ * advertise the skill.
+ */
+export const RESUME_SKILL_SCORE_FLOOR = 75;
+
+/** Case- and punctuation-insensitive, so "Node.js" and "nodejs" are one skill. */
+const skillKey = (name: string): string => name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+/**
+ * Merge new skills into the ones already on the resume.
+ *
+ * Additive by construction: existing entries keep their position, their id, and
+ * the level the user chose. `updateResumeSection` REPLACES a section, so using
+ * it to "add a skill" silently deleted every skill not named in the call — the
+ * agent proposed three skills after a coding round and would have wiped the
+ * other twelve. Approving a card labelled "add" must never be able to remove.
+ */
+export function mergeSkills(
+    existing: unknown,
+    incoming: Array<{ name: string; level?: string }>,
+): { skills: Array<{ id: string; name: string; level: string }>; added: string[] } {
+    const kept = (Array.isArray(existing) ? existing : []).flatMap((s: any) => {
+        const name = (typeof s === "string" ? s : String(s?.name ?? "")).trim();
+        if (!name) return [];
+        const level = String(s?.level ?? "");
+        return [{
+            id: String(s?.id ?? ""),
+            name: name.slice(0, 80),
+            level: (SKILL_LEVELS as readonly string[]).includes(level) ? level : "Intermediate",
+        }];
+    });
+
+    const seen = new Set(kept.map((s) => skillKey(s.name)));
+    const added: string[] = [];
+
+    for (const skill of incoming) {
+        const name = String(skill?.name ?? "").trim().slice(0, 80);
+        if (!name) continue;
+        const key = skillKey(name);
+        // Already claimed. Re-adding it would churn the resume for nothing, and
+        // would overwrite a level the user may have set by hand.
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const level = String(skill?.level ?? "");
+        kept.push({
+            id: "",
+            name,
+            level: (SKILL_LEVELS as readonly string[]).includes(level) ? level : "Intermediate",
+        });
+        added.push(name);
+    }
+
+    // Ids are re-sequenced across the whole list to match what every other
+    // writer produces (`s0`, `s1`, …); kept entries keep their order regardless.
+    return { skills: kept.slice(0, 40).map((s, i) => ({ ...s, id: `s${i}` })), added };
+}
+
+export type RoundEvidence =
+    | { ok: true; role: string; overallScore: number }
+    | { ok: false; reason: string };
+
+/**
+ * Decide whether a practice session can back a resume claim.
+ *
+ * Two gates, in this order, because they fail for different reasons and the
+ * model needs to hear which:
+ *
+ *  1. TIMING — no report means the round is still in progress. Mid-problem is
+ *     the worst possible moment to interrupt someone with a resume card;
+ *     they are thinking about eviction order, not their CV.
+ *  2. EVIDENCE — the score must clear RESUME_SKILL_SCORE_FLOOR. A skill on a
+ *     resume is a claim they will be interviewed against, and the agent should
+ *     only help make claims their own scored work supports.
+ *
+ * Pure, and separate from the Firestore read, because this rule is the whole
+ * product decision and it should be readable and testable on its own.
+ */
+export function evaluateRoundEvidence(sessionData: any): RoundEvidence {
+    const history: any[] = Array.isArray(sessionData?.interviewHistory) ? sessionData.interviewHistory : [];
+    if (!history.length) {
+        return {
+            ok: false,
+            reason:
+                "That round has not been scored yet. Wait until they submit and the report comes back, " +
+                "then try again — never add skills mid-problem.",
+        };
+    }
+
+    const latest = [...history].sort((x, y) => (y?.timestamp ?? 0) - (x?.timestamp ?? 0))[0];
+    const overallScore = num(latest?.overallScore) ?? 0;
+    if (overallScore < RESUME_SKILL_SCORE_FLOOR) {
+        return {
+            ok: false,
+            reason:
+                `That round scored ${overallScore}, below the ${RESUME_SKILL_SCORE_FLOOR} needed to put a skill ` +
+                "on a resume. Do not propose skills. Coach them on the gaps and offer another attempt instead.",
+        };
+    }
+
+    return { ok: true, role: clip(sessionData?.job?.title, 160) || "Practice interview", overallScore };
+}
+
+/** The scored evidence behind a resume claim, or a thrown reason there is none. */
+async function requireStrongRound(
+    uid: string,
+    sessionId: string,
+): Promise<{ sessionId: string; role: string; overallScore: number }> {
+    const snap = await db.collection("users").doc(uid).collection("practiceHistory").doc(sessionId).get();
+    if (!snap.exists) {
+        throw new Error(
+            `No practice session ${sessionId}. Pass the sessionId from lastPractice or getInterviewReport — never invent one.`,
+        );
+    }
+
+    const verdict = evaluateRoundEvidence(snap.data() ?? {});
+    if (!verdict.ok) throw new Error(verdict.reason);
+
+    return { sessionId, role: verdict.role, overallScore: verdict.overallScore };
+}
+
+/**
+ * Add skills a scored round actually demonstrated.
+ *
+ * Two gates, both enforced here rather than in the prompt, because the prompt
+ * was already being ignored:
+ *
+ *  1. TIMING — the session must have a report. An unscored session means the
+ *     round is still in progress, and mid-problem is the worst moment to
+ *     interrupt someone with a resume card.
+ *  2. EVIDENCE — the report must clear RESUME_SKILL_SCORE_FLOOR. A skill on a
+ *     resume is a claim the user will be interviewed against; the agent should
+ *     only help make claims their own scored work supports.
+ */
+export const addResumeSkills: AgentTool = {
+    name: "addResumeSkills",
+    description:
+        "Add skills a scored practice round demonstrated to the user's resume, keeping every skill already there. Only call this AFTER a round has been submitted and scored, and only when the score shows they handled it well — the server rejects the call otherwise. Never call it mid-problem. For rewriting or reordering the whole skills list, use updateResumeSection instead.",
+    parameters: {
+        type: "object",
+        properties: {
+            sessionId: {
+                type: "string",
+                description: "The scored practice session that demonstrated these skills, from lastPractice or getInterviewReport.",
+            },
+            skills: {
+                type: "array",
+                description: "Skills the round actually demonstrated. Max 6. Skills already on the resume are ignored.",
+                items: {
+                    type: "object",
+                    properties: {
+                        name: { type: "string" },
+                        level: { type: "string", enum: [...SKILL_LEVELS] },
+                    },
+                    required: ["name"],
+                },
+            },
+            resumeId: { type: "string", description: "Omit for the most recently edited resume." },
+        },
+        required: ["sessionId", "skills"],
+    },
+    phase: 3,
+    risk: "low_write",
+    writes: true,
+    validate: (a) => {
+        const sessionId = typeof a?.sessionId === "string" ? a.sessionId.trim().slice(0, 200) : "";
+        if (!sessionId) throw new Error("sessionId is required — name the scored round these skills came from.");
+
+        const skills = (Array.isArray(a?.skills) ? a.skills : [])
+            .slice(0, 6)
+            .map((s: any) => ({
+                name: String(typeof s === "string" ? s : (s?.name ?? "")).trim().slice(0, 80),
+                level: String(s?.level ?? ""),
+            }))
+            .filter((s: { name: string }) => s.name);
+        if (!skills.length) throw new Error("skills must contain at least one named skill.");
+
+        return {
+            sessionId,
+            skills,
+            ...(typeof a?.resumeId === "string" && a.resumeId.trim() ? { resumeId: a.resumeId.trim().slice(0, 60) } : {}),
+        };
+    },
+    summarize: (a) => `Add ${a.skills.length} skill${a.skills.length === 1 ? "" : "s"} to your resume`,
+    // Runs before the card exists, so a round that is unscored or weak never
+    // reaches the user as something to approve — the model is told why instead.
+    precheck: async (ctx, a) => {
+        await requireStrongRound(ctx.uid, a.sessionId);
+    },
+    execute: async (ctx, a) => {
+        // Re-checked on execute, not just when the proposal was built. A
+        // proposal lives for 30 minutes; the evidence behind it must still hold
+        // at the moment it is written.
+        const evidence = await requireStrongRound(ctx.uid, a.sessionId);
+
+        const col = db.collection("users").doc(ctx.uid).collection("resumes");
+        const snap = a.resumeId
+            ? await col.doc(a.resumeId).get()
+            : (await col.orderBy("updatedAt", "desc").limit(1).get()).docs[0];
+        if (!snap || !snap.exists) throw new Error("No resume found. Offer to create one first.");
+
+        const { skills, added } = mergeSkills(snap.data()?.skills, a.skills);
+        if (!added.length) {
+            return { resumeId: snap.id, added: [], note: "Every one of those skills was already on the resume. Nothing changed." };
+        }
+
+        await snap.ref.update({ skills, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+        return {
+            resumeId: snap.id,
+            route: `/edit/${snap.id}`,
+            added,
+            totalSkills: skills.length,
+            evidence,
+        };
+    },
+};
+
 /**
  * The one-line pointer the context envelope carries.
  *

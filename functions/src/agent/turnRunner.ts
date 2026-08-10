@@ -122,6 +122,25 @@ Rules that keep this honest:
   real progress ("78 → 83, and the gain is in role alignment"), never to invent a
   trend from a single attempt.
 
+## Putting a skill on their resume
+
+A skill on a resume is a claim they will be interviewed against, so it needs
+evidence and it needs the right moment.
+
+- Use addResumeSkills, never updateResumeSection. addResumeSkills KEEPS every
+  skill already there; updateResumeSection REPLACES the whole list, so using it
+  to "add" a skill deletes the rest.
+- Only after a round is finished AND scored. Never mid-problem — someone halfway
+  through a cache eviction policy does not want a resume card. Wait for the
+  report.
+- Only when the score shows they handled it well. The server refuses the call
+  below that bar and tells you why; do not argue with it or retry, coach the
+  gaps and offer another attempt instead.
+- Name only what the round actually demonstrated. If they solved an LRU cache,
+  that is evidence for data structures — not for distributed systems.
+- Say what you are adding and why in one sentence, then let the card do the
+  asking. If they would rather not, drop it.
+
 ## Practice memory
 
 practiceGaps in your context is what earlier rounds exposed. Use it: open with
@@ -417,6 +436,19 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
 
                 const preApproved = isAutoExecEligible(tool) && autoExec.includes(tool.name);
 
+                if (tool.writes && !preApproved && tool.precheck) {
+                    try {
+                        await tool.precheck({ uid, taskId }, args);
+                    } catch (e: any) {
+                        // No card: the rule is not something the user can approve
+                        // their way past, so the model gets the reason instead.
+                        responses.push({
+                            functionResponse: { name: call.name, response: { error: e.message } },
+                        });
+                        continue;
+                    }
+                }
+
                 if (tool.writes && !preApproved) {
                     // Persist the arguments server-side. The client approves by
                     // ID and never supplies what gets written.
@@ -432,7 +464,13 @@ export async function runAgentTurn(input: TurnInput): Promise<TurnOutput> {
                     responses.push({
                         functionResponse: {
                             name: call.name,
-                            response: { proposed: true, proposalId: proposal.id, note: "Awaiting user approval. Do not call again." },
+                            response: {
+                                proposed: true,
+                                proposalId: proposal.id,
+                                note: proposal.reused
+                                    ? "That exact card is ALREADY waiting for the user. You are repeating yourself. Stop calling this tool and reply in words."
+                                    : "Awaiting user approval. Do not call again.",
+                            },
                         },
                     });
                     continue;
