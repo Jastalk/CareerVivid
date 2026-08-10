@@ -245,16 +245,25 @@ describe('SYSTEM_DESIGN_PATTERNS (techinterview.org catalog)', () => {
 });
 
 describe('isStageCleared', () => {
-  const stage = { ...buildQuestLine(makeGuide())[1] }; // coding, threshold 75
+  const stage = { ...buildQuestLine(makeGuide())[1] }; // coding
 
+  /*
+   * The threshold is read off the stage rather than written in.
+   *
+   * These asserted 75 — the per-stage value before Competition 2026 (#110)
+   * unified every stage to 70 — so the test failed on a deliberate product
+   * change and stayed red. Deriving it tests the rule (at or above clears,
+   * below does not), which is what this function actually promises, and
+   * survives the threshold moving again.
+   */
   it('handles 0-100 scores', () => {
-    expect(isStageCleared(75, stage)).toBe(true);
-    expect(isStageCleared(74, stage)).toBe(false);
+    expect(isStageCleared(stage.passThreshold, stage)).toBe(true);
+    expect(isStageCleared(stage.passThreshold - 1, stage)).toBe(false);
   });
 
   it('handles 0-10 scores via normalization', () => {
-    expect(isStageCleared(7.5, stage)).toBe(true);
-    expect(isStageCleared(6.5, stage)).toBe(false);
+    expect(isStageCleared(stage.passThreshold / 10, stage)).toBe(true);
+    expect(isStageCleared((stage.passThreshold - 10) / 10, stage)).toBe(false);
   });
 
   it('handles missing scores', () => {

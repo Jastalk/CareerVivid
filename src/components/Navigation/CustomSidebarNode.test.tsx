@@ -15,6 +15,10 @@ vi.mock('../../utils/navigation', () => ({
 
 // Mock the lucide-react icons so they don't cause issues in JSDOM testing
 vi.mock('lucide-react', () => ({
+    Bot: () => <div data-testid="icon-bot" />,
+    ChevronUp: () => <div data-testid="icon-chevron-up" />,
+    Terminal: () => <div data-testid="icon-terminal" />,
+    UserRound: () => <div data-testid="icon-user-round" />,
     Eye: () => <div data-testid="icon-eye" />,
     EyeOff: () => <div data-testid="icon-eye-off" />,
     Folder: () => <div data-testid="icon-folder" />,

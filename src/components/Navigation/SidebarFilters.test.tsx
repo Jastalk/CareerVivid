@@ -17,6 +17,10 @@ vi.mock('../../utils/navigation', () => ({
 }));
 
 vi.mock('lucide-react', () => ({
+    Bot: () => <div data-testid="icon-bot" />,
+    ChevronUp: () => <div data-testid="icon-chevron-up" />,
+    Terminal: () => <div data-testid="icon-terminal" />,
+    UserRound: () => <div data-testid="icon-user-round" />,
     Mic: () => <div data-testid="icon-mic" />,
     Globe: () => <div data-testid="icon-globe" />,
     Briefcase: () => <div data-testid="icon-briefcase" />,
@@ -338,10 +342,27 @@ describe('Sidebar Component - Sorting and Filtering UX', () => {
 
         render(<Sidebar />);
 
+        // Language now lives in the account menu on the user card rather than
+        // open in the rail, so the menu has to be opened to reach it.
+        fireEvent.click(screen.getByRole('button', { expanded: false, name: /My Profile|@/ }));
+
         const languageSelect = screen.getByLabelText('Language');
         fireEvent.change(languageSelect, { target: { value: 'zh' } });
 
         expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('zh');
         expect(mockNavigate).toHaveBeenCalledWith('/zh/dashboard');
+    });
+
+    it('Test 9: account settings stay behind the user card until it is opened', () => {
+        render(<Sidebar />);
+
+        // The rail should show navigation only — configuration is one click away.
+        expect(screen.queryByLabelText('Language')).toBeNull();
+        expect(screen.queryByText('Developer & MCP')).toBeNull();
+
+        fireEvent.click(screen.getByRole('button', { expanded: false, name: /My Profile|@/ }));
+
+        expect(screen.getByLabelText('Language')).toBeTruthy();
+        expect(screen.getByText('Developer & MCP')).toBeTruthy();
     });
 });

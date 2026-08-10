@@ -5,6 +5,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import InterviewStudio from './InterviewStudio';
 import { PracticeHistoryEntry } from '../types';
 
+/*
+ * This file needs more than the default 5s per test.
+ *
+ * Rendering InterviewStudio pulls in `interviewGuideSummaries.generated` — a
+ * 136 KB dataset covering 301 companies — and every render walks it. Alone the
+ * five tests pass comfortably; sharing CPU with the rest of the suite they ran
+ * about 7s each and four of them tripped the default timeout. The failures were
+ * contention, not a hang: the same tests are green when the file runs on its own.
+ *
+ * Raised here rather than globally, so a genuine hang anywhere else still fails
+ * fast.
+ */
+vi.setConfig({ testTimeout: 30_000 });
+
 const {
   mockAddJob,
   mockDeletePracticeHistory,

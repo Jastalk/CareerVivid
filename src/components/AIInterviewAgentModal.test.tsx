@@ -51,6 +51,14 @@ describe('AIInterviewAgentModal prewarm', () => {
     mockPrewarmCallable.mockReset();
   });
 
+  /*
+   * This asserted a visible "Warming up" state that the modal no longer has.
+   * `prewarmInterviewAgent` sets the status straight to `ready` on purpose —
+   * "the user should never wait on warm-up" — and lets the token prefetch run
+   * silently, so `isPreparingAgent` is never true. The test was checking the
+   * behaviour the change removed rather than the promise it replaced it with:
+   * Start is live immediately, and prewarm happens anyway.
+   */
   it('warms the interview agent on open without blocking start', async () => {
     let resolvePrewarm!: (value: unknown) => void;
     mockPrewarmCallable.mockReturnValue(
@@ -65,19 +73,30 @@ describe('AIInterviewAgentModal prewarm', () => {
       expect(mockPrewarmCallable).toHaveBeenCalledWith({ role: 'Backend Engineer', prewarm: true });
     });
 
-    expect(screen.getByText('Warming up')).toBeInTheDocument();
-    expect(screen.getByText('The live agent is warming in the background. You can start anytime.')).toBeInTheDocument();
-    expect(screen.getByText('Agent warming in background')).toBeInTheDocument();
+    // The point of the prefetch: it is still in flight, and Start already works.
     expect(screen.getByRole('button', { name: /start interview/i })).toBeEnabled();
+    expect(screen.getByText('Agent ready')).toBeInTheDocument();
 
     await act(async () => {
       resolvePrewarm({ data: { prewarmed: true } });
     });
 
+    // Resolving changes nothing the user can see — which is the design.
+    expect(screen.getByRole('button', { name: /start interview/i })).toBeEnabled();
+    expect(screen.getByText('Agent ready')).toBeInTheDocument();
+  });
+
+  it('leaves start enabled when the prewarm request fails', async () => {
+    mockPrewarmCallable.mockRejectedValue(new Error('token service unavailable'));
+
+    renderModal();
+
     await waitFor(() => {
-      expect(screen.getByText('Agent is warmed up. Start when you are ready.')).toBeInTheDocument();
+      expect(mockPrewarmCallable).toHaveBeenCalled();
     });
 
+    // A failed head start must never cost the user the ability to begin;
+    // `startInterview` performs the full live setup regardless.
     expect(screen.getByRole('button', { name: /start interview/i })).toBeEnabled();
   });
 });

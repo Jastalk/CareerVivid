@@ -19,6 +19,32 @@ export default defineConfig({
         environment: 'jsdom',
         setupFiles: ['./vitest.setup.ts'],
         globals: true,
-        exclude: ['**/node_modules/**', '**/dist/**', '**/.claude/**'],
+        /*
+         * State where the tests are, rather than letting vitest walk the repo.
+         *
+         * With no `include`, the default glob swept up three kinds of file that
+         * this runner cannot execute, each surfacing as a failed suite with zero
+         * tests — noise that looked like ten broken test files:
+         *   - functions/lib/**  is tsc's outDir. Its *.test.js are compiled
+         *     duplicates of functions/src; the CommonJS output of a vitest test
+         *     cannot `require` vitest, so every one of them threw.
+         *   - third_party/**   is vendored sample code from the OpenAI cookbook
+         *     that ships its own `node:test` suites. Not ours to run or fix.
+         *   - scripts/**       likewise uses `node:test`.
+         *
+         * functions/src IS included: those tests are real vitest suites that
+         * were never running.
+         */
+        include: [
+            'src/**/*.{test,spec}.{ts,tsx}',
+            'functions/src/**/*.{test,spec}.ts',
+        ],
+        exclude: [
+            '**/node_modules/**',
+            '**/dist/**',
+            '**/.claude/**',
+            'functions/lib/**',
+            'third_party/**',
+        ],
     },
 });

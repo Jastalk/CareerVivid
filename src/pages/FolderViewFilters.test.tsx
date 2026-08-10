@@ -19,6 +19,10 @@ vi.mock('react-dnd', () => ({
 }));
 
 vi.mock('lucide-react', () => ({
+    Bot: () => <div data-testid="icon-bot" />,
+    ChevronUp: () => <div data-testid="icon-chevron-up" />,
+    Terminal: () => <div data-testid="icon-terminal" />,
+    UserRound: () => <div data-testid="icon-user-round" />,
     Folder: () => <div data-testid="icon-folder" />,
     ChevronRight: () => <div data-testid="icon-chevron" />,
     Plus: () => <div data-testid="icon-plus" />,
