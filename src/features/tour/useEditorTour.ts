@@ -77,15 +77,25 @@ export function useEditorTour(opts: {
 
     const skip = useCallback(() => end('skipped'), [end]);
 
-    // Auto-start once, and only when asked. Guarded on `seen` so a refresh of
-    // the same URL does not replay it.
+    /*
+     * Auto-start once per mount, and only when asked.
+     *
+     * `seen` deliberately does NOT block this. The request arrives as a URL flag
+     * that only a fresh generation sets, and the editor strips it immediately —
+     * so "requested" already means "this just happened", not "this might have
+     * happened once". Letting a previous visit suppress it is what made the
+     * walkthrough invisible to anyone who already owned a resume.
+     *
+     * `seen` still records the outcome, which is what the replay entry point
+     * and any future "you have done this before" copy read.
+     */
     const autoStarted = useRef(false);
     useEffect(() => {
         if (autoStarted.current) return;
-        if (!requested || !ready || !uid || seen || !isTourViewport()) return;
+        if (!requested || !ready || !uid || !isTourViewport()) return;
         autoStarted.current = true;
         start();
-    }, [requested, ready, uid, seen, start]);
+    }, [requested, ready, uid, start]);
 
     // Advance when the user clicks this step's control.
     const anchor = step?.anchor;

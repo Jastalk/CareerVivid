@@ -356,13 +356,17 @@ export const useResumes = (userIdOverride?: string | null) => {
             /*
              * The editor walkthrough is requested here, not inferred there.
              *
-             * This is the one place that knows the resume is the user's first,
-             * and a first resume is the only moment the tour is worth
-             * interrupting for. The editor strips the flag once it has read it,
-             * so a refresh or a shared link does not replay it.
+             * Every AI-generated resume asks for it, not just the first. Gating
+             * on "first resume ever" meant that anyone who already had one
+             * never saw the walkthrough at all — including the person who built
+             * it, generating resume after resume and wondering where it went.
+             * Finishing a new resume is the moment the editor is worth
+             * explaining, however many they already have.
+             *
+             * The editor strips the flag once it has read it, so a refresh or a
+             * shared link does not replay it.
              */
-            const isFirstResume = resumes.length === 0;
-            navigate(`/edit/${docRef.id}${isFirstResume ? '?tour=1' : ''}`);
+            navigate(`/edit/${docRef.id}?tour=1`);
         } catch (error: any) {
             if (error.message === 'RESUME_LIMIT_REACHED') {
                 alert('You have reached your resume storage limit. Please upgrade your plan to create more resumes.');

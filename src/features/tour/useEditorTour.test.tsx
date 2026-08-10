@@ -76,7 +76,7 @@ describe('useEditorTour', () => {
         expect(hasSeenTour('user-1')).toBe(true);
     });
 
-    it('remembers a skip, so it does not ambush them again', () => {
+    it('records a skip as an outcome, not as a completion', () => {
         render(<Harness />);
         fireEvent.click(screen.getByRole('button', { name: 'skip' }));
 
@@ -92,12 +92,18 @@ describe('useEditorTour', () => {
         expect(screen.getByTestId('state')).toHaveTextContent('inactive');
     });
 
-    it('does not auto-start for someone who has already seen it', () => {
+    /*
+     * Deliberately NOT suppressed by having seen it before. The request only
+     * arrives on a fresh generation, and gating on `seen` is exactly what made
+     * the walkthrough invisible to anyone who already owned a resume.
+     */
+    it('runs again for a new generation, even after a previous one was skipped', () => {
         render(<Harness />);
         fireEvent.click(screen.getByRole('button', { name: 'skip' }));
+        expect(screen.getByTestId('seen')).toHaveTextContent('true');
 
         render(<Harness />);
-        expect(screen.getAllByTestId('state').at(-1)).toHaveTextContent('inactive');
+        expect(screen.getAllByTestId('state').at(-1)).toHaveTextContent('0:score');
     });
 
     it('replays on request even after it has been seen', () => {
