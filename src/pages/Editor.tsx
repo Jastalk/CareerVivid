@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { navigate } from '../utils/navigation';
 import { ResumeData } from '../types';
 import { useEditor } from '../hooks/useEditor';
@@ -73,6 +73,7 @@ const Editor: React.FC<EditorProps> = (props) => {
         activeTab,
         setActiveTab,
         sidebarMode,
+        setSidebarMode,
         isDesktop,
         isConfirmModalOpen,
         setIsConfirmModalOpen,
@@ -155,6 +156,30 @@ const Editor: React.FC<EditorProps> = (props) => {
 
         return () => window.removeEventListener('resize', collapseRightPanelIfConstrained);
     }, []);
+
+    /**
+     * The view switch also sets the layout that view is for.
+     *
+     * "PDF Preview" and "Suggested Edits" name two different jobs, and each one
+     * wants a different shape of screen. Previously they only swapped what the
+     * middle column rendered, so choosing PDF Preview still left the page
+     * squeezed between a form and an optimiser — the reader asked to look at
+     * their resume and got the same sliver of it as before.
+     *
+     * Preview folds both side panels away and hands the width to the page.
+     * Suggested edits brings the editor back, because acting on a suggestion
+     * means changing a field. The right panel is deliberately not reopened
+     * there: the edits arrive in the middle column, and reopening the optimiser
+     * would take back the room the editor just claimed.
+     */
+    const handleReviewModeChange = useCallback((isReviewMode: boolean) => {
+        if (isReviewMode) {
+            setSidebarMode('standard');
+        } else {
+            setSidebarMode('closed');
+            setIsRightPanelOpen(false);
+        }
+    }, [setSidebarMode]);
 
     // Auto-open right side panel when a job matching report is generated or loaded
     useEffect(() => {
@@ -418,6 +443,7 @@ const Editor: React.FC<EditorProps> = (props) => {
                         isAnyDropdownOpen={isAnyDropdownOpen}
                         isRightPanelOpen={isRightPanelOpen}
                         setIsRightPanelOpen={setIsRightPanelOpen}
+                        onReviewModeChange={handleReviewModeChange}
                     />
 
                     <RightSidePanel

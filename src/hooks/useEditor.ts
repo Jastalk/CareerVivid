@@ -810,6 +810,9 @@ export const useEditor = ({
         activeTab,
         setActiveTab,
         sidebarMode,
+        // Exposed so the preview's own view switch can set the matching layout
+        // — see `handleReviewModeChange` in Editor.tsx.
+        setSidebarMode,
         isDesktop,
         isConfirmModalOpen,
         setIsConfirmModalOpen,

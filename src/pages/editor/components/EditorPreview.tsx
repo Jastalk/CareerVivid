@@ -50,6 +50,12 @@ interface EditorPreviewProps {
     isAnyDropdownOpen?: boolean;
     isRightPanelOpen?: boolean;
     setIsRightPanelOpen?: (open: boolean) => void;
+    /**
+     * Fired when the user switches between suggested edits and PDF preview, so
+     * the page can put the side panels where that view needs them. The preview
+     * reports the intent; Editor.tsx decides the layout.
+     */
+    onReviewModeChange?: (isReviewMode: boolean) => void;
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -58,7 +64,7 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
     resume, viewMode, scale, currentUserUid,
     showAnnotationOverlay, annotationUrl, annotationObjects, isPreviewBlurred,
     onResumeChange, onFocusField, onDoubleClick, isAnyDropdownOpen = false,
-    isRightPanelOpen = false, setIsRightPanelOpen
+    isRightPanelOpen = false, setIsRightPanelOpen, onReviewModeChange
 }) => {
     const editorPreviewContainerRef = useRef<HTMLDivElement>(null);
     const edgeControlsRef = useRef<HTMLDivElement>(null);
@@ -103,7 +109,18 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
     const scaledPageWidth = A4_WIDTH_PX * effectiveScale;
     const scaledStackHeight = pageStackHeight * effectiveScale;
     const useControlRail = !isCompactPreview && !isRightPanelOpen;
-    const useTopControlDock = !isCompactPreview && isRightPanelOpen;
+    /*
+     * Anything that is not the side rail docks above the page.
+     *
+     * The compact layout used to float a `sticky bottom-3` pill instead, which
+     * never pinned: the pages are absolutely positioned, so the pill's static
+     * position is the TOP of the frame, and `bottom` has nothing to push it
+     * away from. It therefore parked over the top of the resume — the same
+     * complaint as the wide layout, reached by a different route. One dock rule
+     * covers both, and a control that is always above the page can never be
+     * over it.
+     */
+    const useTopControlDock = !useControlRail;
     const previewFrameWidth = scaledPageWidth + (useControlRail ? PREVIEW_RIGHT_RAIL_PX : 0);
     const previewFrameHeight = scaledStackHeight + (useTopControlDock ? TOP_CONTROL_DOCK_HEIGHT_PX : 0);
     const pageTopOffset = useTopControlDock ? TOP_CONTROL_DOCK_HEIGHT_PX : 0;
@@ -118,6 +135,41 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
     const adjustZoom = (direction: -1 | 1) => {
         setZoomScale(effectiveScale + (direction * ZOOM_STEP));
     };
+
+    /**
+     * ⌘/Ctrl with +, - and 0, the way every other document does it.
+     *
+     * People reach for these without being told, and when the app does not
+     * answer the browser does — zooming the entire editor chrome instead of the
+     * page, which is never what was wanted. Answering the shortcut and calling
+     * `preventDefault` keeps the zoom on the document.
+     *
+     * Typing is left alone: inside a field, `-` and `0` are characters.
+     */
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
+
+            // `event.target` is only an Element for real key presses; guard the
+            // lookup so a synthetic event dispatched on window cannot throw here.
+            const target = event.target;
+            if (target instanceof Element && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+
+            if (event.key === '=' || event.key === '+') {
+                event.preventDefault();
+                adjustZoom(1);
+            } else if (event.key === '-' || event.key === '_') {
+                event.preventDefault();
+                adjustZoom(-1);
+            } else if (event.key === '0') {
+                event.preventDefault();
+                setZoomOffset(0);
+            }
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    });
 
     useLayoutEffect(() => {
         const calculateFitScale = () => {
@@ -234,7 +286,7 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
             <div className="sticky top-0 z-20 flex shrink-0 select-none flex-wrap items-center justify-between gap-2 border-b border-[#e5dccf] bg-white/90 px-3 py-2 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/95 sm:px-6 sm:py-2.5">
                 <div className="flex min-w-0 flex-1 gap-1 rounded-full border border-[#e4dbcf] bg-[#fbf8f3] p-1 dark:border-gray-800 dark:bg-gray-950 sm:flex-none">
                     <button
-                        onClick={() => review?.setIsReviewMode(true)}
+                        onClick={() => { review?.setIsReviewMode(true); onReviewModeChange?.(true); }}
                         className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-bold transition-all duration-200 sm:flex-none sm:px-4 ${review?.isReviewMode ? 'bg-[#22143f] text-white shadow-md' : 'text-slate-500 hover:bg-white hover:text-slate-800 dark:hover:bg-gray-850 dark:hover:text-gray-300'}`}
                     >
                         <Sparkles size={12} className={review?.isReviewMode ? 'animate-pulse' : ''} />
@@ -242,7 +294,7 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
                         <span className="hidden sm:inline">Suggested Edits</span>
                     </button>
                     <button
-                        onClick={() => review?.setIsReviewMode(false)}
+                        onClick={() => { review?.setIsReviewMode(false); onReviewModeChange?.(false); }}
                         className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-bold transition-all duration-200 sm:flex-none sm:px-4 ${!review?.isReviewMode ? 'bg-[#22143f] text-white shadow-md' : 'text-slate-500 hover:bg-white hover:text-slate-800 dark:hover:bg-gray-850 dark:hover:text-gray-300'}`}
                     >
                         <Eye size={12} />
@@ -339,58 +391,88 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
                         ))}
                     </div>
 
+                    {/*
+                      * Docked above the page, the controls lie down.
+                      *
+                      * They kept the rail's vertical stack when they moved to the
+                      * dock, which made them 74px tall inside a 58px dock — so the
+                      * bottom 24px sat on the page, centred right where a resume
+                      * puts the candidate's name. Laid out in a row they are ~36px
+                      * and clear the page entirely, and a horizontal strip above
+                      * the document reads as a toolbar rather than something
+                      * dropped on top of it.
+                      */}
                     <div
                         ref={edgeControlsRef}
-                        className={`z-20 flex gap-2 ${isCompactPreview ? 'sticky bottom-3 left-1/2 w-max -translate-x-1/2 flex-row rounded-xl bg-white/85 p-1 shadow-lg ring-1 ring-slate-200 backdrop-blur dark:bg-gray-900/85 dark:ring-gray-700' : 'absolute w-[84px] flex-col'}`}
-                        style={isCompactPreview ? undefined : {
+                        className={`absolute z-20 flex gap-2 ${
+                            useTopControlDock
+                                ? 'w-max -translate-x-1/2 flex-row items-center'
+                                : 'w-[84px] flex-col'
+                        }`}
+                        style={{
                             left: useControlRail
                                 ? scaledPageWidth + EDGE_CONTROL_GAP_PX
-                                : Math.max(12, (scaledPageWidth / 2) - (EDGE_CONTROL_WIDTH_PX / 2)),
-                            top: useTopControlDock ? 8 : 10
+                                : scaledPageWidth / 2,
+                            top: 10
                         }}
                     >
                         <div className="flex overflow-hidden rounded-lg bg-[#2b164f] text-white shadow-xl ring-1 ring-black/10">
                             <button
                                 type="button"
                                 onClick={() => adjustZoom(-1)}
-                                className="flex h-9 flex-1 items-center justify-center border-r border-white/10 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                                className={`flex h-9 items-center justify-center border-r border-white/10 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 ${useTopControlDock ? 'w-9' : 'flex-1'}`}
                                 disabled={effectiveScale <= minZoom}
                                 aria-label="Zoom out"
-                                title="Zoom out"
+                                title="Zoom out (⌘−)"
                             >
                                 <Minus size={16} />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => adjustZoom(1)}
-                                className="flex h-9 flex-1 items-center justify-center transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                                className={`flex h-9 items-center justify-center transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40 ${useTopControlDock ? 'w-9' : 'flex-1'}`}
                                 disabled={effectiveScale >= MAX_ZOOM}
                                 aria-label="Zoom in"
-                                title="Zoom in"
+                                title="Zoom in (⌘+)"
                             >
                                 <Plus size={16} />
                             </button>
                         </div>
-                        <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white text-[11px] font-bold text-slate-600 shadow-md">
+                        <div className={`grid grid-cols-2 overflow-hidden rounded-lg border border-slate-200 bg-white text-[11px] font-bold text-slate-600 shadow-md ${useTopControlDock ? 'h-9' : ''}`}>
                             <button
                                 type="button"
                                 onClick={() => setZoomOffset(0)}
-                                className={`h-7 border-r border-slate-200 transition-colors hover:bg-slate-50 ${isFitZoom ? 'bg-indigo-50 text-indigo-600' : ''}`}
+                                className={`border-r border-slate-200 px-2 transition-colors hover:bg-slate-50 ${useTopControlDock ? 'h-full' : 'h-7'} ${isFitZoom ? 'bg-indigo-50 text-indigo-600' : ''}`}
                                 aria-label="Fit resume to preview"
-                                title="Fit to preview"
+                                title="Fit to preview (⌘0)"
                             >
                                 Fit
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setZoomScale(1)}
-                                className={`h-7 transition-colors hover:bg-slate-50 ${isActualSize ? 'bg-indigo-50 text-indigo-600' : ''}`}
+                                className={`px-2 tabular-nums transition-colors hover:bg-slate-50 ${useTopControlDock ? 'h-full' : 'h-7'} ${isActualSize ? 'bg-indigo-50 text-indigo-600' : ''}`}
                                 aria-label="Set zoom to 100 percent"
                                 title="Set zoom to 100%"
                             >
                                 {zoomPercent}%
                             </button>
                         </div>
+
+                        {/*
+                          * How long is this thing? The page badges that answer that
+                          * sit on the right-hand rail, which only exists when the
+                          * right panel is closed — so in the docked layout the one
+                          * fact a resume writer cares about most quietly vanished.
+                          * A resume spilling onto page 2 is worth knowing before you
+                          * scroll down and find out.
+                          */}
+                        {useTopControlDock && pageCount > 1 && (
+                            <span className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] font-bold tabular-nums text-slate-600 shadow-md">
+                                <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                                {pageCount} pages
+                            </span>
+                        )}
                     </div>
 
                     {Array.from({ length: pageCount }, (_, pageIndex) => (
