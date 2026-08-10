@@ -483,7 +483,16 @@ const Sidebar: React.FC = () => {
                                         <button
                                             key={path}
                                             onClick={() => handleLinkClick(path)}
-                                            className={`cv-nav-row flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-sm font-bold transition-all ${isActive ? 'border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-soft-text)] shadow-sm' : 'border-transparent text-[var(--cv-text-muted)] hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
+                                            /*
+                                              * Idle rows use the same ink as a card's row title
+                                              * (`--cv-text-heading-product`) rather than muted grey.
+                                              * These are destinations, not captions — the dashboard's
+                                              * session list sets them in near-black, and the rail
+                                              * reading two shades lighter made the primary navigation
+                                              * look like secondary text. The active row still stands
+                                              * out on its tinted pill, border and shadow.
+                                              */
+                                            className={`cv-nav-row flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-sm font-bold transition-all ${isActive ? 'border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-soft-text)] shadow-sm' : 'border-transparent text-[var(--cv-text-heading-product)] hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
                                         >
                                             <Icon size={16} className="shrink-0" />
                                             <span className="min-w-0 truncate">{label}</span>
@@ -498,7 +507,7 @@ const Sidebar: React.FC = () => {
                                 type="button"
                                 onClick={() => setIsFilesOpen(true)}
                                 aria-label="Open Files"
-                                className="cv-nav-row flex w-full items-center gap-2.5 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-bold text-[var(--cv-text-muted)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
+                                className="cv-nav-row flex w-full items-center gap-2.5 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-bold text-[var(--cv-text-heading-product)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
                             >
                                 <FolderOpen size={16} className="shrink-0" />
                                 <span>Files</span>

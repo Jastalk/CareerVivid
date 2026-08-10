@@ -306,6 +306,14 @@
    */
   .cv-design-eyebrow {
     color: var(--cv-text-eyebrow);
+    /*
+     * State the family, so an eyebrow does not change typeface depending on
+     * which element it lands on. `h1..h6` sets `--cv-font-heading`, so the very
+     * same class rendered as Plus Jakarta Sans inside a card's <h2> and as Inter
+     * in the sidebar's <span> — one label, two fonts, for a reason nobody could
+     * see. Cards were already the majority, so the heading face wins.
+     */
+    font-family: var(--cv-font-heading);
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -514,6 +522,7 @@
   /* Same treatment as .cv-design-eyebrow — these two must not drift apart. */
   .cv-warm-eyebrow {
     color: var(--cv-text-eyebrow);
+    font-family: var(--cv-font-heading);
     font-size: 0.8125rem;
     font-weight: 700;
     letter-spacing: 0.12em;
