@@ -3,7 +3,13 @@ import { Flame, Zap } from 'lucide-react';
 import { useUserProgress } from '../../hooks/useUserProgress';
 
 interface XpStatusCardProps {
-    variant?: 'expanded' | 'collapsed';
+    /**
+     * `strip` is the sidebar footer form: no card chrome, no separate caption
+     * line. The bordered `expanded` card and the credits card below it were two
+     * boxes saying the same kind of thing, and between them they crowded the
+     * navigation above.
+     */
+    variant?: 'expanded' | 'collapsed' | 'strip';
     onClick?: () => void;
 }
 
@@ -39,6 +45,39 @@ const XpStatusCard: React.FC<XpStatusCardProps> = ({ variant = 'expanded', onCli
                         {streakCount}
                     </span>
                 )}
+            </button>
+        );
+    }
+
+    if (variant === 'strip') {
+        return (
+            <button
+                type="button"
+                onClick={onClick}
+                aria-label={`Level ${levelInfo.level}, ${levelInfo.currentLevelXp} of ${levelInfo.nextLevelXp} XP, ${streakCount} day streak`}
+                className="w-full rounded-xl px-2 py-1.5 text-left transition hover:bg-[var(--cv-surface-warm-card-strong)]"
+            >
+                <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--cv-text-heading)]">
+                        <Zap size={12} className="text-[var(--cv-action-primary)]" />
+                        Level {levelInfo.level}
+                    </span>
+                    <span className="flex items-center gap-2 text-[11px] font-semibold tabular-nums text-[var(--cv-text-muted)]">
+                        <span>{levelInfo.currentLevelXp}/{levelInfo.nextLevelXp} XP</span>
+                        {streakCount > 0 && (
+                            <span className={`flex items-center gap-0.5 ${flameTone}`} title={isStreakActiveToday ? 'Streak active today' : 'Practice today to keep your streak'}>
+                                <Flame size={12} className={isStreakActiveToday ? 'fill-amber-400/60' : ''} />
+                                {streakCount}
+                            </span>
+                        )}
+                    </span>
+                </div>
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-[var(--cv-surface-muted)]">
+                    <div
+                        className="h-full rounded-full bg-gradient-to-r from-[var(--cv-action-solid)] to-[var(--cv-purple-500)] transition-[width] duration-500"
+                        style={{ width: `${Math.max(levelInfo.progress * 100, 2)}%` }}
+                    />
+                </div>
             </button>
         );
     }

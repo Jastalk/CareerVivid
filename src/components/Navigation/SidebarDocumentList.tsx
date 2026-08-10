@@ -137,7 +137,7 @@ const SidebarDocumentList: React.FC<SidebarDocumentListProps> = ({
             <div className="mb-2 flex shrink-0 items-start justify-between gap-3 px-1.5">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                        <span className="cv-design-eyebrow text-[10px]">Files</span>
+                        <span className="cv-design-eyebrow">Files</span>
                         <span className="rounded-full bg-[var(--cv-surface-warm-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--cv-text-muted)]">{activeDocuments.length}</span>
                     </div>
                     <p className="mt-1 truncate text-[11px] font-medium text-[var(--cv-text-muted)]">
@@ -155,7 +155,7 @@ const SidebarDocumentList: React.FC<SidebarDocumentListProps> = ({
                     >
                         <SlidersHorizontal size={12} />
                         <span>Filter</span>
-                        {filterType !== 'all' && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cv-action-primary)]"></span>}
+                        {filterType !== 'all' && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--cv-action-solid)]"></span>}
                     </button>
 
                     {isFilterDropdownOpen && (

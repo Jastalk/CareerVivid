@@ -112,7 +112,7 @@ const AIUsageProgressBar: React.FC<AIUsageProgressBarProps> = ({
                     {used} / {limit} USED
                 </span>
                 {remaining > 0 ? (
-                    <span className="text-gray-500 dark:text-gray-500 font-bold">{remaining} LEFT</span>
+                    <span className="font-bold text-[var(--cv-text-muted)]">{remaining} LEFT</span>
                 ) : (
                     <span className="text-red-600 dark:text-red-400 font-black">LIMIT REACHED</span>
                 )}
