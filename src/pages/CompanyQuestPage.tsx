@@ -805,7 +805,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                                             <div className="flex flex-wrap items-center gap-2">
                                                                 <h2 className="cv-design-title text-base sm:text-lg">{stage.title}</h2>
                                                                 {isCurrent && (
-                                                                    <span className="rounded-full bg-[var(--cv-action-primary)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+                                                                    <span className="rounded-full bg-[var(--cv-action-solid)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
                                                                         Up next
                                                                     </span>
                                                                 )}
@@ -848,7 +848,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                                                 {result && (
                                                                     <span className="h-1.5 w-24 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                                                         <span
-                                                                            className={`block h-full rounded-full transition-[width] duration-500 ${state === 'cleared' ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-primary)]'}`}
+                                                                            className={`block h-full rounded-full transition-[width] duration-500 ${state === 'cleared' ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-solid)]'}`}
                                                                             style={{ width: `${Math.max(bestPct, 6)}%` }}
                                                                         />
                                                                     </span>
@@ -978,7 +978,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                     </div>
                                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                         <div
-                                            className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                                            className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                                             style={{ width: `${Math.max((isLoadingLevel ? 0 : levelInfo.progress) * 100, 2)}%` }}
                                         />
                                     </div>
@@ -997,7 +997,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                                 <p className="cv-design-body mt-0.5 text-xs">{clearedCount} / {stages.length} stages cleared</p>
                                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                     <div
-                                        className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                                        className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                                         style={{ width: `${Math.max(questProgressPct, clearedCount > 0 ? 4 : 0)}%` }}
                                     />
                                 </div>

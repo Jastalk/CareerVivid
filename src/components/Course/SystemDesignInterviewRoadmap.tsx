@@ -59,7 +59,7 @@ const SystemDesignInterviewRoadmap: React.FC<Props> = ({ course, progress, onBac
           <section className="cv-design-card p-4 sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                <p className="cv-design-eyebrow inline-flex items-center gap-1.5 text-[10px]"><Network size={13} /> System design interview</p>
+                <p className="cv-design-eyebrow inline-flex items-center gap-1.5"><Network size={13} /> System design interview</p>
                 <h1 className="cv-design-title mt-1 text-2xl sm:text-3xl">Learn to design scalable systems — from first sketch to a diagram you can defend.</h1>
                 <p className="cv-design-body mt-1.5 max-w-3xl text-sm">Read the principle, watch a real request flow under load, choose between caches, queues, and partitions, then draw the architecture and explain every trade-off. Twelve modules, each system harder than the last.</p>
               </div>
@@ -96,7 +96,7 @@ const SystemDesignInterviewRoadmap: React.FC<Props> = ({ course, progress, onBac
             <section className="cv-design-card overflow-hidden">
               <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--cv-border-warm)] px-4 py-4 sm:px-5">
                 <div>
-                  <p className="cv-design-eyebrow text-[10px]">{active.level}</p>
+                  <p className="cv-design-eyebrow">{active.level}</p>
                   <h2 className="cv-design-title mt-1 text-xl">{active.title} roadmap</h2>
                 </div>
                 <p className="text-xs font-bold text-[var(--cv-text-muted)]">Six lessons per module: read, simulate, decide, quiz, whiteboard, answer drill.</p>
@@ -160,7 +160,7 @@ const SystemDesignInterviewRoadmap: React.FC<Props> = ({ course, progress, onBac
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                   <div
-                    className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                    className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                     style={{ width: `${Math.max((isLoadingLevel ? 0 : levelInfo.progress) * 100, 2)}%` }}
                   />
                 </div>
@@ -172,7 +172,7 @@ const SystemDesignInterviewRoadmap: React.FC<Props> = ({ course, progress, onBac
                 <p className="cv-design-body mt-0.5 text-xs">{done} / {total} lessons completed</p>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                   <div
-                    className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                    className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                     style={{ width: `${Math.max(progressPct, done > 0 ? 4 : 0)}%` }}
                   />
                 </div>

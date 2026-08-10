@@ -91,7 +91,7 @@ const SpotTheFlawWidget: React.FC<CourseWidgetProps> = ({ completed, onComplete 
               type="button"
               onClick={() => setSceneIdx(i)}
               aria-label={`Scene ${i + 1}`}
-              className={`h-2.5 w-2.5 rounded-full transition-colors ${i === sceneIdx ? 'bg-[var(--cv-action-primary)]' : solved[i] ? 'bg-[#15803d]' : 'bg-[var(--cv-border-warm)]'}`}
+              className={`h-2.5 w-2.5 rounded-full transition-colors ${i === sceneIdx ? 'bg-[var(--cv-action-solid)]' : solved[i] ? 'bg-[#15803d]' : 'bg-[var(--cv-border-warm)]'}`}
             />
           ))}
         </div>

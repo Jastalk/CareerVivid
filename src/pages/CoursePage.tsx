@@ -322,7 +322,7 @@ const CoursePage: React.FC = () => {
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         <h2 className="cv-design-title text-base sm:text-lg">{module.title}</h2>
                                                                         {isCurrent && (
-                                                                            <span className="rounded-full bg-[var(--cv-action-primary)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+                                                                            <span className="rounded-full bg-[var(--cv-action-solid)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
                                                                                 Up next
                                                                             </span>
                                                                         )}
@@ -343,7 +343,7 @@ const CoursePage: React.FC = () => {
                                                                             </p>
                                                                             <span className="h-1.5 w-24 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                                                                 <span
-                                                                                    className={`block h-full rounded-full transition-[width] duration-500 ${lessonPct >= 100 ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-primary)]'}`}
+                                                                                    className={`block h-full rounded-full transition-[width] duration-500 ${lessonPct >= 100 ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-solid)]'}`}
                                                                                     style={{ width: `${Math.max(lessonPct, doneLessons > 0 ? 6 : 0)}%` }}
                                                                                 />
                                                                             </span>
@@ -388,7 +388,7 @@ const CoursePage: React.FC = () => {
                                                                     <ul className="space-y-1.5">
                                                                         {module.topics.map((topic) => (
                                                                             <li key={topic} className="cv-design-body flex items-start gap-2 text-xs sm:text-sm">
-                                                                                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--cv-action-primary)]" />
+                                                                                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--cv-action-solid)]" />
                                                                                 {topic}
                                                                             </li>
                                                                         ))}
@@ -501,7 +501,7 @@ const CoursePage: React.FC = () => {
                                                 </div>
                                                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                                     <div
-                                                        className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                                                        className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                                                         style={{ width: `${Math.max((isLoadingLevel ? 0 : levelInfo.progress) * 100, 2)}%` }}
                                                     />
                                                 </div>
@@ -515,7 +515,7 @@ const CoursePage: React.FC = () => {
                                                 </p>
                                                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
                                                     <div
-                                                        className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500"
+                                                        className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
                                                         style={{ width: `${Math.max(progressPct, completedCount > 0 ? 4 : 0)}%` }}
                                                     />
                                                 </div>

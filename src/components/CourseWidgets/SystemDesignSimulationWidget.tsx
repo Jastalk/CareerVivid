@@ -60,7 +60,7 @@ const SystemDesignSimulationWidget: React.FC<Props> = ({ completed, onComplete, 
     <section className="rounded-xl border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] p-4 sm:p-5" aria-label={scenario.title}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="cv-design-eyebrow inline-flex items-center gap-1.5 text-[10px]"><Activity size={13} /> Deterministic system simulation</p>
+          <p className="cv-design-eyebrow inline-flex items-center gap-1.5"><Activity size={13} /> Deterministic system simulation</p>
           <h2 className="cv-design-title mt-1 text-base">{scenario.title}</h2>
         </div>
         <p className="rounded-lg border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-muted,transparent)] px-2.5 py-1 text-xs font-bold tabular-nums text-[var(--cv-text-muted)]">

@@ -229,7 +229,7 @@ const ReferralPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => void copyToClipboard(referralLink, 'link')}
-                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--cv-action-primary)] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--cv-action-primary-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--cv-focus-ring)]"
+                                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--cv-action-solid)] px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-[var(--cv-action-primary-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--cv-focus-ring)]"
                                     >
                                         {copiedValue === 'link' ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
                                         {copiedValue === 'link' ? 'Copied' : 'Copy link'}
@@ -271,7 +271,7 @@ const ReferralPage: React.FC = () => {
                                     <div className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-[var(--cv-action-soft-bg)] px-2 font-bold text-[var(--cv-action-soft-text)]">{stats.totalReferred}/{stats.maxReferrals}</div>
                                 </div>
                                 <div className="mt-6 h-2 overflow-hidden rounded-full bg-[var(--cv-surface-muted)]">
-                                    <div className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-300" style={{ width: `${progressPercentage}%` }} />
+                                    <div className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-300" style={{ width: `${progressPercentage}%` }} />
                                 </div>
                                 <div className="mt-6 space-y-4 border-t border-[var(--cv-border-subtle)] pt-5">
                                     <div className="flex gap-3">

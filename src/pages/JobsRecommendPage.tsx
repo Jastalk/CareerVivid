@@ -412,7 +412,7 @@ const MatchScoreBreakdown: React.FC<{ assessment: ComprehensiveJobMatch }> = ({ 
                     </div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--cv-border-subtle)]">
                         <div
-                            className="h-full rounded-full bg-[var(--cv-action-primary)]"
+                            className="h-full rounded-full bg-[var(--cv-action-solid)]"
                             style={{ width: `${(item.score / item.maxScore) * 100}%` }}
                         />
                     </div>
@@ -916,11 +916,11 @@ const JobsRecommendPage: React.FC = () => {
 
                             <div className="grid grid-cols-3 gap-2 sm:min-w-[420px]">
                                 <div className="cv-design-card rounded-2xl p-3">
-                                    <div className="cv-design-eyebrow text-[11px]">Top match</div>
+                                    <div className="cv-design-eyebrow">Top match</div>
                                     <div className="mt-1 flex items-end gap-1 text-2xl font-black text-[var(--cv-text-heading)]">{topScore}<span className="pb-1 text-xs text-[var(--cv-text-muted)]">%</span></div>
                                 </div>
                                 <div className="cv-design-card rounded-2xl p-3">
-                                    <div className="cv-design-eyebrow text-[11px]">Target resume</div>
+                                    <div className="cv-design-eyebrow">Target resume</div>
                                     <div className="mt-1 text-2xl font-black text-[var(--cv-text-heading)]">{profileAssetCount}</div>
                                 </div>
                                 <button
@@ -947,7 +947,7 @@ const JobsRecommendPage: React.FC = () => {
                                         key={id}
                                         onClick={() => setActiveTab(id as typeof activeTab)}
                                         className={`rounded-full border px-4 py-2 text-xs font-extrabold transition ${activeTab === id
-                                            ? 'border-[var(--cv-action-primary)] bg-[var(--cv-action-primary)] text-white'
+                                            ? 'border-[var(--cv-action-primary)] bg-[var(--cv-action-solid)] text-white'
                                             : 'border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-body)] hover:border-[var(--cv-action-border)] hover:text-[var(--cv-action-primary)]'
                                             }`}
                                     >
@@ -987,7 +987,7 @@ const JobsRecommendPage: React.FC = () => {
                         {isLoadingScrapedJobs && visibleJobs.length === 0 && (
                             <>
                                 <div className="flex items-center gap-2 px-1 text-sm font-bold text-[var(--cv-text-muted)]" role="status">
-                                    <span className="h-2 w-2 animate-ping rounded-full bg-[var(--cv-action-primary)]" />
+                                    <span className="h-2 w-2 animate-ping rounded-full bg-[var(--cv-action-solid)]" />
                                     Matching verified jobs to your profile…
                                 </div>
                                 <JobCardSkeleton />
@@ -1054,7 +1054,7 @@ const JobsRecommendPage: React.FC = () => {
                                         </div>
 
                                         <div className="mt-4 max-w-4xl rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] px-3 py-2.5">
-                                            <div className="cv-design-eyebrow mb-1 text-[10px]">Summary</div>
+                                            <div className="cv-design-eyebrow mb-1">Summary</div>
                                             <p className="text-sm font-medium leading-6 text-[var(--cv-text-body)]">{job.description}</p>
                                         </div>
 

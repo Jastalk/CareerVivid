@@ -13,7 +13,7 @@ export const SystemDesignDecisionWidget: React.FC<CourseWidgetProps> = ({ comple
   };
   return (
     <section className="rounded-xl border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] p-4 sm:p-5" aria-label="Guided design decision">
-      <p className="cv-design-eyebrow inline-flex items-center gap-1.5 text-[10px]"><Waypoints size={13} /> Scenario simulation</p>
+      <p className="cv-design-eyebrow inline-flex items-center gap-1.5"><Waypoints size={13} /> Scenario simulation</p>
       <h2 className="cv-design-title mt-1 text-base">{decision.situation}</h2>
       <p className="mt-3 text-sm font-semibold text-[var(--cv-text-heading)]">Decision: {decision.decision}</p>
       <div className="mt-3 space-y-2">
@@ -48,7 +48,7 @@ export const SystemDesignAnswerDrillWidget: React.FC<CourseWidgetProps> = ({ cha
   };
   return (
     <section className="rounded-xl border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] p-4 sm:p-5" aria-label="Interview trade-off answer drill">
-      <p className="cv-design-eyebrow inline-flex items-center gap-1.5 text-[10px]"><MessageSquareText size={13} /> Interview answer drill</p>
+      <p className="cv-design-eyebrow inline-flex items-center gap-1.5"><MessageSquareText size={13} /> Interview answer drill</p>
       <h2 className="cv-design-title mt-1 text-base">{drill.prompt}</h2>
       <textarea aria-label="Your interview answer" value={answer} onChange={(event) => setAnswer(event.target.value)} placeholder="Explain your decision, the trade-off, and what you would measure next." className="mt-3 min-h-32 w-full resize-y rounded-lg border border-[var(--cv-border-warm)] bg-transparent p-3 text-sm text-[var(--cv-text-heading)] outline-none focus:border-[var(--cv-action-primary)]" />
       <p className="mt-1 text-right text-[11px] font-semibold text-[var(--cv-text-muted)]">{answer.trim().length} / {drill.minimumCharacters} characters</p>

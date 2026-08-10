@@ -107,7 +107,7 @@ export const InteractiveCourseCard: React.FC<CourseCardProps> = ({
                             {progressPct > 0 ? (
                                 <div className="flex-1 flex items-center gap-2">
                                     <div className="flex-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-[var(--cv-action-primary)]" style={{ width: `${progressPct}%` }} />
+                                        <div className="h-full bg-[var(--cv-action-solid)]" style={{ width: `${progressPct}%` }} />
                                     </div>
                                     <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">{progressPct}%</span>
                                 </div>

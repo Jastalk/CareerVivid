@@ -99,7 +99,7 @@ const CodingInterviewRoadmap: React.FC<Props> = ({ course, progress, onBack, onR
         <section className="cv-design-card overflow-hidden">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[var(--cv-border-warm)] px-4 py-4 sm:px-5">
             <div>
-              <p className="cv-design-eyebrow text-[10px]">{activeRoadmap.level}</p>
+              <p className="cv-design-eyebrow">{activeRoadmap.level}</p>
               <h2 className="cv-design-title mt-1 text-xl">{activeRoadmap.title} roadmap</h2>
             </div>
             <p className="text-xs font-bold text-[var(--cv-text-muted)]">{activeRoadmap.completedLessons} / {activeRoadmap.totalLessons} lessons completed</p>

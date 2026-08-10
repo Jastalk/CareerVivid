@@ -131,7 +131,7 @@ const TokenPredictorWidget: React.FC<CourseWidgetProps> = ({ completed, onComple
           <motion.span
             animate={{ opacity: [1, 0.2, 1] }}
             transition={{ repeat: Infinity, duration: 1.1 }}
-            className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[3px] bg-[var(--cv-action-primary)]"
+            className="ml-0.5 inline-block h-[1.1em] w-[2px] translate-y-[3px] bg-[var(--cv-action-solid)]"
           />
         )}
       </div>

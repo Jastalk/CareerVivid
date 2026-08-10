@@ -306,7 +306,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
                 </div>
                 <div className="ml-auto flex items-center gap-3">
                     <div className="hidden h-1.5 w-32 overflow-hidden rounded-full bg-[var(--cv-border-warm)] sm:block">
-                        <div className="h-full rounded-full bg-[var(--cv-action-primary)] transition-[width] duration-500" style={{ width: `${editorProgress}%` }} />
+                        <div className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500" style={{ width: `${editorProgress}%` }} />
                     </div>
                     <span className="text-xs font-bold tabular-nums text-[var(--cv-text-muted)]">{editorProgress}%</span>
                 </div>
@@ -316,7 +316,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
             {isStandaloneLesson ? (
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     <div className="mx-auto max-w-3xl p-5 pb-10 lg:p-8">
-                        <div className="cv-design-eyebrow mb-2 text-[11px]">{t('courses.lesson_counter', { index, total, defaultValue: 'Lesson {{index}} of {{total}}' })}</div>
+                        <div className="cv-design-eyebrow mb-2">{t('courses.lesson_counter', { index, total, defaultValue: 'Lesson {{index}} of {{total}}' })}</div>
 
                         {kind === 'video' && exercise.videoUrl && (
                             <div className="mb-5 overflow-hidden rounded-2xl border border-[var(--cv-border-warm)] bg-black">
@@ -422,7 +422,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
             <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
                 {/* Instructions */}
                 <section className="min-h-0 overflow-y-auto border-b border-[var(--cv-border-warm)] p-5 lg:w-[42%] lg:border-b-0 lg:border-r lg:p-6">
-                    <div className="cv-design-eyebrow mb-2 text-[11px]">Exercise {index} of {total}</div>
+                    <div className="cv-design-eyebrow mb-2">Exercise {index} of {total}</div>
                     <div className="cv-lesson-prose max-w-none">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{exercise.content}</ReactMarkdown>
                     </div>
@@ -459,7 +459,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
                                 </button>
                                 <button
                                     onClick={handleSubmit}
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cv-action-primary)] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--cv-action-primary-hover)]"
+                                    className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cv-action-solid)] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--cv-action-primary-hover)]"
                                 >
                                     <Send size={13} />
                                     Submit drawing
@@ -535,7 +535,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
                             <button
                                 onClick={handleSubmit}
                                 disabled={busy}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cv-action-primary)] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--cv-action-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cv-action-solid)] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[var(--cv-action-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
                                 Submit answer

@@ -825,7 +825,7 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                     onClick={() => { setGuideCategory(category.id); setGuideLimit(12); }}
                                     aria-pressed={isActive}
                                     className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${isActive
-                                        ? 'bg-[var(--cv-action-primary)] text-white shadow-sm'
+                                        ? 'bg-[var(--cv-action-solid)] text-white shadow-sm'
                                         : 'border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-body)] hover:border-[var(--cv-action-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]'
                                         }`}
                                 >

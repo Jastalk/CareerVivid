@@ -71,7 +71,7 @@ const SdLoadBalancerViz: React.FC<CourseWidgetProps> = ({ completed, onComplete 
               s.status === 'healthy' && (
                 <motion.span
                   key={`dot-${s.id}-${step}`}
-                  className="absolute left-1/2 top-0 h-2 w-2 rounded-full bg-[var(--cv-action-primary)]"
+                  className="absolute left-1/2 top-0 h-2 w-2 rounded-full bg-[var(--cv-action-solid)]"
                   animate={{
                     x: [0, (i - (visible.length - 1) / 2) * 96],
                     y: [0, 30],

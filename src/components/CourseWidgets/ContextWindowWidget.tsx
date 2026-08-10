@@ -85,7 +85,7 @@ const ContextWindowWidget: React.FC<CourseWidgetProps> = ({ completed, onComplet
               key={size.label}
               onClick={() => setCapacityIndex(i)}
               className={`h-7 rounded-lg px-2.5 text-[11px] font-bold transition-colors ${i === capacityIndex
-                ? 'bg-[var(--cv-action-primary)] text-white'
+                ? 'bg-[var(--cv-action-solid)] text-white'
                 : 'border border-[var(--cv-border-warm)] text-[var(--cv-text-body)] hover:border-[var(--cv-action-border)]'}`}
             >
               {size.label}
