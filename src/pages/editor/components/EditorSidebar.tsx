@@ -66,12 +66,14 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                             <Sparkles size={14} className={activeTab === 'score' ? 'animate-pulse' : ''} /> AI Review
                         </button>
                         <button
+                            data-tour="tab-content"
                             onClick={() => setActiveTab('content')}
                             className={`flex-1 rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'content' ? 'bg-[#22143f] text-white shadow-sm scale-[1.01]' : 'text-slate-500 hover:bg-[#f3eee6] hover:text-slate-800 dark:text-gray-400 dark:hover:bg-gray-800'}`}
                         >
                             <Edit3 size={14} /> Editor
                         </button>
                         <button
+                            data-tour="tab-design"
                             onClick={() => setActiveTab('design')}
                             className={`flex-1 rounded-lg py-2 text-xs font-bold flex items-center justify-center gap-1.5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${activeTab === 'design' ? 'bg-[#22143f] text-white shadow-sm scale-[1.01]' : 'text-slate-500 hover:bg-[#f3eee6] hover:text-slate-800 dark:text-gray-400 dark:hover:bg-gray-800'}`}
                         >

@@ -18,6 +18,7 @@ import EditorSidebar from './editor/components/EditorSidebar';
 import EditorPreview from './editor/components/EditorPreview';
 import RightSidePanel from './editor/components/RightSidePanel';
 import { AIReviewProvider } from '../contexts/AIReviewContext';
+import EditorTour from '../features/tour/EditorTour';
 
 const FeedbackModal = React.lazy(() => import('../components/FeedbackModal'));
 const UpgradeModal = React.lazy(() => import('../components/UpgradeModal'));
@@ -455,6 +456,18 @@ const Editor: React.FC<EditorProps> = (props) => {
                         onClose={() => setIsRightPanelOpen(false)}
                     />
                 </div>
+
+                <EditorTour
+                    uid={currentUser?.uid}
+                    ready={!isResumeLoading && Boolean(resume)}
+                    activeTemplateId={activeTemplate?.id}
+                    onRestoreTemplate={(templateId) => {
+                        // Undo takes an id because that is what the tour snapshotted;
+                        // handleTemplateSelect wants the whole TemplateInfo.
+                        const previous = TEMPLATES.find((tpl) => tpl.id === templateId);
+                        if (previous) handleTemplateSelect(previous);
+                    }}
+                />
 
                 {/* UI Modals */}
                 <ConfirmationModal

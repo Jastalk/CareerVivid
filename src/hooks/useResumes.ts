@@ -353,7 +353,16 @@ export const useResumes = (userIdOverride?: string | null) => {
                 ...newResume,
                 updatedAt: serverTimestamp(),
             });
-            navigate(`/edit/${docRef.id}`);
+            /*
+             * The editor walkthrough is requested here, not inferred there.
+             *
+             * This is the one place that knows the resume is the user's first,
+             * and a first resume is the only moment the tour is worth
+             * interrupting for. The editor strips the flag once it has read it,
+             * so a refresh or a shared link does not replay it.
+             */
+            const isFirstResume = resumes.length === 0;
+            navigate(`/edit/${docRef.id}${isFirstResume ? '?tour=1' : ''}`);
         } catch (error: any) {
             if (error.message === 'RESUME_LIMIT_REACHED') {
                 alert('You have reached your resume storage limit. Please upgrade your plan to create more resumes.');

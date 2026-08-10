@@ -286,6 +286,7 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
             <div className="sticky top-0 z-20 flex shrink-0 select-none flex-wrap items-center justify-between gap-2 border-b border-[#e5dccf] bg-white/90 px-3 py-2 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/95 sm:px-6 sm:py-2.5">
                 <div className="flex min-w-0 flex-1 gap-1 rounded-full border border-[#e4dbcf] bg-[#fbf8f3] p-1 dark:border-gray-800 dark:bg-gray-950 sm:flex-none">
                     <button
+                        data-tour="suggested-edits"
                         onClick={() => { review?.setIsReviewMode(true); onReviewModeChange?.(true); }}
                         className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-bold transition-all duration-200 sm:flex-none sm:px-4 ${review?.isReviewMode ? 'bg-[#22143f] text-white shadow-md' : 'text-slate-500 hover:bg-white hover:text-slate-800 dark:hover:bg-gray-850 dark:hover:text-gray-300'}`}
                     >
@@ -304,10 +305,17 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-                    <div className={`rounded-full border bg-white px-2.5 py-1 text-xs font-bold transition-colors sm:px-3 ${scoreClass}`}>
+                    <button
+                        type="button"
+                        data-tour="score-pill"
+                        onClick={() => setIsRightPanelOpen?.(true)}
+                        disabled={!setIsRightPanelOpen}
+                        title="See what makes up your score"
+                        className={`rounded-full border bg-white px-2.5 py-1 text-xs font-bold transition-all hover:shadow-sm enabled:hover:scale-[1.03] disabled:cursor-default sm:px-3 ${scoreClass}`}
+                    >
                         <span className="sm:hidden">Score {score}</span>
                         <span className="hidden sm:inline">Resume Score {score}</span>
-                    </div>
+                    </button>
                     {setIsRightPanelOpen && (
                         <button
                             onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}

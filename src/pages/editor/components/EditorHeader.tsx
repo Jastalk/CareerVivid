@@ -303,6 +303,7 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                     {/* DOWNLOAD MENU */}
                     <div className="relative" ref={desktopDownloadMenuRef}>
                         <button
+                            data-tour="download-pdf"
                             onClick={() => {
                                 if (isDesktopDownloadMenuOpen) {
                                     closeDownloadMenu();
