@@ -3,13 +3,14 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ChicagoTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
 
   const titleStyle = { fontFamily: `'${titleFont}', sans-serif` };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
-  const themeColorStyle = { color: themeColor };
+  const themeColorStyle = { color: readableAccent(themeColor) };
 
   return (
     <div className="p-10 text-gray-800 bg-white" style={bodyStyle}>
@@ -92,7 +93,7 @@ export const ChicagoTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                     tagName="h4"
                     placeholder="Job Title"
                   />
-                  <div className="flex gap-1 text-xs text-gray-500 font-medium">
+                  <div className="flex gap-1 text-xs text-gray-600 font-medium">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -149,7 +150,7 @@ export const ChicagoTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                     tagName="p"
                     placeholder="School"
                 />
-                <div className="flex gap-1 text-xs text-gray-500 mt-1">
+                <div className="flex gap-1 text-xs text-gray-600 mt-1">
                     <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

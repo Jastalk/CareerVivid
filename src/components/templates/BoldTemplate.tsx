@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { inkOn, readableAccent } from '../../utils/templateInk';
 
 export const BoldTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -39,7 +40,7 @@ export const BoldTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-2xl font-semibold mt-1 block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="h2"
             placeholder="Job Title"
           />
@@ -88,7 +89,7 @@ export const BoldTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                         tagName="h4"
                         placeholder="Job Title"
                     />
-                    <div className="flex gap-1 text-xs text-gray-500 font-semibold">
+                    <div className="flex gap-1 text-xs text-gray-600 font-semibold">
                         <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                         <span>-</span>
                         <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -119,7 +120,7 @@ export const BoldTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
               <h3 className="text-lg font-extrabold uppercase tracking-wider mb-3" style={titleStyle}>Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill, index) => (
-                  <span key={skill.id} className="inline-flex items-center text-sm font-semibold text-white px-3 py-1" style={{ backgroundColor: themeColor }}>
+                  <span key={skill.id} className="inline-flex items-center text-sm font-semibold text-white px-3 py-1" style={{ backgroundColor: themeColor, color: inkOn(themeColor) }}>
                       <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
                   </span>
                 ))}
@@ -146,7 +147,7 @@ export const BoldTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     tagName="p"
                     placeholder="School"
                   />
-                  <div className="flex gap-1 text-xs text-gray-500 font-semibold">
+                  <div className="flex gap-1 text-xs text-gray-600 font-semibold">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

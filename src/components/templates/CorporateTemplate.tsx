@@ -3,25 +3,20 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { inkOn, readableAccent } from '../../utils/templateInk';
 
 export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
 
   const titleStyle = { fontFamily: `'${titleFont}', sans-serif` };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
-  const getTextColorForBackground = (hexColor: string): string => {
-    if (!hexColor) return '#000000';
-    try {
-        const r = parseInt(hexColor.slice(1, 3), 16);
-        const g = parseInt(hexColor.slice(3, 5), 16);
-        const b = parseInt(hexColor.slice(5, 7), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
-    } catch (e) {
-        return '#FFFFFF'; // Fallback for invalid color
-    }
-  };
-  const headerTextColor = getTextColorForBackground(themeColor);
+  /*
+   * Was a per-template copy of a YIQ brightness test with a 0.5 threshold. That
+   * is not a contrast measurement: on `#718096` it chose white, at 3.5:1.
+   * `inkOn` measures the real ratio and reaches for true black when near-black
+   * is not enough.
+   */
+  const headerTextColor = inkOn(themeColor);
 
   return (
     <div className="bg-white text-gray-800" style={bodyStyle}>
@@ -59,7 +54,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
       <div className="p-8 grid grid-cols-12 gap-8">
         <aside className="col-span-4 border-r pr-8">
           <section className="mb-6">
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: themeColor}}>Contact</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Contact</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center">
                   <Mail size={14} className="mr-2 flex-shrink-0 transform translate-y-px" />
@@ -85,7 +80,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
           </section>
 
           <section className="mb-6">
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: themeColor}}>Education</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Education</h3>
             {education.map((edu, index) => (
               <div key={edu.id} className="mb-4">
                 <InlineEdit 
@@ -105,7 +100,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                     tagName="p"
                     placeholder="School"
                 />
-                <div className="flex gap-1 text-xs text-gray-500">
+                <div className="flex gap-1 text-xs text-gray-600">
                     <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -115,10 +110,10 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
           </section>
 
           <section>
-            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: themeColor}}>Skills</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Skills</h3>
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, index) => (
-                <span key={skill.id} className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded" style={{ backgroundColor: `${themeColor}20`, color: themeColor }}>
+                <span key={skill.id} className="inline-flex items-center text-xs font-semibold px-3 py-1 rounded" style={{ backgroundColor: `${themeColor}20`, color: readableAccent(themeColor) }}>
                     <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
                 </span>
               ))}
@@ -128,7 +123,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
 
         <main className="col-span-8">
           <section className="mb-6">
-            <h3 className="text-lg font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: themeColor}}>Profile</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Profile</h3>
             <InlineEdit 
                 value={professionalSummary} 
                 fieldId="professionalSummary" 
@@ -140,7 +135,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
           </section>
 
           <section>
-            <h3 className="text-lg font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: themeColor}}>Experience</h3>
+            <h3 className="text-lg font-bold uppercase tracking-wider mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Experience</h3>
             {employmentHistory.map((job, index) => (
               <div key={job.id} className="mb-5">
                 <div className="flex justify-between items-baseline">
@@ -153,7 +148,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                     tagName="h4"
                     placeholder="Job Title"
                   />
-                  <div className="flex gap-1 text-sm text-gray-500">
+                  <div className="flex gap-1 text-sm text-gray-600">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />

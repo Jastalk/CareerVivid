@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -37,7 +38,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-lg mt-1 block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="Job Title"
         />
@@ -54,7 +55,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
 
       <main>
         <section className="mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-2" style={titleStyle}>Summary</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-2" style={titleStyle}>Summary</h2>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
@@ -66,7 +67,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
         </section>
 
         <section className="mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-3" style={titleStyle}>Experience</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3" style={titleStyle}>Experience</h2>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-5">
               <div className="flex justify-between items-center">
@@ -103,7 +104,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
         </section>
 
         <section className="mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-3" style={titleStyle}>Education</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3" style={titleStyle}>Education</h2>
           {education.map((edu, index) => (
             <div key={edu.id} className="mb-4">
               <div className="flex justify-between items-center">
@@ -132,7 +133,7 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
         </section>
         
         <section>
-          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-3" style={titleStyle}>Skills</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-600 mb-3" style={titleStyle}>Skills</h2>
           <div className="text-sm leading-relaxed flex flex-wrap gap-2">
             {skills.map((skill, index) => (
                 <React.Fragment key={skill.id}>

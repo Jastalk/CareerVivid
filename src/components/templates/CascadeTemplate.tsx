@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const CascadeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -37,11 +38,11 @@ export const CascadeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-xl block mt-1" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="Job Title"
         />
-        <div className="flex justify-center gap-1 text-sm text-gray-500 mt-2">
+        <div className="flex justify-center gap-1 text-sm text-gray-600 mt-2">
             <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
             <span>|</span>
             <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />
@@ -126,7 +127,7 @@ export const CascadeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                     tagName="p"
                     placeholder="School"
                   />
-                  <div className="flex gap-1 text-xs text-gray-500">
+                  <div className="flex gap-1 text-xs text-gray-600">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

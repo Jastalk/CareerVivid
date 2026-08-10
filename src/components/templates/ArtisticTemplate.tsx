@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Globe, Brush } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -23,7 +24,7 @@ export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             fieldId="personalDetails.firstName" 
             onFocus={onFocus} 
             className="text-6xl font-black block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="h1"
             placeholder="First Name"
         />
@@ -80,7 +81,7 @@ export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             <ul className="space-y-1">
               {skills.map((skill, index) => (
                 <li key={skill.id} className="text-sm flex items-center">
-                    <Brush size={12} className="mr-2" style={{color: themeColor}}/>
+                    <Brush size={12} className="mr-2" style={{color: readableAccent(themeColor)}}/>
                     <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
                 </li>
               ))}
@@ -90,7 +91,7 @@ export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
         <div className="col-span-2">
           <section className="mb-6">
-            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: themeColor}}>ABOUT ME</h2>
+            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>ABOUT ME</h2>
             <InlineEdit 
                 value={professionalSummary} 
                 fieldId="professionalSummary" 
@@ -101,7 +102,7 @@ export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             />
           </section>
           <section className="mb-6">
-            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: themeColor}}>EXPERIENCE</h2>
+            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>EXPERIENCE</h2>
             {employmentHistory.map((job, index) => (
               <div key={job.id} className="mb-4">
                 <InlineEdit 
@@ -132,7 +133,7 @@ export const ArtisticTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             ))}
           </section>
           <section>
-            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: themeColor}}>EDUCATION</h2>
+            <h2 className="font-bold text-lg mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>EDUCATION</h2>
             {education.map((edu, index) => (
               <div key={edu.id}>
                 <InlineEdit 

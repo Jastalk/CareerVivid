@@ -2,11 +2,12 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const SerifTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
 
-  const titleStyle = { fontFamily: `'${titleFont}', serif`, color: themeColor };
+  const titleStyle = { fontFamily: `'${titleFont}', serif`, color: readableAccent(themeColor) };
   const bodyStyle = { fontFamily: `'${bodyFont}', serif` };
   const headingStyle = { fontFamily: `'${titleFont}', serif` };
 

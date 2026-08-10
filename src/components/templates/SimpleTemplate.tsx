@@ -2,11 +2,12 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const SimpleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
 
-  const titleStyle = { fontFamily: `'${titleFont}', sans-serif`, color: themeColor };
+  const titleStyle = { fontFamily: `'${titleFont}', sans-serif`, color: readableAccent(themeColor) };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
 
   return (
@@ -40,7 +41,7 @@ export const SimpleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             tagName="p"
             placeholder="Job Title"
         />
-        <div className="text-sm text-gray-500 mt-2 flex gap-1">
+        <div className="text-sm text-gray-600 mt-2 flex gap-1">
           <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
           <span>|</span>
           <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />

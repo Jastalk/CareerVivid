@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ElegantTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -38,7 +39,7 @@ export const ElegantTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-lg tracking-widest block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="JOB TITLE"
         />

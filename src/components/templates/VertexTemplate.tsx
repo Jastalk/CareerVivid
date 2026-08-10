@@ -2,22 +2,20 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { inkOn } from '../../utils/templateInk';
 
 export const VertexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
 
   const titleStyle = { fontFamily: `'${titleFont}', sans-serif` };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
-  const getTextColorForBackground = (hexColor: string): string => {
-    try {
-        const r = parseInt(hexColor.slice(1, 3), 16);
-        const g = parseInt(hexColor.slice(3, 5), 16);
-        const b = parseInt(hexColor.slice(5, 7), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
-    } catch (e) { return '#FFFFFF'; }
-  };
-  const headerTextColor = getTextColorForBackground(themeColor);
+  /*
+   * Was a per-template copy of a YIQ brightness test with a 0.5 threshold. That
+   * is not a contrast measurement: on `#718096` it chose white, at 3.5:1.
+   * `inkOn` measures the real ratio and reaches for true black when near-black
+   * is not enough.
+   */
+  const headerTextColor = inkOn(themeColor);
 
   return (
     <div className="p-8 bg-white text-gray-800" style={bodyStyle}>
@@ -53,7 +51,7 @@ export const VertexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             tagName="p"
             placeholder="Job Title"
         />
-        <div className="text-sm text-gray-500 mt-2 flex justify-center gap-1">
+        <div className="text-sm text-gray-600 mt-2 flex justify-center gap-1">
             <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
             <span>|</span>
             <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />

@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableBorder } from '../../utils/templateInk';
 
 export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -19,7 +20,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
           </div>
         )}
         <section className="mb-8">
-          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4" style={{...titleStyle, borderColor: themeColor}}>CONTACT</h2>
+          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>CONTACT</h2>
           <div className="space-y-3 text-sm">
             <div className="flex items-center">
                 <Mail size={16} className="mr-3 flex-shrink-0 transform translate-y-px" />
@@ -40,7 +41,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
           </div>
         </section>
         <section>
-          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4" style={{...titleStyle, borderColor: themeColor}}>SKILLS</h2>
+          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>SKILLS</h2>
           <ul className="space-y-2 text-sm">
             {skills.map((skill, index) => (
               <li key={skill.id}>
@@ -85,7 +86,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </header>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: themeColor}}>PROFILE</h2>
+          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>PROFILE</h2>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
@@ -97,7 +98,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
 
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: themeColor}}>EXPERIENCE</h2>
+          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>EXPERIENCE</h2>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-6">
               <InlineEdit 
@@ -129,7 +130,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
         
         <section>
-          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: themeColor}}>EDUCATION</h2>
+          <h2 className="text-2xl font-bold text-slate-800 border-b-4 pb-2 mb-4" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>EDUCATION</h2>
           {education.map((edu, index) => (
             <div key={edu.id} className="mb-4">
               <InlineEdit 
@@ -149,7 +150,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 tagName="p"
                 placeholder="School"
               />
-              <div className="flex gap-1 text-sm text-gray-500">
+              <div className="flex gap-1 text-sm text-gray-600">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe, GitBranch, Code } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -42,7 +43,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-xl font-mono-special block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="h2"
             placeholder="Job Title"
           />
@@ -89,7 +90,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
           <div className="flex flex-wrap gap-x-4 gap-y-2">
             {skills.map((skill, index) => (
               <div key={skill.id} className="flex items-center">
-                <Code size={14} className="mr-2" style={{color: themeColor}}/>
+                <Code size={14} className="mr-2" style={{color: readableAccent(themeColor)}}/>
                 <InlineEdit 
                     value={skill.name} 
                     fieldId={`skills[${index}].name`} 
@@ -120,7 +121,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                     <span>@</span>
                     <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" className="text-md font-bold" style={titleStyle} />
                 </div>
-                <div className="flex gap-1 text-xs text-gray-500 font-mono-special">
+                <div className="flex gap-1 text-xs text-gray-600 font-mono-special">
                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-{'>'}</span>
                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -154,7 +155,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                     tagName="h4"
                     placeholder="Degree"
                 />
-                <div className="flex gap-1 text-xs text-gray-500 font-mono-special">
+                <div className="flex gap-1 text-xs text-gray-600 font-mono-special">
                     <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-{'>'}</span>
                     <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

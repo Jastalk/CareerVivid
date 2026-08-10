@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -36,7 +37,7 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             value={personalDetails.jobTitle} 
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
-            className="text-2xl text-gray-500 block" 
+            className="text-2xl text-gray-600 block" 
             style={titleStyle}
             tagName="h2"
             placeholder="Job Title"
@@ -46,20 +47,20 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
       <main className="grid grid-cols-3 gap-16">
         <aside className="col-span-1">
           <section className="mb-10">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4" style={titleStyle}>Contact</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-600 mb-4" style={titleStyle}>Contact</h3>
             <div className="space-y-2">
               <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" className="block" />
               <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" className="block" />
               <InlineEdit value={personalDetails.address} fieldId="personalDetails.address" onFocus={onFocus} placeholder="Address" className="block" />
               {websites.map((site, index) => (
-                  <a key={site.id} href={site.url} className="block hover:underline" style={{color: themeColor}}>
+                  <a key={site.id} href={site.url} className="block hover:underline" style={{color: readableAccent(themeColor)}}>
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               ))}
             </div>
           </section>
           <section>
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4" style={titleStyle}>Skills</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-600 mb-4" style={titleStyle}>Skills</h3>
             <ul className="space-y-2">
               {skills.map((skill, index) => (
                   <li key={skill.id}>
@@ -72,7 +73,7 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
         <div className="col-span-2">
           <section className="mb-10">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4" style={titleStyle}>Profile</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-600 mb-4" style={titleStyle}>Profile</h3>
             <InlineEdit 
                 value={professionalSummary} 
                 fieldId="professionalSummary" 
@@ -83,7 +84,7 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             />
           </section>
           <section className="mb-10">
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4" style={titleStyle}>Experience</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-600 mb-4" style={titleStyle}>Experience</h3>
             {employmentHistory.map((job, index) => (
               <div key={job.id} className="mb-6">
                 <InlineEdit 
@@ -114,7 +115,7 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             ))}
           </section>
           <section>
-            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-400 mb-4" style={titleStyle}>Education</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-widest text-gray-600 mb-4" style={titleStyle}>Education</h3>
             {education.map((edu, index) => (
               <div key={edu.id}>
                 <InlineEdit 

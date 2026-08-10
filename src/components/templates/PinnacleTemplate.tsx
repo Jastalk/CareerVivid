@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent, readableBorder } from '../../utils/templateInk';
 
 export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -11,7 +12,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
   return (
     <div className="bg-white text-gray-800" style={bodyStyle}>
-      <header className="p-8 border-b-4" style={{borderColor: themeColor}}>
+      <header className="p-8 border-b-4" style={{borderColor: readableBorder(themeColor)}}>
         <InlineEdit 
             value={personalDetails.firstName.toUpperCase()} 
             fieldId="personalDetails.firstName" 
@@ -39,7 +40,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             tagName="p"
             placeholder="Job Title"
         />
-        <div className="text-sm text-gray-500 mt-2 flex gap-1">
+        <div className="text-sm text-gray-600 mt-2 flex gap-1">
             <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
             <span>|</span>
             <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />
@@ -50,7 +51,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
       <main className="p-8">
         <section className="mb-6">
-          <h2 className="text-sm font-bold uppercase tracking-widest mb-2" style={{...titleStyle, color: themeColor}}>Professional Profile</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest mb-2" style={{...titleStyle, color: readableAccent(themeColor)}}>Professional Profile</h2>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
@@ -64,7 +65,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
         <div className="grid grid-cols-2 gap-8">
           <div>
             <section>
-              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>Work Experience</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Work Experience</h2>
               {employmentHistory.map((job, index) => (
                 <div key={job.id} className="mb-4">
                   <InlineEdit 
@@ -84,7 +85,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
                     tagName="p"
                     placeholder="Employer"
                   />
-                  <div className="flex gap-1 text-xs text-gray-500">
+                  <div className="flex gap-1 text-xs text-gray-600">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -103,7 +104,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
           </div>
           <div>
             <section className="mb-6">
-              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>Skills</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Skills</h2>
               <ul className="list-disc list-inside text-sm">
                 {skills.map((skill, index) => (
                     <li key={skill.id}>
@@ -113,7 +114,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
               </ul>
             </section>
             <section>
-              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>Education</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Education</h2>
               {education.map((edu, index) => (
                 <div key={edu.id}>
                   <InlineEdit 
@@ -133,7 +134,7 @@ export const PinnacleTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
                     tagName="p"
                     placeholder="School"
                   />
-                  <div className="flex gap-1 text-xs text-gray-500">
+                  <div className="flex gap-1 text-xs text-gray-600">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

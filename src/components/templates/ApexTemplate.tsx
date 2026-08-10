@@ -3,24 +3,20 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { inkOn, readableBorder } from '../../utils/templateInk';
 
 export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
 
   const titleStyle = { fontFamily: `'${titleFont}', sans-serif` };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
-  const getTextColorForBackground = (hexColor: string): string => {
-    try {
-        const r = parseInt(hexColor.slice(1, 3), 16);
-        const g = parseInt(hexColor.slice(3, 5), 16);
-        const b = parseInt(hexColor.slice(5, 7), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
-    } catch (e) {
-        return '#FFFFFF';
-    }
-  };
-  const headerTextColor = getTextColorForBackground(themeColor);
+  /*
+   * Was a per-template copy of a YIQ brightness test with a 0.5 threshold. That
+   * is not a contrast measurement: on `#718096` it chose white, at 3.5:1.
+   * `inkOn` measures the real ratio and reaches for true black when near-black
+   * is not enough.
+   */
+  const headerTextColor = inkOn(themeColor);
 
   return (
     <div className="bg-white text-gray-800" style={bodyStyle}>
@@ -82,7 +78,7 @@ export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
         <div className="grid grid-cols-3 gap-8">
             <aside className="col-span-1">
                 <section className="mb-6">
-                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>Contact</h3>
+                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>Contact</h3>
                      <div className="space-y-2 text-sm">
                         <div className="flex items-center">
                             <Mail size={14} className="mr-2 flex-shrink-0 transform translate-y-px" />
@@ -99,7 +95,7 @@ export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     </div>
                 </section>
                 <section className="mb-6">
-                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>Skills</h3>
+                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>Skills</h3>
                      <div className="flex flex-wrap gap-2">
                         {skills.map((skill, index) => (
                             <span key={skill.id} className="inline-flex items-center text-xs bg-gray-200 font-semibold px-3 py-1 rounded">
@@ -109,7 +105,7 @@ export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     </div>
                 </section>
                  <section>
-                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>Education</h3>
+                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>Education</h3>
                     {education.map((edu, index) => (
                         <div key={edu.id} className="mb-2">
                             <InlineEdit 
@@ -135,7 +131,7 @@ export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
             </aside>
             <div className="col-span-2">
                 <section>
-                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-3" style={{...titleStyle, borderColor: themeColor}}>Experience</h3>
+                    <h3 className="text-lg font-bold border-b-2 pb-1 mb-3" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>Experience</h3>
                      {employmentHistory.map((job, index) => (
                         <div key={job.id} className="mb-4">
                             <InlineEdit 
@@ -149,7 +145,7 @@ export const ApexTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                             />
                             <div className="flex justify-between text-sm mb-1">
                                 <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" className="font-medium text-gray-700" />
-                                <div className="flex gap-1 text-gray-500">
+                                <div className="flex gap-1 text-gray-600">
                                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                                     <span>-</span>
                                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />

@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Star } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -43,7 +44,7 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 value={personalDetails.jobTitle} 
                 fieldId="personalDetails.jobTitle" 
                 onFocus={onFocus} 
-                className="text-md text-gray-400 block" 
+                className="text-md text-gray-600 block" 
                 style={titleStyle}
                 tagName="p"
                 placeholder="Job Title"
@@ -66,7 +67,7 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
           <ul className="space-y-2 text-sm">
             {skills.map((skill, index) => (
               <li key={skill.id} className="flex items-center">
-                  <Star size={12} className="mr-2" style={{color: themeColor}} />
+                  <Star size={12} className="mr-2" style={{color: readableAccent(themeColor)}} />
                   <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
               </li>
             ))}
@@ -100,7 +101,7 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 tagName="h3"
                 placeholder="Job Title"
               />
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                   <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" />
                   <div className="flex gap-1">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
@@ -133,7 +134,7 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 tagName="h3"
                 placeholder="Degree"
               />
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                   <InlineEdit value={edu.school} fieldId={`education[${index}].school`} onFocus={onFocus} placeholder="School" />
                   <div className="flex gap-1">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />

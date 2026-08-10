@@ -2,6 +2,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
 import IconDisplay from '../IconDisplay';
+import { inkOn, readableAccent, readableBorder } from '../../utils/templateInk';
 
 export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites, sectionTitles, customIcons } = resume;
@@ -18,7 +19,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
           </div>
         )}
         <section className="mb-8">
-          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: themeColor }}>
+          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: readableBorder(themeColor) }}>
              <InlineEdit value={sectionTitles?.contact || 'Contact'} fieldId="sectionTitles.contact" onFocus={onFocus} placeholder="Contact" />
           </h2>
           <div className="space-y-3 text-sm">
@@ -42,7 +43,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             {websites.map((site, index) => (
               <div key={site.id} className="flex items-center">
                   <IconDisplay iconName={site.icon || 'globe'} size={16} className="mr-3 flex-shrink-0 transform translate-y-px" />
-                  <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary-400 break-all" style={{color: themeColor}}>
+                  <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary-400 break-all" style={{color: readableAccent(themeColor, '#1f2937')}}>
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               </div>
@@ -51,7 +52,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
         </section>
         
         <section className="mb-8">
-          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: themeColor}}>
+          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>
             <InlineEdit value={sectionTitles?.skills || 'Skills'} fieldId="sectionTitles.skills" onFocus={onFocus} placeholder="Skills" />
           </h2>
           <ul className="space-y-2">
@@ -65,7 +66,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
                     placeholder="Skill Name"
                 />
                 <div className="w-full bg-gray-600 rounded-full h-2 mt-1">
-                  <div className="h-2 rounded-full" style={{ width: `${{ Novice: '25%', Intermediate: '50%', Advanced: '75%', Expert: '100%' }[skill.level]}`, backgroundColor: themeColor }}></div>
+                  <div className="h-2 rounded-full" style={{ width: `${{ Novice: '25%', Intermediate: '50%', Advanced: '75%', Expert: '100%' }[skill.level]}`, backgroundColor: themeColor, color: inkOn(themeColor) }}></div>
                 </div>
               </li>
             ))}
@@ -73,7 +74,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
         </section>
         
         <section>
-          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: themeColor}}>
+          <h2 className="text-xl font-bold border-b-2 pb-2 mb-4 uppercase" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>
             <InlineEdit value={sectionTitles?.education || 'Education'} fieldId="sectionTitles.education" onFocus={onFocus} placeholder="Education" />
           </h2>
           {education.map((edu, index) => (
@@ -95,7 +96,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
                 tagName="p"
                 placeholder="School"
               />
-              <div className="flex gap-1 text-gray-400 text-xs">
+              <div className="flex gap-1 text-gray-300 text-xs">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -130,7 +131,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-2xl font-light mt-2 block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="Job Title"
           />
@@ -156,9 +157,9 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
           </h2>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-6 relative pl-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-               <div className="absolute left-0 top-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-white" style={{backgroundColor: themeColor}}></div>
+               <div className="absolute left-0 top-1 w-3 h-3 bg-gray-800 rounded-full border-2 border-white" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}></div>
                <div className="absolute left-[5px] top-4 h-full w-px bg-gray-200"></div>
-              <div className="flex gap-1 text-xs font-bold text-gray-500 mb-1">
+              <div className="flex gap-1 text-xs font-bold text-gray-600 mb-1">
                   <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />

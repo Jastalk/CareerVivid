@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Code } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -39,7 +40,7 @@ export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                 fieldId="personalDetails.jobTitle" 
                 onFocus={onFocus} 
                 className="text-lg block mt-1" 
-                style={{...titleStyle, color: themeColor}}
+                style={{...titleStyle, color: readableAccent(themeColor)}}
                 tagName="p"
                 placeholder="Job Title"
             />
@@ -48,7 +49,7 @@ export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
         <div className="w-full my-6 border-t border-gray-700"></div>
 
         <section className="mb-6">
-          <h2 className="text-md font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>Contact</h2>
+          <h2 className="text-md font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Contact</h2>
           <div className="space-y-2 text-sm">
             <div className="flex items-center"><Mail size={14} className="mr-3 flex-shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" /></div>
             <div className="flex items-center"><Phone size={14} className="mr-3 flex-shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" /></div>
@@ -57,11 +58,11 @@ export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
         </section>
         
         <section>
-          <h2 className="text-md font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>Skills</h2>
+          <h2 className="text-md font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Skills</h2>
           <ul className="space-y-2 text-sm">
             {skills.map((skill, index) => (
               <li key={skill.id} className="flex items-center">
-                  <Code size={12} className="mr-2" style={{color: themeColor}} />
+                  <Code size={12} className="mr-2" style={{color: readableAccent(themeColor)}} />
                   <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
               </li>
             ))}
@@ -95,7 +96,7 @@ export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                 tagName="h3"
                 placeholder="Job Title"
               />
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                   <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" />
                   <div className="flex gap-1">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
@@ -128,7 +129,7 @@ export const QuantumTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                 tagName="h3"
                 placeholder="Degree"
               />
-              <div className="flex justify-between text-sm text-gray-500">
+              <div className="flex justify-between text-sm text-gray-600">
                   <InlineEdit value={edu.school} fieldId={`education[${index}].school`} onFocus={onFocus} placeholder="School" />
                   <div className="flex gap-1">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />

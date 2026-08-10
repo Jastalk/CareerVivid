@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -37,13 +38,13 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-md mt-2 block"
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="Job Title"
         />
       </header>
 
-      <div className="flex justify-center items-center flex-wrap gap-x-2 text-xs text-gray-500 mb-10">
+      <div className="flex justify-center items-center flex-wrap gap-x-2 text-xs text-gray-600 mb-10">
         <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
         <span className="mx-2">|</span>
         <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />
@@ -52,7 +53,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
         {websites.map((site, index) => (
           <React.Fragment key={site.id}>
             <span className="mx-2">|</span>
-            <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900" style={{color: themeColor}}>
+            <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900" style={{color: readableAccent(themeColor)}}>
                 <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
             </a>
           </React.Fragment>
@@ -74,7 +75,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
         <hr className="my-8" />
 
         <section className="mb-8">
-          <h2 className="text-sm font-semibold tracking-widest text-gray-500 text-center mb-6" style={titleStyle}>EXPERIENCE</h2>
+          <h2 className="text-sm font-semibold tracking-widest text-gray-600 text-center mb-6" style={titleStyle}>EXPERIENCE</h2>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="grid grid-cols-4 gap-4 mb-5">
               <div className="col-span-1 text-right">
@@ -87,7 +88,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
                     tagName="p"
                     placeholder="Employer"
                 />
-                <div className="flex justify-end gap-1 text-xs text-gray-500">
+                <div className="flex justify-end gap-1 text-xs text-gray-600">
                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -120,7 +121,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
         
         <section className="grid grid-cols-2 gap-8">
             <div>
-                <h2 className="text-sm font-semibold tracking-widest text-gray-500 text-center mb-6" style={titleStyle}>EDUCATION</h2>
+                <h2 className="text-sm font-semibold tracking-widest text-gray-600 text-center mb-6" style={titleStyle}>EDUCATION</h2>
                  {education.map((edu, index) => (
                     <div key={edu.id} className="text-center mb-4">
                         <InlineEdit 
@@ -140,7 +141,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
                             tagName="p"
                             placeholder="School"
                         />
-                        <div className="flex justify-center gap-1 text-xs text-gray-500">
+                        <div className="flex justify-center gap-1 text-xs text-gray-600">
                             <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                             <span>-</span>
                             <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -149,11 +150,11 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
                 ))}
             </div>
             <div>
-                 <h2 className="text-sm font-semibold tracking-widest text-gray-500 text-center mb-6" style={titleStyle}>SKILLS</h2>
+                 <h2 className="text-sm font-semibold tracking-widest text-gray-600 text-center mb-6" style={titleStyle}>SKILLS</h2>
                  <div className="flex flex-col gap-2.5 max-w-md mx-auto">
                     {skills.map((skill, index) => (
                         <div key={skill.id} className="flex items-start gap-2 text-sm text-left">
-                            <span className="text-gray-400 select-none mt-1 flex-shrink-0">•</span>
+                            <span className="text-gray-600 select-none mt-1 flex-shrink-0">•</span>
                             <InlineEdit 
                                 value={skill.name} 
                                 fieldId={`skills[${index}].name`} 

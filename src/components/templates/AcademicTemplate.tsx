@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const AcademicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -37,7 +38,7 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-lg block" 
-            style={{...titleStyle, color: themeColor}}
+            style={{...titleStyle, color: readableAccent(themeColor)}}
             tagName="p"
             placeholder="Job Title"
         />
@@ -152,12 +153,12 @@ export const AcademicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
         {/* This is a placeholder for sections common in academic CVs */}
         <section className="mb-6">
           <h2 className="text-sm font-bold uppercase tracking-widest border-b mb-2 pb-1" style={titleStyle}>Publications</h2>
-          <p className="text-sm italic text-gray-500">[This is a placeholder section. Add publications details in the employment/education description field.]</p>
+          <p className="text-sm italic text-gray-600">[This is a placeholder section. Add publications details in the employment/education description field.]</p>
         </section>
         
         <section>
           <h2 className="text-sm font-bold uppercase tracking-widest border-b mb-2 pb-1" style={titleStyle}>References</h2>
-          <p className="text-sm italic text-gray-500">Available upon request.</p>
+          <p className="text-sm italic text-gray-600">Available upon request.</p>
         </section>
       </main>
     </div>

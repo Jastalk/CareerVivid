@@ -2,6 +2,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
 import IconDisplay from '../IconDisplay';
+import { inkOn, readableAccent } from '../../utils/templateInk';
 
 export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites, sectionTitles, customIcons } = resume;
@@ -11,7 +12,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
   return (
     <div className="flex min-h-full bg-white" style={bodyStyle}>
-      <aside className="w-1/3 text-white p-8 flex flex-col items-center text-center" style={{ backgroundColor: themeColor }}>
+      <aside className="w-1/3 text-white p-8 flex flex-col items-center text-center" style={{ backgroundColor: themeColor, color: inkOn(themeColor) }}>
         {personalDetails.photo && (
           <div
             className="w-36 h-36 rounded-full mb-6 border-4 overflow-hidden flex items-center justify-center"
@@ -96,7 +97,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
 
       <main className="w-2/3 p-10 text-gray-800">
         <section className="mb-8">
-          <h2 className="text-xl font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: themeColor}}>
+          <h2 className="text-xl font-bold uppercase tracking-widest mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>
             <InlineEdit value={sectionTitles?.profile || 'Profile'} fieldId="sectionTitles.profile" onFocus={onFocus} placeholder="Profile" />
           </h2>
           <InlineEdit 
@@ -110,7 +111,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
         </section>
 
         <section className="mb-8">
-          <h2 className="text-xl font-bold uppercase tracking-widest mb-4" style={{...titleStyle, color: themeColor}}>
+          <h2 className="text-xl font-bold uppercase tracking-widest mb-4" style={{...titleStyle, color: readableAccent(themeColor)}}>
             <InlineEdit value={sectionTitles?.experience || 'Experience'} fieldId="sectionTitles.experience" onFocus={onFocus} placeholder="Experience" />
           </h2>
           {employmentHistory.map((job, index) => (
@@ -125,7 +126,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
                     tagName="h3"
                     placeholder="Job Title"
                 />
-                <div className="flex gap-1 text-sm font-medium text-gray-500">
+                <div className="flex gap-1 text-sm font-medium text-gray-600">
                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -149,7 +150,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
         </section>
 
         <section>
-          <h2 className="text-xl font-bold uppercase tracking-widest mb-4" style={{...titleStyle, color: themeColor}}>
+          <h2 className="text-xl font-bold uppercase tracking-widest mb-4" style={{...titleStyle, color: readableAccent(themeColor)}}>
             <InlineEdit value={sectionTitles?.education || 'Education'} fieldId="sectionTitles.education" onFocus={onFocus} placeholder="Education" />
           </h2>
           {education.map((edu, index) => (
@@ -171,7 +172,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
                 tagName="p"
                 placeholder="School"
               />
-              <div className="flex gap-1 text-sm text-gray-500">
+              <div className="flex gap-1 text-sm text-gray-600">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

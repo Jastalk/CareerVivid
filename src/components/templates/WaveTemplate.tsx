@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { inkOn, mutedInkOn, readableAccent } from '../../utils/templateInk';
 
 export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -11,7 +12,7 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
 
   return (
     <div className="bg-white text-gray-800 relative" style={bodyStyle}>
-       <div className="absolute top-0 left-0 w-full h-48" style={{backgroundColor: themeColor, clipPath: 'ellipse(100% 55% at 40% 45%)'}}></div>
+       <div className="absolute top-0 left-0 w-full h-48" style={{backgroundColor: themeColor, color: inkOn(themeColor), clipPath: 'ellipse(100% 55% at 40% 45%)'}}></div>
       <div className="relative p-8 z-10">
         <header className="mb-16 ml-4">
             <div className="flex gap-2">
@@ -19,8 +20,8 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     value={personalDetails.firstName} 
                     fieldId="personalDetails.firstName" 
                     onFocus={onFocus} 
-                    className="text-5xl font-extrabold text-white" 
-                    style={titleStyle}
+                    className="text-5xl font-extrabold" 
+                    style={{ ...titleStyle, color: inkOn(themeColor) }}
                     tagName="h1"
                     placeholder="First Name"
                 />
@@ -28,8 +29,8 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     value={personalDetails.lastName} 
                     fieldId="personalDetails.lastName" 
                     onFocus={onFocus} 
-                    className="text-5xl font-extrabold text-white" 
-                    style={titleStyle}
+                    className="text-5xl font-extrabold" 
+                    style={{ ...titleStyle, color: inkOn(themeColor) }}
                     tagName="h1"
                     placeholder="Last Name"
                 />
@@ -39,11 +40,11 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                 fieldId="personalDetails.jobTitle" 
                 onFocus={onFocus} 
                 className="text-2xl font-light mt-1 block" 
-                style={{...titleStyle, color: 'rgba(255,255,255,0.8)'}}
+                style={{ ...titleStyle, color: mutedInkOn(themeColor) }}
                 tagName="h2"
                 placeholder="Job Title"
             />
-            <div className="text-sm mt-2 flex gap-1" style={{color: 'rgba(255,255,255,0.7)'}}>
+            <div className="text-sm mt-2 flex gap-1" style={{color: mutedInkOn(themeColor)}}>
                 <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
                 <span>|</span>
                 <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" />
@@ -53,7 +54,7 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
         <main className="grid grid-cols-3 gap-8">
             <div className="col-span-2">
                 <section className="mb-6">
-                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: themeColor}}>Summary</h3>
+                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: readableAccent(themeColor)}}>Summary</h3>
                     <InlineEdit 
                         value={professionalSummary} 
                         fieldId="professionalSummary" 
@@ -64,7 +65,7 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     />
                 </section>
                 <section>
-                    <h3 className="text-xl font-bold mb-3" style={{...titleStyle, color: themeColor}}>Experience</h3>
+                    <h3 className="text-xl font-bold mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>Experience</h3>
                     {employmentHistory.map((job, index) => (
                         <div key={job.id} className="mb-4">
                             <InlineEdit 
@@ -97,7 +98,7 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
             </div>
             <aside className="col-span-1">
                  <section className="mb-6">
-                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: themeColor}}>Skills</h3>
+                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: readableAccent(themeColor)}}>Skills</h3>
                     <ul className="text-sm space-y-1 list-disc list-inside">
                         {skills.map((skill, index) => (
                             <li key={skill.id}>
@@ -107,7 +108,7 @@ export const WaveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titl
                     </ul>
                 </section>
                 <section>
-                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: themeColor}}>Education</h3>
+                    <h3 className="text-xl font-bold mb-2" style={{...titleStyle, color: readableAccent(themeColor)}}>Education</h3>
                      {education.map((edu, index) => (
                         <div key={edu.id} className="mb-2">
                             <InlineEdit 

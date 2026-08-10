@@ -79,7 +79,7 @@ export const CompactTemplate: React.FC<TemplateProps> = ({ resume, titleFont, bo
                             tagName="h4"
                             placeholder="Job Title"
                         />
-                        <div className="flex gap-1 text-xs text-gray-500">
+                        <div className="flex gap-1 text-xs text-gray-600">
                             <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                             <span>-</span>
                             <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -134,7 +134,7 @@ export const CompactTemplate: React.FC<TemplateProps> = ({ resume, titleFont, bo
                         tagName="p"
                         placeholder="School"
                       />
-                      <div className="flex gap-1 text-xs text-gray-500">
+                      <div className="flex gap-1 text-xs text-gray-600">
                           <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                           <span>-</span>
                           <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

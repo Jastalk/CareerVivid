@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableBorder } from '../../utils/templateInk';
 
 export const ZenithTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -52,7 +53,7 @@ export const ZenithTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
 
       <main>
         <section className="mb-6">
-          <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>PROFILE</h3>
+          <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>PROFILE</h3>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
@@ -64,7 +65,7 @@ export const ZenithTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
         </section>
 
         <section className="mb-6">
-          <h3 className="text-lg font-bold border-b-2 pb-1 mb-3" style={{...titleStyle, borderColor: themeColor}}>EXPERIENCE</h3>
+          <h3 className="text-lg font-bold border-b-2 pb-1 mb-3" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>EXPERIENCE</h3>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-4">
               <InlineEdit 
@@ -97,7 +98,7 @@ export const ZenithTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
 
         <section className="grid grid-cols-2 gap-6">
             <div>
-                <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>EDUCATION</h3>
+                <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>EDUCATION</h3>
                 {education.map((edu, index) => (
                     <div key={edu.id} className="mb-2">
                         <InlineEdit 
@@ -121,7 +122,7 @@ export const ZenithTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
                 ))}
             </div>
             <div>
-                <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: themeColor}}>SKILLS</h3>
+                <h3 className="text-lg font-bold border-b-2 pb-1 mb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>SKILLS</h3>
                 <div className="text-sm flex flex-wrap gap-1">
                     {skills.map((skill, index) => (
                         <React.Fragment key={skill.id}>

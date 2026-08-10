@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { inkOn, readableAccent, readableBorder } from '../../utils/templateInk';
 
 export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -38,7 +39,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
             className="text-xl font-light mt-2 block"
-            style={{...titleStyle, color: themeColor }}
+            style={{...titleStyle, color: readableAccent(themeColor) }}
             tagName="h2"
             placeholder="JOB TITLE"
         />
@@ -48,7 +49,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
         <div className="grid grid-cols-3 gap-10">
           <div className="col-span-2">
             <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 border-b-4 pb-2" style={{...titleStyle, borderColor: themeColor}}>SUMMARY</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 border-b-4 pb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>SUMMARY</h3>
               <InlineEdit 
                 value={professionalSummary} 
                 fieldId="professionalSummary" 
@@ -60,7 +61,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
             </section>
 
             <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4 border-b-4 pb-2" style={{...titleStyle, borderColor: themeColor}}>PROFESSIONAL EXPERIENCE</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4 border-b-4 pb-2" style={{...titleStyle, borderColor: readableBorder(themeColor)}}>PROFESSIONAL EXPERIENCE</h3>
               {employmentHistory.map((job, index) => (
                 <div key={job.id} className="mb-6">
                   <div className="flex justify-between items-center">
@@ -129,7 +130,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
               <ul className="space-y-2">
                 {skills.map((skill, index) => (
                   <li key={skill.id} className="flex items-center">
-                    <span className="w-2 h-2 rounded-full mr-3" style={{backgroundColor: themeColor}}></span>
+                    <span className="w-2 h-2 rounded-full mr-3" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}></span>
                     <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" />
                   </li>
                 ))}
@@ -157,7 +158,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                     tagName="p"
                     placeholder="School"
                   />
-                  <div className="flex gap-1 text-sm text-gray-500">
+                  <div className="flex gap-1 text-sm text-gray-600">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                       <span>-</span>
                       <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -38,7 +39,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 fieldId="personalDetails.jobTitle" 
                 onFocus={onFocus} 
                 className="text-lg font-semibold block" 
-                style={{...titleStyle, color: themeColor}}
+                style={{...titleStyle, color: readableAccent(themeColor)}}
                 tagName="h2"
                 placeholder="Job Title"
             />
@@ -52,7 +53,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
 
       <main>
         <section className="mb-5">
-          <h3 className="text-md font-bold uppercase text-gray-500 tracking-wider mb-2" style={titleStyle}>Summary</h3>
+          <h3 className="text-md font-bold uppercase text-gray-600 tracking-wider mb-2" style={titleStyle}>Summary</h3>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
@@ -64,7 +65,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
         
         <section className="mb-5">
-          <h3 className="text-md font-bold uppercase text-gray-500 tracking-wider mb-2" style={titleStyle}>Skills</h3>
+          <h3 className="text-md font-bold uppercase text-gray-600 tracking-wider mb-2" style={titleStyle}>Skills</h3>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
               <span key={skill.id} className="inline-flex items-center bg-gray-200 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
@@ -75,7 +76,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
 
         <section className="mb-5">
-          <h3 className="text-md font-bold uppercase text-gray-500 tracking-wider mb-3" style={titleStyle}>Work History</h3>
+          <h3 className="text-md font-bold uppercase text-gray-600 tracking-wider mb-3" style={titleStyle}>Work History</h3>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-4">
               <div className="flex justify-between items-baseline">
@@ -95,7 +96,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                         <InlineEdit value={job.city} fieldId={`employmentHistory[${index}].city`} onFocus={onFocus} placeholder="City" />
                     </div>
                 </div>
-                <div className="flex gap-1 text-xs font-medium text-gray-500">
+                <div className="flex gap-1 text-xs font-medium text-gray-600">
                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -114,7 +115,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
 
         <section>
-          <h3 className="text-md font-bold uppercase text-gray-500 tracking-wider mb-3" style={titleStyle}>Education</h3>
+          <h3 className="text-md font-bold uppercase text-gray-600 tracking-wider mb-3" style={titleStyle}>Education</h3>
           {education.map((edu, index) => (
             <div key={edu.id} className="flex justify-between items-baseline">
                 <div>
@@ -133,7 +134,7 @@ export const CrispTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                         <InlineEdit value={edu.city} fieldId={`education[${index}].city`} onFocus={onFocus} placeholder="City" />
                     </div>
                 </div>
-                <div className="flex gap-1 text-xs font-medium text-gray-500">
+                <div className="flex gap-1 text-xs font-medium text-gray-600">
                     <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

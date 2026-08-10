@@ -4,6 +4,7 @@ import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
 import IconDisplay from '../IconDisplay';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onUpdate, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites, sectionTitles, customIcons } = resume;
@@ -50,7 +51,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             placeholder="Last Name"
           />
         </div>
-        <div style={{ color: themeColor }}>
+        <div style={{ color: readableAccent(themeColor) }}>
           <InlineEdit
             value={personalDetails.jobTitle}
             fieldId="personalDetails.jobTitle"
@@ -61,7 +62,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
           />
         </div>
 
-        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm mt-4" style={{ color: themeColor }}>
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-sm mt-4" style={{ color: readableAccent(themeColor) }}>
           <div className="flex items-center gap-1">
             {personalDetails.email && <IconDisplay iconName={customIcons?.email || 'mail'} size={12} />}
             <InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" />
@@ -78,7 +79,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             <a key={site.id || `website-${index}`} href={site.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 flex items-center gap-1">
               <IconDisplay iconName={site.icon || 'globe'} size={12} />
               <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
-              {site.showUrl && <span className="text-gray-500 ml-1">{site.url}</span>}
+              {site.showUrl && <span className="text-gray-600 ml-1">{site.url}</span>}
             </a>
           ))}
         </div>
@@ -92,7 +93,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             value={resume.sectionTitles?.profile || 'Profile'}
             fieldId="sectionTitles.profile"
             onFocus={onFocus}
-            className="text-sm font-bold uppercase text-gray-500 tracking-widest block"
+            className="text-sm font-bold uppercase text-gray-600 tracking-widest block"
             tagName="h3"
             style={{ ...titleStyle, ...paragraphStyle }}
           />
@@ -111,7 +112,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             value={resume.sectionTitles?.skills || 'Skills'}
             fieldId="sectionTitles.skills"
             onFocus={onFocus}
-            className="text-sm font-bold uppercase text-gray-500 tracking-widest block"
+            className="text-sm font-bold uppercase text-gray-600 tracking-widest block"
             tagName="h3"
             style={{ ...titleStyle, ...paragraphStyle }}
           />
@@ -133,7 +134,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             value={resume.sectionTitles?.experience || 'Experience'}
             fieldId="sectionTitles.experience"
             onFocus={onFocus}
-            className="text-sm font-bold uppercase text-gray-500 tracking-widest block"
+            className="text-sm font-bold uppercase text-gray-600 tracking-widest block"
             tagName="h3"
             style={{ ...titleStyle, ...paragraphStyle }}
           />
@@ -147,7 +148,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
                   className="text-md font-bold text-gray-800 block"
                   tagName="h4"
                 />
-                <div className="flex gap-1 text-xs font-medium text-gray-500">
+                <div className="flex gap-1 text-xs font-medium text-gray-600">
                   <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} />
                   <span>-</span>
                   <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} />
@@ -174,7 +175,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             value={resume.sectionTitles?.education || 'Education'}
             fieldId="sectionTitles.education"
             onFocus={onFocus}
-            className="text-sm font-bold uppercase text-gray-500 tracking-widest block"
+            className="text-sm font-bold uppercase text-gray-600 tracking-widest block"
             tagName="h3"
             style={{ ...titleStyle, ...paragraphStyle }}
           />
@@ -188,7 +189,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
                   className="text-md font-bold text-gray-800 block"
                   tagName="h4"
                 />
-                <div className="flex gap-1 text-xs font-medium text-gray-500">
+                <div className="flex gap-1 text-xs font-medium text-gray-600">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} />

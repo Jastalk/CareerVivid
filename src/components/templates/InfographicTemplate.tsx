@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, User, Briefcase, GraduationCap, Star } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { inkOn, readableAccent } from '../../utils/templateInk';
 
 export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -61,7 +62,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         <div className="w-full my-6 border-t border-gray-300"></div>
 
         <section className="w-full mb-6">
-          <h2 className="text-sm font-bold uppercase mb-3" style={{...titleStyle, color: themeColor}}>CONTACT</h2>
+          <h2 className="text-sm font-bold uppercase mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>CONTACT</h2>
           <div className="space-y-2 text-xs text-gray-800">
             <div className="flex"><Mail size={14} className="mr-2 shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" /></div>
             <div className="flex"><Phone size={14} className="mr-2 shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" /></div>
@@ -70,13 +71,13 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         </section>
         
         <section className="w-full">
-          <h2 className="text-sm font-bold uppercase mb-3" style={{...titleStyle, color: themeColor}}>SKILLS</h2>
+          <h2 className="text-sm font-bold uppercase mb-3" style={{...titleStyle, color: readableAccent(themeColor)}}>SKILLS</h2>
           <div className="space-y-3">
             {skills.map((skill, index) => (
               <div key={skill.id}>
                 <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" className="text-xs font-semibold text-gray-800 block mb-1" />
                 <div className="w-full bg-gray-300 rounded-full h-1.5">
-                  <div className={`h-1.5 rounded-full ${getSkillWidth(skill.level)}`} style={{backgroundColor: themeColor}}></div>
+                  <div className={`h-1.5 rounded-full ${getSkillWidth(skill.level)}`} style={{backgroundColor: themeColor, color: inkOn(themeColor)}}></div>
                 </div>
               </div>
             ))}
@@ -87,7 +88,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
       <main className="w-2/3 p-8">
         <section className="mb-6">
           <div className="flex items-center mb-3">
-            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><User size={20} /></div>
+            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}><User size={20} /></div>
             <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Profile</h2>
           </div>
           <InlineEdit 
@@ -102,14 +103,14 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
 
         <section className="mb-6">
           <div className="flex items-center mb-3">
-            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><Briefcase size={20} /></div>
+            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}><Briefcase size={20} /></div>
             <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Experience</h2>
           </div>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-4 pl-10 relative">
               <div className="absolute left-2 top-0 h-full w-0.5 bg-gray-200"></div>
-              <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor}}></div>
-              <div className="flex gap-1 text-xs font-bold text-gray-500">
+              <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}></div>
+              <div className="flex gap-1 text-xs font-bold text-gray-600">
                   <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -145,14 +146,14 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         
         <section>
           <div className="flex items-center mb-3">
-            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><GraduationCap size={20} /></div>
+            <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}><GraduationCap size={20} /></div>
             <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Education</h2>
           </div>
           {education.map((edu, index) => (
             <div key={edu.id} className="mb-4 pl-10 relative">
               <div className="absolute left-2 top-0 h-full w-0.5 bg-gray-200"></div>
-              <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor}}></div>
-               <div className="flex gap-1 text-xs font-bold text-gray-500">
+              <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor, color: inkOn(themeColor)}}></div>
+               <div className="flex gap-1 text-xs font-bold text-gray-600">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />

@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { readableAccent } from '../../utils/templateInk';
 
 export const DynamicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills } = resume;
@@ -42,7 +43,7 @@ export const DynamicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                         />
                         <div className="flex justify-between text-sm mb-1">
                             <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" className="italic text-gray-700" />
-                            <div className="flex gap-1 text-gray-500">
+                            <div className="flex gap-1 text-gray-600">
                                 <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                                 <span>-</span>
                                 <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -87,7 +88,7 @@ export const DynamicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
                         fieldId="personalDetails.jobTitle" 
                         onFocus={onFocus} 
                         className="text-2xl font-light block mt-1" 
-                        style={{...titleStyle, color: themeColor}}
+                        style={{...titleStyle, color: readableAccent(themeColor)}}
                         tagName="h2"
                         placeholder="Job Title"
                     />

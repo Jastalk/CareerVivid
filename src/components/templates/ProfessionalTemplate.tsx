@@ -2,13 +2,14 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
 import IconDisplay from '../IconDisplay';
+import { readableAccent } from '../../utils/templateInk';
 
 export const ProfessionalTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites, sectionTitles, customIcons } = resume;
 
   const titleStyle = { fontFamily: `'${titleFont}', sans-serif` };
   const bodyStyle = { fontFamily: `'${bodyFont}', sans-serif` };
-  const themeColorStyle = { color: themeColor };
+  const themeColorStyle = { color: readableAccent(themeColor) };
 
   return (
     <div className="p-8 bg-white text-gray-800" style={bodyStyle}>
@@ -83,7 +84,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ resume, themeCol
                     tagName="h4"
                     placeholder="Job Title"
                   />
-                  <div className="flex gap-1 text-sm text-gray-500">
+                  <div className="flex gap-1 text-sm text-gray-600">
                     <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                     <span>-</span>
                     <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -130,7 +131,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ resume, themeCol
                   <IconDisplay iconName={site.icon || 'globe'} size={14} className="mr-3 flex-shrink-0 transform translate-y-px" style={themeColorStyle} />
                   <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:underline break-all">
                     <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
-                    {site.showUrl && <span className="text-gray-500 text-xs ml-1 block">{site.url}</span>}
+                    {site.showUrl && <span className="text-gray-600 text-xs ml-1 block">{site.url}</span>}
                   </a>
                 </div>
               ))}
@@ -173,7 +174,7 @@ export const ProfessionalTemplate: React.FC<TemplateProps> = ({ resume, themeCol
                   tagName="p"
                   placeholder="School"
                 />
-                <div className="flex gap-1 text-sm text-gray-500">
+                <div className="flex gap-1 text-sm text-gray-600">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />
