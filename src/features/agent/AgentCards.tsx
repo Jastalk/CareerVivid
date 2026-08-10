@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { ArrowRight, ArrowUpRight, Building2, Layers, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Building2, ClipboardCheck, Layers, Sparkles } from 'lucide-react';
 import { navigate } from '../../utils/navigation';
 import type { AgentCard } from './useCareerAgent';
 
@@ -126,6 +126,96 @@ const InterviewQuestions: React.FC<{ card: AgentCard }> = ({ card }) => {
     );
 };
 
+const SCORE_LABEL: Record<string, string> = {
+    overall: 'Overall',
+    communication: 'Communication',
+    problemSolving: 'Problem solving',
+    experience: 'Experience',
+    roleAlignment: 'Role fit',
+    leadership: 'Leadership',
+};
+
+/** Matches the report screen's bands, so one score never reads two ways. */
+const scoreTone = (n: number): string =>
+    n >= 75 ? 'text-emerald-600 dark:text-emerald-400'
+        : n >= 60 ? 'text-amber-600 dark:text-amber-400'
+            : 'text-rose-600 dark:text-rose-400';
+
+/**
+ * The report the agent just read, shown as the user's own numbers.
+ *
+ * Without this the model paraphrases six scores into a paragraph — slower, and
+ * it drifts. The card is the record; the coaching in the message beside it is
+ * the part a card cannot do.
+ */
+const InterviewReport: React.FC<{ card: AgentCard }> = ({ card }) => {
+    const scores = (card.scores ?? {}) as Record<string, number>;
+    const entries = Object.entries(scores).filter(([, v]) => typeof v === 'number');
+    if (!entries.length) return null;
+
+    const overall = scores.overall;
+    const previous = (card.attempt as { previousOverall?: number } | undefined)?.previousOverall;
+    const delta = typeof overall === 'number' && typeof previous === 'number' ? overall - previous : null;
+    const skills = Array.isArray(card.skills) ? (card.skills as string[]) : [];
+
+    return (
+        <div className={`${shell} mt-3 overflow-hidden`}>
+            <div className="flex items-center gap-2 border-b border-[var(--cv-border-subtle)] px-3.5 py-2.5">
+                <ClipboardCheck className="h-3.5 w-3.5 shrink-0 text-[var(--cv-action-primary)]" />
+                <span className="min-w-0 flex-1 truncate font-heading text-sm font-bold text-[var(--cv-text-heading-product)] dark:text-white">
+                    {String(card.role || 'Practice interview')}
+                    {card.company ? (
+                        <span className="font-normal text-[var(--cv-text-muted)]"> · {String(card.company)}</span>
+                    ) : null}
+                </span>
+                {typeof overall === 'number' && (
+                    <span className={`shrink-0 font-heading text-sm font-bold ${scoreTone(overall)}`}>
+                        {overall}
+                        {delta !== null && delta !== 0 && (
+                            <span className="ml-1 text-[11px] font-medium text-[var(--cv-text-muted)]">
+                                {delta > 0 ? '+' : ''}{delta}
+                            </span>
+                        )}
+                    </span>
+                )}
+            </div>
+
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 px-3.5 py-2.5">
+                {entries
+                    .filter(([k]) => k !== 'overall')
+                    .map(([k, v]) => (
+                        <div key={k} className="flex items-baseline justify-between gap-2">
+                            <dt className="truncate text-[11px] text-[var(--cv-text-muted)]">{SCORE_LABEL[k] ?? k}</dt>
+                            <dd className={`shrink-0 text-xs font-semibold ${scoreTone(v)}`}>{v}</dd>
+                        </div>
+                    ))}
+            </dl>
+
+            {skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 border-t border-[var(--cv-border-subtle)] px-3.5 py-2.5">
+                    {skills.map((s) => (
+                        <span
+                            key={s}
+                            className="rounded-full bg-[var(--cv-action-soft-bg)] px-2 py-0.5 text-[11px] font-medium text-[var(--cv-action-primary)]"
+                        >
+                            {s}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            <button
+                type="button"
+                onClick={() => navigate('/interview-studio')}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-[var(--cv-border-subtle)] px-3.5 py-2.5 text-xs font-semibold text-[var(--cv-action-primary)] transition-colors hover:bg-[var(--cv-action-soft-bg)]"
+            >
+                <Layers className="h-3.5 w-3.5" />
+                Open the full report
+            </button>
+        </div>
+    );
+};
+
 export const AgentCards: React.FC<{ cards?: AgentCard[] }> = ({ cards }) => {
     if (!cards?.length) return null;
     return (
@@ -133,6 +223,7 @@ export const AgentCards: React.FC<{ cards?: AgentCard[] }> = ({ cards }) => {
             {cards.map((card, i) => {
                 if (card.kind === 'company_guides') return <CompanyGuides key={i} card={card} />;
                 if (card.kind === 'interview_questions') return <InterviewQuestions key={i} card={card} />;
+                if (card.kind === 'interview_report') return <InterviewReport key={i} card={card} />;
                 return null;
             })}
         </>

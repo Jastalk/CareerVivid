@@ -17,12 +17,44 @@ export const DEFAULT_TEXT_MODEL = 'gemini-2.5-flash';
 const IMAGE_MODEL_FALLBACK = 'gemini-2.5-flash-image';
 const IMAGE_MODEL_PRIMARY = 'gemini-2.5-flash-image';
 
+/**
+ * The model that grades a practice attempt — transcript, diagram, or code.
+ *
+ * Every scored report goes through here. Grading is the hardest reasoning this
+ * app does on the user's own work: tally what was actually answered or drawn,
+ * score each dimension from that tally, and cite specific moments back. The
+ * failure mode that matters is attribution — crediting substance the candidate
+ * never produced — and that is exactly what a coaching report must not do.
+ *
+ * Call these through `callGeminiWithFallback` so a routing gap degrades the
+ * report rather than losing it.
+ */
+export const REPORT_MODEL = 'gemini-3.6-flash';
+
+/**
+ * The model that drafts a resume from a prompt.
+ *
+ * Resume generation is structured writing against a strict JSON schema, not
+ * judgment: the schema fixes the shape and the prompt fixes the content. The
+ * lite model is the right tier for it, and it is the cheapest thing a new user
+ * is likely to run first.
+ */
+export const RESUME_GENERATION_MODEL = 'gemini-3.1-flash-lite';
+
+/**
+ * Names the proxy cannot run, mapped to the nearest one it can.
+ *
+ * `gemini-3.6-flash` and `gemini-3.1-flash-lite` are deliberately absent: both
+ * are on the proxy's allowlist and `getVertexLocationForModel` already routes
+ * gemini-3.x to the global endpoint, so their entries were stale downgrades
+ * that made asking for them silently return a 2.5 model. Callers that need a
+ * guaranteed answer use `callGeminiWithFallback` instead of an alias — a
+ * fallback that logs beats a downgrade nobody can see.
+ */
 const TEXT_MODEL_ALIASES: Record<string, string> = {
-    'gemini-3.1-flash-lite': 'gemini-2.5-flash-lite',
     'gemini-3.1-flash-lite-preview': 'gemini-2.5-flash-lite',
     'gemini-3.5-flash-lite': 'gemini-2.5-flash-lite',
     'gemini-3.5-flash': 'gemini-2.5-flash',
-    'gemini-3.6-flash': 'gemini-2.5-flash',
     'gemini-3.1-pro-preview': 'gemini-2.5-pro',
     'gemini-3-flash-preview': 'gemini-2.5-flash',
     'gemini-3.1-flash-preview': 'gemini-2.5-flash',
@@ -32,6 +64,40 @@ const TEXT_MODEL_ALIASES: Record<string, string> = {
 
 const normalizeTextModelName = (modelName?: string): string | undefined =>
     modelName ? TEXT_MODEL_ALIASES[modelName] || modelName : modelName;
+
+/**
+ * Errors that mean "this project cannot serve that model", as opposed to a
+ * transient failure. `retryOperation` inside `callGeminiProxy` has already
+ * given up by the time we see one, so retrying the same model is pointless —
+ * but the same prompt on a different model is not.
+ */
+const MODEL_UNAVAILABLE = /model not available|not found|does not exist|not supported|unsupported model/i;
+
+/**
+ * Run a prompt on `preferred`, falling back to `fallback` if the project cannot
+ * serve it.
+ *
+ * Model rollout and code deploy are separate events here: the frontend ships
+ * from Hosting, the allowlist from Functions, and the model itself is enabled
+ * on the Vertex project. Any of the three can lag. Without this, naming a newer
+ * model turns every affected call into a hard failure the moment they fall out
+ * of step — for a report that means the user finishes an interview and gets
+ * nothing back, which is far worse than a report graded by the older model.
+ */
+export const callGeminiWithFallback = async (
+    preferred: string,
+    fallback: string,
+    payload: Omit<ProxyPayload, 'modelName'>,
+): Promise<{ text: string; response: any }> => {
+    if (preferred === fallback) return callGeminiProxy({ ...payload, modelName: preferred });
+    try {
+        return await callGeminiProxy({ ...payload, modelName: preferred });
+    } catch (error) {
+        if (!MODEL_UNAVAILABLE.test((error as Error)?.message ?? '')) throw error;
+        console.warn(`[gemini] ${preferred} unavailable, falling back to ${fallback}.`, error);
+        return callGeminiProxy({ ...payload, modelName: fallback });
+    }
+};
 
 // --- Proxy Helper ---
 export interface ProxyPayload {
@@ -744,7 +810,10 @@ export const generateResumeFromPrompt = async (userId: string, prompt: string): 
             responseSchema: generationSchema
         };
 
-        const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents: fullPrompt, config });
+        const result = await callGeminiWithFallback(RESUME_GENERATION_MODEL, DEFAULT_TEXT_MODEL, {
+            contents: fullPrompt,
+            config,
+        });
 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         if (!userId.startsWith('guest_')) {
@@ -1007,7 +1076,7 @@ Return ONLY a valid JSON object conforming to the schema.`;
             },
         };
 
-        const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents: fullPrompt, config });
+        const result = await callGeminiWithFallback(REPORT_MODEL, DEFAULT_TEXT_MODEL, { contents: fullPrompt, config });
 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         const metadata: { tokenUsage: number, durationInSeconds?: number } = { tokenUsage };
@@ -1112,7 +1181,7 @@ Return ONLY a JSON object matching the schema. Fill rubricFindings FIRST (invent
             },
         };
 
-        const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents, config });
+        const result = await callGeminiWithFallback(REPORT_MODEL, DEFAULT_TEXT_MODEL, { contents, config });
 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         await trackUsage(userId, 'interview_analysis', { tokenUsage });
@@ -1234,7 +1303,7 @@ Return ONLY a JSON object matching the schema. Fill rubricFindings FIRST; the sc
             },
         };
 
-        const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents, config });
+        const result = await callGeminiWithFallback(REPORT_MODEL, DEFAULT_TEXT_MODEL, { contents, config });
 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         await trackUsage(userId, 'interview_analysis', { tokenUsage });

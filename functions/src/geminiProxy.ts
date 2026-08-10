@@ -6,12 +6,21 @@ import { secureCorsHandler } from "./utils/corsUtils.js";
 const corsHandler = secureCorsHandler;
 const END_MARKER = "__END_GEMINI__";
 
+/**
+ * Names this proxy cannot run, mapped to the nearest one it can.
+ *
+ * `gemini-3.6-flash` and `gemini-3.1-flash-lite` are deliberately absent: both
+ * are in ALLOWED_MODELS below, and `getVertexLocationForModel` already routes
+ * gemini-3.x to the global endpoint. Aliasing them here was a stale downgrade
+ * that made asking for either silently return a 2.5 model — reports and resume
+ * drafts were being graded and written by a model nobody chose. Callers that
+ * need a guaranteed answer fall back in the client (`callGeminiWithFallback`),
+ * which logs, rather than being downgraded invisibly.
+ */
 const MODEL_ALIASES: Record<string, string> = {
-  "gemini-3.1-flash-lite": "gemini-2.5-flash-lite",
   "gemini-3.1-flash-lite-preview": "gemini-2.5-flash-lite",
   "gemini-3.5-flash-lite": "gemini-2.5-flash-lite",
   "gemini-3.5-flash": "gemini-2.5-flash",
-  "gemini-3.6-flash": "gemini-2.5-flash",
   "gemini-3.1-pro-preview": "gemini-2.5-pro",
   "gemini-3-flash-preview": "gemini-2.5-flash",
   "gemini-3.1-flash-preview": "gemini-2.5-flash",

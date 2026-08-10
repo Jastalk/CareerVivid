@@ -23,6 +23,89 @@ const db = admin.firestore();
 
 export const PROPOSAL_TTL_MS = 30 * 60 * 1_000;
 
+/** camelCase argument keys are field names, not language. */
+const FIELD_LABEL: Record<string, string> = {
+    professionalSummary: "Summary",
+    employmentHistory: "Experience",
+    education: "Education",
+    skills: "Skills",
+    title: "Title",
+    cvMarkdown: "Master CV",
+    targetArchetypes: "Target roles",
+    targetLocations: "Locations",
+    targetSalaryMin: "Salary from",
+    targetSalaryMax: "Salary to",
+};
+
+const humanLabel = (key: string): string =>
+    FIELD_LABEL[key] ??
+    key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
+
+/**
+ * Render one resume section the way a person would read it.
+ *
+ * `updateResumeSection` takes list sections as a JSON-encoded string, and the
+ * card was printing that string verbatim — the user was shown
+ * `[{"name":"System Design","level":"Intermediate"}, …]` and asked to approve
+ * it. A card nobody can read is not consent, it is a rubber stamp, so the list
+ * sections are decoded into the same item list the batch tools already use.
+ */
+function resumeSectionDiff(section: string, raw: string): ProposalDiff {
+    const base = { kind: "update" as const, entity: "resume" as const };
+    const isList = ["skills", "employmentHistory", "education"].includes(section);
+
+    let parsed: unknown;
+    if (isList) {
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            // The tool's own validator rejects this on execute. Until then show
+            // the raw text rather than pretending it parsed.
+            parsed = undefined;
+        }
+    }
+
+    if (!Array.isArray(parsed)) {
+        return { ...base, changes: [{ label: humanLabel(section), after: raw.slice(0, 800) }] };
+    }
+
+    const items = parsed
+        .map((entry: any) => {
+            if (entry == null) return "";
+            if (typeof entry === "string") return entry;
+            switch (section) {
+                case "skills":
+                    return [entry.name, entry.level].filter(Boolean).join(" · ");
+                case "employmentHistory": {
+                    const dates = [entry.startDate, entry.endDate].filter(Boolean);
+                    return (
+                        [entry.jobTitle, entry.employer].filter(Boolean).join(" — ") +
+                        (dates.length ? ` (${dates.join("–")})` : "")
+                    );
+                }
+                case "education":
+                    return [entry.degree, entry.school].filter(Boolean).join(" — ");
+                default:
+                    return "";
+            }
+        })
+        .map((s) => String(s).trim())
+        .filter(Boolean)
+        .slice(0, 40);
+
+    const noun = parsed.length === 1 ? "entry" : "entries";
+    return {
+        ...base,
+        changes: [{ label: humanLabel(section), after: `${parsed.length} ${noun}` }],
+        // Every entry rendering empty means the shape is not what we expected.
+        // Falling back to the raw value here would reprint the JSON blob this
+        // function exists to avoid, so say only what we actually know.
+        items: items.length
+            ? items
+            : [`${parsed.length} ${noun}, replacing the current ${humanLabel(section).toLowerCase()}`],
+    };
+}
+
 /** A proposal card needs to show WHAT changes, not a JSON blob. */
 export function buildDiff(toolName: string, args: any): ProposalDiff {
     switch (toolName) {
@@ -42,11 +125,7 @@ export function buildDiff(toolName: string, args: any): ProposalDiff {
                 ],
             };
         case "updateResumeSection":
-            return {
-                kind: "update",
-                entity: "resume",
-                changes: [{ label: args.section, after: String(args.value).slice(0, 800) }],
-            };
+            return resumeSectionDiff(String(args.section), String(args.value));
         case "addTrackedJob":
             return {
                 kind: args.jobs.length > 1 ? "batch" : "create",
@@ -65,7 +144,10 @@ export function buildDiff(toolName: string, args: any): ProposalDiff {
                 entity: "profile",
                 changes: Object.entries(args)
                     .filter(([, v]) => v !== undefined)
-                    .map(([k, v]) => ({ label: k, after: Array.isArray(v) ? v.join(", ") : String(v) })),
+                    .map(([k, v]) => ({
+                        label: humanLabel(k),
+                        after: Array.isArray(v) ? v.join(", ") : String(v).slice(0, 800),
+                    })),
             };
         case "tailorResume":
             return {
@@ -96,7 +178,12 @@ export function buildDiff(toolName: string, args: any): ProposalDiff {
             return {
                 kind: "update",
                 entity: "profile",
-                changes: Object.entries(args).map(([k, v]) => ({ label: k, after: String(v).slice(0, 200) })),
+                changes: Object.entries(args).map(([k, v]) => ({
+                    label: humanLabel(k),
+                    // `String()` on an object gives "[object Object]", which tells
+                    // the user nothing at all. JSON at least shows the values.
+                    after: (typeof v === "object" && v !== null ? JSON.stringify(v) : String(v)).slice(0, 200),
+                })),
             };
     }
 }

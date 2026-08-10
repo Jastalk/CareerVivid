@@ -118,6 +118,26 @@ export interface AgentContext {
     /** Weaknesses earlier rounds surfaced, so coaching builds on itself. */
     practiceGaps: Array<{ gap: string; stage: string; company?: string }>;
     recentTasks: Array<{ taskId: string; summary: string; at: string }>;
+    /**
+     * Pointer to the newest Interview Studio session, NOT the report itself.
+     *
+     * `practiceGaps` covers rounds the agent ran. This covers the scored
+     * sessions it was never part of — which is most of them. A full report with
+     * its transcript is thousands of tokens and irrelevant to most turns, but
+     * without something in the envelope the model has no way to know one exists,
+     * so it never asks. This is the smallest thing that makes
+     * `getInterviewReport` discoverable.
+     */
+    lastPractice?: {
+        sessionId: string;
+        role: string;
+        company?: string;
+        at: string;
+        overallScore?: number;
+        attempts: number;
+        /** False when the session was started but never finished — no report to fetch. */
+        scored: boolean;
+    };
 }
 
 /** Hard ceiling on the serialized envelope. Beyond this, fields are dropped newest-first. */

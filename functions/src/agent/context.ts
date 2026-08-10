@@ -9,6 +9,7 @@
 
 import * as admin from "firebase-admin";
 import { type AgentContext, MAX_CONTEXT_BYTES } from "./types";
+import { getLastPracticePointer } from "./reportTools";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -27,13 +28,16 @@ export async function buildContext(
 ): Promise<AgentContext> {
     const userRef = db.collection("users").doc(uid);
 
-    const [profileSnap, resumesSnap, jobsSnap, progressSnap, tasksSnap, outcomesSnap] = await Promise.all([
+    const [profileSnap, resumesSnap, jobsSnap, progressSnap, tasksSnap, outcomesSnap, lastPractice] = await Promise.all([
         userRef.collection("careerProfile").doc("profile").get(),
         userRef.collection("resumes").orderBy("updatedAt", "desc").limit(10).get(),
         userRef.collection("jobTracker").limit(200).get(),
         userRef.collection("courseProgress").limit(20).get(),
         userRef.collection("agentTasks").orderBy("createdAt", "desc").limit(RECENT_TASKS).get(),
         userRef.collection("practiceOutcomes").orderBy("createdAt", "desc").limit(5).get(),
+        // A pointer, not the report. Failing to read it must not fail the turn —
+        // the agent works fine without knowing about a past interview.
+        getLastPracticePointer(uid).catch(() => undefined),
     ]);
 
     const profile = profileSnap.exists ? profileSnap.data()! : null;
@@ -97,6 +101,7 @@ export async function buildContext(
             summary: String(d.data().summary ?? "").slice(0, 140),
             at: d.data().createdAt?.toDate?.().toISOString() ?? "",
         })),
+        ...(lastPractice ? { lastPractice } : {}),
     };
 
     return enforceBudget(ctx);
@@ -108,6 +113,11 @@ export async function buildContext(
  * Order matters: history goes first, then the CV excerpt, then list detail.
  * Stage counts and the profile targets are kept longest because the model
  * cannot make a sensible plan without them.
+ *
+ * `lastPractice` is never dropped. It is ~200 bytes — never the reason an
+ * envelope is over budget — and dropping it silently removes the only signal
+ * that a scored report exists to fetch, so the agent would stop offering
+ * coaching to exactly the users with the most practice history.
  */
 function enforceBudget(ctx: AgentContext): AgentContext {
     const size = () => Buffer.byteLength(JSON.stringify(ctx), "utf8");
