@@ -14,7 +14,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowUpRight, Undo2, X } from 'lucide-react';
+import { ArrowUpRight, Pencil, Undo2, X } from 'lucide-react';
 import { useAnchorRect } from './useAnchorRect';
 import { cutoutFrame, placeTooltip, TOOLTIP_WIDTH } from './tourPlacement';
 import type { TourStep } from './tourSteps';
@@ -70,6 +70,7 @@ export const TourSpotlight: React.FC<Props> = ({ step, stepIndex, stepCount, onS
         viewport,
     );
     const radius = step.radius ?? 10;
+    const isEditStep = step.advanceOn === 'edit';
     const spring = reduceMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 420, damping: 34, mass: 0.7 };
 
     return createPortal(
@@ -151,15 +152,18 @@ export const TourSpotlight: React.FC<Props> = ({ step, stepIndex, stepCount, onS
                     </p>
 
                     <div className="mt-3 flex items-center gap-3">
+                        {/* The hint has to name the action that actually advances.
+                            The last step ends on a real edit, and telling someone
+                            to click there would be a dead end. */}
                         <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#625bd5] dark:text-[#b8b4ff]">
                             <motion.span
-                                animate={reduceMotion ? {} : { x: [0, 3, 0], y: [0, -3, 0] }}
+                                animate={reduceMotion ? {} : isEditStep ? { y: [0, -2, 0] } : { x: [0, 3, 0], y: [0, -3, 0] }}
                                 transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
                                 className="inline-flex"
                             >
-                                <ArrowUpRight size={14} />
+                                {isEditStep ? <Pencil size={13} /> : <ArrowUpRight size={14} />}
                             </motion.span>
-                            Click it to continue
+                            {isEditStep ? 'Edit any line to finish' : 'Click it to continue'}
                         </span>
 
                         {step.undoable && onUndo && (

@@ -23,6 +23,16 @@ export interface TourStep {
      * only makes sense where a step actually wrote something.
      */
     undoable?: boolean;
+    /**
+     * What counts as doing this step.
+     *
+     * `anchor-click` is the default: press the control in the spotlight. The
+     * last step ends on `edit` instead, because "change something" is not a
+     * click — accepting a click there would let someone finish the tour without
+     * having typed a character, which is the one thing that step exists to make
+     * them do.
+     */
+    advanceOn?: 'anchor-click' | 'edit';
 }
 
 export const TOUR_STEPS: TourStep[] = [
@@ -59,8 +69,23 @@ export const TOUR_STEPS: TourStep[] = [
         id: 'download',
         anchor: 'download-pdf',
         title: 'Take it with you',
-        body: 'Download a PDF whenever you like. That is the whole editor — go and make it yours.',
+        body: 'Download a PDF whenever you like — your resume is saved as you go.',
         radius: 999,
+    },
+    {
+        id: 'click-to-edit',
+        anchor: 'resume-canvas',
+        title: 'Click straight onto the page',
+        body: 'Tap any line on your resume. The editor on the left jumps to exactly that sentence — no hunting for the right field.',
+        radius: 4,
+    },
+    {
+        id: 'make-it-yours',
+        anchor: 'editor-fields',
+        title: 'Now change something',
+        body: 'This resume was written by AI, so every word is a first draft. Edit one line and watch the page update as you type.',
+        radius: 12,
+        advanceOn: 'edit',
     },
 ];
 

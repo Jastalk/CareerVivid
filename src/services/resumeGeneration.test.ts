@@ -108,6 +108,56 @@ describe('generateResumeFromPrompt — truncated responses', () => {
         );
     });
 
+    /*
+     * Every AI resume used to open as John Doe, because the prompt asked for
+     * "realistic but placeholder personal details". The user's first job was
+     * deleting a stranger's name off their own resume.
+     */
+    it('tells the model to use the real person, verbatim', async () => {
+        fetchMock.mockImplementation(proxyBody(WHOLE));
+
+        await generateResumeFromPrompt('user-1', 'product manager', {
+            firstName: 'Jiawen',
+            lastName: 'Zhu',
+            email: 'evan@jastalk.com',
+            city: 'Champaign',
+        });
+
+        const prompt = JSON.parse(fetchMock.mock.calls[0][1].body).data.contents;
+        const text = typeof prompt === 'string' ? prompt : JSON.stringify(prompt);
+
+        expect(text).toContain('Jiawen');
+        expect(text).toContain('Zhu');
+        expect(text).toContain('evan@jastalk.com');
+        expect(text).toContain('Champaign');
+        expect(text).toMatch(/EXACTLY as written/i);
+        // The old instruction has to be gone, not merely outvoted.
+        expect(text).not.toMatch(/John Doe/i);
+    });
+
+    it('leaves unknown details blank rather than inventing them', async () => {
+        fetchMock.mockImplementation(proxyBody(WHOLE));
+
+        await generateResumeFromPrompt('user-1', 'product manager', { firstName: 'Jiawen' });
+
+        const text = JSON.stringify(JSON.parse(fetchMock.mock.calls[0][1].body).data.contents);
+        expect(text).toMatch(/do not invent a phone number/i);
+    });
+
+    /*
+     * A brand-new user has nothing on file. An obvious blank they must fill in
+     * beats a plausible fake name they might not notice.
+     */
+    it('uses an obvious placeholder when nothing is known', async () => {
+        fetchMock.mockImplementation(proxyBody(WHOLE));
+
+        await generateResumeFromPrompt('user-1', 'product manager');
+
+        const text = JSON.stringify(JSON.parse(fetchMock.mock.calls[0][1].body).data.contents);
+        expect(text).toMatch(/Your Name/i);
+        expect(text).not.toMatch(/John Doe/i);
+    });
+
     it('asks for enough room that a full resume fits', async () => {
         fetchMock.mockImplementation(proxyBody(WHOLE));
 

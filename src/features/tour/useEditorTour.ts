@@ -97,32 +97,56 @@ export function useEditorTour(opts: {
         start();
     }, [requested, ready, uid, start]);
 
-    // Advance when the user clicks this step's control.
+    const advanceStep = useCallback(() => {
+        setJustCompleted(true);
+        setStepIndex((i) => {
+            const next = i + 1;
+            if (next >= TOUR_STEPS.length) {
+                // Deferred: calling end() during this handler would set state
+                // while the control the user touched is still running its own.
+                queueMicrotask(() => end('completed'));
+                return -1;
+            }
+            return next;
+        });
+    }, [end]);
+
+    // Advance when the user does this step's action.
     const anchor = step?.anchor;
+    const advanceOn = step?.advanceOn ?? 'anchor-click';
     useEffect(() => {
         if (!anchor) return;
+
+        /*
+         * The last step ends on a real edit, not a click.
+         *
+         * Its point is that an AI first draft is meant to be rewritten, and a
+         * click would let someone finish having typed nothing. `input` fires
+         * for typing, pasting and dictation alike, so any genuine change counts
+         * — but only inside the editor column, so clicking around the preview
+         * cannot satisfy it by accident.
+         */
+        if (advanceOn === 'edit') {
+            const onInput = (event: Event) => {
+                const target = event.target;
+                if (!(target instanceof Element)) return;
+                if (!target.closest(`[data-tour="${anchor}"]`)) return;
+                advanceStep();
+            };
+            document.addEventListener('input', onInput, true);
+            return () => document.removeEventListener('input', onInput, true);
+        }
 
         const onClick = (event: MouseEvent) => {
             const target = event.target;
             if (!(target instanceof Element)) return;
             if (!target.closest(`[data-tour="${anchor}"]`)) return;
-
-            setJustCompleted(true);
-            setStepIndex((i) => {
-                const next = i + 1;
-                if (next >= TOUR_STEPS.length) {
-                    // Deferred: calling end() during this handler would set state
-                    // while the clicked control is still running its own.
-                    queueMicrotask(() => end('completed'));
-                    return -1;
-                }
-                return next;
-            });
+            advanceStep();
         };
 
         document.addEventListener('click', onClick, true);
         return () => document.removeEventListener('click', onClick, true);
-    }, [anchor, end]);
+    }, [anchor, advanceOn, advanceStep]);
 
     // Escape leaves. A tour with no exit is a trap.
     useEffect(() => {

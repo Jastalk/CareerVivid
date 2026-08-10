@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useResumes } from '../hooks/useResumes';
 import { generateResumeFromPrompt, parseResume } from '../services/geminiService';
 import { CAREER_PATHS, Industry } from '../data/careers';
@@ -199,6 +199,39 @@ const GenerationHub: React.FC = () => {
     }, []);
 
     // Dual-Path Generation handler
+    /**
+     * What we already know about the person, best source first.
+     *
+     * Their most recently edited resume beats their account: it is what they
+     * curated by hand, and it carries a phone and city that the account record
+     * has never had. Falling back to the display name is split on the first
+     * space — imperfect for compound surnames, but a first name they recognise
+     * beats "John".
+     */
+    const knownIdentity = useMemo(() => {
+        // updatedAt is an ISO string here, not a Firestore Timestamp.
+        const latest = [...resumes].sort(
+            (a, b) => Date.parse(b.updatedAt ?? '') - Date.parse(a.updatedAt ?? ''),
+        )[0]?.personalDetails;
+
+        const [displayFirst, ...displayRest] = (userProfile?.displayName ?? '').trim().split(/\s+/);
+        const clean = (value: unknown): string | undefined => {
+            const text = typeof value === 'string' ? value.trim() : '';
+            // Sample data is worse than nothing: it looks real enough to ship.
+            if (!text || /^(john|jane) doe$/i.test(text) || /example\.com$/i.test(text)) return undefined;
+            return text;
+        };
+
+        return {
+            firstName: clean(latest?.firstName) ?? clean(displayFirst),
+            lastName: clean(latest?.lastName) ?? clean(displayRest.join(' ')),
+            email: clean(latest?.email) ?? clean(userProfile?.email) ?? clean(currentUser?.email),
+            phone: clean(latest?.phone),
+            city: clean(latest?.city),
+            country: clean(latest?.country),
+        };
+    }, [resumes, userProfile, currentUser]);
+
     const handleGenerate = async (payload: { type: 'prompt', value: string } | { type: 'template', templateId: string }) => {
         if (!currentUser) return;
 
@@ -243,7 +276,7 @@ const GenerationHub: React.FC = () => {
                 if (isFileImport) {
                     resumeData = await parseResume(currentUser.uid, payload.value, 'English');
                 } else {
-                    resumeData = await generateResumeFromPrompt(currentUser.uid, payload.value);
+                    resumeData = await generateResumeFromPrompt(currentUser.uid, payload.value, knownIdentity);
                 }
             }
 

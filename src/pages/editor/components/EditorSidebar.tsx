@@ -81,7 +81,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                         </button>
                     </div>
 
-                    <div data-editor-sidebar-scroll className="custom-scrollbar flex-grow overflow-y-auto p-4">
+                    <div data-editor-sidebar-scroll data-tour="editor-fields" className="custom-scrollbar flex-grow overflow-y-auto p-4">
                         {activeTab === 'score' && (
                             <div className="h-full animate-fade-in">
                                 <AIReviewPanel

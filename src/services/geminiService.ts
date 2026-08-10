@@ -819,9 +819,55 @@ export const generateImage = async (userId: string, prompt: string, modelType: '
     }
 };
 
-export const generateResumeFromPrompt = async (userId: string, prompt: string): Promise<Partial<ResumeData>> => {
+/** What we already know about the person, so their resume is not about John Doe. */
+export interface ResumeIdentity {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    city?: string;
+    country?: string;
+}
+
+const describeIdentity = (identity?: ResumeIdentity): string => {
+    const known = Object.entries(identity ?? {})
+        .filter(([, v]) => typeof v === 'string' && v.trim())
+        .map(([k, v]) => `- ${k}: ${String(v).trim()}`);
+
+    if (!known.length) {
+        return `No personal details are known for this user. Use clearly generic placeholders (e.g. "Your Name") rather than inventing a plausible person — a real-looking name they have to notice and delete is worse than an obvious blank.`;
+    }
+
+    return `These personal details are REAL and belong to the user. Copy them into personalDetails EXACTLY as written — do not translate, reformat, abbreviate, or "improve" them:
+${known.join('\n')}
+
+For any personal detail NOT listed above, leave it as an empty string. Do not invent a phone number, address, or email; a wrong one that looks right is worse than a blank field the user can fill in.`;
+};
+
+export const generateResumeFromPrompt = async (
+    userId: string,
+    prompt: string,
+    identity?: ResumeIdentity,
+): Promise<Partial<ResumeData>> => {
     try {
-        const fullPrompt = `Generate a complete, professional resume based on the following description: "${prompt}". The resume should be tailored for this role and must include a professional summary, a list of 8-10 relevant technical and soft skills, 2-3 detailed example employment history entries with 3-4 achievement-oriented bullet points each, and a relevant education entry. Use realistic but placeholder personal details (e.g., John Doe, anytown, etc.). Respond with a structured JSON object that strictly conforms to the provided schema. Ensure all required fields are populated.`;
+        /*
+         * The identity block is why this stopped producing John Doe.
+         *
+         * The prompt used to ask for "realistic but placeholder personal
+         * details", so every generated resume opened with a stranger's name and
+         * the user's first job was deleting it. Their own name is almost always
+         * already known — from the resume they last edited, or their account —
+         * and a resume that greets them by name reads as theirs from the first
+         * second.
+         */
+        const fullPrompt = `Generate a complete, professional resume based on the following description: "${prompt}". The resume should be tailored for this role and must include a professional summary, a list of 8-10 relevant technical and soft skills, 2-3 detailed example employment history entries with 3-4 achievement-oriented bullet points each, and a relevant education entry.
+
+## Personal details
+${describeIdentity(identity)}
+
+The employment history, education and skills are still examples for them to edit — write those for the role. The personal details are not examples.
+
+Respond with a structured JSON object that strictly conforms to the provided schema. Ensure all required fields are populated.`;
 
         const generationSchema = {
             ...resumeSchema,

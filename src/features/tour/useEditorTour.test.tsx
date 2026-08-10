@@ -20,11 +20,19 @@ const Harness: React.FC<{ uid?: string; requested?: boolean; ready?: boolean }> 
             <span data-testid="seen">{String(tour.seen)}</span>
             <button onClick={tour.start}>replay</button>
             <button onClick={tour.skip}>skip</button>
-            {TOUR_STEPS.map((s) => (
-                <button key={s.id} data-tour={s.anchor}>
-                    {s.anchor}
-                </button>
-            ))}
+            {TOUR_STEPS.map((s) =>
+                s.advanceOn === 'edit' ? (
+                    // The last step lives on a region the user types inside, not
+                    // a button, so the harness mirrors that shape.
+                    <div key={s.id} data-tour={s.anchor}>
+                        <textarea aria-label={s.anchor} defaultValue="first draft" />
+                    </div>
+                ) : (
+                    <button key={s.id} data-tour={s.anchor}>
+                        {s.anchor}
+                    </button>
+                ),
+            )}
         </div>
     );
 };
@@ -34,6 +42,15 @@ const setWidth = (width: number) => {
 };
 
 const clickAnchor = (anchor: string) => fireEvent.click(screen.getByRole('button', { name: anchor }));
+
+/** Do whatever this step actually asks for — a press, or a genuine edit. */
+const doStep = (step: { anchor: string; advanceOn?: string }) => {
+    if (step.advanceOn === 'edit') {
+        fireEvent.input(screen.getByLabelText(step.anchor), { target: { value: 'my own words' } });
+        return;
+    }
+    clickAnchor(step.anchor);
+};
 
 describe('useEditorTour', () => {
     beforeEach(() => {
@@ -61,11 +78,11 @@ describe('useEditorTour', () => {
         expect(screen.getByTestId('state')).toHaveTextContent('1:suggestions');
     });
 
-    it('walks all five steps and finishes', async () => {
+    it('walks every step and finishes', async () => {
         render(<Harness />);
 
         for (const step of TOUR_STEPS) {
-            clickAnchor(step.anchor);
+            doStep(step);
         }
         // Completion is deferred a microtask so it does not set state while the
         // clicked control is still running its own handler.
@@ -148,6 +165,25 @@ describe('useEditorTour', () => {
         });
 
         expect(screen.getByTestId('state')).toHaveTextContent('inactive');
+    });
+
+    /*
+     * The point of the last step is that an AI first draft is meant to be
+     * rewritten. Letting a click finish it would mean someone completing the
+     * tour without having typed a character.
+     */
+    it('will not let the final step be finished by clicking', async () => {
+        render(<Harness />);
+        for (const step of TOUR_STEPS.slice(0, -1)) doStep(step);
+        expect(screen.getByTestId('state')).toHaveTextContent('make-it-yours');
+
+        fireEvent.click(screen.getByLabelText('editor-fields'));
+        await act(async () => {});
+        expect(screen.getByTestId('state')).toHaveTextContent('make-it-yours');
+
+        fireEvent.input(screen.getByLabelText('editor-fields'), { target: { value: 'mine now' } });
+        await act(async () => {});
+        expect(screen.getByTestId('finished')).toHaveTextContent('true');
     });
 
     it('counts a click on something inside the control', () => {

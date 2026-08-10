@@ -373,12 +373,16 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
                             transform: `translateY(${pageTopOffset}px) scale(${effectiveScale})`
                         }}
                     >
+                        {/* data-tour goes on page one only: every page teaches the same
+                            thing, and a second anchor would make the tour spotlight pick
+                            between them arbitrarily. */}
                         {Array.from({ length: pageCount }, (_, pageIndex) => (
                             <div key={`page-${pageIndex}`} className="relative mb-10 last:mb-0">
                                 <div
                                     className="relative overflow-hidden rounded-sm bg-white shadow-2xl ring-1 ring-slate-200"
                                     style={{ height: `${A4_HEIGHT_PX}px`, width: `${A4_WIDTH_PX}px` }}
                                     data-resume-page={pageIndex + 1}
+                                    data-tour={pageIndex === 0 ? 'resume-canvas' : undefined}
                                     aria-hidden={pageIndex > 0 ? true : undefined}
                                 >
                                     <div
