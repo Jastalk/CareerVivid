@@ -13,6 +13,7 @@ import ResumeCard from '../components/Dashboard/ResumeCard';
 import { ResumeCardSkeleton } from '../components/Dashboard/DashboardSkeletons';
 import ShareResumeModal from '../components/ShareResumeModal';
 import ConfirmationModal from '../components/ConfirmationModal';
+import NewResumeModal from '../components/Resume/NewResumeModal';
 import { ResumeData } from '../types';
 import AppLayout from '../components/Layout/AppLayout';
 import { db } from '../firebase';
@@ -51,7 +52,8 @@ const GenerationHub: React.FC = () => {
     const [activeTailoringJob, setActiveTailoringJob] = useState<{ title: string; company: string } | null>(null);
     const [isSyncingTransit, setIsSyncingTransit] = useState(false);
 
-    const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
+    /* The creation flow is a dialog now, not a second half of the page. */
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     // Modal States
     const [shareModalResume, setShareModalResume] = useState<ResumeData | null>(null);
@@ -273,12 +275,28 @@ const GenerationHub: React.FC = () => {
         if (isFileImport) setIsFileImport(false);
     };
 
+    /**
+     * Picking a role writes a resume with AI, not from a stored template.
+     *
+     * The template path fills a fixed JSON skeleton with the user's profile
+     * fields, so every "Software Engineer" came out identical apart from the
+     * name — and for any role without a seeded template it fell through to a
+     * near-empty stub. Sending the role through the same model the prompt box
+     * uses means the summary, the bullets and the skills are actually written
+     * for that job.
+     *
+     * It costs credits, which is why the modal confirms before spending them.
+     */
     const handleRoleSelect = (roleName: string) => {
-        // We use a standardized template ID format based on the role name
-        const safeTemplateId = `template_${roleName.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
-        // Note: For roles we don't have hardcoded templates for yet, getSystemTemplate will throw 
-        // and trigger the basic fallback, which is acceptable for v1 of this architecture.
-        handleGenerate({ type: 'template', templateId: safeTemplateId });
+        const brief = activeTailoringJob
+            ? `Write a resume for a ${roleName} role, aimed at the ${activeTailoringJob.title} position at ${activeTailoringJob.company}.`
+            : `Write a resume for a ${roleName} role.`;
+
+        setIsCreateOpen(false);
+        // `isFileImport` would otherwise route this through the file parser if
+        // the user had dropped a file earlier in the same session.
+        setIsFileImport(false);
+        handleGenerate({ type: 'prompt', value: brief });
     };
 
     const handleDeleteClick = (id: string) => {
@@ -294,48 +312,6 @@ const GenerationHub: React.FC = () => {
         });
     };
 
-    const renderContent = () => {
-        if (selectedIndustry) {
-            return (
-                <div>
-                    <button onClick={() => setSelectedIndustry(null)} className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 mb-4 font-semibold">
-                        <ChevronLeft size={18} /> Back to Industries
-                    </button>
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Select a Role in {selectedIndustry.name}</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {selectedIndustry.roles.map(role => (
-                            <button
-                                key={role.name}
-                                onClick={() => handleRoleSelect(role.name)}
-                                className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-soft hover:shadow-md hover:border-primary-500 dark:hover:border-primary-400 border border-transparent transition-all text-left flex items-center justify-between group"
-                            >
-                                <h3 className="font-semibold text-gray-900 dark:text-gray-100">{role.name}</h3>
-                                <ArrowRight size={20} className="text-gray-400 group-hover:text-primary-500 transition-colors" />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Or, select a career path</h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {CAREER_PATHS.map(industry => (
-                        <button
-                            key={industry.name}
-                            onClick={() => setSelectedIndustry(industry)}
-                            className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow-soft hover:shadow-md hover:border-primary-500 dark:hover:border-primary-400 border border-transparent transition-all text-left flex items-center justify-between group"
-                        >
-                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{industry.name}</h3>
-                            <ArrowRight size={20} className="text-gray-400 group-hover:text-primary-500 transition-colors" />
-                        </button>
-                    ))}
-                </div>
-            </div>
-        );
-    };
 
     if (isLoading || isSyncingTransit) {
         return (
@@ -364,7 +340,7 @@ const GenerationHub: React.FC = () => {
                         <div className="flex justify-between items-center mb-8">
                             <h1 className="cv-design-title flex items-center gap-3 text-3xl">
                                 <FileText className="text-[var(--cv-action-primary)]" size={32} />
-                                My Resumes
+                                Resumes
                             </h1>
                             <div className="flex items-center gap-3">
                                 {resumes.length > 0 && (
@@ -379,10 +355,10 @@ const GenerationHub: React.FC = () => {
                                     </div>
                                 )}
                                 <button
-                                    onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                    onClick={() => setIsCreateOpen(true)}
                                     className="cv-design-button-primary px-4 py-2 text-sm"
                                 >
-                                    <Plus size={20} /> New Resume
+                                    <Plus size={20} /> New resume
                                 </button>
                             </div>
                         </div>
@@ -433,13 +409,17 @@ const GenerationHub: React.FC = () => {
                                         />
                                     ))
                                 ) : (
-                                    <div className="col-span-full py-12 text-center bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                                        <p className="text-gray-500 dark:text-gray-400 mb-4">You haven't created any resumes yet.</p>
+                                    <div className="col-span-full rounded-xl border border-dashed border-[var(--cv-border-product)] bg-[var(--cv-surface-muted)] px-6 py-14 text-center">
+                                        <h2 className="cv-design-title text-lg">No resumes yet</h2>
+                                        <p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--cv-text-muted)]">
+                                            Describe the job you want, paste a job post, or upload a resume you already have.
+                                        </p>
                                         <button
-                                            onClick={() => document.getElementById('create-section')?.scrollIntoView({ behavior: 'smooth' })}
-                                            className="text-primary-600 font-medium hover:underline"
+                                            type="button"
+                                            onClick={() => setIsCreateOpen(true)}
+                                            className="cv-design-button-primary mt-5 px-4 py-2 text-sm"
                                         >
-                                            Create your first resume below
+                                            <Plus size={18} /> New resume
                                         </button>
                                     </div>
                                 )
@@ -448,43 +428,20 @@ const GenerationHub: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Bottom Section: Create New */}
-                <div id="create-section" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-10">
-                        <Logo className="h-12 w-12 mx-auto" />
-                        <h1 className="cv-design-title mt-4 text-4xl sm:text-5xl">Create Your Next Resume</h1>
-                        <p className="cv-design-body mx-auto mt-2 max-w-2xl text-lg">Start with an AI-powered prompt or choose a guided path to generate a professional resume in seconds.</p>
-                    </div>
-
-                    <div className="cv-design-card mb-10 rounded-xl p-6 sm:p-8">
-                        <h2 className="cv-design-title mb-4 text-2xl">Generate or Import Your Resume</h2>
-                        <div className="flex flex-col gap-4">
-                            <ResumeImport
-                                value={prompt}
-                                onChange={handleTextChange}
-                                onFileProcessed={handleFileProcessed}
-                                placeholder={placeholder}
-                                className="bg-transparent"
-                                variant="modern"
-                            >
-                                <button
-                                    onClick={() => handlePromptSubmit()}
-                                    className="cv-design-button-primary rounded-lg p-3 disabled:cursor-not-allowed disabled:opacity-55"
-                                    disabled={!prompt.trim()}
-                                    title={isFileImport ? "Import & Parse" : "Generate Resume"}
-                                >
-                                    <ArrowRight size={20} />
-                                </button>
-                            </ResumeImport>
-                        </div>
-                    </div>
-
-                    {renderContent()}
-
-                    {error && <p className="text-red-500 text-center mt-6 bg-red-100 dark:bg-red-900/20 dark:text-red-400 p-3 rounded-lg">{error}</p>}
-                </div>
-
                 {/* Modals */}
+                <NewResumeModal
+                    isOpen={isCreateOpen}
+                    onClose={() => setIsCreateOpen(false)}
+                    prompt={prompt}
+                    placeholder={placeholder}
+                    onPromptChange={handleTextChange}
+                    onFileProcessed={handleFileProcessed}
+                    onSubmit={() => handlePromptSubmit()}
+                    onRoleSelect={handleRoleSelect}
+                    tailoringJob={activeTailoringJob}
+                    error={error}
+                />
+
                 <ConfirmationModal
                     isOpen={confirmModal.isOpen}
                     title={confirmModal.title}

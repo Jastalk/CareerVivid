@@ -1,6 +1,16 @@
-import React, { useMemo } from 'react';
-import { ArrowRight, CalendarClock, CheckCircle2, ClipboardList, Sparkles, Target } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ClipboardList, Sparkles, Target } from 'lucide-react';
 import { ApplicationStatus, JobApplicationData, NO_NEXT_ACTION } from '../../types';
+
+/**
+ * Whether the plan is expanded, remembered across visits.
+ *
+ * It is the right first thing to see when you do not know where to start, and
+ * 173px in the way when you already do — which describes the same person on
+ * different days. Rather than choosing for everyone, it opens by default and
+ * remembers being closed.
+ */
+const COLLAPSE_KEY = 'cv_job_plan_collapsed';
 
 interface TodayJobSearchPlanProps {
     applications: JobApplicationData[];
@@ -91,7 +101,8 @@ const TodayJobSearchPlan: React.FC<TodayJobSearchPlanProps> = ({ applications, o
                     id: `fit-${job.id}`,
                     job,
                     eyebrow: `${score}% match`,
-                    title: 'Apply or tailor this role',
+                    // You tailor a resume *to* a role, not the role itself.
+                    title: 'Good fit — apply or tailor your resume',
                     detail: `${job.jobTitle} at ${job.companyName}`,
                     tone: 'emerald' as const,
                     icon: <Target size={15} />,
@@ -118,6 +129,31 @@ const TodayJobSearchPlan: React.FC<TodayJobSearchPlanProps> = ({ applications, o
         };
     }, [applications]);
 
+    const [isCollapsed, setIsCollapsed] = useState(false);
+
+    useEffect(() => {
+        setIsCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1');
+    }, []);
+
+    const toggleCollapsed = () => {
+        setIsCollapsed((collapsed) => {
+            const next = !collapsed;
+            localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
+            return next;
+        });
+    };
+
+    /** How many candidate actions the 5-card cap left out. */
+    const hiddenItemCount = Math.max(
+        0,
+        todayPlan.dueFollowUps.length
+        + todayPlan.plannedNextActions.length
+        + todayPlan.highFitToApply.length
+        + todayPlan.interviewPrep.length
+        + todayPlan.missingNextAction.length
+        - todayPlan.items.length,
+    );
+
     return (
         <section className="mt-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-gray-900 sm:p-4" aria-label="Today job search plan">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -126,22 +162,41 @@ const TodayJobSearchPlan: React.FC<TodayJobSearchPlanProps> = ({ applications, o
                         <Sparkles size={16} />
                     </span>
                     <div className="min-w-0">
-                        <h2 className="text-base font-bold text-gray-950 dark:text-gray-100">Today&apos;s job-search plan</h2>
+                        <h2 className="text-base font-bold text-gray-950 dark:text-gray-100">Today&apos;s plan</h2>
+                        {/* Was: "Focus on due work, planned next actions, high-fit roles, and jobs
+                            missing a clear next step." Four categories in one sentence is a spec,
+                            not a subtitle — the list underneath already shows which is which. */}
                         <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Focus on due work, planned next actions, high-fit roles, and jobs missing a clear next step.
+                            What needs you today.
                         </p>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-gray-600 dark:text-gray-300 sm:grid-cols-5">
-                    <span className="rounded-md bg-amber-50 px-2 py-1 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">{todayPlan.dueFollowUps.length} due</span>
-                    <span className="rounded-md bg-[#fff7ed] px-2 py-1 text-[#a97935] dark:bg-amber-950/30 dark:text-amber-200">{todayPlan.plannedNextActions.length} next</span>
-                    <span className="rounded-md bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">{todayPlan.highFitToApply.length} high fit</span>
-                    <span className="rounded-md bg-blue-50 px-2 py-1 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">{todayPlan.interviewPrep.length} prep</span>
-                    <span className="rounded-md bg-gray-100 px-2 py-1 text-gray-700 dark:bg-gray-800 dark:text-gray-300">{todayPlan.missingNextAction.length} no action</span>
+                {/*
+                  * The five category counters that stood here summarised the very
+                  * cards printed underneath them, and three of the five normally
+                  * read `0` — a row of zeroes is noise the eye still has to parse.
+                  * The cards are the plan; all that is worth adding is whether any
+                  * were left out.
+                  */}
+                <div className="flex shrink-0 items-center gap-3">
+                    {hiddenItemCount > 0 && !isCollapsed && (
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            +{hiddenItemCount} more
+                        </span>
+                    )}
+                    <button
+                        type="button"
+                        onClick={toggleCollapsed}
+                        aria-expanded={!isCollapsed}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                    >
+                        {isCollapsed ? `Show ${todayPlan.items.length}` : 'Hide'}
+                        <ChevronDown size={14} className={`transition-transform ${isCollapsed ? '' : 'rotate-180'}`} />
+                    </button>
                 </div>
             </div>
 
-            {todayPlan.items.length ? (
+            {isCollapsed ? null : todayPlan.items.length ? (
                 <div className="mt-3 grid gap-2 lg:grid-cols-5">
                     {todayPlan.items.map(item => {
                         const toneClass = item.tone === 'amber'

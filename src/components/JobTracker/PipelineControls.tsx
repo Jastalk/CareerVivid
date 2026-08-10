@@ -115,7 +115,16 @@ const PipelineControls: React.FC<PipelineControlsProps> = ({
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="Pipeline stage focus">
+            {/*
+              * Stage chips only in Strategy view.
+              *
+              * In Kanban the five stages are already the five columns, each with
+              * its own count and each clickable — a second row of the same five
+              * names, the same five counts, and a different selection model on
+              * top of the board taught the user there were two ways to do one
+              * thing. Strategy view has no columns, so there they earn their place.
+              */}
+            <div className={`items-center gap-2 overflow-x-auto pb-1 ${viewMode === 'kanban' ? 'hidden' : 'flex'}`} aria-label="Pipeline stage focus">
                 <button
                     type="button"
                     onClick={() => setStatusFilter('All')}

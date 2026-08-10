@@ -349,7 +349,14 @@ const JobTrackerPage: React.FC = () => {
 
     return (
         <AppLayout>
-            <div className="cv-design-page cv-design-grid mx-auto min-h-screen max-w-screen-2xl">
+            {/*
+              * `min-w-0` matters here: this sits in a column flex container, where
+              * the default `min-width: auto` floors the element at its min-content
+              * width. The kanban's five columns make that ~1536px, so without this
+              * the page pushed past the viewport instead of letting the board use
+              * its own horizontal scroll.
+              */}
+            <div className="cv-design-page cv-design-grid mx-auto min-h-screen w-full min-w-0 max-w-screen-2xl">
                 {/* Inline page header */}
                 <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -385,7 +392,21 @@ const JobTrackerPage: React.FC = () => {
                             <p className="text-center text-gray-500 dark:text-gray-400">{t('job_tracker.loading')}</p>
                         ) : (
                             <>
-                                <StatusOverview applications={jobApplications} variant="compact" />
+                                {/*
+                                  * The status strip that used to sit here is gone in Kanban view.
+                                  *
+                                  * Every figure on it — total, active, interviewing, offers,
+                                  * rejected — was already printed on the board's own column
+                                  * headers a few hundred pixels below, where the jobs those
+                                  * numbers count actually live. Between it, the plan's counters
+                                  * and the status chips, `Interviewing 0` appeared three times on
+                                  * one screen, and 448px of the 820px viewport was spent before
+                                  * the first job card. Strategy view has no columns of its own, so
+                                  * it keeps the strip.
+                                  */}
+                                {viewMode === 'strategy' && (
+                                    <StatusOverview applications={jobApplications} variant="compact" />
+                                )}
 
                                 <TodayJobSearchPlan applications={jobApplications} onJobSelect={handleCardClick} />
 
