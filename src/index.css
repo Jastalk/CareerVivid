@@ -17,6 +17,8 @@
     --cv-neutral-200: #e5e7eb;
     --cv-neutral-400: #9ca3af;
     --cv-neutral-500: #6b7280;
+    /* Muted text that still clears AA on the warm page background. */
+    --cv-neutral-550: #5c6672;
     --cv-neutral-900: #111827;
     --cv-purple-50: #f3f2ff;
     --cv-purple-75: #eef0ff;
@@ -30,6 +32,8 @@
     --cv-amber-50: #fff7e8;
     --cv-amber-600: #a97935;
     --cv-amber-400: #caa26c;
+    /* #a97935 measured 3.4:1 on the warm page; this reads the same but passes. */
+    --cv-amber-700: #8b5a16;
     --cv-success-50: #eef9f2;
     --cv-success-600: #15803d;
     --cv-success-700: #166534;
@@ -46,22 +50,63 @@
     --cv-text-heading: var(--cv-paper-ink);
     --cv-text-heading-product: var(--cv-neutral-900);
     --cv-text-body: var(--cv-paper-muted);
-    --cv-text-body-product: #64748b;
-    --cv-text-muted: var(--cv-neutral-500);
-    --cv-text-eyebrow: var(--cv-amber-600);
+    /* #64748b measured 4.24:1 on the warm page — under AA by a hair. */
+    --cv-text-body-product: #556274;
+    --cv-text-muted: var(--cv-neutral-550);
+    --cv-text-eyebrow: var(--cv-amber-700);
+    /* Text colour for a surface inverted against its page. */
+    --cv-text-on-inverted: #f4f1e9;
     --cv-border-warm: var(--cv-paper-400);
     --cv-border-product: var(--cv-neutral-200);
     --cv-border-subtle: #ececf4;
     --cv-border-accent: var(--cv-purple-200);
+    /*
+     * Two purples, because one cannot do both jobs in dark mode.
+     *
+     * `--cv-action-primary` is read as TEXT 142 times and as a background 33
+     * times. On a dark page accent text has to get lighter to stay legible,
+     * while a filled button has to get darker to keep white text above 4.5:1 —
+     * a single value was splitting the difference and failing both (4.43:1 on
+     * every primary button, 3.95:1 on accent links). `--cv-action-solid` owns
+     * the filled-button background so each can move independently.
+     */
     --cv-action-primary: var(--cv-purple-600);
+    --cv-action-solid: var(--cv-purple-600);
     --cv-action-primary-hover: var(--cv-purple-700);
     --cv-action-soft-bg: var(--cv-purple-75);
     --cv-action-soft-hover: var(--cv-purple-100);
     --cv-action-soft-text: var(--cv-purple-600);
     --cv-action-soft-border: var(--cv-purple-250);
     --cv-focus-ring: rgba(98, 91, 213, 0.22);
+    /* Solid companion to the soft ring: 22% alpha is a glow, not an indicator. */
+    --cv-focus-outline: #514ac5;
     --cv-grid-line-v: rgba(139, 90, 22, 0.07);
     --cv-grid-line-h: rgba(139, 90, 22, 0.06);
+    /*
+     * Referenced by components but never defined until now.
+     *
+     * An undefined custom property makes the whole declaration invalid at
+     * computed-value time, and the property falls back to its inherited or
+     * initial value rather than being ignored. So `bg-[var(--cv-surface-warm-card-strong)]`
+     * was painting nothing — 30 call sites of a card background that resolved
+     * to transparent — and `outline-color: var(--cv-border-focus)` was silently
+     * becoming `currentColor`, which is why focus rings came out the same grey
+     * as the label they were meant to surround.
+     */
+    --cv-neutral-100: #f3f4f6;
+    --cv-purple-25: #f8f7ff;
+    --cv-action-border: var(--cv-purple-250);
+    --cv-action-soft-bg-strong: var(--cv-purple-100);
+    --cv-border-focus: var(--cv-focus-outline);
+    --cv-surface-warm-card-strong: var(--cv-paper-50);
+    --cv-surface-warm-muted: #f3ece1;
+    --cv-input-bg: var(--cv-surface);
+    --cv-input-border: var(--cv-border-product);
+    --cv-danger-soft: var(--cv-danger-50);
+    --cv-danger-text: #be123c;
+    --cv-success-soft: var(--cv-success-50);
+    --cv-success-text: var(--cv-success-700);
+    --cv-warning-text: #b45309;
     --cv-font-body: Inter, sans-serif;
     --cv-font-heading: "Plus Jakarta Sans", sans-serif;
     --cv-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
@@ -81,19 +126,38 @@
     --cv-text-heading-product: #f4f1e9;
     --cv-text-body: #aaa39a;
     --cv-text-body-product: #94a3b8;
-    --cv-text-muted: #9ca3af;
+    /* #9ca3af landed at 4.48:1 on the dark sidebar — every nav label, a hair under AA. */
+    --cv-text-muted: #a1a8b3;
     --cv-text-eyebrow: #caa26c;
+    --cv-text-on-inverted: #f4f1e9;
     --cv-border-warm: #37332d;
     --cv-border-product: #374151;
     --cv-border-subtle: #37332d;
     --cv-border-accent: #484273;
-    --cv-action-primary: #7069dc;
-    --cv-action-primary-hover: #8d88e6;
+    /* Lighter for accent text on a dark page; the solid stays dark enough for white. */
+    --cv-action-primary: #8d88e6;
+    --cv-action-solid: #6660d2;
+    --cv-action-primary-hover: #a09bef;
     --cv-action-soft-bg: rgba(47, 43, 85, 0.7);
     --cv-action-soft-hover: #383266;
     --cv-action-soft-text: #bbb8ff;
     --cv-action-soft-border: #484273;
     --cv-focus-ring: rgba(187, 184, 255, 0.22);
+    --cv-focus-outline: #bbb8ff;
+    --cv-neutral-100: #302e2a;
+    --cv-purple-25: #1c1a33;
+    --cv-action-border: #484273;
+    --cv-action-soft-bg-strong: #383266;
+    --cv-border-focus: var(--cv-focus-outline);
+    --cv-surface-warm-card-strong: #2f2d29;
+    --cv-surface-warm-muted: #2b2926;
+    --cv-input-bg: #302e2a;
+    --cv-input-border: #37332d;
+    --cv-danger-soft: rgba(225, 29, 72, 0.16);
+    --cv-danger-text: #fda4af;
+    --cv-success-soft: rgba(21, 128, 61, 0.18);
+    --cv-success-text: #86efac;
+    --cv-warning-text: #fbbf24;
     --cv-grid-line-v: rgba(244, 241, 233, 0.05);
     --cv-grid-line-h: rgba(244, 241, 233, 0.04);
   }
@@ -115,19 +179,50 @@
     color: var(--cv-text-heading) !important;
   }
 
+  /*
+   * Headings read `--cv-heading-color` first, falling back to the page default.
+   *
+   * The colour has to arrive through a custom property rather than a plain
+   * `color` declaration. Any rule that matches an element beats inheritance no
+   * matter how weak its specificity, so `h1..h6 { color: … }` silently defeated
+   * the text colour of whatever surface the heading sat on — put a heading in a
+   * dark card on a light page and it rendered in the light heading ink. On the
+   * pricing page that produced a #211b16 heading on a #211b16 card: a real
+   * section title at a contrast ratio of exactly 1.00.
+   *
+   * Custom properties do inherit, so a surface now sets `--cv-heading-color`
+   * once and every heading inside follows — see `.cv-surface-inverted`.
+   */
   h1, h2, h3, h4, h5, h6 {
-    color: var(--cv-text-heading);
+    color: var(--cv-heading-color, var(--cv-text-heading));
     font-family: var(--cv-font-heading);
     letter-spacing: 0;
   }
 
-  html.dark h1,
-  html.dark h2,
-  html.dark h3,
-  html.dark h4,
-  html.dark h5,
-  html.dark h6 {
-    color: var(--cv-text-heading);
+  /*
+   * One visible focus ring for everything that takes focus.
+   *
+   * Only `.cv-design-button-primary` had ever defined one, so every other
+   * control fell through to the browser's own hairline outline — a different
+   * colour and weight on each platform, and easy to lose against the warm page.
+   *
+   * Element selectors, not `:where()`: this has to outrank the many
+   * `focus:outline-none` utilities in the codebase (0,1,0), which it does at
+   * (0,1,1). It still loses to component focus styles in `@layer components`,
+   * because layers are ordered before specificity — so a component that draws
+   * its own ring keeps it, and everything else inherits this one.
+   */
+  a[href]:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--cv-focus-outline);
+    outline-offset: 2px;
+    border-radius: inherit;
   }
 }
 
@@ -170,11 +265,50 @@
     transform: translateY(-2px);
   }
 
+  /*
+   * A panel whose background is the opposite of the page it sits on.
+   *
+   * Declaring the text colour on the surface is not enough on its own, because
+   * headings take their colour from `--cv-heading-color`; setting both here
+   * means a dark card on a light page needs one class, not a colour override on
+   * every child.
+   */
+  .cv-surface-inverted {
+    color: var(--cv-text-on-inverted);
+    --cv-heading-color: var(--cv-text-on-inverted);
+  }
+
+  /*
+   * A navigation row sized for the input device actually in use.
+   *
+   * WCAG's 44px is a touch-target recommendation; applying it to a desktop
+   * sidebar just makes the sidebar tall — the products this one is measured
+   * against sit near 32px. `pointer: coarse` lets the same row be compact under
+   * a mouse and thumb-sized on a touchscreen, and 2.25rem keeps it inside the
+   * density scale rather than pinned to a hardcoded pixel height.
+   */
+  .cv-nav-row {
+    min-height: 2rem;
+  }
+
+  @media (pointer: coarse) {
+    .cv-nav-row {
+      min-height: 44px;
+    }
+  }
+
+  /*
+   * Eyebrows were the least readable text in the product: 12px, uppercase, and
+   * tracked out to 0.22em in a tan that measured 3.4:1 on warm backgrounds.
+   * All-caps removes word shape, wide tracking removes word grouping, and the
+   * contrast was below AA before either of those made it harder. Bigger, tighter
+   * and darker — it still reads as an eyebrow.
+   */
   .cv-design-eyebrow {
     color: var(--cv-text-eyebrow);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
@@ -203,7 +337,7 @@
     gap: 0.5rem;
     border-radius: 0.5rem;
     border: 1px solid transparent;
-    background-color: var(--cv-action-primary);
+    background-color: var(--cv-action-solid);
     color: #ffffff;
     font-weight: 700;
     box-shadow: var(--cv-shadow-card);
@@ -377,11 +511,12 @@
     box-shadow: var(--cv-shadow-warm-card);
   }
 
+  /* Same treatment as .cv-design-eyebrow — these two must not drift apart. */
   .cv-warm-eyebrow {
     color: var(--cv-text-eyebrow);
-    font-size: 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
@@ -409,15 +544,51 @@
     color: var(--cv-text-body);
   }
 
+  /*
+   * The product shell used to lay out at 125% and then `zoom: 0.8` back down.
+   *
+   * Round-tripping through zoom cost real pixels everywhere: `text-xs` reached
+   * the screen at 9.6px, `text-[10px]` at 8px, and sidebar rows declaring
+   * `min-h-[34px]` measured 27. It also put every fixed-position element and
+   * every `vh` unit into a scaled coordinate space, which is what the five
+   * `-root` / `-body` / `-main` / `-viewport` / `-footer` companion classes
+   * below were compensating for.
+   *
+   * Laying out at 1:1 costs nothing in density — the dashboard still fits five
+   * stat cards across at 1280px — and buys back the 20% that was being shaved
+   * off every font size and tap target in the product.
+   */
   .cv-product-density {
-    width: 125%;
-    min-height: 125vh;
+    width: 100%;
+    min-height: 100vh;
     overflow-x: clip;
-    zoom: 0.8;
   }
 
   .cv-product-density-main {
-    min-height: 125vh;
+    min-height: 100vh;
+  }
+
+  /*
+   * Product density, done with the type scale instead of `zoom`.
+   *
+   * Tailwind's sizing utilities are rem-based, so moving the root from 16px to
+   * 14px pulls font sizes, padding, gaps and radii in together — the same
+   * compactness the old `zoom: 0.8` was after. The difference is what it does
+   * NOT touch: px values keep their real size, so `min-h-[44px]` is still 44
+   * physical pixels rather than 35, and the layout stays in an unscaled
+   * coordinate space where `position: fixed`, `vh` and `getBoundingClientRect`
+   * all mean what they say.
+   *
+   * Scoped to the product shell — marketing pages keep the 16px base their
+   * larger type was designed around.
+   */
+  html.cv-product-density-root {
+    /*
+     * One knob for the whole product's density. 87.5% puts the base at 14px,
+     * which is where Linear, Notion, Stripe and GitHub sit. Lower it to tighten
+     * everything proportionally; nothing else needs to change.
+     */
+    font-size: var(--cv-product-root-size, 87.5%);
   }
 
   html.cv-product-density-root,
@@ -432,16 +603,10 @@
     overflow-x: clip;
   }
 
-  .cv-product-density-viewport {
-    width: 125vw;
-    max-width: 125vw;
-    min-width: 0;
-    overflow-x: clip;
-  }
-
+  .cv-product-density-viewport,
   .cv-product-density-footer {
-    width: 125vw;
-    max-width: 125vw;
+    width: 100vw;
+    max-width: 100vw;
     min-width: 0;
     overflow-x: clip;
   }
@@ -449,84 +614,112 @@
   @media (min-width: 768px) {
     .cv-product-density-viewport,
     .cv-product-density-footer {
-      width: calc(125vw - var(--sidebar-width));
-      max-width: calc(125vw - var(--sidebar-width));
-    }
-  }
-
-  @supports not (zoom: 1) {
-    .cv-product-density {
-      transform: scale(0.8);
-      transform-origin: top left;
+      width: calc(100vw - var(--sidebar-width));
+      max-width: calc(100vw - var(--sidebar-width));
     }
   }
 }
 
+/*
+ * Dark-mode fallbacks for components that hardcode light colours.
+ *
+ * Two rules make this safe, and both matter:
+ *
+ * `~=` not `*=`. Substring matching is not scoping — `[class*="bg-white"]`
+ * also matches `hover:bg-white`, `dark:hover:bg-white` and `group-hover:bg-white`,
+ * so it rewrote the BASE background of any element that merely mentioned white
+ * in a variant. That is what made the pricing page's primary CTA invisible in
+ * dark mode: it carries `dark:hover:bg-white`, so its `dark:bg-[#f4f1e9]` was
+ * overruled and the button went dark-on-dark. `~=` matches whole class tokens
+ * only, so variants are left alone.
+ *
+ * `:where()` instead of `!important`. These are defaults for code that has not
+ * been migrated to the tokens, not decrees. Wrapping the attribute selector in
+ * `:where()` lands the rule at (0,1,1): still ahead of the plain `.bg-white`
+ * utility it needs to beat, but behind any `dark:` variant (0,2,0) — so a
+ * component that states its own dark colour always wins, without having to
+ * discover this file first.
+ */
 @layer utilities {
-  html.dark [class*="bg-[#f7f1e7]"],
-  html.dark [class*="bg-[#fbfbfe]"],
-  html.dark [class*="bg-gray-50"],
-  html.dark [class*="bg-gray-100"] {
-    background-color: #1f1f1d !important;
+  html.dark :where([class~="bg-[#f7f1e7]"], [class~="bg-[#fbfbfe]"], [class~="bg-gray-50"], [class~="bg-gray-100"]) {
+    background-color: #1f1f1d;
   }
 
-  html.dark [class*="bg-[#fffaf1]"],
-  html.dark [class*="bg-white"] {
-    background-color: #262522 !important;
+  html.dark :where([class~="bg-[#fffaf1]"], [class~="bg-white"]) {
+    background-color: #262522;
   }
 
-  html.dark [class*="bg-gray-200"],
-  html.dark [class*="bg-gray-300"] {
-    background-color: #37332d !important;
+  html.dark :where([class~="bg-gray-200"], [class~="bg-gray-300"]) {
+    background-color: #37332d;
   }
 
-  html.dark [class*="bg-[#f9efe0]"],
-  html.dark [class*="bg-[#f6ecd9]"],
-  html.dark [class*="bg-[#f4e5cf]"],
-  html.dark [class*="bg-[#f4ead8]"],
-  html.dark [class*="bg-[#f2dfc2]"],
-  html.dark [class*="bg-[#f0dfc6]"],
-  html.dark [class*="bg-[#eadbc5]"],
-  html.dark [class*="bg-[#ead9c3]"] {
-    background-color: #302e2a !important;
+  html.dark :where(
+    [class~="bg-[#f9efe0]"], [class~="bg-[#f6ecd9]"], [class~="bg-[#f4e5cf]"], [class~="bg-[#f4ead8]"],
+    [class~="bg-[#f2dfc2]"], [class~="bg-[#f0dfc6]"], [class~="bg-[#eadbc5]"], [class~="bg-[#ead9c3]"]
+  ) {
+    background-color: #302e2a;
   }
 
-  html.dark [class*="text-[#211b16]"],
-  html.dark [class*="text-black"],
-  html.dark [class*="text-gray-950"],
-  html.dark [class*="text-gray-900"],
-  html.dark [class*="text-gray-800"] {
-    color: #f4f1e9 !important;
+  html.dark :where([class~="text-[#211b16]"], [class~="text-black"], [class~="text-gray-950"], [class~="text-gray-900"], [class~="text-gray-800"]) {
+    color: #f4f1e9;
   }
 
-  html.dark [class*="text-[#665a4a]"],
-  html.dark [class*="text-[#7d6e5e]"],
-  html.dark [class*="text-gray-700"],
-  html.dark [class*="text-gray-600"],
-  html.dark [class*="text-gray-500"] {
-    color: #aaa39a !important;
+  html.dark :where([class~="text-[#665a4a]"], [class~="text-[#7d6e5e]"], [class~="text-gray-700"], [class~="text-gray-600"], [class~="text-gray-500"]) {
+    color: #aaa39a;
   }
 
-  html.dark [class*="text-[#9a651f]"],
-  html.dark [class*="text-[#a97935]"],
-  html.dark [class*="text-[#8b5a16]"] {
-    color: #caa26c !important;
+  html.dark :where([class~="text-[#9a651f]"], [class~="text-[#a97935]"], [class~="text-[#8b5a16]"]) {
+    color: #caa26c;
   }
 
-  html.dark [class*="border-black"] {
-    border-color: #aaa39a !important;
+  html.dark :where([class~="border-black"]) {
+    border-color: #aaa39a;
   }
 
-  html.dark [class*="border-[#e6dac8]"],
-  html.dark [class*="border-[#e4d3bc]"],
-  html.dark [class*="border-[#e2d4c2]"],
-  html.dark [class*="border-[#d9c7ad]"],
-  html.dark [class*="border-[#d9c5aa]"],
-  html.dark [class*="border-[#d8c6ad]"],
-  html.dark [class*="border-[#eadbc5]"],
-  html.dark [class*="border-gray-200"],
-  html.dark [class*="border-gray-300"] {
-    border-color: #37332d !important;
+  /*
+   * `text-gray-400` is legible on a dark surface and not on a light one.
+   *
+   * It measures 6.5:1 against the dark page and 2.4:1 against the warm light
+   * page, and it is applied 1215 times — as secondary labels, empty states,
+   * timestamps and the XP counter. Correcting the call sites is not realistic
+   * and would be wrong half the time, since `dark:text-gray-400` is doing its
+   * job. Raising the value in light mode only fixes all of them at once.
+   *
+   * Same `~=` + `:where()` contract as the dark fallbacks above: whole tokens
+   * only, and any component that names its own colour still wins.
+   */
+  html:not(.dark) :where([class~="text-gray-400"], [class~="text-slate-400"]) {
+    color: var(--cv-text-muted);
+  }
+
+  /*
+   * `dark:text-gray-500` and `dark:text-gray-600` are inverted by mistake.
+   *
+   * They pair with a `text-gray-400` base, so the dark variant is *darker* than
+   * the light one — on a dark surface that runs the wrong way and lands at
+   * 3.2–3.8:1. 150 call sites share the slip, which reads as a habit rather
+   * than a series of decisions, so it is corrected once here.
+   */
+  html.dark :where([class~="dark:text-gray-500"], [class~="dark:text-gray-600"]) {
+    color: var(--cv-text-muted);
+  }
+
+  /*
+   * The tan accents, hardcoded at 75 call sites, against the warm page:
+   * #a97935 lands at 3.4:1 and #766955 at 4.1:1. #8b5a16 is the same hue at
+   * 5.2:1 and is already the most-used of the three, so it becomes the one.
+   * The dark-mode block above already folds all of them into #caa26c.
+   */
+  html:not(.dark) :where([class~="text-[#a97935]"], [class~="text-[#766955]"]) {
+    color: var(--cv-text-eyebrow);
+  }
+
+  html.dark :where(
+    [class~="border-[#e6dac8]"], [class~="border-[#e4d3bc]"], [class~="border-[#e2d4c2]"], [class~="border-[#d9c7ad]"],
+    [class~="border-[#d9c5aa]"], [class~="border-[#d8c6ad]"], [class~="border-[#eadbc5]"],
+    [class~="border-gray-200"], [class~="border-gray-300"]
+  ) {
+    border-color: #37332d;
   }
 }
 
