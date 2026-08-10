@@ -208,7 +208,22 @@ export const streamGeminiResponse = onRequest(
           jsonResponse = result;
           if (aggregatedText) res.write(aggregatedText);
         } else {
+          /*
+           * finishReason and usageMetadata are carried through deliberately.
+           *
+           * Without them a generation that stopped at its output-token ceiling
+           * is indistinguishable from one that finished: the client receives
+           * half a JSON document and reports "Unterminated string in JSON at
+           * position 2757" to a user who just paid for the call. The client
+           * cannot recover from what it cannot see.
+           */
+          let finishReason: string | undefined;
+          let usageMetadata: any;
+
           for await (const chunk of result) {
+            const reason = chunk?.candidates?.[0]?.finishReason;
+            if (reason) finishReason = String(reason);
+            if (chunk?.usageMetadata) usageMetadata = chunk.usageMetadata;
             try {
               const chunkText = chunk.text;
               if (chunkText) {
@@ -219,13 +234,20 @@ export const streamGeminiResponse = onRequest(
               // Ignore non-text chunks
             }
           }
+
+          if (finishReason && finishReason !== "STOP") {
+            console.warn(`[geminiProxy] ${modelName} finished as ${finishReason} after ${aggregatedText.length} chars.`);
+          }
+
           // Mock the response structure for the client
           jsonResponse = {
             candidates: [{
+              finishReason,
               content: {
                 parts: [{ text: aggregatedText }]
               }
-            }]
+            }],
+            ...(usageMetadata ? { usageMetadata } : {}),
           };
         }
 

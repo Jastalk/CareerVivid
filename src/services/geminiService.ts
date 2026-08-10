@@ -4,6 +4,7 @@ import { generateSafeUUID } from '../constants';
 import { trackUsage } from './trackingService';
 import { reportError } from './errorService';
 import { AI_CREDIT_COSTS } from '../config/creditCosts';
+import { parseModelJson, type ParsedModelJson } from './modelJson';
 import {
     createFallbackSystemDesignPlan,
     normalizeSystemDesignPlan,
@@ -84,6 +85,31 @@ const MODEL_UNAVAILABLE = /model not available|not found|does not exist|not supp
  * of step — for a report that means the user finishes an interview and gets
  * nothing back, which is far worse than a report graded by the older model.
  */
+/**
+ * Ceiling for structured JSON generation.
+ *
+ * Set explicitly rather than left to the model default, which differs per model
+ * — so changing a model silently changed how much room a resume had to finish
+ * in. On 2.5-flash thinking tokens also draw from this budget, which is how a
+ * response ends mid-sentence at 2.7 KB while nothing reports an error.
+ */
+const STRUCTURED_JSON_MAX_TOKENS = 16_384;
+
+/** parseModelJson, but returning null instead of throwing, for retry paths. */
+const tryParseModelJson = <T = any>(text: unknown): ParsedModelJson<T> | null => {
+    try {
+        return parseModelJson<T>(text);
+    } catch {
+        return null;
+    }
+};
+
+/** True when the model stopped because it ran out of room, not because it was done. */
+export const wasTruncated = (response: any): boolean => {
+    const reason = response?.candidates?.[0]?.finishReason;
+    return typeof reason === 'string' && reason !== 'STOP' && reason !== '';
+};
+
 export const callGeminiWithFallback = async (
     preferred: string,
     fallback: string,
@@ -509,7 +535,8 @@ export const parseResume = async (userId: string, resumeText: string, language: 
         const contents = `The following resume is in ${language}. Parse it and extract all available information into a structured JSON format that strictly conforms to the provided schema. If a section (like 'languages') is not present in the text, return an empty array for it. If a simple field (like 'phone') is not present, return an empty string for it. Here is the resume text:\n\n---\n\n${resumeText}`;
         const config = {
             responseMimeType: "application/json",
-            responseSchema: resumeSchema
+            responseSchema: resumeSchema,
+            maxOutputTokens: STRUCTURED_JSON_MAX_TOKENS,
         };
 
         const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents, config });
@@ -517,8 +544,10 @@ export const parseResume = async (userId: string, resumeText: string, language: 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         await trackUsage(userId, 'resume_parse_text', { tokenUsage });
 
-        const jsonText = result.text.trim();
-        const parsedData = JSON.parse(jsonText);
+        // A long resume is exactly the input most likely to be cut off, and
+        // losing it silently means the user's upload appears to have done
+        // nothing. Salvage what arrived rather than throwing it all away.
+        const parsedData = parseModelJson(result.text).value;
 
         const addId = (list: any[]) => { if (list) list.forEach((item: any) => item.id = generateSafeUUID()); };
         addId(parsedData.websites);
@@ -546,7 +575,8 @@ export const parseResumeFromFile = async (userId: string, fileData: string, mime
         };
         const config = {
             responseMimeType: "application/json",
-            responseSchema: resumeSchema
+            responseSchema: resumeSchema,
+            maxOutputTokens: STRUCTURED_JSON_MAX_TOKENS,
         };
 
         const result = await callGeminiProxy({ modelName: DEFAULT_TEXT_MODEL, contents, config });
@@ -554,8 +584,7 @@ export const parseResumeFromFile = async (userId: string, fileData: string, mime
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         await trackUsage(userId, 'resume_parse_file', { tokenUsage });
 
-        const jsonText = result.text.trim();
-        const parsedData = JSON.parse(jsonText);
+        const parsedData = parseModelJson(result.text).value;
 
         const addId = (list: any[]) => { if (list) list.forEach((item: any) => item.id = generateSafeUUID()); };
         addId(parsedData.websites);
@@ -807,21 +836,57 @@ export const generateResumeFromPrompt = async (userId: string, prompt: string): 
 
         const config = {
             responseMimeType: "application/json",
-            responseSchema: generationSchema
+            responseSchema: generationSchema,
+            maxOutputTokens: STRUCTURED_JSON_MAX_TOKENS,
         };
 
-        const result = await callGeminiWithFallback(RESUME_GENERATION_MODEL, DEFAULT_TEXT_MODEL, {
+        /*
+         * One retry before salvaging.
+         *
+         * A generation that stops early is usually not deterministic — the same
+         * prompt run again normally finishes. Retrying costs one call and
+         * returns a whole resume; salvaging returns a resume missing whatever
+         * came after the cut. Try for the whole one first, keep the partial as
+         * the floor, and never let either failure reach the user as a
+         * SyntaxError over an empty screen.
+         */
+        let result = await callGeminiWithFallback(RESUME_GENERATION_MODEL, DEFAULT_TEXT_MODEL, {
             contents: fullPrompt,
             config,
         });
+        let parsed = tryParseModelJson(result.text);
+
+        if (!parsed || parsed.repaired) {
+            console.warn(
+                `[resume] first generation ${parsed ? 'was truncated' : 'did not parse'}` +
+                `${wasTruncated(result.response) ? ' (finishReason is not STOP)' : ''}. Retrying once.`,
+            );
+            const retry = await callGeminiWithFallback(RESUME_GENERATION_MODEL, DEFAULT_TEXT_MODEL, {
+                contents: fullPrompt,
+                config,
+            });
+            const retryParsed = tryParseModelJson(retry.text);
+            // Keep whichever is better: a complete retry beats a repaired first
+            // attempt, but a repaired first attempt beats a retry that failed
+            // outright.
+            if (retryParsed && (!parsed || !retryParsed.repaired)) {
+                result = retry;
+                parsed = retryParsed;
+            }
+        }
+
+        if (!parsed) {
+            // parseModelJson throws with the raw text attached, which is what
+            // makes the next occurrence diagnosable instead of a mystery.
+            parseModelJson(result.text);
+        }
 
         const tokenUsage = result.response?.usageMetadata?.totalTokenCount || 0;
         if (!userId.startsWith('guest_')) {
             await trackUsage(userId, 'resume_generate_prompt', { tokenUsage });
         }
 
-        const jsonText = result.text.trim();
-        const parsedData = JSON.parse(jsonText);
+        const parsedData = parsed!.value;
 
         const addId = (list: any[]) => { if (list) list.forEach((item: any) => item.id = generateSafeUUID()); };
         addId(parsedData.websites);
