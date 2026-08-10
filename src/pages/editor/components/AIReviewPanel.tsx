@@ -26,6 +26,14 @@ interface AIReviewPanelProps {
   onUpdate: (updates: Partial<ResumeData>) => void;
 }
 
+/**
+ * Where the paced progress stops while waiting on the real result.
+ *
+ * Short of 100 deliberately: the last stretch belongs to the response actually
+ * arriving, so the bar never claims to be finished before the work is.
+ */
+const SCAN_PROGRESS_CEILING = 92;
+
 export const AIReviewPanel: React.FC<AIReviewPanelProps> = ({ resume, currentUserUid, onUpdate }) => {
   const {
     suggestions,
@@ -54,16 +62,23 @@ export const AIReviewPanel: React.FC<AIReviewPanelProps> = ({ resume, currentUse
     clearSuggestions();
   }, [clearSuggestions, reviewLanguage.code]);
 
-  // Fake scanning progress text to build excitement
+  /*
+   * Paced progress while the scan runs, so the wait has a shape.
+   *
+   * It stops short of 100 on purpose — the bar completes when the real result
+   * lands, not when this timer says so. The ceiling is applied to the RESULT
+   * rather than the input, which is what was wrong before: the old guard
+   * returned early only if p was ALREADY past the cap, so a step from 91 could
+   * add up to 19 and render "105% — Polishing recommended edits…". A progress
+   * bar reading over 100 tells the user the thing they are waiting on is
+   * broken, right at the moment they are being asked to trust its output.
+   */
   React.useEffect(() => {
     let interval: number;
     if (isScanning) {
       setScanProgress(0);
       interval = window.setInterval(() => {
-        setScanProgress((p) => {
-          if (p >= 92) return p;
-          return p + Math.floor(Math.random() * 15) + 5;
-        });
+        setScanProgress((p) => Math.min(SCAN_PROGRESS_CEILING, p + Math.floor(Math.random() * 15) + 5));
       }, 600);
     }
     return () => clearInterval(interval);
