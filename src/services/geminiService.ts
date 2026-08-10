@@ -1666,11 +1666,40 @@ export interface VoiceToCodeResult {
     nextAction: string;
     /** Comma-separated test cases the candidate should consider next. */
     suggestedTests: string;
-    /** Whether the coach thinks the current direction is correct. */
+    /**
+     * A short, runnable snippet for the step they are on — never the finished
+     * solution.
+     *
+     * The agent used to answer "can you give me a code snippet?" with "I can't
+     * provide code snippets directly", which is both unhelpful and untrue: it
+     * writes the whole editor draft in `convertedCode`. Refusing the small
+     * version of something it already does at full size just made it look
+     * broken. Scoping the snippet to one step is what keeps the round worth
+     * practising.
+     */
+    codeSnippet: string;
+    /** One line saying what the snippet shows, so it is not dropped in unexplained. */
+    snippetCaption: string;
+    /** Whether the agent thinks the current direction is correct. */
     isOnRightTrack: boolean;
 }
 
-const normalizeVoiceToCodeResult = (value: unknown, currentCode: string): VoiceToCodeResult => {
+/**
+ * Remove a markdown fence the model wrapped around code despite being asked not
+ * to. Models do this often enough that trusting the instruction alone shows
+ * ```javascript to the user as line one of their snippet.
+ */
+export const stripCodeFence = (value: unknown): string => {
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    if (!trimmed.startsWith('```')) return trimmed;
+    return trimmed
+        .replace(/^```[a-zA-Z0-9+#-]*\n?/, '')
+        .replace(/\n?```$/, '')
+        .trim();
+};
+
+export const normalizeVoiceToCodeResult = (value: unknown, currentCode: string): VoiceToCodeResult => {
     const result = value && typeof value === 'object' ? value as Partial<VoiceToCodeResult> : {};
     const text = (candidate: unknown, fallback: string) =>
         typeof candidate === 'string' && candidate.trim() ? candidate.trim() : fallback;
@@ -1682,6 +1711,10 @@ const normalizeVoiceToCodeResult = (value: unknown, currentCode: string): VoiceT
         whyItMatters: text(result.whyItMatters, 'A focused test exposes whether the implementation matches the approach you described.'),
         nextAction: text(result.nextAction, 'Review the generated code, then run the visible tests before you submit.'),
         suggestedTests: typeof result.suggestedTests === 'string' ? result.suggestedTests.trim() : '',
+        // Fenced blocks get stripped: the panel renders this in a <pre>, so a
+        // stray ```lang line would show up as literal text in the code.
+        codeSnippet: stripCodeFence(result.codeSnippet),
+        snippetCaption: typeof result.snippetCaption === 'string' ? result.snippetCaption.trim() : '',
         isOnRightTrack: result.isOnRightTrack === true,
     };
 };
@@ -1709,18 +1742,39 @@ export const voiceToCode = async (params: {
               .join('\n')
         : 'None yet.';
 
-    const systemInstruction = `You are an expert technical interview coach who helps candidates practise coding interviews using the Socratic method.
+    const systemInstruction = `You are an expert technical interview agent who helps candidates practise coding interviews.
 
-## Your two jobs
+## Your three jobs
 1. **Code Transcription** — Convert the candidate's verbal description into ${language} code that faithfully implements what THEY described, even if their idea is flawed or incomplete. Do not fix their logic silently; reflect it.
-2. **Socratic Coaching** — Guide the candidate toward the correct solution with ONE targeted question or hint. Never hand them the answer. Ask leading questions, surface edge cases they haven't considered, or nudge them toward a better data structure or algorithm. Keep it under 3 sentences.
+2. **Coaching** — Guide the candidate with ONE targeted question or hint. Ask leading questions, surface edge cases they haven't considered, or nudge them toward a better data structure or algorithm. Keep it under 3 sentences.
+3. **Show them code** — Give a short ${language} snippet for the step they are on right now.
+
+## Snippets: always give one, never give the whole answer
+NEVER say you cannot provide code. You can, and you already write a full draft
+into their editor — refusing the small version of that is both unhelpful and
+untrue. When they ask for a snippet, they get a snippet.
+
+What a good snippet is:
+- The ONE step under discussion: the data structure declaration, the eviction
+  branch, the helper that moves a node to the head — not the finished function.
+- Short. Usually 3 to 12 lines. If it is approaching the whole solution, cut it
+  down to the part they are actually stuck on.
+- Runnable ${language} on its own terms: real syntax, real names from THEIR code
+  where they exist, conventional indentation.
+- Illustrative where that teaches more: a signature with a \`// then: …\` comment
+  beats a filled-in body when the point is the shape, not the lines.
+
+If they explicitly ask for the complete solution, give them the next step
+instead and say plainly that you are keeping the rest for them to write, because
+solving it themselves is the entire point of the round.
 
 ## Rules
 - If the candidate's approach is correct, praise it briefly and then challenge them on complexity or edge cases.
 - If the approach is wrong or inefficient, point out the flaw through a question ("What happens when the input is empty?" / "What's the time complexity of your inner loop?"), then help them discover the fix.
 - The converted code must compile, run, and use conventional indentation and line breaks. Fill in obvious syntactic boilerplate the user implied but didn't state. Use ${language} idioms.
-- Identify one next focus, explain why it matters specifically for this approach, give one small next action, and list at most three useful test cases. Do not provide the complete ideal solution in the coaching fields.
-- Return ONLY valid JSON matching the schema — no markdown fences.`;
+- Identify one next focus, explain why it matters specifically for this approach, give one small next action, and list at most three useful test cases.
+- \`coachingMessage\` stays prose. Put code in \`codeSnippet\`, never in the message — the panel renders them differently and code in the message loses its formatting.
+- Return ONLY valid JSON matching the schema. Do NOT wrap \`codeSnippet\` or \`convertedCode\` in markdown fences; use real newlines inside the JSON string.`;
 
     const userPrompt = `## Problem
 ${problem}
@@ -1739,11 +1793,13 @@ ${historyText}
 Respond with JSON:
 {
   "convertedCode": "<full ${language} solution reflecting candidate's description>",
-  "coachingMessage": "<your Socratic reply — question or nudge, max 3 sentences>",
+  "coachingMessage": "<your reply — question or nudge, max 3 sentences, prose only>",
   "focusArea": "<one short coding topic, e.g. Duplicate handling>",
   "whyItMatters": "<one sentence tied to this approach>",
   "nextAction": "<one concrete coding or testing action>",
   "suggestedTests": "<comma-separated test cases, or empty string>",
+  "codeSnippet": "<short ${language} snippet for the step they are on — no markdown fences>",
+  "snippetCaption": "<one line saying what the snippet shows>",
   "isOnRightTrack": <true|false>
 }`;
 
@@ -1760,9 +1816,13 @@ Respond with JSON:
                 whyItMatters:     { type: 'STRING' },
                 nextAction:       { type: 'STRING' },
                 suggestedTests:   { type: 'STRING' },
+                codeSnippet:      { type: 'STRING', description: 'Short runnable snippet for the current step. Never the finished solution. No markdown fences.' },
+                snippetCaption:   { type: 'STRING', description: 'One line naming what the snippet shows.' },
                 isOnRightTrack:   { type: 'BOOLEAN' },
             },
-            required: ['convertedCode', 'coachingMessage', 'focusArea', 'whyItMatters', 'nextAction', 'suggestedTests', 'isOnRightTrack'],
+            // codeSnippet is required so the model cannot quietly opt out of the
+            // job by omitting the field — the refusal it used to write in prose.
+            required: ['convertedCode', 'coachingMessage', 'focusArea', 'whyItMatters', 'nextAction', 'suggestedTests', 'codeSnippet', 'snippetCaption', 'isOnRightTrack'],
         },
     };
 

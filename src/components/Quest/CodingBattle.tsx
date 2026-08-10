@@ -4,10 +4,12 @@ import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
 import {
     Bot,
+    Check,
     CheckCircle2,
     ChevronDown,
     ClipboardList,
     Code2,
+    Copy,
     Lightbulb,
     Loader2,
     Mic,
@@ -196,6 +198,19 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     const recognitionRef = useRef<any>(null);
     const voiceTranscriptRef = useRef('');
     const coachScrollRef = useRef<HTMLDivElement | null>(null);
+    /** Latches for a beat so the button confirms the copy happened. */
+    const [snippetCopied, setSnippetCopied] = useState(false);
+    const handleCopySnippet = useCallback(async (snippet: string) => {
+        try {
+            await navigator.clipboard.writeText(snippet);
+            setSnippetCopied(true);
+            setTimeout(() => setSnippetCopied(false), 1_500);
+        } catch {
+            // Clipboard access can be denied. The snippet is on screen and
+            // selectable either way, so this is not worth an error state.
+        }
+    }, []);
+
     const suggestedTests = useMemo(
         () => getSuggestedTests(lastCoachResult?.suggestedTests),
         [lastCoachResult?.suggestedTests],
@@ -631,7 +646,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             type="button"
                             onClick={isListening || voiceTranscript.trim() ? stopListeningAndProcess : startListening}
                             disabled={isProcessingVoice || isSubmitting}
-                            title={isListening || voiceTranscript.trim() ? 'Send this explanation to the AI code coach' : 'Describe your solution verbally'}
+                            title={isListening || voiceTranscript.trim() ? 'Send this explanation to the AI code agent' : 'Describe your solution verbally'}
                             className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 ${
                                 isListening
                                     ? 'animate-pulse border-[#625bd5]/40 bg-[#f3f2ff] text-[#625bd5] dark:border-[#7069dc]/40 dark:bg-[#312d6b]/50 dark:text-[#c8c5ff]'
@@ -645,7 +660,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                 : isListening || voiceTranscript.trim()
                                     ? <Send size={14} />
                                     : <Mic size={14} />}
-                            <span className="sm:hidden">{isListening || voiceTranscript.trim() ? 'Send' : 'Coach'}</span><span className="hidden sm:inline">{isProcessingVoice ? 'Preparing code…' : isListening || voiceTranscript.trim() ? 'Send to code coach' : 'Talk to code coach'}</span>
+                            <span className="sm:hidden">{isListening || voiceTranscript.trim() ? 'Send' : 'Agent'}</span><span className="hidden sm:inline">{isProcessingVoice ? 'Preparing code…' : isListening || voiceTranscript.trim() ? 'Send to code agent' : 'Talk to code agent'}</span>
                             </button>
                         )}
                         {/* Coach panel toggle */}
@@ -653,7 +668,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setCoachPanelOpen((o) => !o)}
-                                title="Toggle AI coach panel"
+                                title="Toggle AI code agent panel"
                                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#625bd5]/30 bg-[#f3f2ff] text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
                             >
                                 <Bot size={16} />
@@ -699,7 +714,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#625bd5] dark:bg-[#b8b4ff]" />
                             <span className="text-xs font-bold text-[#625bd5] dark:text-[#b8b4ff]">Recording your approach</span>
                             <span className="min-w-0 truncate text-xs text-[#4a4499]/80 dark:text-[#c8c5ff]/80">
-                                {voiceTranscript || 'Explain the algorithm, data structure, and edge cases. Send it to the code coach when ready.'}
+                                {voiceTranscript || 'Explain the algorithm, data structure, and edge cases. Send it to the code agent when ready.'}
                             </span>
                         </div>
                     </div>
@@ -780,10 +795,10 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                         {!isGuestPractice && (
                             <div className="mt-4 rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] p-3 dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30">
                             <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#b8b4ff]">
-                                <Mic size={12} /> Code coach
+                                <Mic size={12} /> Code agent
                             </p>
                             <p className="mt-1.5 text-[11px] leading-relaxed text-[#4a4499] dark:text-[#c8c5ff]">
-                                Use <strong>Talk to code coach</strong> to explain your idea. Choose <strong>Send to code coach</strong> when you want it translated into an editable draft and a targeted hint.
+                                Use <strong>Talk to code agent</strong> to explain your idea. Choose <strong>Send to code agent</strong> when you want it translated into an editable draft and a targeted hint.
                             </p>
                             {/*
                               * Names the boundary, because this round shows two
@@ -863,7 +878,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                     <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#625bd5] text-white dark:bg-[#7069dc]">
                                         <Bot size={14} />
                                     </span>
-                                    <span className="text-xs font-bold text-gray-900 dark:text-gray-100">AI Code Coach</span>
+                                    <span className="text-xs font-bold text-gray-900 dark:text-gray-100">AI Code Agent</span>
                                 </div>
                                 <button
                                     type="button"
@@ -878,7 +893,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <div ref={coachScrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
                                 {coachHistory.length === 0 && (
                                     <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-8">
-                                        Use <strong>Talk to code coach</strong> to describe your solution. You decide when to send it for feedback and an editable draft.
+                                        Use <strong>Talk to code agent</strong> to describe your solution. You decide when to send it for feedback and an editable draft.
                                     </p>
                                 )}
                                 {coachHistory.map((msg, i) => (
@@ -922,6 +937,35 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                     <div className="mt-2 rounded-md border border-[#dfe2ff] bg-[#f8f7ff] px-2.5 py-2 text-[11px] leading-relaxed text-[#4a4499] dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30 dark:text-[#c8c5ff]">
                                         <span className="font-bold">Try this: </span>{lastCoachResult.nextAction}
                                     </div>
+
+                                    {/*
+                                      * The snippet is typed out, not dropped into the editor.
+                                      * A one-click insert would let someone finish a scored
+                                      * round without writing anything, which is the opposite
+                                      * of what practice is for — so it copies, and they place
+                                      * it themselves.
+                                      */}
+                                    {lastCoachResult.codeSnippet && (
+                                        <div className="mt-2.5 overflow-hidden rounded-md border border-[#dfe2ff] dark:border-[#625bd5]/30">
+                                            <div className="flex items-center gap-2 border-b border-[#dfe2ff] bg-white px-2.5 py-1.5 dark:border-[#625bd5]/30 dark:bg-[#1a1730]">
+                                                <Code2 size={11} className="shrink-0 text-[#625bd5] dark:text-[#b8b4ff]" />
+                                                <span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-gray-600 dark:text-gray-300">
+                                                    {lastCoachResult.snippetCaption || `${CODING_LANGUAGE_LABELS[language]} snippet`}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleCopySnippet(lastCoachResult.codeSnippet)}
+                                                    className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold text-[#625bd5] transition-colors hover:bg-[#625bd5]/10 dark:text-[#b8b4ff]"
+                                                >
+                                                    {snippetCopied ? <Check size={10} /> : <Copy size={10} />}
+                                                    {snippetCopied ? 'Copied' : 'Copy'}
+                                                </button>
+                                            </div>
+                                            <pre className="max-h-40 overflow-auto bg-[#f8f7ff] px-2.5 py-2 text-[10px] leading-relaxed text-gray-800 dark:bg-[#312d6b]/30 dark:text-gray-200">
+                                                <code>{lastCoachResult.codeSnippet}</code>
+                                            </pre>
+                                        </div>
+                                    )}
                                     {suggestedTests.length > 0 && (
                                         <div className="mt-2.5">
                                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Test next</p>
@@ -941,8 +985,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <div className="shrink-0 border-t border-[#ececf4] px-4 py-3 dark:border-gray-800">
                                 <p className="text-center text-[11px] text-gray-400 dark:text-gray-500">
                                     {isListening
-                                        ? 'Send to code coach when you are ready for feedback'
-                                        : 'Use Talk to code coach in the toolbar to continue'}
+                                        ? 'Send to code agent when you are ready for feedback'
+                                        : 'Use Talk to code agent in the toolbar to continue'}
                                 </p>
                             </div>
                         </aside>
