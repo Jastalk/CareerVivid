@@ -34,6 +34,17 @@ export interface AISuggestion {
   priority: 'high' | 'medium' | 'low';
 }
 
+/**
+ * Does applying this put a new claim about the person on their resume?
+ *
+ * Fixing a typo or sharpening a verb changes how something reads. Adding a
+ * skill, or filling in a number, asserts a new fact — and it is the candidate,
+ * not the model, who has to defend it in the interview. Those two are not the
+ * same kind of edit and must not be accepted the same way.
+ */
+export const suggestionAssertsNewFact = (s: AISuggestion): boolean =>
+    s.type === 'add' || /\[ADD NUMBER\]/i.test(s.suggestedText);
+
 interface AIReviewContextProps {
   isReviewMode: boolean;
   setIsReviewMode: (val: boolean) => void;
@@ -246,9 +257,22 @@ export const AIReviewProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const systemPrompt = `You are an elite, senior resume recruiter and ATS optimization agent.
 Analyze the provided resume document and return a list of EXACT, HIGH-IMPACT SUGGESTIONS.
 We need three types of suggestions:
-1. 'add' (mostly for missing high-value ATS skills or keywords related to their role)
+1. 'add' (surfacing skills the resume already demonstrates but does not name)
 2. 'delete' (for outdated/generic/irrelevant skills or sections that hinder conciseness)
-3. 'replace' (for correcting spelling/grammar, injecting metrics into bullet descriptions, or strengthening weak action verbs)
+3. 'replace' (for correcting spelling/grammar, sharpening weak action verbs, or marking where a metric belongs)
+
+TRUTHFULNESS RULES — these outrank the score. A suggestion that raises the score
+by putting something untrue on the resume is a bad suggestion, because the person
+has to defend every line of it in an interview:
+- NEVER invent a skill, tool, employer, job title, date, certification, degree or metric.
+- Only suggest adding a skill when the resume ALREADY shows evidence of it. The
+  explanation must quote the evidence, e.g. "your Google bullet mentions
+  designing a microservices platform". If you cannot point at existing evidence
+  in the resume text, do not suggest the skill at all.
+- Never fabricate a number. When a bullet would be stronger with a metric, do NOT
+  guess one: write the placeholder [ADD NUMBER] where the figure belongs and ask
+  for it in the explanation. Example: "Reduced build times by [ADD NUMBER]%".
+- Do not restate a skill the resume already lists. Check the skills array first.
 
 CRITICAL RULES:
 - Output valid JSON conforming strictly to the response schema.
@@ -258,7 +282,7 @@ CRITICAL RULES:
 ${naturalLanguageGuidance}
 - Keep tags as canonical English enum labels for UI styling. Use only these tag labels: "Stay Relevant", "Tailor Resume", "Quantifiable", "Grammar", "Score Impact", "Interview Ready", "Action Verbs", "ATS Match".
 - Use the score.failedChecks list as the source of truth. If the score is already 100 or there are no meaningful failed checks, return an empty suggestions array.
-- Every suggestion must improve the displayed resume score or reduce one of the failed score checks when applied.
+- Every suggestion must improve the displayed resume score or reduce one of the failed score checks when applied — but never at the cost of the truthfulness rules above. Returning fewer suggestions is correct when the honest ones run out.
 - If "Ideal Bullet Densities" or "Resume Length" is failing, prioritize experience description replacements that add 3-5 interview-ready achievement bullets for the affected role.
 - Do not create a different set of stylistic suggestions every time. Only return edits that fix an observable issue in the current resume text.
 - Do not suggest a change that has already been incorporated. If originalText no longer exists in the current resume, do not include that suggestion.
@@ -282,7 +306,7 @@ Response Schema:
         "properties": {
           "category": { "type": "STRING", "enum": ["skills", "experience", "summary", "personalDetails"] },
           "title": { "type": "STRING", "description": "e.g., 'Add Skill: Design Systems', 'Refine Action Verb', 'Spelling Correction'" },
-          "explanation": { "type": "STRING", "description": "Recruiter explanation of why this change improves their resume score." },
+          "explanation": { "type": "STRING", "description": "Why this helps. For an added skill, quote the evidence already in the resume that supports it. For a metric placeholder, say what number to supply." },
           "type": { "type": "STRING", "enum": ["add", "delete", "replace"] },
           "fieldId": { "type": "STRING" },
           "originalText": { "type": "STRING", "description": "The exact text currently on the resume to replace or delete. Leave empty for 'add'." },
@@ -350,8 +374,16 @@ Generate up to 8 high-fidelity suggested edits conforming to the requested schem
       }
 
       setSuggestions(mapped);
-      // Auto-select all by default
-      setSelectedSuggestionIds(new Set(mapped.map((s) => s.id)));
+      /*
+       * Pre-select only the edits that cannot make the resume less true.
+       *
+       * Everything used to arrive checked, next to a "92 → 100" score promise
+       * and a single Apply button — so the cheapest path was to accept, in bulk,
+       * skills the person had never been asked whether they have. Wording fixes
+       * still come pre-selected because there is nothing to verify; a new claim
+       * waits for a deliberate click.
+       */
+      setSelectedSuggestionIds(new Set(mapped.filter((s) => !suggestionAssertsNewFact(s)).map((s) => s.id)));
       setHasScanned(true);
       trackReviewCompleted(mapped.length, 'ai_review_scan');
 
@@ -528,7 +560,7 @@ Generate up to 8 high-fidelity suggested edits conforming to the requested schem
         );
       }
       setSuggestions(mappedFallback);
-      setSelectedSuggestionIds(new Set(mappedFallback.map((s) => s.id)));
+      setSelectedSuggestionIds(new Set(mappedFallback.filter((s) => !suggestionAssertsNewFact(s)).map((s) => s.id)));
       setHasScanned(true);
       trackReviewCompleted(mappedFallback.length, 'ai_review_fallback');
     } finally {

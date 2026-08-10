@@ -8,9 +8,10 @@ import {
   HelpCircle,
   ArrowRight,
   TrendingUp,
-  BrainCircuit
+  BrainCircuit,
+  ShieldCheck
 } from 'lucide-react';
-import { useAIReview, AISuggestion } from '../../../contexts/AIReviewContext';
+import { useAIReview, AISuggestion, suggestionAssertsNewFact } from '../../../contexts/AIReviewContext';
 import { ResumeData } from '../../../types';
 import { buildResumeWithReviewSuggestions } from '../../../utils/aiReviewSuggestions';
 import { calculateResumeScore } from '../../../utils/resumeScoreUtils';
@@ -106,6 +107,10 @@ export const AIReviewPanel: React.FC<AIReviewPanelProps> = ({ resume, currentUse
 
   const grouped = getGroupedSuggestions();
   const hasSuggestions = suggestions.length > 0;
+  /** True only when the two groupings would actually produce different lists. */
+  const groupingIsMeaningful =
+    new Set(suggestions.map((s) => s.category)).size > 1
+    || new Set(suggestions.map((s) => s.priority)).size > 1;
   const allSelected = hasSuggestions && selectedSuggestionIds.size === suggestions.length;
   const someSelected = hasSuggestions && selectedSuggestionIds.size > 0 && selectedSuggestionIds.size < suggestions.length;
   const currentScore = calculateResumeScore(resume).overallScore;
@@ -210,23 +215,42 @@ export const AIReviewPanel: React.FC<AIReviewPanelProps> = ({ resume, currentUse
         <>
           {/* Filter Header */}
           <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 shrink-0">
-            <div className="flex items-center gap-1">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{reviewUI.groupBy}</span>
-              <div className="flex bg-gray-200/60 dark:bg-gray-800 rounded-lg p-0.5 ml-1">
-                <button
-                  onClick={() => setGroupBy('section')}
-                  className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all ${groupBy === 'section' ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  {reviewUI.section}
-                </button>
-                <button
-                  onClick={() => setGroupBy('priority')}
-                  className={`text-[10px] font-bold px-2 py-1 rounded-md transition-all ${groupBy === 'priority' ? 'bg-white dark:bg-gray-700 text-indigo-600 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  {reviewUI.priority}
-                </button>
+            {/*
+              * Only offer the grouping switch when it would change something.
+              *
+              * With four suggestions that are all skills and all medium
+              * priority — the common case — both modes render one identical
+              * group, so pressing either button appeared to do nothing and the
+              * two words were left to explain themselves. A control that
+              * changes nothing is worse than no control: it makes people
+              * wonder what they missed. Below the threshold the header just
+              * states what they are looking at.
+              */}
+            {groupingIsMeaningful ? (
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">{reviewUI.groupBy}</span>
+                <div className="ml-1 flex rounded-lg bg-gray-200/60 p-0.5 dark:bg-gray-800">
+                  <button
+                    onClick={() => setGroupBy('section')}
+                    title="Group by resume section — skills, experience, summary"
+                    className={`rounded-md px-2 py-1 text-[10px] font-bold transition-all ${groupBy === 'section' ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    {reviewUI.section}
+                  </button>
+                  <button
+                    onClick={() => setGroupBy('priority')}
+                    title="Group by impact — highest-impact suggestions first"
+                    className={`rounded-md px-2 py-1 text-[10px] font-bold transition-all ${groupBy === 'priority' ? 'bg-white text-indigo-600 shadow-sm dark:bg-gray-700 dark:text-white' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    {reviewUI.priority}
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
+              </span>
+            )}
 
             <button
               onClick={clearSuggestions}
@@ -297,6 +321,23 @@ export const AIReviewPanel: React.FC<AIReviewPanelProps> = ({ resume, currentUse
                       <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed font-semibold">
                         {s.explanation}
                       </p>
+
+                      {/*
+                        * Say why this one is not already ticked.
+                        *
+                        * An unchecked box next to ticked ones otherwise looks
+                        * like a glitch, and the user clicks it to "fix" the
+                        * inconsistency — which is the opposite of asking them
+                        * to think about whether the claim is true.
+                        */}
+                      {suggestionAssertsNewFact(s) && (
+                        <p className="flex items-start gap-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-[10px] font-bold leading-relaxed text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                          <ShieldCheck size={12} className="mt-px shrink-0" />
+                          {/\[ADD NUMBER\]/i.test(s.suggestedText)
+                            ? 'Replace [ADD NUMBER] with your real figure before applying.'
+                            : 'Only add this if you have actually done it — you may be asked about it in the interview.'}
+                        </p>
+                      )}
 
                       {/* Visual Changes badge comparison */}
                       {isChecked && (
