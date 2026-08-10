@@ -22,7 +22,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
 
   return (
     <div className="flex min-h-full bg-white" style={bodyStyle}>
-      <aside className="w-1/3 bg-gray-100 dark:bg-gray-800 p-6 flex flex-col items-center">
+      <aside className="w-1/3 bg-gray-100 p-6 flex flex-col items-center">
         {personalDetails.photo && (
           <div className="w-32 h-32 rounded-full mb-4 overflow-hidden flex items-center justify-center">
             <img src={personalDetails.photo} alt="Profile" className="w-full h-full object-cover" />
@@ -33,7 +33,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={personalDetails.firstName} 
                 fieldId="personalDetails.firstName" 
                 onFocus={onFocus} 
-                className="text-2xl font-bold text-gray-800 dark:text-gray-100" 
+                className="text-2xl font-bold text-gray-800" 
                 style={titleStyle}
                 tagName="h1"
                 placeholder="First Name"
@@ -42,7 +42,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={personalDetails.lastName} 
                 fieldId="personalDetails.lastName" 
                 onFocus={onFocus} 
-                className="text-2xl font-bold text-gray-800 dark:text-gray-100" 
+                className="text-2xl font-bold text-gray-800" 
                 style={titleStyle}
                 tagName="h1"
                 placeholder="Last Name"
@@ -52,17 +52,17 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
             value={personalDetails.jobTitle} 
             fieldId="personalDetails.jobTitle" 
             onFocus={onFocus} 
-            className="text-md text-gray-600 dark:text-gray-400 text-center" 
+            className="text-md text-gray-600 text-center" 
             style={titleStyle}
             tagName="p"
             placeholder="Job Title"
         />
         
-        <div className="w-full my-6 border-t border-gray-300 dark:border-gray-600"></div>
+        <div className="w-full my-6 border-t border-gray-300"></div>
 
         <section className="w-full mb-6">
           <h2 className="text-sm font-bold uppercase mb-3" style={{...titleStyle, color: themeColor}}>CONTACT</h2>
-          <div className="space-y-2 text-xs text-gray-800 dark:text-gray-200">
+          <div className="space-y-2 text-xs text-gray-800">
             <div className="flex"><Mail size={14} className="mr-2 shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.email} fieldId="personalDetails.email" onFocus={onFocus} placeholder="Email" /></div>
             <div className="flex"><Phone size={14} className="mr-2 shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" /></div>
             <div className="flex"><MapPin size={14} className="mr-2 shrink-0 transform translate-y-px" /><InlineEdit value={personalDetails.address} fieldId="personalDetails.address" onFocus={onFocus} placeholder="Address" /></div>
@@ -74,8 +74,8 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
           <div className="space-y-3">
             {skills.map((skill, index) => (
               <div key={skill.id}>
-                <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" className="text-xs font-semibold text-gray-800 dark:text-gray-200 block mb-1" />
-                <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-1.5">
+                <InlineEdit value={skill.name} fieldId={`skills[${index}].name`} onFocus={onFocus} placeholder="Skill" className="text-xs font-semibold text-gray-800 block mb-1" />
+                <div className="w-full bg-gray-300 rounded-full h-1.5">
                   <div className={`h-1.5 rounded-full ${getSkillWidth(skill.level)}`} style={{backgroundColor: themeColor}}></div>
                 </div>
               </div>
@@ -88,13 +88,13 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         <section className="mb-6">
           <div className="flex items-center mb-3">
             <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><User size={20} /></div>
-            <h2 className="text-xl font-bold uppercase text-gray-800 dark:text-gray-800" style={titleStyle}>Profile</h2>
+            <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Profile</h2>
           </div>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
             onFocus={onFocus} 
-            className="text-sm leading-relaxed text-gray-700 dark:text-gray-700 block whitespace-pre-wrap"
+            className="text-sm leading-relaxed text-gray-700 block whitespace-pre-wrap"
             tagName="p"
             placeholder="Summary..."
           />
@@ -103,13 +103,13 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         <section className="mb-6">
           <div className="flex items-center mb-3">
             <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><Briefcase size={20} /></div>
-            <h2 className="text-xl font-bold uppercase text-gray-800 dark:text-gray-800" style={titleStyle}>Experience</h2>
+            <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Experience</h2>
           </div>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-4 pl-10 relative">
               <div className="absolute left-2 top-0 h-full w-0.5 bg-gray-200"></div>
               <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor}}></div>
-              <div className="flex gap-1 text-xs font-bold text-gray-500 dark:text-gray-500">
+              <div className="flex gap-1 text-xs font-bold text-gray-500">
                   <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={job.endDate} fieldId={`employmentHistory[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -118,7 +118,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={job.jobTitle} 
                 fieldId={`employmentHistory[${index}].jobTitle`} 
                 onFocus={onFocus} 
-                className="text-md font-bold text-gray-800 dark:text-gray-800 block" 
+                className="text-md font-bold text-gray-800 block" 
                 style={titleStyle}
                 tagName="h3"
                 placeholder="Job Title"
@@ -127,7 +127,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={job.employer} 
                 fieldId={`employmentHistory[${index}].employer`} 
                 onFocus={onFocus} 
-                className="text-sm italic text-gray-600 dark:text-gray-600 block" 
+                className="text-sm italic text-gray-600 block" 
                 tagName="p"
                 placeholder="Employer"
               />
@@ -135,7 +135,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={job.description} 
                 fieldId={`employmentHistory[${index}].description`} 
                 onFocus={onFocus} 
-                className="text-sm mt-1 leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-700 block"
+                className="text-sm mt-1 leading-relaxed whitespace-pre-wrap text-gray-700 block"
                 tagName="p"
                 placeholder="Description..."
               />
@@ -146,13 +146,13 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
         <section>
           <div className="flex items-center mb-3">
             <div className="text-white rounded-full p-2 mr-3" style={{backgroundColor: themeColor}}><GraduationCap size={20} /></div>
-            <h2 className="text-xl font-bold uppercase text-gray-800 dark:text-gray-800" style={titleStyle}>Education</h2>
+            <h2 className="text-xl font-bold uppercase text-gray-800" style={titleStyle}>Education</h2>
           </div>
           {education.map((edu, index) => (
             <div key={edu.id} className="mb-4 pl-10 relative">
               <div className="absolute left-2 top-0 h-full w-0.5 bg-gray-200"></div>
               <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 border-white" style={{backgroundColor: themeColor}}></div>
-               <div className="flex gap-1 text-xs font-bold text-gray-500 dark:text-gray-500">
+               <div className="flex gap-1 text-xs font-bold text-gray-500">
                   <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
                   <span>-</span>
                   <InlineEdit value={edu.endDate} fieldId={`education[${index}].endDate`} onFocus={onFocus} placeholder="End" />
@@ -161,7 +161,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={edu.degree} 
                 fieldId={`education[${index}].degree`} 
                 onFocus={onFocus} 
-                className="font-bold text-md text-gray-800 dark:text-gray-800 block" 
+                className="font-bold text-md text-gray-800 block" 
                 style={titleStyle}
                 tagName="h3"
                 placeholder="Degree"
@@ -170,7 +170,7 @@ export const InfographicTemplate: React.FC<TemplateProps> = ({ resume, themeColo
                 value={edu.school} 
                 fieldId={`education[${index}].school`} 
                 onFocus={onFocus} 
-                className="text-sm italic text-gray-600 dark:text-gray-600 block" 
+                className="text-sm italic text-gray-600 block" 
                 tagName="p"
                 placeholder="School"
               />

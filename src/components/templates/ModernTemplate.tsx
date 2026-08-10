@@ -117,7 +117,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
           />
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
-              <span key={skill.id || `skill-${index}`} className="inline-flex items-center bg-gray-200 dark:bg-gray-700 dark:text-gray-200 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
+              <span key={skill.id || `skill-${index}`} className="inline-flex items-center bg-gray-200 text-gray-800 text-xs font-semibold px-3 py-1 rounded-full">
                 <InlineEdit
                   value={skill.name}
                   fieldId={`skills[${index}].name`}

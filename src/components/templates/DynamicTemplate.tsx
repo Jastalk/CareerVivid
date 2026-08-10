@@ -12,7 +12,7 @@ export const DynamicTemplate: React.FC<TemplateProps> = ({ resume, themeColor, t
 
   return (
     <div className="bg-white text-gray-800 relative" style={bodyStyle}>
-      <div className="absolute top-0 right-0 h-full w-1/3 bg-gray-100 dark:bg-gray-800/50 -z-1" style={{clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)'}}></div>
+      <div className="absolute top-0 right-0 h-full w-1/3 bg-gray-100 -z-1" style={{clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)'}}></div>
       <div className="p-8">
         <main className="flex gap-8 items-start">
             <div className="w-2/3">

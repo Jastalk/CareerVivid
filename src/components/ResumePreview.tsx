@@ -165,7 +165,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = React.memo(({ resume, templa
     <div
       id={previewId}
       data-resume-preview-root="true"
-      className={`w-full min-h-[297mm] max-w-full bg-white shadow-lg relative ${className || ''}`}
+      /*
+       * `cv-resume-document` marks this subtree as a printed document rather
+       * than a surface of the app. index.css uses it to hold the whole resume
+       * out of dark mode: the paper stays white, the ink stays dark, and the
+       * PDF matches what is on screen whichever theme the user happens to be
+       * in. Renaming it means updating those rules too.
+       */
+      className={`cv-resume-document w-full min-h-[297mm] max-w-full bg-white shadow-lg relative ${className || ''}`}
       ref={previewRef}
       style={formattingStyles}
     >

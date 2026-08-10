@@ -193,10 +193,23 @@
    * Custom properties do inherit, so a surface now sets `--cv-heading-color`
    * once and every heading inside follows — see `.cv-surface-inverted`.
    */
+  /*
+   * Resume templates are excluded, and the exclusion is load-bearing.
+   *
+   * A matching declaration beats inheritance whatever its specificity, so this
+   * rule was overriding headings that templates colour from a parent — Bold
+   * paints `bg-gray-900 text-white` on its header and expects the name inside
+   * to inherit white, and got the app's heading token instead. Not declaring
+   * `color` here at all is what lets the template's own intent through; giving
+   * the document a different colour would just be wrong in a new way.
+   */
   h1, h2, h3, h4, h5, h6 {
-    color: var(--cv-heading-color, var(--cv-text-heading));
     font-family: var(--cv-font-heading);
     letter-spacing: 0;
+  }
+
+  :where(:not(.cv-resume-document, .cv-resume-document *)):where(h1, h2, h3, h4, h5, h6) {
+    color: var(--cv-heading-color, var(--cv-text-heading));
   }
 
   /*
@@ -650,38 +663,66 @@
  * discover this file first.
  */
 @layer utilities {
-  html.dark :where([class~="bg-[#f7f1e7]"], [class~="bg-[#fbfbfe]"], [class~="bg-gray-50"], [class~="bg-gray-100"]) {
+  /*
+   * The resume is a document, not a surface of this app.
+   *
+   * Colour inherits across the boundary, so excluding the subtree from the
+   * dark-mode fallbacks is not enough on its own — without an explicit base
+   * the page would still pick up the shell's light-on-dark ink. Stating both
+   * here means the document renders identically in either theme, which is the
+   * only correct answer for something that gets printed.
+   */
+  .cv-resume-document {
+    color-scheme: light;
+    background-color: #ffffff;
+    color: #111827;
+  }
+
+  /*
+   * The resume is a document, not a surface of this app.
+   *
+   * It is printed, exported to PDF, and read by someone who has never seen our
+   * dark mode. Repainting its paper the way we repaint a card turned every
+   * template into dark text on a dark page — measured at 1.04:1 across 28
+   * templates, which is invisible, and the same DOM is what the PDF is
+   * rendered from.
+   *
+   * `:where(:not(...))` rather than a plain `:not(...)`: it excludes the
+   * document without adding any specificity, so these fallbacks keep losing to
+   * any component that names its own colour, exactly as before.
+   */
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="bg-[#f7f1e7]"], [class~="bg-[#fbfbfe]"], [class~="bg-gray-50"], [class~="bg-gray-100"]) {
     background-color: #1f1f1d;
   }
 
-  html.dark :where([class~="bg-[#fffaf1]"], [class~="bg-white"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="bg-[#fffaf1]"], [class~="bg-white"]) {
     background-color: #262522;
   }
 
-  html.dark :where([class~="bg-gray-200"], [class~="bg-gray-300"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="bg-gray-200"], [class~="bg-gray-300"]) {
     background-color: #37332d;
   }
 
-  html.dark :where(
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where(
     [class~="bg-[#f9efe0]"], [class~="bg-[#f6ecd9]"], [class~="bg-[#f4e5cf]"], [class~="bg-[#f4ead8]"],
     [class~="bg-[#f2dfc2]"], [class~="bg-[#f0dfc6]"], [class~="bg-[#eadbc5]"], [class~="bg-[#ead9c3]"]
   ) {
     background-color: #302e2a;
   }
 
-  html.dark :where([class~="text-[#211b16]"], [class~="text-black"], [class~="text-gray-950"], [class~="text-gray-900"], [class~="text-gray-800"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="text-[#211b16]"], [class~="text-black"], [class~="text-gray-950"], [class~="text-gray-900"], [class~="text-gray-800"]) {
     color: #f4f1e9;
   }
 
-  html.dark :where([class~="text-[#665a4a]"], [class~="text-[#7d6e5e]"], [class~="text-gray-700"], [class~="text-gray-600"], [class~="text-gray-500"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="text-[#665a4a]"], [class~="text-[#7d6e5e]"], [class~="text-gray-700"], [class~="text-gray-600"], [class~="text-gray-500"]) {
     color: #aaa39a;
   }
 
-  html.dark :where([class~="text-[#9a651f]"], [class~="text-[#a97935]"], [class~="text-[#8b5a16]"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="text-[#9a651f]"], [class~="text-[#a97935]"], [class~="text-[#8b5a16]"]) {
     color: #caa26c;
   }
 
-  html.dark :where([class~="border-black"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="border-black"]) {
     border-color: #aaa39a;
   }
 
@@ -697,7 +738,7 @@
    * Same `~=` + `:where()` contract as the dark fallbacks above: whole tokens
    * only, and any component that names its own colour still wins.
    */
-  html:not(.dark) :where([class~="text-gray-400"], [class~="text-slate-400"]) {
+  html:not(.dark) :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="text-gray-400"], [class~="text-slate-400"]) {
     color: var(--cv-text-muted);
   }
 
@@ -709,7 +750,7 @@
    * 3.2–3.8:1. 150 call sites share the slip, which reads as a habit rather
    * than a series of decisions, so it is corrected once here.
    */
-  html.dark :where([class~="dark:text-gray-500"], [class~="dark:text-gray-600"]) {
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="dark:text-gray-500"], [class~="dark:text-gray-600"]) {
     color: var(--cv-text-muted);
   }
 
@@ -719,11 +760,11 @@
    * 5.2:1 and is already the most-used of the three, so it becomes the one.
    * The dark-mode block above already folds all of them into #caa26c.
    */
-  html:not(.dark) :where([class~="text-[#a97935]"], [class~="text-[#766955]"]) {
+  html:not(.dark) :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="text-[#a97935]"], [class~="text-[#766955]"]) {
     color: var(--cv-text-eyebrow);
   }
 
-  html.dark :where(
+  html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where(
     [class~="border-[#e6dac8]"], [class~="border-[#e4d3bc]"], [class~="border-[#e2d4c2]"], [class~="border-[#d9c7ad]"],
     [class~="border-[#d9c5aa]"], [class~="border-[#d8c6ad]"], [class~="border-[#eadbc5]"],
     [class~="border-gray-200"], [class~="border-gray-300"]

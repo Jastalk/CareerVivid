@@ -76,31 +76,31 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
 
       <main className="w-2/3 p-8">
         <section className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-800 mb-2" style={titleStyle}>Objective</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2" style={titleStyle}>Objective</h2>
           <InlineEdit 
             value={professionalSummary} 
             fieldId="professionalSummary" 
             onFocus={onFocus} 
-            className="text-sm leading-relaxed text-gray-700 dark:text-gray-700 block whitespace-pre-wrap"
+            className="text-sm leading-relaxed text-gray-700 block whitespace-pre-wrap"
             tagName="p"
             placeholder="Summary..."
           />
         </section>
 
         <section className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-800 mb-3" style={titleStyle}>Experience</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3" style={titleStyle}>Experience</h2>
           {employmentHistory.map((job, index) => (
             <div key={job.id} className="mb-4">
               <InlineEdit 
                 value={job.jobTitle} 
                 fieldId={`employmentHistory[${index}].jobTitle`} 
                 onFocus={onFocus} 
-                className="text-lg font-bold text-gray-800 dark:text-gray-800 block" 
+                className="text-lg font-bold text-gray-800 block" 
                 style={titleStyle}
                 tagName="h3"
                 placeholder="Job Title"
               />
-              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500">
                   <InlineEdit value={job.employer} fieldId={`employmentHistory[${index}].employer`} onFocus={onFocus} placeholder="Employer" />
                   <div className="flex gap-1">
                       <InlineEdit value={job.startDate} fieldId={`employmentHistory[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
@@ -112,7 +112,7 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
                 value={job.description} 
                 fieldId={`employmentHistory[${index}].description`} 
                 onFocus={onFocus} 
-                className="text-sm mt-1 leading-relaxed whitespace-pre-wrap text-gray-700 dark:text-gray-700 block"
+                className="text-sm mt-1 leading-relaxed whitespace-pre-wrap text-gray-700 block"
                 tagName="p"
                 placeholder="Description..."
               />
@@ -121,19 +121,19 @@ export const OrionTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
         </section>
         
         <section>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-800 mb-3" style={titleStyle}>Education</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3" style={titleStyle}>Education</h2>
           {education.map((edu, index) => (
             <div key={edu.id}>
               <InlineEdit 
                 value={edu.degree} 
                 fieldId={`education[${index}].degree`} 
                 onFocus={onFocus} 
-                className="font-bold text-lg text-gray-800 dark:text-gray-800 block" 
+                className="font-bold text-lg text-gray-800 block" 
                 style={titleStyle}
                 tagName="h3"
                 placeholder="Degree"
               />
-              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500">
                   <InlineEdit value={edu.school} fieldId={`education[${index}].school`} onFocus={onFocus} placeholder="School" />
                   <div className="flex gap-1">
                       <InlineEdit value={edu.startDate} fieldId={`education[${index}].startDate`} onFocus={onFocus} placeholder="Start" />
