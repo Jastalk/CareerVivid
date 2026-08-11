@@ -1,9 +1,10 @@
-import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
-import { ResumeData } from '../../../types';
+import React, { useRef, useState, useEffect, useMemo, useLayoutEffect, useCallback } from 'react';
+import { ResumeData, DEFAULT_FORMATTING_SETTINGS, type FormattingSettings } from '../../../types';
 import ResumePreview from '../../../components/ResumePreview';
 import AdvancedAnnotationCanvas from '../../../components/AdvancedAnnotationCanvas';
 import { AnnotationObject } from '../../../services/annotationService';
-import { Minus, Plus, Eye, Sparkles, Sliders } from 'lucide-react';
+import { Minus, Plus, Eye, Sparkles, Sliders, ArrowUpToLine, Undo2 } from 'lucide-react';
+import { isAtTightestLayout, tightenLayout, trailingOverflowRatio } from '../../../utils/fitToPages';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAIReview } from '../../../contexts/AIReviewContext';
 import { calculateResumeScore } from '../../../utils/resumeScoreUtils';
@@ -62,6 +63,16 @@ interface EditorPreviewProps {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
+/**
+ * How little ink a trailing page can hold before we offer to reclaim it.
+ *
+ * Under a fifth of a page is a line or two of spillover — almost always an
+ * accident of spacing rather than a page the user meant to write. Above it the
+ * page is real content, and offering to squeeze it away would be offering to
+ * mangle their resume.
+ */
+const RECLAIMABLE_TRAILING_RATIO = 0.2;
+
 const EditorPreview: React.FC<EditorPreviewProps> = ({
     resume, viewMode, scale, currentUserUid,
     showAnnotationOverlay, annotationUrl, annotationObjects, isPreviewBlurred,
@@ -102,6 +113,36 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
     // Detect overflow
     const hasOverflow = useMemo(() => contentHeight > A4_HEIGHT_PX, [contentHeight]);
     const pageCount = useMemo(() => countPages(contentHeight), [contentHeight]);
+    /*
+     * Offered only when the last page is nearly empty AND there is still
+     * spacing to give back. Showing a button that cannot work is worse than
+     * showing none.
+     */
+    const trailingRatio = useMemo(
+        () => trailingOverflowRatio(contentHeight, A4_HEIGHT_PX),
+        [contentHeight],
+    );
+    const canReclaimLastPage = useMemo(
+        () => pageCount > 1
+            && trailingRatio > 0
+            && trailingRatio <= RECLAIMABLE_TRAILING_RATIO
+            && !isAtTightestLayout(resume.formattingSettings),
+        [pageCount, trailingRatio, resume.formattingSettings],
+    );
+    const [fitUndo, setFitUndo] = useState<FormattingSettings | null>(null);
+
+    const handleFitToFewerPages = useCallback(() => {
+        const before = { ...DEFAULT_FORMATTING_SETTINGS, ...(resume.formattingSettings ?? {}) };
+        const { settings } = tightenLayout(before, trailingRatio);
+        setFitUndo(before);
+        onResumeChange({ formattingSettings: settings });
+    }, [onResumeChange, resume.formattingSettings, trailingRatio]);
+
+    const handleUndoFit = useCallback(() => {
+        if (!fitUndo) return;
+        onResumeChange({ formattingSettings: fitUndo });
+        setFitUndo(null);
+    }, [fitUndo, onResumeChange]);
     const minZoom = isCompactPreview ? MOBILE_MIN_ZOOM : MIN_ZOOM;
     const effectiveScale = useMemo(() => clamp(fitScale + zoomOffset, minZoom, MAX_ZOOM), [fitScale, minZoom, zoomOffset]);
     const pageStackHeight = useMemo(
@@ -512,6 +553,44 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
                                 Page {pageIndex + 1}
                         </div>
                     ))}
+
+                    {/*
+                      * Attached to the page it is about, not hidden in a menu.
+                      *
+                      * "Fit to one page" rather than "delete page": the spillover
+                      * is real content and has to go somewhere, so the honest
+                      * action is to make the resume fit rather than to pretend a
+                      * page can be thrown away.
+                      */}
+                    {canReclaimLastPage && (
+                        <div
+                            className={`absolute hidden flex-col items-start gap-1 ${useControlRail ? 'xl:flex' : ''}`}
+                            style={{
+                                left: scaledPageWidth + EDGE_CONTROL_GAP_PX,
+                                top: pageTopOffset + ((pageCount - 1) * (A4_HEIGHT_PX + PAGE_GAP_PX) * effectiveScale) + 112
+                            }}
+                        >
+                            <button
+                                type="button"
+                                onClick={handleFitToFewerPages}
+                                title="Tighten spacing so this resume fits on fewer pages"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-[#c7d2fe] bg-[#EEF2FF] px-3 py-1.5 text-[11px] font-bold text-[#211b4d] shadow-sm transition-colors hover:bg-[#e0e7ff] dark:border-primary-800 dark:bg-primary-600 dark:text-white dark:hover:bg-primary-500"
+                            >
+                                <ArrowUpToLine size={12} />
+                                Fit to {pageCount - 1} page{pageCount - 1 > 1 ? 's' : ''}
+                            </button>
+                            {fitUndo && (
+                                <button
+                                    type="button"
+                                    onClick={handleUndoFit}
+                                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-slate-500 transition-colors hover:bg-black/5 hover:text-slate-800 dark:text-gray-400 dark:hover:bg-white/10"
+                                >
+                                    <Undo2 size={11} />
+                                    Undo
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {/* Annotation Overlay for Review Feedback */}
                     {showAnnotationOverlay && annotationUrl && (
