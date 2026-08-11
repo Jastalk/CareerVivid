@@ -11,6 +11,8 @@ import { addSelectedSkillSuggestionsToResume } from '../../../utils/aiReviewData
 
 import {
     A4_HEIGHT_PX,
+    countPages,
+    measurePaintedContentBottom,
     A4_WIDTH_PX,
     PAGE_SAFE_PADDING_PX,
     PAGINATION_SPACER_CLASS,
@@ -99,7 +101,7 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
 
     // Detect overflow
     const hasOverflow = useMemo(() => contentHeight > A4_HEIGHT_PX, [contentHeight]);
-    const pageCount = useMemo(() => Math.ceil(contentHeight / A4_HEIGHT_PX) || 1, [contentHeight]);
+    const pageCount = useMemo(() => countPages(contentHeight), [contentHeight]);
     const minZoom = isCompactPreview ? MOBILE_MIN_ZOOM : MIN_ZOOM;
     const effectiveScale = useMemo(() => clamp(fitScale + zoomOffset, minZoom, MAX_ZOOM), [fitScale, minZoom, zoomOffset]);
     const pageStackHeight = useMemo(
@@ -239,7 +241,17 @@ const EditorPreview: React.FC<EditorPreviewProps> = ({
             }
 
             if (previewRef.current) {
-                setContentHeight(previewRef.current.scrollHeight);
+                /*
+                 * Painted ink, not box height.
+                 *
+                 * `scrollHeight` includes trailing padding and collapsed
+                 * margins, so a resume ending exactly at the page boundary
+                 * reported a few pixels more and `Math.ceil` turned them into a
+                 * whole blank second page — a page with nothing on it to
+                 * delete, which is why "remove this page" was never the right
+                 * fix.
+                 */
+                setContentHeight(measurePaintedContentBottom(previewRef.current));
             }
         });
 
