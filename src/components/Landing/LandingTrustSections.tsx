@@ -328,7 +328,7 @@ const PaperSection = ({ children, className = '' }: { children: React.ReactNode;
 export const FastStartSection = () => (
     <PaperSection className="py-12 sm:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="rounded-[24px] border border-[#e4d3bc] bg-[#fffaf1]/92 p-4 shadow-2xl shadow-[#8b5a16]/10 sm:p-6 lg:p-7">
+            <div className="rounded-[24px] border border-[#e4d3bc] bg-[#fffaf1]/90 p-4 shadow-2xl shadow-[#8b5a16]/10 sm:p-6 lg:p-7">
                 <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
                     <div>
                         <p className="cv-warm-eyebrow">
@@ -424,7 +424,7 @@ export const PlatformAvailabilitySection = () => (
             </div>
             <div className="grid gap-4 md:grid-cols-3">
                 {platformCards.map(({ key, label, title, copy, icon: Icon, action, href, tone, external }) => (
-                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-6 shadow-sm">
+                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-6 shadow-sm">
                         <div className="flex items-start justify-between gap-4">
                             <div className={`flex h-12 w-12 items-center justify-center rounded-xl border ${tone}`}>
                                 <Icon size={23} />
@@ -469,7 +469,7 @@ export const DemoVideoSection = () => (
     <PaperSection className="py-14 sm:py-20">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
             <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/88 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/90 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
                     <PlayCircle size={15} className="text-[#625bd5]" />
                     <LocalizedCopy path="landing.public.demo.eyebrow" fallback="Product walkthrough" />
                 </div>
@@ -488,7 +488,7 @@ export const DemoVideoSection = () => (
                         ['tailor', 'Tailor', 'Load the job into your resume.'],
                         ['practice', 'Practice', 'Prepare from the same context.'],
                     ].map(([key, label, copy]) => (
-                        <div key={label} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-4 shadow-sm">
+                        <div key={label} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-4 shadow-sm">
                             <p className="text-sm font-semibold text-[#211b16]">
                                 <LocalizedCopy path={`landing.public.demo.steps.${key}.label`} fallback={label} />
                             </p>
@@ -532,7 +532,7 @@ export const DemoVideoSection = () => (
 export const ResumeReadinessSection = () => (
     <PaperSection className="py-16 sm:py-24">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
-            <div className="rounded-[24px] border border-[#e4d3bc] bg-[#fffaf1]/92 p-5 shadow-2xl shadow-[#8b5a16]/10 sm:p-7">
+            <div className="rounded-[24px] border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 shadow-2xl shadow-[#8b5a16]/10 sm:p-7">
                 <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#eadbc5] pb-5">
                     <div>
                         <p className="cv-warm-eyebrow">
@@ -574,7 +574,7 @@ export const ResumeReadinessSection = () => (
             </div>
 
             <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/88 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/90 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
                     <Gauge size={15} className="text-[#625bd5]" />
                     <LocalizedCopy path="landing.public.readiness.side_eyebrow" fallback="ATS checker + interview prep" />
                 </div>
@@ -595,7 +595,7 @@ export const ResumeReadinessSection = () => (
                     ].map(([key, Icon, title, copy]) => {
                         const LucideIcon = Icon as typeof FileSearch;
                         return (
-                            <article key={title as string} className="grid gap-4 rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm sm:grid-cols-[48px_1fr]">
+                            <article key={title as string} className="grid gap-4 rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 shadow-sm sm:grid-cols-[48px_1fr]">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#f2dfc2] text-[#8b5a16]">
                                     <LucideIcon size={22} />
                                 </div>
@@ -696,7 +696,7 @@ export const ResumeExamplesSection = () => (
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     {resumeExamples.map(({ key, title, copy, tags }) => (
-                        <article key={title} className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm">
+                        <article key={title} className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 shadow-sm">
                             <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#625bd5]">
                                 <FileText size={21} />
                             </div>
@@ -741,7 +741,7 @@ export const ProofSection = () => (
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                     {proofCards.map(({ key, icon: Icon, title, copy }) => (
-                        <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm">
+                        <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 shadow-sm">
                             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f2dfc2] text-[#8b5a16]">
                                 <Icon size={21} />
                             </div>
@@ -777,7 +777,7 @@ export const UserStoriesSection = () => (
                         />
                     </p>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-3 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 px-4 py-3 shadow-sm">
                     <div className="flex -space-x-3" aria-hidden="true">
                         {userStories.map(({ role, avatar, avatarSrc, avatarTone }) => (
                             <span
@@ -804,7 +804,7 @@ export const UserStoriesSection = () => (
             </div>
             <div className="grid gap-4 md:grid-cols-3">
                 {userStories.map(({ key, role, name, avatar, avatarSrc, avatarTone, quote, outcome }) => (
-                    <article key={role} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-6 shadow-sm">
+                    <article key={role} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-6 shadow-sm">
                         <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                                 <div
@@ -866,7 +866,7 @@ export const WorkflowSection = () => (
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {workflowSteps.map(({ key, number, title, copy }) => (
-                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-6 shadow-sm">
+                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-6 shadow-sm">
                         <div className="mb-5 flex h-10 w-10 items-center justify-center rounded-full bg-[#211b16] font-mono text-sm font-semibold text-white">
                             {number}
                         </div>
@@ -907,7 +907,7 @@ export const TeamsAndTrustSection = () => (
             </div>
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1">
                 {trustNotes.map(({ key, icon: Icon, title, copy }) => (
-                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-6 shadow-sm">
+                    <article key={title} className="rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-6 shadow-sm">
                         <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f2dfc2] text-[#8b5a16]">
                             <Icon size={21} />
                         </div>
@@ -929,7 +929,7 @@ export const TeamsAndTrustSection = () => (
             ].map(([key, Icon, title, copy]) => {
                 const LucideIcon = Icon as typeof Building2;
                 return (
-                    <article key={title as string} className="grid gap-4 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 sm:grid-cols-[44px_1fr]">
+                    <article key={title as string} className="grid gap-4 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 sm:grid-cols-[44px_1fr]">
                         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f2dfc2] text-[#8b5a16]">
                             <LucideIcon size={21} />
                         </div>
@@ -978,7 +978,7 @@ export const PricingPreviewSection = () => (
                             // sweep — pale text on a pale card, contrast 1.02:1.
                             featured
                                 ? 'border-[#625bd5] bg-[#f3f2ff]/90 dark:bg-[#2b2740]/90 shadow-[#625bd5]/10'
-                                : 'border-[#e4d3bc] bg-[#fffaf1]/88 shadow-[#8b5a16]/5'
+                                : 'border-[#e4d3bc] bg-[#fffaf1]/90 shadow-[#8b5a16]/5'
                         }`}
                     >
                         <div className="flex items-start justify-between gap-4">
@@ -1012,7 +1012,7 @@ export const PricingPreviewSection = () => (
                             onClick={() => navigate(href)}
                             className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-semibold ${
                                 featured
-                                    ? 'bg-[#625bd5] text-white shadow-lg shadow-[#625bd5]/18'
+                                    ? 'bg-[#625bd5] text-white shadow-lg shadow-[#625bd5]/20'
                                     : 'border border-[#d8c6ad] bg-[#fffaf1] text-[#211b16]'
                             }`}
                         >
@@ -1038,7 +1038,7 @@ export const FAQSection = () => (
             </div>
             <div className="mt-10 space-y-4">
                 {faqs.map(({ key, question, answer }) => (
-                    <details key={question} className="group rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 p-6">
+                    <details key={question} className="group rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-6">
                         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold text-[#211b16] [&::-webkit-details-marker]:hidden">
                             <LocalizedCopy path={`landing.public.faq.items.${key}.question`} fallback={question} />
                             <ArrowRight size={18} className="shrink-0 transition group-open:rotate-90" />

@@ -399,7 +399,7 @@ export function CommunityShowcaseHero() {
             <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="grid items-center gap-12 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
                     <div>
-                        <div className="mb-4 flex max-w-xl items-center gap-3 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/88 px-3 py-2.5 shadow-sm sm:mb-5 sm:px-4 sm:py-3">
+                        <div className="mb-4 flex max-w-xl items-center gap-3 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/90 px-3 py-2.5 shadow-sm sm:mb-5 sm:px-4 sm:py-3">
                             <div className="flex -space-x-3" aria-hidden="true">
                                 {heroStoryAvatars.map(({ label, src, fallback, tone }) => (
                                     <span
@@ -430,7 +430,7 @@ export function CommunityShowcaseHero() {
                             {t('landing.community_showcase.hero.title')}
                         </h1>
 
-                        <div className="mt-5 max-w-2xl rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/78 p-4 shadow-sm shadow-[#8b5a16]/5 sm:mt-7 sm:p-5">
+                        <div className="mt-5 max-w-2xl rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/80 p-4 shadow-sm shadow-[#8b5a16]/5 sm:mt-7 sm:p-5">
                             <p className="text-base font-medium leading-7 text-[#665a4a] sm:text-[17px] sm:leading-8">
                                 {t('landing.community_showcase.hero.body')}
                             </p>
@@ -453,7 +453,7 @@ export function CommunityShowcaseHero() {
 
                         <div className="mt-8 hidden gap-3 xl:grid xl:grid-cols-3">
                             {trustSignalKeys.map((signal) => (
-                                <div key={signal} className="flex items-start gap-2 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/78 p-3 text-sm font-bold text-[#665a4a] shadow-sm">
+                                <div key={signal} className="flex items-start gap-2 rounded-xl border border-[#e4d3bc] bg-[#fffaf1]/80 p-3 text-sm font-bold text-[#665a4a] shadow-sm">
                                     <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-[#137245]" />
                                     <span>{t(`landing.community_showcase.trust.${signal}`)}</span>
                                 </div>

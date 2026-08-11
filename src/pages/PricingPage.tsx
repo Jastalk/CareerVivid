@@ -267,7 +267,7 @@ const PricingPage: React.FC = () => {
                     </div>
                 )}
 
-                <section id="plans" className="relative border-y border-[#e4d3bc] bg-[#fffaf1]/72 py-14 dark:border-[#37332d] dark:bg-[#262522]/60">
+                <section id="plans" className="relative border-y border-[#e4d3bc] bg-[#fffaf1]/70 py-14 dark:border-[#37332d] dark:bg-[#262522]/60">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-9 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                             <div>

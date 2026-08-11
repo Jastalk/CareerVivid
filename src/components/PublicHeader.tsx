@@ -220,7 +220,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
         <header className={`fixed top-0 left-0 right-0 z-40 transition-colors duration-300 ${isBrutalist
             ? 'bg-white border-b-4 border-black'
             : isEditorial
-                ? 'border-b border-[#e4d8c5] bg-[#f7f1e7]/90 backdrop-blur-xl dark:border-[#33312d] dark:bg-[#1f1f1d]/92'
+                ? 'border-b border-[#e4d8c5] bg-[#f7f1e7]/90 backdrop-blur-xl dark:border-[#33312d] dark:bg-[#1f1f1d]/90'
                 : 'bg-white/80 dark:bg-gray-950/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800'
             }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
