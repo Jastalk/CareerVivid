@@ -722,6 +722,66 @@
     color: #caa26c;
   }
 
+  /*
+   * Panels that stay light in dark mode keep their dark ink.
+   *
+   * The fallbacks above assume dark mode means every surface is dark. That is
+   * true of the app shell and false of the marketing pages, which deliberately
+   * keep paper-coloured cards — pricing tiers, story cards, the product-tour
+   * mockups — in both themes. On those the fallback flipped the ink light while
+   * the card stayed light: measured at 1.07:1 across 87 elements on /product,
+   * which is text you cannot see at all.
+   *
+   * Keyed on the surface rather than on a class someone has to remember to add.
+   * A new light panel only has to name its background here; nothing inside it
+   * needs marking, and the ink stays correct by construction.
+   *
+   * Whole tokens via `~=`, so an opacity variant is its own entry — plain
+   * `bg-[#fffaf1]` IS repainted dark above and must not appear in this list,
+   * while `bg-[#fffaf1]/90` is not repainted and must.
+   *
+   * Same (0,1,1) specificity as the fallbacks it corrects, placed after them so
+   * source order decides. Any component naming its own colour still wins.
+   */
+  html.dark :where(
+    [class~="bg-[#fffaf1]/90"], [class~="bg-[#fffaf1]/80"],
+    [class~="bg-[#f9efe0]/70"], [class~="bg-[#f9efe0]/80"],
+    [class~="bg-[#f3f2ff]"], [class~="bg-[#f7fff8]"], [class~="bg-[#fff7e8]"],
+    [class~="bg-[#eef7ee]"], [class~="bg-[#fdf3e3]"], [class~="bg-[#eef4ff]"],
+    [class~="bg-[#fff4cc]"], [class~="bg-[#eef2f7]"],
+    [class~="dark:bg-[#f4f1e9]"],
+    [class~="bg-white/70"], [class~="bg-white/80"], [class~="bg-white/90"],
+    [class~="bg-emerald-50"], [class~="bg-amber-400"]
+  ) :where([class~="text-[#211b16]"], [class~="text-black"], [class~="text-gray-950"], [class~="text-gray-900"], [class~="text-gray-800"]) {
+    color: #211b16;
+  }
+
+  html.dark :where(
+    [class~="bg-[#fffaf1]/90"], [class~="bg-[#fffaf1]/80"],
+    [class~="bg-[#f9efe0]/70"], [class~="bg-[#f9efe0]/80"],
+    [class~="bg-[#f3f2ff]"], [class~="bg-[#f7fff8]"], [class~="bg-[#fff7e8]"],
+    [class~="bg-[#eef7ee]"], [class~="bg-[#fdf3e3]"], [class~="bg-[#eef4ff]"],
+    [class~="bg-[#fff4cc]"], [class~="bg-[#eef2f7]"],
+    [class~="dark:bg-[#f4f1e9]"],
+    [class~="bg-white/70"], [class~="bg-white/80"], [class~="bg-white/90"],
+    [class~="bg-emerald-50"], [class~="bg-amber-400"]
+  ) :where([class~="text-[#665a4a]"], [class~="text-[#7d6e5e]"], [class~="text-gray-700"], [class~="text-gray-600"], [class~="text-gray-500"]) {
+    color: #665a4a;
+  }
+
+  html.dark :where(
+    [class~="bg-[#fffaf1]/90"], [class~="bg-[#fffaf1]/80"],
+    [class~="bg-[#f9efe0]/70"], [class~="bg-[#f9efe0]/80"],
+    [class~="bg-[#f3f2ff]"], [class~="bg-[#f7fff8]"], [class~="bg-[#fff7e8]"],
+    [class~="bg-[#eef7ee]"], [class~="bg-[#fdf3e3]"], [class~="bg-[#eef4ff]"],
+    [class~="bg-[#fff4cc]"], [class~="bg-[#eef2f7]"],
+    [class~="dark:bg-[#f4f1e9]"],
+    [class~="bg-white/70"], [class~="bg-white/80"], [class~="bg-white/90"],
+    [class~="bg-emerald-50"], [class~="bg-amber-400"]
+  ) :where([class~="text-[#9a651f]"], [class~="text-[#a97935]"], [class~="text-[#8b5a16]"]) {
+    color: #8b5a16;
+  }
+
   html.dark :where(:not(.cv-resume-document, .cv-resume-document *)):where([class~="border-black"]) {
     border-color: #aaa39a;
   }
