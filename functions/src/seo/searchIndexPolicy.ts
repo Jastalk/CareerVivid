@@ -16,6 +16,15 @@ export type SearchPageSection = {
     heading: string;
     body?: string;
     bullets?: string[];
+    /**
+     * Real anchors inside a section.
+     *
+     * A hub page is only a hub if it links onward. /interview-studio sits above
+     * 301 company guides, and naming them in a bullet is a keyword list;
+     * linking them is what lets a crawler reach the pages that answer
+     * "[company] interview questions" and passes this page's authority to them.
+     */
+    links?: Array<{ href: string; label: string }>;
 };
 
 /**
@@ -102,18 +111,61 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         priority: "0.9",
         includeInSitemap: true,
     },
+    /*
+     * The hub above 301 company guides.
+     *
+     * Built for "[company] interview questions" — the highest-volume query in
+     * this category — which is why every company here is a LINK to its
+     * /quest/{slug} page rather than a name in a bullet list. Naming them is a
+     * keyword list; linking them is what lets a crawler reach the 301 pages
+     * that actually answer the query, and passes this page's authority to them.
+     */
     {
         path: "/interview-studio",
-        title: "Company Interview Practice | CareerVivid",
-        description: "Browse company-specific interview guides and practice coding, system design, behavioral, and recruiter-screen stages.",
+        title: "Company Interview Questions & Practice | CareerVivid",
+        description: "Real interview questions from candidates who interviewed at 301 companies, including Google, Meta, OpenAI and Amazon — then practise the round and get a scored report.",
         heading: "Practice the interview loop before the real one",
-        summary: "Explore company-specific interview guides, then practice the stages that match your target role.",
+        summary: "Every question here came from someone who actually sat the interview. Pick a company, pick the round you are facing, and practise it with feedback that quotes your own answers back.",
         changefreq: "weekly",
         priority: "0.9",
         includeInSitemap: true,
         sections: [
             {
-                heading: "Practice the round you are actually facing",
+                heading: "Questions from people who were in the room",
+                body: "These are not invented, and they are not scraped from a generic question bank. They were reported by candidates who interviewed at these companies, which is why they read like what a specific team actually asks rather than what an interview is supposed to sound like.",
+            },
+            {
+                heading: "Interview questions by company",
+                body: "301 companies have a guide. Each one lists the rounds that company runs, the questions reported at each round, and opens straight into practice.",
+                links: [
+                    { href: "/quest/google", label: "Google" },
+                    { href: "/quest/meta-facebook", label: "Meta" },
+                    { href: "/quest/openai", label: "OpenAI" },
+                    { href: "/quest/anthropic", label: "Anthropic" },
+                    { href: "/quest/amazon", label: "Amazon" },
+                    { href: "/quest/apple", label: "Apple" },
+                    { href: "/quest/microsoft", label: "Microsoft" },
+                    { href: "/quest/netflix", label: "Netflix" },
+                    { href: "/quest/stripe", label: "Stripe" },
+                    { href: "/quest/nvidia", label: "Nvidia" },
+                    { href: "/quest/databricks", label: "Databricks" },
+                    { href: "/quest/airbnb", label: "Airbnb" },
+                    { href: "/quest/figma", label: "Figma" },
+                    { href: "/quest/uber", label: "Uber" },
+                    { href: "/quest/coinbase", label: "Coinbase" },
+                ],
+            },
+            {
+                heading: "Learn the material the question is testing",
+                body: "A question you cannot answer is usually a topic you have not learned, not a phrasing problem. Each round links to the course that covers what it tests, so you can go and learn it rather than re-reading the answer.",
+                links: [
+                    { href: "/learning/coding-interview-patterns", label: "Coding interview patterns" },
+                    { href: "/learning/system-design-interview", label: "System design" },
+                    { href: "/learning/ai-agent-curriculum", label: "AI agents" },
+                ],
+            },
+            {
+                heading: "Practise the round you are actually facing",
                 body: "Interviews are not one event. Each stage is scored on its own, against what that company asks at that stage.",
                 bullets: [
                     "Recruiter screen — talking about your background without rambling.",
@@ -123,18 +175,18 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
                 ],
             },
             {
-                heading: "Guides for 301 companies",
-                body: "Every guide is built from questions those companies actually ask, including Amazon, Google, Meta, Stripe, Netflix, Airbnb, Databricks and Datadog. Pick a company, pick a stage, and practise that exact loop.",
-            },
-            {
-                heading: "You get a scored report, not a vibe",
-                body: "Every round ends with a report scoring communication, problem solving, experience and role alignment, with the transcript attached. It quotes what you actually said and names what a stronger answer adds — and the next round compares against your last score, so you can see whether you improved.",
+                heading: "See whether you actually improved",
+                body: "Every round ends with a report scoring communication, problem solving, relevant experience and role alignment, with the transcript attached. It quotes what you said and names what a stronger answer adds. Practise the same round again and the next report compares against your last score — 78 to 83, and which dimension the gain came from — so improvement is something you can see rather than something you hope for.",
             },
         ],
         faqs: [
             {
+                question: "Where do CareerVivid's interview questions come from?",
+                answer: "They were reported by candidates who interviewed at those companies. That is why they are specific to a company and a round, rather than generic questions relabelled per employer.",
+            },
+            {
                 question: "Can I practise interviews for a specific company?",
-                answer: "Yes. CareerVivid has interview guides for 301 companies, each built from the questions that company asks, and you can open a practice round on any stage of their loop.",
+                answer: "Yes. 301 companies have a guide — including Google, Meta, OpenAI, Anthropic, Amazon, Apple, Microsoft, Netflix and Stripe — and you can open a practice round on any stage of their loop.",
             },
             {
                 question: "Are the mock interviews voice or text?",
@@ -144,10 +196,15 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
                 question: "Do I get feedback after a mock interview?",
                 answer: "Yes. Each round produces a scored report covering communication, problem solving, relevant experience and role alignment, along with the full transcript and specific notes on what would have made each answer stronger.",
             },
+            {
+                question: "How do I know I am getting better?",
+                answer: "Scores are kept per session, so practising the same round again shows your new score against your previous one and which dimension improved. Progress is measured, not asserted.",
+            },
         ],
         links: [
             { href: "/learning", label: "Browse interview courses" },
             { href: "/resume-builder", label: "Build a resume for these roles" },
+            { href: "/jobs", label: "Find roles to practise for" },
         ],
     },
     {

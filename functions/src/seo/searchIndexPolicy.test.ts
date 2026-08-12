@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SEARCH_PAGES, getSearchPage, type SearchPageDefinition } from './searchIndexPolicy';
+import { QUEST_ROUTE_SLUGS } from './questRoutes.generated';
 
 /*
  * Measured against Googlebot before this existed:
@@ -114,5 +115,57 @@ describe('nothing behind a login wall is advertised to search engines', () => {
         const jobs = getSearchPage('/jobs');
         expect(jobs?.title).toContain('Job Market');
         expect(jobs?.includeInSitemap).toBe(true);
+    });
+});
+
+/*
+ * /interview-studio is the hub above 301 company guides, built for
+ * "[company] interview questions". A hub that names companies without linking
+ * them is a keyword list — the links are the entire point, because they are
+ * how a crawler reaches the pages that answer the query.
+ */
+describe('the interview hub links onward', () => {
+    const hub = page('/interview-studio');
+
+    it('links every named company to its own guide', () => {
+        const companyLinks = (hub.sections ?? []).flatMap((s) => s.links ?? [])
+            .filter((l) => l.href.startsWith('/quest/'));
+
+        expect(companyLinks.length).toBeGreaterThanOrEqual(12);
+        for (const link of companyLinks) {
+            expect(link.href, link.label).toMatch(/^\/quest\/[a-z0-9-]+$/);
+        }
+    });
+
+    /*
+     * Hand-written slugs against a generated list. "meta" and "facebook" are
+     * both wrong — the real slug is "meta-facebook" — and a hub page whose
+     * links 404 is worse than one that links nothing.
+     */
+    it('points every company link at a guide that exists', () => {
+        const slugs = new Set(QUEST_ROUTE_SLUGS);
+        const links = (hub.sections ?? []).flatMap((s) => s.links ?? [])
+            .filter((l) => l.href.startsWith('/quest/'));
+
+        for (const link of links) {
+            expect(slugs.has(link.href.replace('/quest/', '')), `${link.label} -> ${link.href}`).toBe(true);
+        }
+    });
+
+    it('names the companies people actually search for', () => {
+        const labels = (hub.sections ?? []).flatMap((s) => (s.links ?? []).map((l) => l.label));
+        for (const name of ['Google', 'Meta', 'OpenAI', 'Anthropic', 'Amazon']) {
+            expect(labels, name).toContain(name);
+        }
+    });
+
+    /*
+     * The provenance claim is the strongest thing this page says and the one a
+     * competitor would challenge, so it is stated once, plainly, and the FAQ
+     * answers it directly rather than implying it.
+     */
+    it('says where the questions came from', () => {
+        expect(JSON.stringify(hub)).toContain('reported by candidates who interviewed');
+        expect(hub.faqs?.some((f) => /where do .*questions come from/i.test(f.question))).toBe(true);
     });
 });

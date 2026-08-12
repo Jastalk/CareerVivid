@@ -127,9 +127,16 @@ function renderSections(page: SearchPageDefinition): string {
         const body = section.body
             ? `<p style="line-height:1.7;color:#333;margin:0;">${esc(section.body)}</p>`
             : "";
+        const links = (section.links || []).length
+            ? `<p style="line-height:2;margin:12px 0 0;">${
+                (section.links || []).map(({ href, label }) =>
+                    `<a href="${BASE_URL}${href}" style="color:#4f46e5;font-weight:700;margin-right:14px;">${esc(label)}</a>`,
+                ).join("")
+            }</p>`
+            : "";
         return `<section style="margin-top:36px;">
         <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 10px;">${esc(section.heading)}</h2>
-        ${body}${bullets}
+        ${body}${bullets}${links}
       </section>`;
     }).join("");
 }
