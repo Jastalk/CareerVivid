@@ -61,15 +61,36 @@ export type SearchPageDefinition = {
  * content and self-referencing canonicals.
  */
 export const SEARCH_PAGES: SearchPageDefinition[] = [
+    /*
+     * Keyword-first, brand last.
+     *
+     * The result already prints "CareerVivid" twice above the title — in the
+     * site-name line and the URL — so opening the title with it spent the most
+     * weighted position on a word nobody searches yet. The first real word was
+     * "Courses", the least-prioritised product.
+     *
+     * The homepage also no longer has to carry everything. /resume-builder,
+     * /interview-studio and /jobs each own their query now, so this names the
+     * category and lets the children take the specifics.
+     *
+     * "Free" leads because it is the highest-intent modifier in this category
+     * and the claim holds: 100 credits a month, all 36 templates, unlimited PDF
+     * export, no card. Kept under 60 characters so Google does not truncate it.
+     */
     {
         path: "/",
-        title: "CareerVivid | Courses, Interview Prep & Tailored Resumes",
-        description: "Build job-ready skills with interactive courses, prepare for interviews at hundreds of companies, and tailor your resume to each role.",
+        title: "Free Resume Builder, Mock Interviews & Jobs | CareerVivid",
+        description: "Build a resume free with 36 templates, practise real interview questions from 301 companies, and browse verified open jobs. No card required.",
         heading: "Build job-ready skills and prepare for your next interview",
         summary: "CareerVivid combines interactive learning, company interview practice, resume tailoring, and job-search tools in one workspace.",
         changefreq: "daily",
         priority: "1.0",
         includeInSitemap: true,
+        links: [
+            { href: "/resume-builder", label: "Build a resume free" },
+            { href: "/interview-studio", label: "Practice company interviews" },
+            { href: "/jobs", label: "Browse open jobs" },
+        ],
     },
     {
         path: "/learning",
