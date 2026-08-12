@@ -621,7 +621,7 @@ async function handleJobsList(pageParam: string | undefined): Promise<string> {
     const heading = pageNumber > 1 ? `${page.heading} — page ${pageNumber}` : page.heading;
     const title = pageNumber > 1 ? `Open Jobs — Page ${pageNumber} | CareerVivid` : page.title;
 
-    const structuredData = {
+    const collectionPage = {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
         name: title,
@@ -629,6 +629,31 @@ async function handleJobsList(pageParam: string | undefined): Promise<string> {
         url: canonicalUrl,
         publisher: { "@type": "Organization", name: "CareerVivid", logo: { "@type": "ImageObject", url: LOGO_URL } },
     };
+
+    /*
+     * The FAQ answers are rendered below by renderFaqs, so the markup describes
+     * content that is actually on the page. Building structuredData by hand
+     * here meant this was the one page that showed the questions and claimed
+     * nothing for them — every other page emits both.
+     *
+     * Only page one: the same questions repeated on /jobs/2 would be duplicate
+     * markup competing with itself for one rich result.
+     */
+    const structuredData = page.faqs?.length && pageNumber === 1
+        ? [
+            collectionPage,
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "@id": `${canonicalUrl}#faq`,
+                mainEntity: page.faqs.map((faq) => ({
+                    "@type": "Question",
+                    name: faq.question,
+                    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+                })),
+            },
+        ]
+        : collectionPage;
 
     const bodyContent = `
         <nav aria-label="Breadcrumb" style="font-size:0.9rem;margin-bottom:20px;"><a href="${BASE_URL}/" style="color:#4f46e5;">CareerVivid</a></nav>
