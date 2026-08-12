@@ -1,0 +1,90 @@
+import { describe, expect, it } from 'vitest';
+import { SEARCH_PAGES, getSearchPage, type SearchPageDefinition } from './searchIndexPolicy';
+
+/*
+ * Measured against Googlebot before this existed:
+ *
+ *   /interview-studio   58 words
+ *   /pricing            58 words   — containing no prices
+ *   /job-market         46 words
+ *   /product            54 words
+ *
+ * Each served an H1, one sentence, and a link pointing back at itself. They
+ * were indexed and had nothing to rank for, which is the whole reason Google's
+ * AI Overview described CareerVivid from the Chrome Web Store listing instead
+ * of from any page CareerVivid owns.
+ */
+
+/** Every word a crawler would read on the page. */
+const wordsOn = (page: SearchPageDefinition): number => {
+    const text = [
+        page.heading,
+        page.summary,
+        ...(page.sections ?? []).flatMap((s) => [s.heading, s.body ?? '', ...(s.bullets ?? [])]),
+        ...(page.faqs ?? []).flatMap((f) => [f.question, f.answer]),
+    ].join(' ');
+    return text.split(/\s+/).filter(Boolean).length;
+};
+
+/** The pages that have to answer a commercial query, not just exist. */
+const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/resume-templates', '/jobs/list'];
+
+const page = (path: string): SearchPageDefinition => {
+    const found = getSearchPage(path);
+    if (!found) throw new Error(`${path} is missing from SEARCH_PAGES`);
+    return found;
+};
+
+describe('crawler-facing content', () => {
+    it.each(MONEY_PAGES)('%s says enough to rank for anything', (path) => {
+        expect(wordsOn(page(path))).toBeGreaterThan(250);
+    });
+
+    it.each(MONEY_PAGES)('%s answers real questions', (path) => {
+        expect(page(path).faqs?.length ?? 0).toBeGreaterThanOrEqual(3);
+    });
+
+    /*
+     * Every link used to point at the page itself, so crawlers found no way
+     * deeper into the site and no page passed authority to any other.
+     */
+    it.each(MONEY_PAGES)('%s links somewhere other than itself', (path) => {
+        const links = page(path).links ?? [];
+        expect(links.length).toBeGreaterThan(0);
+        expect(links.every((l) => l.href !== path)).toBe(true);
+    });
+
+    it('has no duplicate paths', () => {
+        const paths = SEARCH_PAGES.map((p) => p.path);
+        expect(new Set(paths).size).toBe(paths.length);
+    });
+
+    it('never writes a title Google will truncate', () => {
+        for (const p of SEARCH_PAGES) {
+            expect(p.title.length, `${p.path} title`).toBeLessThanOrEqual(65);
+            expect(p.description.length, `${p.path} description`).toBeLessThanOrEqual(200);
+        }
+    });
+
+    /*
+     * Auth screens are excluded on purpose. Nobody searches for a login form,
+     * and padding its description to hit a number would be writing for the test
+     * rather than for a reader.
+     */
+    it('gives every page that should attract search traffic a real description', () => {
+        const utility = new Set(['/signin', '/signup']);
+        for (const p of SEARCH_PAGES.filter((x) => !utility.has(x.path))) {
+            expect(p.description.length, `${p.path} description`).toBeGreaterThan(70);
+        }
+    });
+
+    it('points every internal link at a path that exists', () => {
+        // Routes that are real pages but deliberately not in SEARCH_PAGES.
+        const known = new Set([...SEARCH_PAGES.map((p) => p.path), '/learning', '/community']);
+        for (const p of SEARCH_PAGES) {
+            for (const link of p.links ?? []) {
+                expect(known.has(link.href), `${p.path} -> ${link.href}`).toBe(true);
+            }
+        }
+    });
+});

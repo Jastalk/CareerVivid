@@ -4,6 +4,7 @@ import { isbot } from "isbot";
 import { algoliasearch } from "algoliasearch";
 import { getLearningSeoPage, isLearningPageFree } from "./learningSeo";
 import { getSearchPage, SEARCH_ORIGIN, SearchPageDefinition } from "./searchIndexPolicy";
+import { MAX_PUBLIC_JOB_PAGES, readPublicJobs } from "../publicJobFeed";
 
 const db = admin.firestore();
 
@@ -71,7 +72,7 @@ const buildHtml = ({
     title, description, canonicalUrl, imageUrl, structuredData, bodyContent, siteSuffix, indexable = true
 }: {
     title: string; description: string; canonicalUrl: string; imageUrl: string;
-    structuredData: object; bodyContent: string; siteSuffix: string; indexable?: boolean;
+    structuredData: object | object[]; bodyContent: string; siteSuffix: string; indexable?: boolean;
 }) => `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,13 +116,44 @@ const buildHtml = ({
 
 // ── Route handlers ────────────────────────────────────────────────────────────
 
+/** Sections and FAQs as real, readable HTML — see SearchPageSection. */
+function renderSections(page: SearchPageDefinition): string {
+    return (page.sections || []).map((section) => {
+        const bullets = (section.bullets || []).length
+            ? `<ul style="padding-left:20px;line-height:1.8;margin:12px 0 0;">${
+                (section.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("")
+            }</ul>`
+            : "";
+        const body = section.body
+            ? `<p style="line-height:1.7;color:#333;margin:0;">${esc(section.body)}</p>`
+            : "";
+        return `<section style="margin-top:36px;">
+        <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 10px;">${esc(section.heading)}</h2>
+        ${body}${bullets}
+      </section>`;
+    }).join("");
+}
+
+function renderFaqs(page: SearchPageDefinition): string {
+    if (!page.faqs?.length) return "";
+    const items = page.faqs.map((faq) => `<div style="margin-top:20px;">
+        <h3 style="font-size:1.05rem;font-weight:700;margin:0 0 6px;">${esc(faq.question)}</h3>
+        <p style="line-height:1.7;color:#333;margin:0;">${esc(faq.answer)}</p>
+      </div>`).join("");
+    return `<section style="margin-top:40px;">
+        <h2 style="font-size:1.4rem;font-weight:700;margin:0;">Frequently asked questions</h2>
+        ${items}
+      </section>`;
+}
+
 function handleStaticPage(page: SearchPageDefinition): string {
     const canonicalUrl = `${BASE_URL}${page.path === "/" ? "/" : page.path}`;
     const indexable = page.indexable !== false;
     const links = (page.links || []).map(({ href, label }) =>
         `<li><a href="${BASE_URL}${href}" style="color:#4f46e5;font-weight:700;">${esc(label)}</a></li>`
     ).join("");
-    const structuredData = {
+
+    const webPage = {
         "@context": "https://schema.org",
         "@type": "WebPage",
         "@id": `${canonicalUrl}#webpage`,
@@ -130,10 +162,35 @@ function handleStaticPage(page: SearchPageDefinition): string {
         url: canonicalUrl,
         isPartOf: { "@type": "WebSite", name: "CareerVivid", url: `${BASE_URL}/` },
     };
+
+    /*
+     * FAQPage markup is only emitted alongside the visible answers rendered
+     * below. Google requires the answer be on the page for the rich result to
+     * be eligible, and schema describing content that is not there is exactly
+     * what earns a structured-data manual action.
+     */
+    const structuredData = page.faqs?.length
+        ? [
+            webPage,
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "@id": `${canonicalUrl}#faq`,
+                mainEntity: page.faqs.map((faq) => ({
+                    "@type": "Question",
+                    name: faq.question,
+                    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+                })),
+            },
+        ]
+        : webPage;
+
     const bodyContent = `
         <nav aria-label="Breadcrumb" style="font-size:0.9rem;margin-bottom:20px;"><a href="${BASE_URL}/" style="color:#4f46e5;">CareerVivid</a></nav>
         <h1 style="font-size:2.2rem;font-weight:800;line-height:1.2;margin:0 0 16px;">${esc(page.heading)}</h1>
         <p style="font-size:1.1rem;color:#555;line-height:1.7;margin:0;">${esc(page.summary)}</p>
+        ${renderSections(page)}
+        ${renderFaqs(page)}
         ${links ? `<ul style="padding-left:20px;line-height:1.9;margin-top:28px;">${links}</ul>` : ""}
         <p style="margin-top:32px;"><a href="${canonicalUrl}" style="color:#4f46e5;font-weight:700;">Open ${esc(page.heading)} on CareerVivid</a></p>`;
 
@@ -500,6 +557,96 @@ async function handleCommunityFeed(): Promise<string> {
     return buildHtml({ title, description, canonicalUrl, imageUrl: DEFAULT_OG_IMAGE, structuredData, bodyContent, siteSuffix: "CareerVivid" });
 }
 
+/**
+ * The public job list, with the actual jobs in the HTML.
+ *
+ * A client-fetched list is invisible: the crawler receives an empty grid and a
+ * spinner, so the page ranks on its boilerplate and nothing else. The listings
+ * are read here, server-side, from the SAME function the browser calls — if the
+ * two ever diverged, the HTML shown to Google would not be the page a person
+ * gets, which is cloaking whether or not anyone meant it that way.
+ *
+ * Deliberately no JobPosting structured data. These listings are collected from
+ * employers' own boards, and Google requires the site claiming JobPosting to be
+ * the authoritative source or to have permission. Marking them up would put a
+ * manual action at risk for traffic that is not ours to claim. The page still
+ * ranks as an ordinary results page.
+ */
+async function handleJobsList(pageParam: string | undefined): Promise<string> {
+    const page = getSearchPage("/jobs/list");
+    if (!page) throw new Error("not_found");
+
+    const requested = Number(pageParam);
+    const pageNumber = Number.isFinite(requested) && requested >= 1
+        ? Math.min(Math.floor(requested), MAX_PUBLIC_JOB_PAGES)
+        : 1;
+
+    const { jobs, totalPages } = await readPublicJobs(pageNumber);
+
+    // Page one lives at /jobs/list, never /jobs/list/1 — two URLs with the same
+    // results is a duplicate Google has to choose between.
+    const pathFor = (n: number) => (n <= 1 ? "/jobs/list" : `/jobs/list/${n}`);
+    const canonicalUrl = `${BASE_URL}${pathFor(pageNumber)}`;
+
+    const listItems = jobs.length
+        ? jobs.map((job) => {
+            const facts = [job.location, job.workModel, job.jobType, job.seniority, job.salary]
+                .filter(Boolean).join(" · ");
+            return `<li style="padding:16px 0;border-bottom:1px solid #eee;">
+        <h3 style="margin:0 0 4px;font-size:1.05rem;font-weight:700;">${esc(job.title)}</h3>
+        <p style="margin:0;color:#555;font-weight:600;">${esc(job.company)}</p>
+        ${facts ? `<p style="margin:4px 0 0;color:#777;font-size:0.9rem;">${esc(facts)}</p>` : ""}
+        ${job.description ? `<p style="margin:8px 0 0;color:#333;line-height:1.6;">${esc(job.description)}</p>` : ""}
+      </li>`;
+        }).join("")
+        : `<li style="color:#888;padding:16px 0;">No open roles on this page right now.</li>`;
+
+    const pager = totalPages > 1
+        ? `<nav aria-label="Job list pages" style="margin-top:28px;">${
+            Array.from({ length: totalPages }, (_, i) => i + 1)
+                .map((n) => n === pageNumber
+                    ? `<span style="margin-right:10px;font-weight:700;">${n}</span>`
+                    : `<a href="${BASE_URL}${pathFor(n)}" style="margin-right:10px;color:#4f46e5;font-weight:700;">${n}</a>`)
+                .join("")
+        }</nav>`
+        : "";
+
+    const heading = pageNumber > 1 ? `${page.heading} — page ${pageNumber}` : page.heading;
+    const title = pageNumber > 1 ? `Open Jobs — Page ${pageNumber} | CareerVivid` : page.title;
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: title,
+        description: page.description,
+        url: canonicalUrl,
+        publisher: { "@type": "Organization", name: "CareerVivid", logo: { "@type": "ImageObject", url: LOGO_URL } },
+    };
+
+    const bodyContent = `
+        <nav aria-label="Breadcrumb" style="font-size:0.9rem;margin-bottom:20px;"><a href="${BASE_URL}/" style="color:#4f46e5;">CareerVivid</a></nav>
+        <h1 style="font-size:2.2rem;font-weight:800;line-height:1.2;margin:0 0 16px;">${esc(heading)}</h1>
+        <p style="font-size:1.1rem;color:#555;line-height:1.7;margin:0;">${esc(page.summary)}</p>
+        <ul style="list-style:none;padding:0;margin:28px 0 0;">${listItems}</ul>
+        ${pager}
+        ${renderSections(page)}
+        ${renderFaqs(page)}
+        ${(page.links || []).length ? `<ul style="padding-left:20px;line-height:1.9;margin-top:28px;">${
+            (page.links || []).map(({ href, label }) =>
+                `<li><a href="${BASE_URL}${href}" style="color:#4f46e5;font-weight:700;">${esc(label)}</a></li>`).join("")
+        }</ul>` : ""}`;
+
+    return buildHtml({
+        title,
+        description: page.description,
+        canonicalUrl,
+        imageUrl: DEFAULT_OG_IMAGE,
+        structuredData,
+        bodyContent,
+        siteSuffix: "",
+    });
+}
+
 // ── Main Function ─────────────────────────────────────────────────────────────
 export const renderSeoContent = onRequest(
     {
@@ -560,6 +707,10 @@ export const renderSeoContent = onRequest(
                 html = await handlePortfolio(routeParts[1]);
             } else if (routeType === "whiteboard") {
                 html = await handleWhiteboard(routeParts.slice(1));
+            // /jobs/list and /jobs/list/{n}. Matched before getSearchPage so the
+            // numbered pages resolve too — only page one is in SEARCH_PAGES.
+            } else if (routeType === "jobs" && routeParts[1] === "list") {
+                html = await handleJobsList(routeParts[2]);
             } else if (language === "en") {
                 const page = getSearchPage(path);
                 if (!page) {

@@ -211,7 +211,8 @@ const PricingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#f7f1e7] text-[#211b16] selection:bg-[#d7b27a]/40 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
             <Helmet>
-                <title>Pricing | CareerVivid</title>
+                {/* The app shell appends "| CareerVivid" via titleTemplate. */}
+                <title>Pricing</title>
                 <meta
                     name="description"
                     content="Start CareerVivid for free, then upgrade when you need more AI credits for resumes, job tracking, interview prep, and job-search workflows."
