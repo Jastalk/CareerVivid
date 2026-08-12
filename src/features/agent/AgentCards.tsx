@@ -8,7 +8,9 @@
  */
 
 import React from 'react';
-import { ArrowRight, ArrowUpRight, Building2, ClipboardCheck, Layers, Sparkles } from 'lucide-react';
+import React2 from 'react';
+import { ArrowRight, ArrowUpRight, Building2, Check, ClipboardCheck, Layers, Sparkles, Wrench, X } from 'lucide-react';
+import { applyCodeEdit, canApplyCodeEdits } from './codeEditBus';
 import { navigate } from '../../utils/navigation';
 import type { AgentCard } from './useCareerAgent';
 
@@ -32,6 +34,110 @@ interface GuideHit {
     questionCounts: Record<string, number>;
     totalQuestions: number;
 }
+
+
+/**
+ * An edit the agent wants to make to the open editor, awaiting approval.
+ *
+ * Rendered as a real diff rather than prose because the user is approving an
+ * overwrite of their own work, and "I fixed line 5" is not enough to consent
+ * to. Only changed lines are shown — a 40-line function with one broken
+ * bracket should not make them read 40 lines.
+ *
+ * `syntax` and `logic` are labelled differently on purpose: one cannot change
+ * what their code does and the other is the whole point of the exercise, and
+ * the user deserves to know which they are about to accept.
+ */
+const CodeEditProposal: React.FC<{ card: AgentCard }> = ({ card }) => {
+    const nextCode = String(card.nextCode ?? '');
+    const baseCode = String(card.baseCode ?? '');
+    const editKind = card.editKind === 'logic' ? 'logic' : 'syntax';
+    const [state, setState] = React2.useState<'pending' | 'applied' | 'dismissed'>('pending');
+    const [failure, setFailure] = React2.useState('');
+
+    if (!nextCode) return null;
+
+    const before = baseCode.split('\n');
+    const after = nextCode.split('\n');
+    const changed: Array<{ line: number; from?: string; to?: string }> = [];
+    for (let i = 0; i < Math.max(before.length, after.length); i++) {
+        if (before[i] !== after[i]) changed.push({ line: i + 1, from: before[i], to: after[i] });
+    }
+
+    const apply = () => {
+        const result = applyCodeEdit({
+            nextCode,
+            baseCode,
+            language: String(card.language ?? 'javascript'),
+            kind: editKind,
+            summary: String(card.summary ?? ''),
+        });
+        if (result.applied) setState('applied');
+        else setFailure(result.reason ?? 'That edit could not be applied.');
+    };
+
+    return (
+        <div className={`${shell} overflow-hidden p-4`}>
+            <div className="mb-2 flex items-center gap-2">
+                <Wrench className="h-3.5 w-3.5 shrink-0 text-violet-500" />
+                <span className="text-xs font-black uppercase tracking-wide text-[var(--cv-text-muted)]">
+                    {editKind === 'syntax' ? 'Makes your code run' : 'Changes what your code does'}
+                </span>
+            </div>
+            <p className="mb-3 text-sm font-semibold text-[var(--cv-text-heading)]">{String(card.summary ?? '')}</p>
+
+            {changed.length > 0 && (
+                <div className="mb-3 overflow-x-auto rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-muted)] p-2.5 font-mono text-[11px] leading-relaxed">
+                    {changed.slice(0, 12).map((c) => (
+                        <div key={c.line}>
+                            {c.from !== undefined && (
+                                <div className="text-red-600 dark:text-red-400">- {c.line}  {c.from}</div>
+                            )}
+                            {c.to !== undefined && (
+                                <div className="text-emerald-700 dark:text-emerald-400">+ {c.line}  {c.to}</div>
+                            )}
+                        </div>
+                    ))}
+                    {changed.length > 12 && (
+                        <div className="pt-1 text-[var(--cv-text-muted)]">…and {changed.length - 12} more lines</div>
+                    )}
+                </div>
+            )}
+
+            {state === 'pending' && !failure && (
+                canApplyCodeEdits() ? (
+                    <div className="flex items-center gap-2">
+                        <button type="button" onClick={apply}
+                            className="cv-design-button-primary inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black">
+                            <Check className="h-3 w-3" />
+                            Apply to my editor
+                        </button>
+                        <button type="button" onClick={() => setState('dismissed')}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--cv-border-subtle)] px-3 py-1.5 text-xs font-bold text-[var(--cv-text-body)]">
+                            <X className="h-3 w-3" />
+                            No thanks
+                        </button>
+                    </div>
+                ) : (
+                    <p className="text-xs text-[var(--cv-text-muted)]">
+                        Open the coding round to apply this.
+                    </p>
+                )
+            )}
+
+            {state === 'applied' && (
+                <p className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                    <Check className="h-3 w-3" />
+                    Applied — use Undo in the editor if you want it back
+                </p>
+            )}
+            {state === 'dismissed' && (
+                <p className="text-xs text-[var(--cv-text-muted)]">Dismissed. Nothing changed.</p>
+            )}
+            {failure && <p className="text-xs font-semibold text-red-600 dark:text-red-400">{failure}</p>}
+        </div>
+    );
+};
 
 const CompanyGuides: React.FC<{ card: AgentCard }> = ({ card }) => {
     const guides = (card.guides ?? []) as GuideHit[];
@@ -224,6 +330,7 @@ export const AgentCards: React.FC<{ cards?: AgentCard[] }> = ({ cards }) => {
                 if (card.kind === 'company_guides') return <CompanyGuides key={i} card={card} />;
                 if (card.kind === 'interview_questions') return <InterviewQuestions key={i} card={card} />;
                 if (card.kind === 'interview_report') return <InterviewReport key={i} card={card} />;
+                if (card.kind === 'code_edit_proposal') return <CodeEditProposal key={i} card={card} />;
                 return null;
             })}
         </>

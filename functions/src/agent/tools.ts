@@ -21,6 +21,7 @@ import {
     getCompanyQuestions,
     openInterviewStage,
     getOpenWorkspace,
+    proposeCodeEdit,
     reviewOpenWorkspace,
     recordPracticeOutcome,
 } from "./interviewTools";
@@ -1072,6 +1073,7 @@ export const REGISTRY: AgentTool[] = [
     getInterviewReport,
     addResumeSkills,
     getOpenWorkspace,
+    proposeCodeEdit,
     reviewOpenWorkspace,
     recordPracticeOutcome,
     recommendLearningPath,

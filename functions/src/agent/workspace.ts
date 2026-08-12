@@ -11,6 +11,10 @@ export interface AgentWorkspace {
     code?: string;
     language?: string;
     testSummary?: { passed: number; total: number };
+    /** Why the buffer will not run, when it will not. */
+    syntaxError?: { message: string; line?: number; column?: number };
+    /** False only for guest practice, which persists nothing. */
+    scored?: boolean;
 }
 
 const str = (value: unknown, max: number): string | undefined =>
@@ -63,5 +67,18 @@ export function sanitizeWorkspace(raw: unknown): AgentWorkspace | null {
                 total: Math.max(0, Number(value.testSummary.total) || 0),
             }
             : undefined,
+        syntaxError: value.syntaxError && typeof value.syntaxError === "object" && value.syntaxError.message
+            ? {
+                message: String(value.syntaxError.message).slice(0, 300),
+                line: Number.isFinite(Number(value.syntaxError.line)) ? Number(value.syntaxError.line) : undefined,
+                column: Number.isFinite(Number(value.syntaxError.column)) ? Number(value.syntaxError.column) : undefined,
+            }
+            : undefined,
+        /*
+         * Defaults to scored. The browser reports this, and a browser can lie —
+         * so the safe direction is "assume something is being measured" and let
+         * only an explicit false open up logic edits.
+         */
+        scored: value.scored === false ? false : true,
     };
 }

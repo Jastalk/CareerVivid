@@ -500,6 +500,79 @@ export const reviewOpenWorkspace: AgentTool = {
 };
 
 /**
+ * Offer to write into the user's editor, for them to approve.
+ *
+ * Everything else the agent writes is a Firestore proposal resolved on the
+ * server. A code buffer is neither on the server nor persisted, so this returns
+ * the edit to the CLIENT, which renders a diff card and applies it to the open
+ * round only if the user says yes. Nothing reaches the editor unapproved.
+ *
+ * The `kind` gate is the whole product decision:
+ *
+ *   syntax — makes the code RUN. Brackets, a misplaced `let`, indentation.
+ *            Never changes behaviour, so it is allowed in every round: being
+ *            stuck on a typo measures nothing about a candidate.
+ *   logic  — changes what the code DOES. That is the thing a scored round is
+ *            measuring, so it is refused there and allowed in practice, where
+ *            the point is to learn rather than to be assessed.
+ *
+ * Enforced here rather than in the prompt because a prompt is a request and
+ * this is a rule. The model is told why it was refused so it can coach instead.
+ */
+export const proposeCodeEdit: AgentTool = {
+    name: "proposeCodeEdit",
+    description:
+        "Offer an edit to the user's open code editor. They see a diff and approve it before anything changes. Use kind 'syntax' for changes that only make the code run — a missing bracket, a malformed for-loop, indentation — and kind 'logic' for anything that changes what the code does. Logic edits are refused in a scored round, so coach those instead. Always send the COMPLETE new buffer, never a fragment.",
+    parameters: {
+        type: "object",
+        properties: {
+            nextCode: { type: "string", description: "The complete file as it should end up. Not a snippet, not a diff." },
+            kind: { type: "string", enum: ["syntax", "logic"], description: "'syntax' only if behaviour is unchanged." },
+            summary: { type: "string", description: "One line the user reads before approving, e.g. \"line 5: for let ( becomes for (let\"." },
+        },
+        required: ["nextCode", "kind", "summary"],
+    },
+    phase: 3,
+    risk: "read",
+    writes: false,
+    validate: (a) => {
+        const nextCode = typeof a?.nextCode === "string" ? a.nextCode : "";
+        if (!nextCode.trim()) throw new Error("nextCode must be the complete new buffer.");
+        if (nextCode.length > 20_000) throw new Error("That buffer is too large to propose as one edit.");
+        const kind = a?.kind === "logic" ? "logic" : "syntax";
+        const summary = String(a?.summary ?? "").trim().slice(0, 200);
+        if (!summary) throw new Error("summary is required — the user reads it before approving.");
+        return { nextCode, kind, summary };
+    },
+    execute: async (ctx, a) => {
+        const workspace = ctx.workspace;
+        if (!workspace || workspace.kind !== "coding") {
+            throw new Error("No coding round is open, so there is no editor to write to.");
+        }
+
+        if (a.kind === "logic" && workspace.scored !== false) {
+            throw new Error(
+                "This round is scored, so you may not write logic into their editor — that is the part being " +
+                "measured. Fix what stops the code running if anything does, then coach the logic: name the " +
+                "decision and the input that breaks what they have, and let them write it.",
+            );
+        }
+
+        // The client applies it only if this still matches their buffer.
+        return {
+            kind: "code_edit_proposal",
+            awaiting: "user_approval",
+            language: workspace.language ?? "javascript",
+            baseCode: workspace.code ?? "",
+            nextCode: a.nextCode,
+            editKind: a.kind,
+            summary: a.summary,
+            note: "A diff card is now on their screen. Say in one sentence what you changed and why, then stop — do not claim it is applied. They have to approve it.",
+        };
+    },
+};
+
+/**
  * Record what a practice round exposed, so the next one starts smarter.
  *
  * This is the compounding part: without it every session begins from zero and

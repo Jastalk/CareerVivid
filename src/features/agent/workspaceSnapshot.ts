@@ -42,6 +42,16 @@ export interface WorkspaceSnapshot {
      * all. It was not being careless — it had no way to know.
      */
     syntaxError?: { message: string; line?: number; column?: number };
+    /**
+     * Whether this round ends in a saved, scored report.
+     *
+     * Gates how much the agent may write. In a scored round it fixes what stops
+     * the code running and nothing else — the algorithm is what is being
+     * measured, and writing it would make the score meaningless. Guest practice
+     * persists nothing, so there is nothing to protect and the agent can teach
+     * by writing.
+     */
+    scored?: boolean;
     updatedAt: number;
 }
 

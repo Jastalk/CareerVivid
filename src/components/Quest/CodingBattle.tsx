@@ -25,6 +25,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import MobileExperienceGate from './MobileExperienceGate';
 import { analyzeCodingSubmission, voiceToCode, VoiceCoachMessage, VoiceToCodeResult } from '../../services/geminiService';
 import { publishWorkspace, clearWorkspace } from '../../features/agent/workspaceSnapshot';
+import { registerCodeEditor, unregisterCodeEditor, type CodeEdit } from '../../features/agent/codeEditBus';
 import { InterviewAnalysis, QuestCodingArtifact, QuestCodingDraft } from '../../types';
 import { saveQuestCodingDraftLocal } from '../../lib/questWorkspacePersistence';
 import {
@@ -348,6 +349,11 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
 
     const code = codeByLanguage[language];
 
+    // The edit applier is registered per language, not per keystroke, so it
+    // reads the buffer through a ref instead of a stale closure.
+    const codeByLanguageRef = useRef(codeByLanguage);
+    codeByLanguageRef.current = codeByLanguage;
+
     /**
      * Publish the buffer for the Career Agent to read when asked.
      *
@@ -382,6 +388,33 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
         return () => { cancelled = true; window.clearTimeout(id); };
     }, [codeByLanguage, language]);
 
+    /**
+     * Let an approved agent edit land in the editor.
+     *
+     * Refuses if the buffer moved since the edit was written. The user keeps
+     * typing while the agent thinks, and silently overwriting three lines they
+     * just added — to apply a fix for code that no longer exists — is worse
+     * than doing nothing.
+     *
+     * Reuses the voice-code undo slot so one Undo button covers both paths.
+     */
+    useEffect(() => {
+        const ownerId = `coding:${brief.challenge.id}`;
+        registerCodeEditor(ownerId, (edit: CodeEdit) => {
+            if (edit.language !== language) {
+                return { applied: false, reason: `That edit was written for ${edit.language}, but you are now in ${language}.` };
+            }
+            const live = codeByLanguageRef.current[language];
+            if (edit.baseCode !== live) {
+                return { applied: false, reason: 'Your code changed since that suggestion was written. Ask again and I will look at the current version.' };
+            }
+            setCodeByLanguage((prev) => ({ ...prev, [language]: edit.nextCode }));
+            setVoiceCodeChange({ language, beforeCode: live, appliedCode: edit.nextCode });
+            return { applied: true };
+        });
+        return () => unregisterCodeEditor(ownerId);
+    }, [brief.challenge.id, language]);
+
     useEffect(() => {
         const ownerId = `coding:${brief.challenge.id}`;
         publishWorkspace({
@@ -393,8 +426,11 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
             language,
             testSummary: runSummary ? { passed: runSummary.passed, total: runSummary.total } : undefined,
             syntaxError: syntaxError ?? undefined,
+            // Guest practice is browser-only and never persists an analysis;
+            // everything else ends in a scored report.
+            scored: !isGuestPractice,
         }, ownerId);
-    }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary, syntaxError]);
+    }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary, syntaxError, isGuestPractice]);
 
     // Release only if still held: the replacement round may already have
     // claimed the slot before this one unmounts.

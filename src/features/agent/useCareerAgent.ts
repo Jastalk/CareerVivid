@@ -86,7 +86,7 @@ const STREAM_URL =
 const rid = () => Math.random().toString(36).slice(2, 10);
 
 /** Kinds the panel knows how to render. Anything else stays a plain effect. */
-const CARD_KINDS = new Set(['company_guides', 'interview_questions', 'interview_report']);
+const CARD_KINDS = new Set(['company_guides', 'interview_questions', 'interview_report', 'code_edit_proposal']);
 
 export function useCareerAgent(opts: {
     route: string;
