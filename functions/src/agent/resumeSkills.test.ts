@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { evaluateRoundEvidence, mergeSkills, RESUME_SKILL_SCORE_FLOOR } from './reportTools';
+import { coerceSkills, evaluateRoundEvidence, mergeSkills, RESUME_SKILL_SCORE_FLOOR } from './reportTools';
 import { buildDiff } from './proposals';
 
 vi.mock('firebase-admin', () => ({
@@ -61,11 +61,86 @@ describe('mergeSkills', () => {
         expect(mergeSkills(null, []).skills).toEqual([]);
     });
 
+    /*
+     * The blob a previous call wrote is unwrapped on the next add, so the resume
+     * repairs itself rather than carrying `{"name":"System Design"}` forever.
+     */
+    it('heals a JSON blob an earlier call left on the resume', () => {
+        const { skills } = mergeSkills(
+            [{ id: 's0', name: 'React', level: 'Advanced' }, { id: 's1', name: '{"name":"System Design","level":"Advanced"}' }],
+            [{ name: 'Go' }],
+        );
+
+        expect(skills).toEqual([
+            { id: 's0', name: 'React', level: 'Advanced' },
+            { id: 's1', name: 'System Design', level: 'Advanced' },
+            { id: 's2', name: 'Go', level: 'Intermediate' },
+        ]);
+    });
+
+    it('leaves a real name containing a bracket alone', () => {
+        const { skills } = mergeSkills([{ id: 's0', name: 'Node.js [advanced]' }], []);
+        expect(skills.map((s) => s.name)).toEqual(['Node.js [advanced]']);
+    });
+
     it('accepts plain strings, which is how some older resumes stored skills', () => {
         const { skills, added } = mergeSkills(['React'], [{ name: 'React' }, { name: 'Go' }]);
 
         expect(skills.map((s) => s.name)).toEqual(['React', 'Go']);
         expect(added).toEqual(['Go']);
+    });
+});
+
+describe('coerceSkills', () => {
+    /*
+     * The bug, exactly as it reached production: the Live API stringified the
+     * object it was told to send, so the user's resume ended up with
+     * `{"name":"System Design","level":"Advanced"}` printed in the skills list
+     * beside "Go-to-Market Strategy". They only found out by looking.
+     */
+    it('unwraps a skill the Live API sent as JSON text', () => {
+        expect(coerceSkills(['{"name":"System Design","level":"Advanced"}'])).toEqual([
+            { name: 'System Design', level: 'Advanced' },
+        ]);
+    });
+
+    it('unwraps a whole array sent as one JSON string', () => {
+        expect(coerceSkills('[{"name":"Caching"},{"name":"Sharding","level":"Expert"}]')).toEqual([
+            { name: 'Caching' },
+            { name: 'Sharding', level: 'Expert' },
+        ]);
+    });
+
+    it('still accepts the shapes that were already working', () => {
+        expect(coerceSkills([{ name: 'Go', level: 'Expert' }, 'Rust'])).toEqual([
+            { name: 'Go', level: 'Expert' },
+            { name: 'Rust' },
+        ]);
+    });
+
+    /*
+     * Dropping beats guessing. A skill the agent failed to add is a nuisance the
+     * user can ask for again; a skill that reads like a stack trace on a resume
+     * they send to a recruiter is damage they have no reason to go looking for.
+     */
+    it('drops anything that still looks like markup after decoding', () => {
+        expect(coerceSkills(['{"name":"System Design"'])).toEqual([]);
+        expect(coerceSkills(['{broken'], )).toEqual([]);
+        expect(coerceSkills(['Kafka', '{"name":']).map((s) => s.name)).toEqual(['Kafka']);
+    });
+
+    it('drops a level the editor cannot render rather than writing it through', () => {
+        expect(coerceSkills([{ name: 'Go', level: 'Wizard' }])).toEqual([{ name: 'Go' }]);
+    });
+
+    it('collapses duplicates the model repeated in one call', () => {
+        expect(coerceSkills(['Go', 'go', { name: 'GO' }])).toEqual([{ name: 'Go' }]);
+    });
+
+    it('returns nothing rather than throwing on junk', () => {
+        expect(coerceSkills(undefined)).toEqual([]);
+        expect(coerceSkills(null)).toEqual([]);
+        expect(coerceSkills(42)).toEqual([{ name: '42' }]);
     });
 });
 

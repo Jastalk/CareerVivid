@@ -178,6 +178,86 @@ export const getInterviewReport: AgentTool = {
 const SKILL_LEVELS = ["Novice", "Intermediate", "Advanced", "Expert"] as const;
 
 /**
+ * Read a skill out of whatever the model actually sent.
+ *
+ * The Live API does not reliably honour an object-inside-array schema. Instead
+ * of `{name, level}` it sends the object JSON-ENCODED as a string, so
+ * `{"name":"System Design","level":"Advanced"}` arrived as the skill *name* and
+ * was written to the resume verbatim — the user opened their editor and found a
+ * JSON blob sitting in their skills list, next to "Go-to-Market Strategy".
+ *
+ * Tightening the prompt would not fix this; the model is not choosing to do it.
+ * So every shape it has actually produced is decoded here: an object, a
+ * JSON-encoded object, a JSON-encoded array of either, or a plain name.
+ *
+ * Anything that still looks like markup after decoding is DROPPED rather than
+ * guessed at. A skill the agent silently failed to add is a nuisance; a skill
+ * that reads like a stack trace on a resume someone sends to a recruiter is
+ * damage, and the user has no reason to expect they need to check.
+ */
+const JSON_ISH = /[{}[\]"]/;
+
+function collectSkills(
+    raw: unknown,
+    out: Array<{ name: string; level?: string }>,
+    depth = 0,
+): void {
+    if (raw == null || depth > 3 || out.length >= 24) return;
+
+    if (Array.isArray(raw)) {
+        for (const item of raw) collectSkills(item, out, depth + 1);
+        return;
+    }
+
+    if (typeof raw === "object") {
+        const name = String((raw as any).name ?? "").trim();
+        const level = String((raw as any).level ?? "").trim();
+        if (name) out.push({ name, ...(level ? { level } : {}) });
+        return;
+    }
+
+    const text = String(raw).trim();
+    if (!text) return;
+
+    // A string that opens like JSON is the Live API's stringified object. Decode
+    // it once; if it does not parse it is not a skill name either.
+    if (text.startsWith("{") || text.startsWith("[")) {
+        try {
+            collectSkills(JSON.parse(text), out, depth + 1);
+        } catch {
+            /* Unparseable — dropped below by the JSON_ISH filter. */
+        }
+        return;
+    }
+
+    out.push({ name: text });
+}
+
+/** Normalise the `skills` argument into clean, resume-safe entries. */
+export function coerceSkills(raw: unknown): Array<{ name: string; level?: string }> {
+    const collected: Array<{ name: string; level?: string }> = [];
+    collectSkills(raw, collected);
+
+    const seen = new Set<string>();
+    const clean: Array<{ name: string; level?: string }> = [];
+    for (const entry of collected) {
+        const name = entry.name.replace(/\s+/g, " ").trim().slice(0, 80);
+        if (!name || JSON_ISH.test(name)) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const level = entry.level ?? "";
+        clean.push({
+            name,
+            // An off-list level is dropped rather than written through; mergeSkills
+            // then applies the same default a hand-added skill gets.
+            ...((SKILL_LEVELS as readonly string[]).includes(level) ? { level } : {}),
+        });
+    }
+    return clean;
+}
+
+/**
  * The score a round must reach before its skills can go on a resume.
  *
  * 75 is the floor of the report's own "Strong" band — "solid answers that
@@ -206,12 +286,23 @@ export function mergeSkills(
     incoming: Array<{ name: string; level?: string }>,
 ): { skills: Array<{ id: string; name: string; level: string }>; added: string[] } {
     const kept = (Array.isArray(existing) ? existing : []).flatMap((s: any) => {
-        const name = (typeof s === "string" ? s : String(s?.name ?? "")).trim();
-        if (!name) return [];
-        const level = String(s?.level ?? "");
+        const stored = (typeof s === "string" ? s : String(s?.name ?? "")).trim();
+        if (!stored) return [];
+
+        // A blob an earlier call wrote is unwrapped in place, so the next add
+        // cleans the resume up instead of leaving `{"name":"System Design"}`
+        // sitting in the skills list forever. Only strings that OPEN like JSON
+        // are candidates — a real name that merely contains a bracket
+        // ("Node.js [advanced]") must survive untouched.
+        const healed = stored.startsWith("{") || stored.startsWith("[")
+            ? coerceSkills(stored)[0]
+            : { name: stored, level: undefined as string | undefined };
+        if (!healed) return [];
+
+        const level = String(healed.level ?? s?.level ?? "");
         return [{
             id: String(s?.id ?? ""),
-            name: name.slice(0, 80),
+            name: healed.name.slice(0, 80),
             level: (SKILL_LEVELS as readonly string[]).includes(level) ? level : "Intermediate",
         }];
     });
@@ -351,14 +442,16 @@ export const addResumeSkills: AgentTool = {
         const sessionId = typeof a?.sessionId === "string" ? a.sessionId.trim().slice(0, 200) : "";
         if (!sessionId) throw new Error("sessionId is required — name the scored round these skills came from.");
 
-        const skills = (Array.isArray(a?.skills) ? a.skills : [])
-            .slice(0, 6)
-            .map((s: any) => ({
-                name: String(typeof s === "string" ? s : (s?.name ?? "")).trim().slice(0, 80),
-                level: String(s?.level ?? ""),
-            }))
-            .filter((s: { name: string }) => s.name);
-        if (!skills.length) throw new Error("skills must contain at least one named skill.");
+        // Decoded rather than read straight off the argument: the Live API sends
+        // each skill JSON-encoded as a string often enough that trusting the
+        // declared schema put a raw `{"name":...}` blob on a user's resume.
+        const skills = coerceSkills(a?.skills).slice(0, 6);
+        if (!skills.length) {
+            throw new Error(
+                "skills must contain at least one named skill, each as an object like " +
+                '{"name": "System Design", "level": "Advanced"} — not a string containing JSON.',
+            );
+        }
 
         return {
             sessionId,
