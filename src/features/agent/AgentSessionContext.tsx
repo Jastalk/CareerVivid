@@ -18,6 +18,7 @@ import { useCareerAgent, type AgentEffect } from './useCareerAgent';
 import { useLiveCareerAgent } from './useLiveCareerAgent';
 import { useAutoExec } from './useAutoExec';
 import { useSessionSwitcher } from './useSessionSwitcher';
+import { followUserToRoute } from './drawerMode';
 
 type TextAgent = ReturnType<typeof useCareerAgent>;
 type LiveAgent = ReturnType<typeof useLiveCareerAgent>;
@@ -41,6 +42,11 @@ export const AgentSessionProvider: React.FC<{ path: string; children: ReactNode 
         // Same-origin app paths only. The tool validates this server-side too;
         // re-checking means a compromised response still cannot redirect.
         if (target && target.startsWith('/') && !target.startsWith('//')) {
+            // The conversation travels with them. The agent explains what it is
+            // doing and then moves the user; arriving on the new page with the
+            // panel collapsed leaves a change on screen with the sentence that
+            // justified it nowhere to be found.
+            followUserToRoute();
             navigate(target);
         }
     };

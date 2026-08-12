@@ -5,7 +5,7 @@
  * which was mounted on /dashboard only and had no tools.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Sparkles, X, Maximize2, Minus, GripVertical, GripHorizontal, Mic, MicOff, PhoneOff } from 'lucide-react';
 // No <Router> in this app — see src/utils/navigation.ts. The current path is
 // passed down from App.tsx, which already recomputes it on popstate.
@@ -14,6 +14,7 @@ import { CareerAgentPanel } from './CareerAgentPanel';
 import { useAuth } from '../../contexts/AuthContext';
 import { useAgentSession } from './AgentSessionContext';
 import { useDrawerCorner, CORNER_STYLE, RESIZE_EDGE } from './useDrawerCorner';
+import { getDrawerMode, setDrawerMode, subscribeDrawerMode, type DrawerMode } from './drawerMode';
 
 /**
  * Routes where a floating panel would obstruct the actual work.
@@ -27,20 +28,18 @@ const SUPPRESSED = [/^\/agent/, /^\/interview-studio/, /^\/whiteboard/, /^\/edit
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 720;
 const WIDTH_KEY = 'cv_agent_drawer_width';
-const MODE_KEY = 'cv_agent_drawer_mode';
 const CLOSED_AT_KEY = 'cv_agent_closed_at';
 const REOPEN_HINT_MS = 6_000;
 
-/**
+/*
  * closed → the pill. open → the full drawer. mini → a compact card that keeps
  * the tail of the conversation visible without eating the screen — for working
  * on a whiteboard with the agent still in the corner of your eye.
  *
- * Persisted so it survives route changes: this component remounts per route
- * (it lives inside RouteSuspense), and a companion that reset to a pill on
- * every navigation would not feel like a companion.
+ * The mode itself lives in ./drawerMode, outside React: this component remounts
+ * per route (it sits inside RouteSuspense), and the agent's own navigation has
+ * to be able to reopen it from above.
  */
-type DrawerMode = 'closed' | 'open' | 'mini';
 
 
 /**
@@ -79,18 +78,8 @@ const DragHandle: React.FC<{ onPointerDown: (e: React.PointerEvent) => void; hin
 };
 
 export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
-    const [mode, setModeState] = useState<DrawerMode>(() => {
-        const stored = localStorage.getItem(MODE_KEY);
-        return stored === 'open' || stored === 'mini' ? stored : 'closed';
-    });
-    const setMode = (m: DrawerMode) => {
-        localStorage.setItem(MODE_KEY, m);
-        setModeState(m);
-    };
-    const setOpen = (v: boolean | ((prev: boolean) => boolean)) => {
-        const next = typeof v === 'function' ? v(mode === 'open') : v;
-        setMode(next ? 'open' : 'closed');
-    };
+    const mode = useSyncExternalStore(subscribeDrawerMode, getDrawerMode, getDrawerMode);
+    const setMode = (m: DrawerMode) => setDrawerMode(m);
     const { text, live } = useAgentSession();
     const [width, setWidth] = useState<number>(() => {
         const stored = Number(localStorage.getItem(WIDTH_KEY));
@@ -137,22 +126,14 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
-                setModeState((m) => {
-                    const next = m === 'open' ? 'closed' : 'open';
-                    localStorage.setItem(MODE_KEY, next);
-                    return next;
-                });
+                setDrawerMode(getDrawerMode() === 'open' ? 'closed' : 'open');
             } else if (e.key === 'Escape' && !draggingRef.current) {
                 // Only when the panel itself has focus. Escape is load-bearing
                 // elsewhere — on the whiteboard it finishes a multi-point arrow,
                 // and stealing it closed the agent instead of ending the line.
                 const target = e.target as Node | null;
                 if (!target || !rootRef.current?.contains(target)) return;
-                setModeState((m) => {
-                    if (m === 'closed') return m;
-                    localStorage.setItem(MODE_KEY, 'closed');
-                    return 'closed';
-                });
+                setDrawerMode('closed');
             }
         };
         window.addEventListener('keydown', onKey);
@@ -303,10 +284,12 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                 </button>
                 <button
                     type="button"
-                    onClick={() => {
-                        setOpen(false);
-                        navigate('/agent');
-                    }}
+                    // Deliberately does NOT close the drawer. /agent suppresses it
+                    // already, and marking it closed meant that leaving the
+                    // workspace — including when a tool navigated the user to a
+                    // resume — dropped them somewhere new with the agent reduced
+                    // to a pill and the conversation out of sight.
+                    onClick={() => navigate('/agent')}
                     title="Open full screen"
                     className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
                 >

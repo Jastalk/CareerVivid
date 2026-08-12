@@ -12,12 +12,14 @@
  */
 
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 export type Corner = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 
 const CORNER_KEY = 'cv_agent_drawer_corner';
 const HINT_KEY = 'cv_agent_drag_hint_seen';
+/** Set only by a drag. A corner we chose for them is not a corner they chose. */
+const PINNED_KEY = 'cv_agent_corner_pinned';
 
 /**
  * Inline offsets per corner, NOT Tailwind classes.
@@ -42,27 +44,78 @@ export const RESIZE_EDGE: Record<Corner, 'left' | 'right'> = {
 };
 
 const readCorner = (): Corner => {
-    const stored = localStorage.getItem(CORNER_KEY);
-    return stored === 'bottom-left' || stored === 'top-right' || stored === 'top-left'
-        ? stored
-        : 'bottom-right';
+    try {
+        const stored = localStorage.getItem(CORNER_KEY);
+        return stored === 'bottom-left' || stored === 'top-right' || stored === 'top-left'
+            ? stored
+            : 'bottom-right';
+    } catch {
+        return 'bottom-right';
+    }
 };
 
+/*
+ * Held outside React for the same reason the mode is: the agent moves the panel
+ * from ABOVE this component, and this component remounts on every route change.
+ */
+let currentCorner: Corner = readCorner();
+const cornerListeners = new Set<() => void>();
+
+export const getCorner = (): Corner => currentCorner;
+
+export function subscribeCorner(onChange: () => void): () => void {
+    cornerListeners.add(onChange);
+    return () => cornerListeners.delete(onChange);
+}
+
+/** `pinned` records that the USER put it here, which nothing else may override. */
+export function moveCorner(corner: Corner, pinned: boolean): void {
+    try {
+        localStorage.setItem(CORNER_KEY, corner);
+        if (pinned) localStorage.setItem(PINNED_KEY, '1');
+    } catch {
+        /* Non-persistent for this session. */
+    }
+    if (corner === currentCorner) return;
+    currentCorner = corner;
+    cornerListeners.forEach((fn) => fn());
+}
+
+/**
+ * Get out of the way when the agent drops the user somewhere new.
+ *
+ * It lands bottom-left. The agent navigates you to look at something — a resume
+ * it just changed, a job it just filed — and the thing worth looking at is the
+ * document in the middle and the panel on the right. Sitting bottom-right, the
+ * agent covered the very change it had just announced.
+ *
+ * A corner the user dragged to is never overridden. They have already answered
+ * the question this function is guessing at.
+ */
+export function parkOutOfTheWay(): void {
+    try {
+        if (localStorage.getItem(PINNED_KEY) === '1') return;
+    } catch {
+        return;
+    }
+    moveCorner('bottom-left', false);
+}
+
 export function useDrawerCorner() {
-    const [corner, setCornerState] = useState<Corner>(readCorner);
+    const corner = useSyncExternalStore(subscribeCorner, getCorner, getCorner);
     const [dragging, setDragging] = useState(false);
     /** Live pointer position while dragging, so the panel follows the cursor. */
     const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
-    const [hintSeen, setHintSeen] = useState(() => localStorage.getItem(HINT_KEY) === '1');
+    const [hintSeen, setHintSeen] = useState(() => {
+        try { return localStorage.getItem(HINT_KEY) === '1'; } catch { return false; }
+    });
     const draggingRef = useRef(false);
 
-    const setCorner = useCallback((c: Corner) => {
-        localStorage.setItem(CORNER_KEY, c);
-        setCornerState(c);
-    }, []);
+    // Every call site of this is a drag landing, so it pins.
+    const setCorner = useCallback((c: Corner) => moveCorner(c, true), []);
 
     const dismissHint = useCallback(() => {
-        localStorage.setItem(HINT_KEY, '1');
+        try { localStorage.setItem(HINT_KEY, '1'); } catch { /* session only */ }
         setHintSeen(true);
     }, []);
 
