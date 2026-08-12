@@ -241,7 +241,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
                     <nav className="hidden md:flex items-center gap-8 h-full">
                         <NavItem name="Courses" href="/learning" />
                         <NavItem name="Interview" href="/interview-studio" />
-                        <NavItem name="Jobs" href="/jobs/recommend" />
+                        <NavItem name="Jobs" href="/jobs" />
                         <NavItem name="Pricing" href="/pricing" />
                         <NavItem name={resourcesLabel} hasDropdown />
                     </nav>
@@ -438,7 +438,7 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
                                 <p className={`text-xs uppercase tracking-wider mb-2 ${isBrutalist ? 'font-black text-gray-500' : mobileGroupLabelClasses}`}>{productLabel}</p>
                                 <a href="/learning" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>Courses</a>
                                 <a href="/interview-studio" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>Interview</a>
-                                <a href="/jobs/recommend" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>Jobs</a>
+                                <a href="/jobs" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>Jobs</a>
                                 <a href="/newresume" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>{t('nav.ai_resume_builder')}</a>
                                 <a href="/extension-welcome" onClick={() => setIsMenuOpen(false)} className={`block ${isBrutalist ? 'font-bold text-black uppercase hover:underline' : mobileLinkClasses}`}>{t('nav.chrome_extension')}</a>
                             </div>

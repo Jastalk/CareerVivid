@@ -265,7 +265,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         ],
         links: [
             { href: "/resume-templates", label: "See all 36 resume templates" },
-            { href: "/jobs/list", label: "Find jobs to apply to" },
+            { href: "/jobs", label: "Find jobs to apply to" },
             { href: "/pricing", label: "Compare plans" },
         ],
     },
@@ -327,20 +327,21 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         priority: "0.8",
         includeInSitemap: true,
     },
+    /*
+     * The public job list.
+     *
+     * This replaces the old /job-market entry, which sat in the sitemap and
+     * carried Google's "Explore the job market" sitelink — while /job-market is
+     * a ProtectedRoute, so every searcher who clicked it hit a login wall. An
+     * indexed page nobody signed out can read is worse than no page: it spends
+     * the click and returns nothing.
+     *
+     * /job-market still exists as the signed-in job search. It is simply no
+     * longer advertised to search engines.
+     */
     {
-        path: "/job-market",
-        title: "Job Market | CareerVivid",
-        description: "Explore job opportunities and use CareerVivid tools to prepare stronger, role-specific applications.",
-        heading: "Explore the job market",
-        summary: "Find relevant roles and move from discovery to a tailored application in one career workspace.",
-        changefreq: "daily",
-        priority: "0.7",
-        includeInSitemap: true,
-        links: [{ href: "/jobs/list", label: "Browse every open job" }],
-    },
-    {
-        path: "/jobs/list",
-        title: "Browse Open Jobs | CareerVivid",
+        path: "/jobs",
+        title: "Explore the Job Market | CareerVivid",
         description: "Browse verified, still-open job listings. Every posting is link-checked before it appears, so you never open a role that was filled weeks ago.",
         heading: "Open jobs, checked before you click",
         summary: "Every listing here was fetched from a company's own careers page and re-checked before being shown, so the roles you open are still open.",
@@ -412,7 +413,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
     },
     {
         path: "/product",
-        title: "CareerVivid Career Workspace",
+        title: "CareerVivid Workspace | Resumes, Interviews, Jobs",
         description: "Explore CareerVivid's learning, interview preparation, resume tailoring, portfolio, and job-search workflow tools.",
         heading: "A connected workspace for your job search",
         summary: "Move from learning and interview practice to tailored applications without losing context between tools.",
@@ -422,7 +423,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         sections: [
             {
                 heading: "What CareerVivid does",
-                body: "CareerVivid is a career workspace for job seekers: build and tailor a resume, practise the interview, track every application, and learn the material the interview is testing — without copying context between four different tools.",
+                body: "CareerVivid is a workspace for job seekers: build and tailor a resume, practise the interview, track every application, and learn the material the interview is testing — without copying context between four different tools.",
                 bullets: [
                     "Resume builder with 36 templates, AI drafting, and ATS-aware scoring.",
                     "Mock interviews, by voice or text, for 301 companies, with scored reports.",
@@ -440,7 +441,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         faqs: [
             {
                 question: "What is CareerVivid?",
-                answer: "CareerVivid is a career workspace that combines an AI resume builder, mock interviews with scored feedback for 301 companies, a verified job feed, an application tracker, and interactive technical courses in one place.",
+                answer: "CareerVivid is a workspace that combines an AI resume builder, mock interviews with scored feedback for 301 companies, a verified job feed, an application tracker, and interactive technical courses in one place.",
             },
             {
                 question: "Is CareerVivid just a resume builder?",
@@ -454,7 +455,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         links: [
             { href: "/resume-builder", label: "Build a resume" },
             { href: "/interview-studio", label: "Practice interviews" },
-            { href: "/jobs/list", label: "Browse open jobs" },
+            { href: "/jobs", label: "Browse open jobs" },
             { href: "/learning", label: "Explore learning paths" },
         ],
     },

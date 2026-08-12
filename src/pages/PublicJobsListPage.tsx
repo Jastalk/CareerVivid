@@ -12,8 +12,8 @@
  * comparison against a resume, and without a resume there is nothing to
  * compare.
  *
- * Pagination is real URLs (/jobs/list, /jobs/list/2, …) rather than a state
- * variable, so a page of results can be linked, shared, and crawled.
+ * Pagination is real URLs (/jobs, /jobs/2, …) rather than a state variable,
+ * so a page of results can be linked, shared, and crawled.
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -43,14 +43,20 @@ export interface PublicJob {
     description: string;
 }
 
-/** Read the page number out of /jobs/list/{n}; /jobs/list is page 1. */
+/**
+ * Read the page number out of /jobs/{n}; /jobs is page 1.
+ *
+ * Only digits. /jobs/{slug} is the employer job board, so a non-numeric segment
+ * is a company, never a page — reading "stripe" as a page number would have
+ * this component answer for a route that is not its own.
+ */
 export const pageFromPath = (pathname: string): number => {
-    const match = pathname.match(/^\/jobs\/list\/(\d+)\/?$/);
+    const match = pathname.match(/^\/jobs\/(\d+)\/?$/);
     const n = match ? Number(match[1]) : 1;
     return Number.isFinite(n) && n >= 1 ? n : 1;
 };
 
-export const pathForPage = (page: number): string => (page <= 1 ? '/jobs/list' : `/jobs/list/${page}`);
+export const pathForPage = (page: number): string => (page <= 1 ? '/jobs' : `/jobs/${page}`);
 
 /**
  * The page numbers to show.

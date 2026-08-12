@@ -12,8 +12,13 @@
     ],
     "redirects": [
       {
-        "source": "/jobs",
-        "destination": "/jobs/list",
+        "source": "/jobs/list",
+        "destination": "/jobs",
+        "type": 301
+      },
+      {
+        "regex": "^/jobs/list/(?P<n>[0-9]+)$",
+        "destination": "/jobs/:n",
         "type": 301
       },
       {
@@ -215,22 +220,17 @@
         "region": "us-west1"
       },
       {
-        "source": "/jobs/list",
+        "source": "/jobs",
         "function": "renderSeoContent",
         "region": "us-west1"
       },
       {
-        "source": "/jobs/list/*",
+        "regex": "^/jobs/[0-9]+$",
         "function": "renderSeoContent",
         "region": "us-west1"
       },
       {
         "source": "/blog",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/job-market",
         "function": "renderSeoContent",
         "region": "us-west1"
       },

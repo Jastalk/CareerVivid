@@ -27,7 +27,7 @@ const wordsOn = (page: SearchPageDefinition): number => {
 };
 
 /** The pages that have to answer a commercial query, not just exist. */
-const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/resume-templates', '/jobs/list'];
+const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/resume-templates', '/jobs'];
 
 const page = (path: string): SearchPageDefinition => {
     const found = getSearchPage(path);
@@ -86,5 +86,33 @@ describe('crawler-facing content', () => {
                 expect(known.has(link.href), `${p.path} -> ${link.href}`).toBe(true);
             }
         }
+    });
+});
+
+/*
+ * /job-market is a ProtectedRoute. It sat in the sitemap carrying Google's
+ * "Explore the job market" sitelink, so every searcher who clicked it hit a
+ * login wall — a click spent for nothing, and the kind of page Google learns
+ * to stop showing.
+ */
+describe('nothing behind a login wall is advertised to search engines', () => {
+    const GATED = ['/job-market', '/jobmarket', '/dashboard', '/newresume', '/jobs/recommend', '/job-tracker'];
+
+    it.each(GATED)('%s is not in SEARCH_PAGES', (path) => {
+        expect(SEARCH_PAGES.some((p) => p.path === path)).toBe(false);
+    });
+
+    it('no page links to one either', () => {
+        for (const p of SEARCH_PAGES) {
+            for (const link of p.links ?? []) {
+                expect(GATED, `${p.path} -> ${link.href}`).not.toContain(link.href);
+            }
+        }
+    });
+
+    it('sends the job-market intent to the public list instead', () => {
+        const jobs = getSearchPage('/jobs');
+        expect(jobs?.title).toContain('Job Market');
+        expect(jobs?.includeInSitemap).toBe(true);
     });
 });

@@ -573,7 +573,7 @@ async function handleCommunityFeed(): Promise<string> {
  * ranks as an ordinary results page.
  */
 async function handleJobsList(pageParam: string | undefined): Promise<string> {
-    const page = getSearchPage("/jobs/list");
+    const page = getSearchPage("/jobs");
     if (!page) throw new Error("not_found");
 
     const requested = Number(pageParam);
@@ -583,9 +583,9 @@ async function handleJobsList(pageParam: string | undefined): Promise<string> {
 
     const { jobs, totalPages } = await readPublicJobs(pageNumber);
 
-    // Page one lives at /jobs/list, never /jobs/list/1 — two URLs with the same
-    // results is a duplicate Google has to choose between.
-    const pathFor = (n: number) => (n <= 1 ? "/jobs/list" : `/jobs/list/${n}`);
+    // Page one lives at /jobs, never /jobs/1 — two URLs with the same results is
+    // a duplicate Google has to choose between.
+    const pathFor = (n: number) => (n <= 1 ? "/jobs" : `/jobs/${n}`);
     const canonicalUrl = `${BASE_URL}${pathFor(pageNumber)}`;
 
     const listItems = jobs.length
@@ -707,10 +707,17 @@ export const renderSeoContent = onRequest(
                 html = await handlePortfolio(routeParts[1]);
             } else if (routeType === "whiteboard") {
                 html = await handleWhiteboard(routeParts.slice(1));
-            // /jobs/list and /jobs/list/{n}. Matched before getSearchPage so the
-            // numbered pages resolve too — only page one is in SEARCH_PAGES.
-            } else if (routeType === "jobs" && routeParts[1] === "list") {
-                html = await handleJobsList(routeParts[2]);
+            /*
+             * /jobs and /jobs/{n}. Matched before getSearchPage because only
+             * page one is in SEARCH_PAGES.
+             *
+             * Digits only. /jobs/{slug} is the employer job board and
+             * /jobs/recommend is the signed-in feed; neither belongs here, and
+             * a loose match would have served the job list under a company's
+             * URL.
+             */
+            } else if (routeType === "jobs" && (!routeParts[1] || /^\d+$/.test(routeParts[1]))) {
+                html = await handleJobsList(routeParts[1]);
             } else if (language === "en") {
                 const page = getSearchPage(path);
                 if (!page) {

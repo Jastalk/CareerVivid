@@ -16,12 +16,19 @@ describe("search indexing policy", () => {
         expect(urls.some((url) => /careervivid\.app\/(?:en|es|fr|de|zh|ja|ko)(?:\/|$)/.test(url))).toBe(false);
     });
 
+    /*
+     * /job-market used to be on this list, which was the bug rather than the
+     * check: it is a ProtectedRoute, so it was indexed and sent every searcher
+     * to a login wall. The public job list at /jobs carries that intent now.
+     */
     it("provides unique crawlable content for reported public pages", () => {
         for (const path of [
             "/pricing",
             "/interview-studio",
             "/blog",
-            "/job-market",
+            "/jobs",
+            "/resume-builder",
+            "/resume-templates",
             "/contact",
             "/product",
             "/community/guidelines",

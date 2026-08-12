@@ -264,19 +264,21 @@ const AppContent: React.FC = () => {
    * The public job list, and the employer boards it sits beside.
    *
    * ORDER MATTERS. The board route below reads the last path segment as a
-   * COMPANY SLUG, so it answers anything under /jobs/ — including /jobs/list,
-   * which it would have looked up as a company named "list" and rendered
-   * "Company profile not found." The specific routes are matched first.
+   * COMPANY SLUG, so it answers anything under /jobs/ — it would have looked up
+   * a company named "list" and rendered "Company profile not found." The
+   * specific routes are matched first, and page numbers are digits only so a
+   * real company slug is never mistaken for one.
    *
    * /jobs/recommend is deliberately untouched: that is the signed-in,
    * personalised feed and it stays behind ProtectedRoute below.
    */
-  if (path === '/jobs' || path === '/jobs/') {
-    window.location.replace('/jobs/list');
+  // /jobs/list was the earlier name for this page; keep it working.
+  if (path === '/jobs/list' || /^\/jobs\/list\/\d+$/.test(path)) {
+    window.location.replace(path.replace('/jobs/list', '/jobs'));
     return null;
   }
 
-  if (path === '/jobs/list' || /^\/jobs\/list\/\d+$/.test(path)) {
+  if (path === '/jobs' || path === '/jobs/' || /^\/jobs\/\d+$/.test(path)) {
     return (
       <ThemeProvider>
         <RouteSuspense routeKey={path}>

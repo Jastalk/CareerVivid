@@ -5,18 +5,22 @@ import { pageFromPath, pageWindow, pathForPage } from './PublicJobsListPage';
  * Pagination lives in the URL rather than in state, so a page of results can be
  * linked, shared, opened in a new tab and crawled. That only works if the two
  * directions agree exactly.
+ *
+ * /jobs shares its prefix with two routes that are NOT this page: the employer
+ * boards at /jobs/{slug} and the signed-in feed at /jobs/recommend. Page
+ * numbers are digits only for that reason.
  */
 
 describe('pageFromPath', () => {
     it('treats the bare list as page one', () => {
-        expect(pageFromPath('/jobs/list')).toBe(1);
-        expect(pageFromPath('/jobs/list/')).toBe(1);
+        expect(pageFromPath('/jobs')).toBe(1);
+        expect(pageFromPath('/jobs/')).toBe(1);
     });
 
     it('reads the page number out of the path', () => {
-        expect(pageFromPath('/jobs/list/2')).toBe(2);
-        expect(pageFromPath('/jobs/list/17')).toBe(17);
-        expect(pageFromPath('/jobs/list/3/')).toBe(3);
+        expect(pageFromPath('/jobs/2')).toBe(2);
+        expect(pageFromPath('/jobs/17')).toBe(17);
+        expect(pageFromPath('/jobs/3/')).toBe(3);
     });
 
     /*
@@ -25,31 +29,32 @@ describe('pageFromPath', () => {
      * page here.
      */
     it('never reads a company slug as a page number', () => {
-        expect(pageFromPath('/jobs/list/acme')).toBe(1);
         expect(pageFromPath('/jobs/stripe')).toBe(1);
+        expect(pageFromPath('/jobs/acme-corp')).toBe(1);
         expect(pageFromPath('/jobs/recommend')).toBe(1);
+        expect(pageFromPath('/jobs/2b')).toBe(1);
     });
 
     it('refuses a page number that is not a page', () => {
-        expect(pageFromPath('/jobs/list/0')).toBe(1);
-        expect(pageFromPath('/jobs/list/-2')).toBe(1);
+        expect(pageFromPath('/jobs/0')).toBe(1);
+        expect(pageFromPath('/jobs/-2')).toBe(1);
     });
 });
 
 describe('pathForPage', () => {
     /*
-     * Page one is /jobs/list, never /jobs/list/1 — two URLs serving identical
+     * Page one is /jobs, never /jobs/1 — two URLs serving identical
      * results is a duplicate Google has to pick between, and it may not pick
      * the one being linked to.
      */
     it('keeps one canonical URL for page one', () => {
-        expect(pathForPage(1)).toBe('/jobs/list');
-        expect(pathForPage(0)).toBe('/jobs/list');
+        expect(pathForPage(1)).toBe('/jobs');
+        expect(pathForPage(0)).toBe('/jobs');
     });
 
     it('numbers every page after the first', () => {
-        expect(pathForPage(2)).toBe('/jobs/list/2');
-        expect(pathForPage(12)).toBe('/jobs/list/12');
+        expect(pathForPage(2)).toBe('/jobs/2');
+        expect(pathForPage(12)).toBe('/jobs/12');
     });
 
     it('round-trips with pageFromPath', () => {
