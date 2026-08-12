@@ -75,12 +75,12 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
      *
      * "Free" leads because it is the highest-intent modifier in this category
      * and the claim holds: 100 credits a month, all 36 templates, unlimited PDF
-     * export, no card. Kept under 60 characters so Google does not truncate it.
+     * export, no credit card. Kept under 60 chars so Google does not truncate it.
      */
     {
         path: "/",
         title: "Free Resume Builder, Mock Interviews & Jobs | CareerVivid",
-        description: "Build a resume free with 36 templates, practise real interview questions from 301 companies, and browse verified open jobs. No card required.",
+        description: "Build a resume free with 36 templates, practise real interview questions from 301 companies, and browse verified open jobs. No credit card required.",
         heading: "Build job-ready skills and prepare for your next interview",
         summary: "CareerVivid combines interactive learning, company interview practice, resume tailoring, and job-search tools in one workspace.",
         changefreq: "daily",
@@ -270,7 +270,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         faqs: [
             {
                 question: "Is CareerVivid free?",
-                answer: "Yes. The free plan includes 100 credits a month, the full resume builder with all 36 templates, unlimited PDF downloads, the job tracker, and company interview guides. No card is required to start.",
+                answer: "Yes. The free plan includes 100 credits a month, the full resume builder with all 36 templates, unlimited PDF downloads, the job tracker, and company interview guides. No credit card is required to start.",
             },
             {
                 question: "How much does CareerVivid cost?",
@@ -293,7 +293,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
     {
         path: "/resume-builder",
         title: "Free AI Resume Builder | CareerVivid",
-        description: "Build a resume free with 36 professional templates, AI drafting from your experience, ATS-aware scoring, and unlimited PDF downloads. No card required.",
+        description: "Build a resume free with 36 professional templates, AI drafting from your experience, ATS-aware scoring, and unlimited PDF downloads. No credit card required.",
         heading: "Build a resume that gets read",
         summary: "Write it yourself or let AI draft from what you have done, then see a score for how well it holds up before you send it anywhere.",
         changefreq: "weekly",
@@ -330,7 +330,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         faqs: [
             {
                 question: "Is the CareerVivid resume builder free?",
-                answer: "Yes. Building, editing and downloading a resume as PDF is free and unlimited, and all 36 templates are available on the free plan. No card is required.",
+                answer: "Yes. Building, editing and downloading a resume as PDF is free and unlimited, and all 36 templates are available on the free plan. No credit card is required.",
             },
             {
                 question: "Can I download my resume as a PDF?",
@@ -383,7 +383,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
     {
         path: "/jobs",
         title: "Explore the Job Market | CareerVivid",
-        description: "Browse verified, still-open job listings. Every posting is link-checked before it appears, so you never open a role that was filled weeks ago.",
+        description: "Browse verified, still-open job listings \u2014 no account needed. Every posting is link-checked before it appears, so you never open a role that was filled weeks ago.",
         heading: "Open jobs, checked before you click",
         summary: "Every listing here was fetched from a company's own careers page and re-checked before being shown, so the roles you open are still open.",
         changefreq: "daily",

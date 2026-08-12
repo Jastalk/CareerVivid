@@ -48,10 +48,10 @@ describe('the pricing page quotes what CareerVivid actually charges', () => {
 
     /*
      * The free plan is described as a working product rather than a trial, so
-     * the claim has to stay true: 100 credits, all 36 templates, no card.
+     * the claim has to stay true: 100 credits, all 36 templates, no credit card.
      */
     it('does not promise a free plan that does not exist', () => {
         expect(PLAN_MONTHLY_CREDITS.free).toBeGreaterThan(0);
-        expect(pricing).toContain('No card is required');
+        expect(pricing).toContain('No credit card is required');
     });
 });

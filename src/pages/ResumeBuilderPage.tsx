@@ -51,7 +51,7 @@ const FEATURES = [
     {
         icon: Download,
         title: 'Download as many times as you like',
-        body: 'PDF export is unlimited on every plan, including free. No watermark, no per-download charge, no card required.',
+        body: 'PDF export is unlimited on every plan, including free. No watermark, no per-download charge, no credit card required.',
     },
 ];
 
@@ -96,7 +96,7 @@ const groupedTemplates = () => {
 const FAQS = [
     {
         q: 'Is the CareerVivid resume builder free?',
-        a: `Yes. Building, editing and downloading a resume as PDF is free and unlimited, and all ${TEMPLATES.length} templates are available on the free plan. No card is required to start.`,
+        a: `Yes. Building, editing and downloading a resume as PDF is free and unlimited, and all ${TEMPLATES.length} templates are available on the free plan. No credit card is required to start.`,
     },
     {
         q: 'Can I download my resume as a PDF?',
@@ -133,7 +133,7 @@ const ResumeBuilderPage: React.FC = () => {
                 <title>Free AI Resume Builder</title>
                 <meta
                     name="description"
-                    content={`Build a resume free with ${TEMPLATES.length} professional templates, AI drafting from your experience, ATS-aware scoring, and unlimited PDF downloads. No card required.`}
+                    content={`Build a resume free with ${TEMPLATES.length} professional templates, AI drafting from your experience, ATS-aware scoring, and unlimited PDF downloads. No credit card required.`}
                 />
                 <link rel="canonical" href="https://careervivid.app/resume-builder" />
             </Helmet>
@@ -166,7 +166,7 @@ const ResumeBuilderPage: React.FC = () => {
                         </a>
                     </div>
                     <p className="mt-4 text-sm text-[var(--cv-text-muted)]">
-                        Free forever plan · No card required · Unlimited PDF downloads
+                        Free forever plan · No credit card required · Unlimited PDF downloads
                     </p>
                 </section>
 
