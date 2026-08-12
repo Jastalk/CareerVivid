@@ -140,6 +140,7 @@ export {
 export { analyzeExtensionResumeMatch } from "./extensionResumeMatch";
 export { saveAnswerLibrary, getAnswerLibrary } from "./answerLibrary";
 export { getRecommendedScrapedJobs, openRecommendedJob, scrapeRecommendedJobs, scrapeRecommendedJobsCron, validateExternalJobLink, validateRecommendedJobOpen } from "./scrapedJobs";
+export { publicJobFeed } from "./publicJobFeed";
 
 // CLI Job Hunt API
 export { cliJobsHunt, cliJobsCreate, cliJobsUpdate, cliJobsDelete, cliJobsList, cliResumeGet, cliResumesList, cliResumeCreate, cliResumeUpdate, cliResumeDelete, cliCoverLetterCreate, cliCoverLettersList } from "./cliJobs";

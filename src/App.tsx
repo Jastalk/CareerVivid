@@ -48,6 +48,8 @@ const OpenRevenuePage = React.lazy(() => import('./pages/OpenRevenuePage'));
 const TechLandingPage = React.lazy(() => import('./pages/TechLandingPage'));
 const DemoPage = React.lazy(() => import('./pages/DemoPage'));
 const PricingPage = React.lazy(() => import('./pages/PricingPage'));
+const ResumeBuilderPage = React.lazy(() => import('./pages/ResumeBuilderPage'));
+const ResumeTemplatesPage = React.lazy(() => import('./pages/ResumeTemplatesPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminPage'));
 const StrategyDashboard = React.lazy(() => import('./pages/admin/StrategyDashboard'));
@@ -81,6 +83,7 @@ const AgencyPreparePage = React.lazy(() => import('./pages/AgencyPreparePage'));
 const JobPostingEditor = React.lazy(() => import('./pages/JobPostingEditor'));
 const JobMarketPage = React.lazy(() => import('./pages/JobMarketPage'));
 const PublicJobBoardPage = React.lazy(() => import('./pages/PublicJobBoardPage'));
+const PublicJobsListPage = React.lazy(() => import('./pages/PublicJobsListPage'));
 const IntegrationsPage = React.lazy(() => import('./pages/IntegrationsPage'));
 const ProgrammaticSeoPage = React.lazy(() => import('./pages/ProgrammaticSeoPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
@@ -252,6 +255,32 @@ const AppContent: React.FC = () => {
       <ThemeProvider>
         <RouteSuspense routeKey={path}>
           <PublicResumePage />
+        </RouteSuspense>
+      </ThemeProvider>
+    )
+  }
+
+  /*
+   * The public job list, and the employer boards it sits beside.
+   *
+   * ORDER MATTERS. The board route below reads the last path segment as a
+   * COMPANY SLUG, so it answers anything under /jobs/ — including /jobs/list,
+   * which it would have looked up as a company named "list" and rendered
+   * "Company profile not found." The specific routes are matched first.
+   *
+   * /jobs/recommend is deliberately untouched: that is the signed-in,
+   * personalised feed and it stays behind ProtectedRoute below.
+   */
+  if (path === '/jobs' || path === '/jobs/') {
+    window.location.replace('/jobs/list');
+    return null;
+  }
+
+  if (path === '/jobs/list' || /^\/jobs\/list\/\d+$/.test(path)) {
+    return (
+      <ThemeProvider>
+        <RouteSuspense routeKey={path}>
+          <PublicJobsListPage />
         </RouteSuspense>
       </ThemeProvider>
     )
@@ -780,6 +809,8 @@ const AppContent: React.FC = () => {
 
     // Pages that are definitely public
     else if (path === '/pricing') { content = <PricingPage />; }
+    else if (path === '/resume-builder') { content = <ResumeBuilderPage />; }
+    else if (path === '/resume-templates') { content = <ResumeTemplatesPage />; }
     else if (path === '/open') { content = <OpenRevenuePage />; }
     else if (path === '/demo') { content = <DemoPage />; }
     else if (path === '/contact') { content = <ContactPage />; }

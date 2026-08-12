@@ -12,6 +12,11 @@
     ],
     "redirects": [
       {
+        "source": "/jobs",
+        "destination": "/jobs/list",
+        "type": 301
+      },
+      {
         "source": "/en",
         "destination": "/",
         "type": 301
@@ -196,6 +201,26 @@
       },
       {
         "source": "/pricing",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/resume-builder",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/resume-templates",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/jobs/list",
+        "function": "renderSeoContent",
+        "region": "us-west1"
+      },
+      {
+        "source": "/jobs/list/*",
         "function": "renderSeoContent",
         "region": "us-west1"
       },
