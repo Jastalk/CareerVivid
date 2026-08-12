@@ -25,6 +25,7 @@ import {
     recordPracticeOutcome,
 } from "./interviewTools";
 import { getInterviewReport, addResumeSkills } from "./reportTools";
+import { reviewResumeGaps } from "./resumeGaps";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -1052,6 +1053,7 @@ export const REGISTRY: AgentTool[] = [
     getCareerProfile,
     updateCareerProfile,
     analyzeResume,
+    reviewResumeGaps,
     openResume,
     createResumeDraft,
     updateResumeSection,
