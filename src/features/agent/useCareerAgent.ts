@@ -256,6 +256,30 @@ export function useCareerAgent(opts: {
      * belongs in `messages` rather than a parallel list, because the user
      * speaks, mutes, types, and speaks again — that is one conversation.
      */
+    /**
+     * Attach a card produced by a LIVE tool call to the shared timeline.
+     *
+     * The voice path relayed tool results to the model and dropped everything
+     * else, so a tool whose whole point is an on-screen card produced nothing:
+     * the agent said "let me apply that fix for you" and the user saw no card,
+     * no button, and no change. Speech had `appendVoiceTurn`; cards had no
+     * equivalent until this.
+     *
+     * Attached to the newest assistant bubble so it reads as part of what the
+     * agent just said, rather than arriving detached at the bottom.
+     */
+    const appendVoiceCard = useCallback((card: AgentCard) => {
+        setMessages((m) => {
+            for (let i = m.length - 1; i >= 0; i--) {
+                if (m[i].role === 'assistant') {
+                    const withCard = { ...m[i], cards: [...(m[i].cards ?? []), card] };
+                    return [...m.slice(0, i), withCard, ...m.slice(i + 1)];
+                }
+            }
+            return [...m, { id: rid(), role: 'assistant' as const, text: '', cards: [card], via: 'voice' as const }];
+        });
+    }, []);
+
     const appendVoiceTurn = useCallback(async (role: 'user' | 'assistant', text: string) => {
         const trimmed = text.trim();
         if (!trimmed || !currentUser) return;
@@ -410,7 +434,7 @@ export function useCareerAgent(opts: {
 
     return {
         messages, send, resolve, reset, stopGenerating,
-        appendVoiceTurn, snapshot, restore,
+        appendVoiceTurn, appendVoiceCard, snapshot, restore,
         isThinking, isRestoring, error, credits,
         conversations, conversationId, openConversation, deleteConversation, deleteAllConversations, refreshConversations,
     };

@@ -63,6 +63,7 @@ export const AgentSessionProvider: React.FC<{ path: string; children: ReactNode 
         onEffect: handleEffect,
         onVoiceTurn: (role, t) =>
             void textRef.current.appendVoiceTurn(role === 'agent' ? 'assistant' : 'user', t),
+        onCard: (card) => textRef.current.appendVoiceCard(card),
     });
 
     const sessions = useSessionSwitcher({

@@ -385,6 +385,23 @@ const updateResumeSection: AgentTool = {
         return { resumeId: S(a.resumeId, "resumeId", 60), section, value: S(a.value, "value", 20_000) };
     },
     summarize: (a) => `Update the ${a.section} on your resume`,
+    /*
+     * A resume is not a code editor.
+     *
+     * Trying to "apply that fix" to a coding round, the agent reached for the
+     * nearest write tool it had and proposed replacing the user's
+     * employmentHistory — while they were mid-interview on Maximum Subarray.
+     * Nothing stopped it, because nothing connected the open round to which
+     * tools make sense in it.
+     */
+    precheck: async (ctx) => {
+        if (ctx.workspace?.kind === "coding") {
+            throw new Error(
+                "A coding round is open. This tool edits the user's RESUME and has nothing to do with their " +
+                "code — use proposeCodeEdit to change the editor. Do not touch the resume mid-round.",
+            );
+        }
+    },
     execute: async (ctx, a) => {
         const ref = userRef(ctx.uid).collection("resumes").doc(a.resumeId);
         if (!(await ref.get()).exists) throw new Error("Resume not found.");

@@ -98,6 +98,8 @@ export function useLiveCareerAgent(opts: {
     onEffect?: (effect: { navigate?: string; route?: string }) => void;
     /** Finished voice turns go here so the session is one timeline, and saved. */
     onVoiceTurn?: (role: 'user' | 'agent', text: string) => void;
+    /** A tool result the user has to see and act on, not just hear about. */
+    onCard?: (card: { kind: string; [key: string]: unknown }) => void;
 }) {
     const [status, setStatus] = useState<LiveStatus>('idle');
     const [error, setError] = useState<string | null>(null);
@@ -221,6 +223,9 @@ export function useLiveCareerAgent(opts: {
         }
     }, [teardown]);
 
+/** Tool results the user must see, not merely be told about. */
+const LIVE_CARD_KINDS = new Set(['code_edit_proposal']);
+
     /** Relay one model tool call to the server and return what the model should hear. */
     const runTool = useCallback(async (name: string, args: unknown) => {
         const fn = httpsCallable<unknown, any>(getFunctions(undefined, REGION), 'careerAgentLiveTool');
@@ -256,8 +261,13 @@ export function useLiveCareerAgent(opts: {
         }
 
         if (data?.ok && data.result && typeof data.result === 'object') {
-            const r = data.result as { navigate?: string; route?: string };
+            const r = data.result as { navigate?: string; route?: string; kind?: string };
             if (r.navigate || r.route) optsRef.current.onEffect?.(r);
+            // Some tools exist to put something on screen. Speech alone cannot
+            // deliver a diff with an Apply button.
+            if (r.kind && LIVE_CARD_KINDS.has(r.kind)) {
+                optsRef.current.onCard?.(r as { kind: string; [key: string]: unknown });
+            }
         }
         return data;
     }, []);

@@ -114,3 +114,34 @@ describe('sanitizeWorkspace carries what the gate needs', () => {
         expect(sanitizeWorkspace({ kind: 'coding', scored: false })?.scored).toBe(false);
     });
 });
+
+/*
+ * Asked to "apply that fix" to a coding round, the agent proposed replacing the
+ * user's employmentHistory — their RESUME — while they were mid-interview on
+ * Maximum Subarray. It reached for the nearest write tool it had, and nothing
+ * connected the open round to which tools belong in it.
+ */
+describe('resume tools stay out of a coding round', () => {
+    it('refuses updateResumeSection while a coding round is open', async () => {
+        const { TOOLS_BY_NAME } = await import('./tools');
+        const tool = TOOLS_BY_NAME.get('updateResumeSection')!;
+
+        await expect(tool.precheck!(ctx(), { resumeId: 'r1', section: 'employmentHistory', value: '[]' }))
+            .rejects.toThrow(/coding round is open/i);
+    });
+
+    it('names the tool the agent should have used', async () => {
+        const { TOOLS_BY_NAME } = await import('./tools');
+        const tool = TOOLS_BY_NAME.get('updateResumeSection')!;
+
+        await expect(tool.precheck!(ctx(), {})).rejects.toThrow(/proposeCodeEdit/);
+    });
+
+    it('leaves resume edits alone when no coding round is open', async () => {
+        const { TOOLS_BY_NAME } = await import('./tools');
+        const tool = TOOLS_BY_NAME.get('updateResumeSection')!;
+
+        await expect(tool.precheck!({ uid: 'u1', workspace: null } as any, {})).resolves.toBeUndefined();
+        await expect(tool.precheck!(ctx({ kind: 'system_design' }), {})).resolves.toBeUndefined();
+    });
+});
