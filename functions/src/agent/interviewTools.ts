@@ -363,13 +363,22 @@ async function reviewCodingWorkspace(workspace: any) {
         contents:
             "You are a senior engineer reviewing a candidate's in-progress interview solution. " +
             "Judge only the code supplied against the exact problem. An empty or scaffold-only buffer is " +
-            "a legitimate finding, not an error — say what the first real step is. " +
-            "NEVER write the solution or a corrected function: name the decision they have to make and " +
-            "the case that would break, and let them write it.\n\n" +
+            "a legitimate finding, not an error — say what the first real step is.\n\n" +
+            "TWO DIFFERENT THINGS, DO NOT CONFUSE THEM:\n" +
+            "1. Whether it RUNS. If syntaxError is present the code does not parse and nothing else " +
+            "matters yet — lead with it, quote the exact fix (for example `for let (` should be " +
+            "`for (let`), and put it first in nextEdits. A syntax error is not the interview question, " +
+            "so giving the corrected line away costs the candidate nothing.\n" +
+            "2. Whether it is CORRECT. That IS the interview question. Never write the algorithm, the " +
+            "loop body, or a finished function — name the decision they have to make and the input that " +
+            "would break what they have, and let them write it.\n\n" +
+            "Never claim code is correct without checking it against a case. If syntaxError is null, " +
+            "trace at least one input by hand before saying the logic is sound.\n\n" +
             JSON.stringify({
                 question: workspace.problem,
                 language: workspace.language ?? "unknown",
                 code: workspace.code ?? "",
+                syntaxError: workspace.syntaxError ?? null,
                 testsRun: workspace.testSummary ?? null,
             }),
         config: {
@@ -377,13 +386,14 @@ async function reviewCodingWorkspace(workspace: any) {
             responseSchema: {
                 type: "OBJECT",
                 properties: {
+                    runs: { type: "BOOLEAN", description: "False when the code does not parse. Say so before anything else." },
                     score: { type: "NUMBER", description: "How far along this solution is, 0 to 100." },
                     verdict: { type: "STRING", description: "One concise sentence on whether the approach is on track." },
                     strengths: { type: "ARRAY", items: { type: "STRING" } },
                     missingOrWeak: { type: "ARRAY", items: { type: "STRING" }, description: "Bugs, unhandled cases, or missing logic." },
                     nextEdits: { type: "ARRAY", items: { type: "STRING" }, description: "The next decisions to make, as hints — never finished code." },
                 },
-                required: ["score", "verdict", "strengths", "missingOrWeak", "nextEdits"],
+                required: ["runs", "score", "verdict", "strengths", "missingOrWeak", "nextEdits"],
             },
         },
     });
@@ -401,6 +411,8 @@ async function reviewCodingWorkspace(workspace: any) {
         model: WORKSPACE_REVIEW_MODEL,
         question: workspace.problem,
         language: workspace.language ?? "unknown",
+        // Echoed so the agent can quote the exact parser message and location.
+        syntaxError: workspace.syntaxError ?? null,
         reviewedLines: String(workspace.code ?? "").split("\n").filter((l: string) => l.trim()).length,
         ...review,
     };

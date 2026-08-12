@@ -46,8 +46,8 @@ describe('reviewOpenWorkspace covers both kinds of round', () => {
      */
     it('tells the coding reviewer not to write the solution', () => {
         const start = interviewTools.indexOf('async function reviewCodingWorkspace');
-        const body = interviewTools.slice(start, start + 2500);
-        expect(body).toMatch(/NEVER write the solution/);
+        const body = interviewTools.slice(start, start + 3500);
+        expect(body).toMatch(/Never write the algorithm/);
     });
 
     it('reports which kind it reviewed', () => {
@@ -82,5 +82,62 @@ describe.each(Object.entries(PROMPTS))('%s prompt', (_name, prompt) => {
 
     it('gives a coaching example for a coding round', () => {
         expect(prompt).toMatch(/Coding:/);
+    });
+});
+
+/*
+ * The second failure, on the same round. With the code finally visible, the
+ * agent was shown a buffer containing `for let (` — which does not parse — and
+ * said:
+ *
+ *   "The code looks correct to me. Sometimes the platform's formatting is
+ *    particular, but the logic is sound."
+ *
+ * Wrong twice: the code did not run, and the logic was wrong too (currentMax
+ * started at 0 instead of nums[0], so [2, 3] returns 3 instead of 5). It
+ * blamed the tool because nothing told it the buffer failed to parse.
+ */
+describe('the agent can tell whether the code runs', () => {
+    it('is given the parse failure, not just the code', () => {
+        expect(interviewTools).toMatch(/syntaxError: workspace\.syntaxError/);
+    });
+
+    it('reports runs/does-not-run as its own field', () => {
+        const start = interviewTools.indexOf('async function reviewCodingWorkspace');
+        const body = interviewTools.slice(start, start + 3500);
+        expect(body).toMatch(/runs:\s*\{ type: "BOOLEAN"/);
+        expect(body).toMatch(/required: \["runs",/);
+    });
+
+    it('separates making it run from solving it', () => {
+        const start = interviewTools.indexOf('async function reviewCodingWorkspace');
+        const body = interviewTools.slice(start, start + 3500);
+        expect(body).toMatch(/A syntax error is not the interview/);
+        expect(body).toMatch(/Never write the algorithm/);
+    });
+
+    it('forbids calling code correct without tracing an input', () => {
+        const start = interviewTools.indexOf('async function reviewCodingWorkspace');
+        const body = interviewTools.slice(start, start + 3500);
+        expect(body).toMatch(/Never claim code is correct without checking it/);
+    });
+});
+
+describe.each(Object.entries(PROMPTS))('%s prompt: run vs solve', (_name, prompt) => {
+    it('lets the agent hand over a syntax fix outright', () => {
+        expect(prompt).toMatch(/a syntax error is not the interview question/i);
+    });
+
+    it('still refuses to write the algorithm', () => {
+        expect(prompt).toMatch(/Never write the loop body/i);
+    });
+
+    /* The exact reassurance the user was given over code that did not parse. */
+    it('forbids "looks correct" without tracing a case', () => {
+        expect(prompt).toMatch(/NEVER say code "looks correct" without tracing an input/);
+    });
+
+    it('forbids blaming the tool', () => {
+        expect(prompt).toMatch(/Blaming the tool is never the answer/);
     });
 });

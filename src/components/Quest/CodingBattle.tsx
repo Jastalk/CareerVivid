@@ -82,6 +82,36 @@ const summarize = (response: RunnerResponse, hiddenIncluded: boolean): CodingRun
 const isCodingLanguage = (value: string | undefined): value is CodingLanguage =>
     !!value && (CODING_LANGUAGES as readonly string[]).includes(value);
 
+/**
+ * Where the code stops parsing, if it does.
+ *
+ * Reuses the formatter's parser rather than adding a second one: Prettier
+ * throws with the Babel message and a `line:column`, which is exactly what the
+ * editor banner already shows the user.
+ *
+ * Returns null for a buffer that parses. Non-JavaScript returns null too — we
+ * have no parser for it and claiming "no syntax error" would be a lie the agent
+ * would repeat.
+ */
+export const findJavaScriptSyntaxError = async (
+    source: string,
+): Promise<{ message: string; line?: number; column?: number } | null> => {
+    if (!source.trim()) return null;
+    try {
+        await formatJavaScript(source);
+        return null;
+    } catch (e) {
+        const raw = e instanceof Error ? e.message : String(e);
+        // Babel formats as: Unexpected token, expected "(" (5:9)
+        const at = raw.match(/\((\d+):(\d+)\)/);
+        return {
+            message: raw.split('\n')[0].slice(0, 300),
+            line: at ? Number(at[1]) : undefined,
+            column: at ? Number(at[2]) : undefined,
+        };
+    }
+};
+
 const formatJavaScript = async (source: string) => {
     const [prettier, babelParser] = await Promise.all([
         import('prettier/standalone'),
@@ -325,6 +355,33 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
      * tracks edits exactly rather than polling. Published, not sent: the agent
      * only reads it when the user asks it to look.
      */
+    /*
+     * Whether the buffer parses, checked as they type.
+     *
+     * Debounced because the parser is not free and half-typed code is a syntax
+     * error by definition — flagging it mid-keystroke would have the agent
+     * interrupt someone in the middle of writing a for-loop.
+     *
+     * Not read from the error banner: that only fills in when the user clicks
+     * Format. Checking here means the agent knows whether the code runs even
+     * when the user never touched the button.
+     */
+    const [syntaxError, setSyntaxError] = useState<{ message: string; line?: number; column?: number } | null>(null);
+
+    useEffect(() => {
+        if (language !== 'javascript') {
+            setSyntaxError(null);
+            return;
+        }
+        let cancelled = false;
+        const id = window.setTimeout(() => {
+            void findJavaScriptSyntaxError(codeByLanguage[language]).then((found) => {
+                if (!cancelled) setSyntaxError(found);
+            });
+        }, 900);
+        return () => { cancelled = true; window.clearTimeout(id); };
+    }, [codeByLanguage, language]);
+
     useEffect(() => {
         const ownerId = `coding:${brief.challenge.id}`;
         publishWorkspace({
@@ -335,8 +392,9 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
             code: codeByLanguage[language],
             language,
             testSummary: runSummary ? { passed: runSummary.passed, total: runSummary.total } : undefined,
+            syntaxError: syntaxError ?? undefined,
         }, ownerId);
-    }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary]);
+    }, [company, stageTitle, brief.prompt, codeByLanguage, language, runSummary, syntaxError]);
 
     // Release only if still held: the replacement round may already have
     // claimed the slot before this one unmounts.

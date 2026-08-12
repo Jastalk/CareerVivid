@@ -32,6 +32,16 @@ export interface WorkspaceSnapshot {
     language?: string;
     /** Latest run, when the user has executed their tests. */
     testSummary?: { passed: number; total: number };
+    /**
+     * Why the buffer will not run, when it will not.
+     *
+     * The agent was shown code and nothing else, so a buffer with a hard parse
+     * error looked fine to it. Asked "it says this in the formatting, can you
+     * fix this?", it answered "the code looks correct to me... the logic is
+     * sound" about a function containing `for let (`, which does not parse at
+     * all. It was not being careless — it had no way to know.
+     */
+    syntaxError?: { message: string; line?: number; column?: number };
     updatedAt: number;
 }
 
