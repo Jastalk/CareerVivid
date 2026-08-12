@@ -332,7 +332,7 @@ export const getOpenWorkspace: AgentTool = {
                 kind: "open_workspace",
                 route: ctx.route ?? "/",
                 available: false,
-                note: "No active coding or system-design workspace is currently open in the browser.",
+                note: "No coding or system-design round is open in the browser right now.",
             };
         }
         return {
@@ -340,18 +340,90 @@ export const getOpenWorkspace: AgentTool = {
             route: ctx.route ?? "/",
             available: true,
             workspace: ctx.workspace,
-            note: "Answer from this exact question and scene graph. Do not ask the user to describe it again.",
+            note: "This is what is on their screen. Answer from this exact question and its canvas or code buffer — never ask the user to describe or paste what is already here.",
         };
     },
 };
 
 const WORKSPACE_REVIEW_MODEL = "gemini-3.6-flash";
 
-/** Score the structured graph against the active prompt without a screenshot. */
+/**
+ * Review a coding buffer against the problem it is meant to solve.
+ *
+ * Deliberately the same output shape as the diagram review, and deliberately
+ * NOT a solution: the user is mid-interview, and handing them working code
+ * teaches nothing and ruins the round. `nextEdits` names the next decision the
+ * way a coach would — "you initialise globalMax to -Infinity but currentMax to
+ * 0, so a fully negative array returns 0" — without writing the line for them.
+ */
+async function reviewCodingWorkspace(workspace: any) {
+    const ai = getAIClient(undefined, getVertexLocationForModel(WORKSPACE_REVIEW_MODEL));
+    const result = await ai.models.generateContent({
+        model: WORKSPACE_REVIEW_MODEL,
+        contents:
+            "You are a senior engineer reviewing a candidate's in-progress interview solution. " +
+            "Judge only the code supplied against the exact problem. An empty or scaffold-only buffer is " +
+            "a legitimate finding, not an error — say what the first real step is. " +
+            "NEVER write the solution or a corrected function: name the decision they have to make and " +
+            "the case that would break, and let them write it.\n\n" +
+            JSON.stringify({
+                question: workspace.problem,
+                language: workspace.language ?? "unknown",
+                code: workspace.code ?? "",
+                testsRun: workspace.testSummary ?? null,
+            }),
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    score: { type: "NUMBER", description: "How far along this solution is, 0 to 100." },
+                    verdict: { type: "STRING", description: "One concise sentence on whether the approach is on track." },
+                    strengths: { type: "ARRAY", items: { type: "STRING" } },
+                    missingOrWeak: { type: "ARRAY", items: { type: "STRING" }, description: "Bugs, unhandled cases, or missing logic." },
+                    nextEdits: { type: "ARRAY", items: { type: "STRING" }, description: "The next decisions to make, as hints — never finished code." },
+                },
+                required: ["score", "verdict", "strengths", "missingOrWeak", "nextEdits"],
+            },
+        },
+    });
+
+    let review: Record<string, unknown>;
+    try {
+        review = JSON.parse(result.text || "{}");
+    } catch {
+        throw new Error("The code review returned an invalid result. Please try once more.");
+    }
+
+    return {
+        kind: "workspace_review",
+        workspaceKind: "coding",
+        model: WORKSPACE_REVIEW_MODEL,
+        question: workspace.problem,
+        language: workspace.language ?? "unknown",
+        reviewedLines: String(workspace.code ?? "").split("\n").filter((l: string) => l.trim()).length,
+        ...review,
+    };
+}
+
+/**
+ * Review whatever round is actually open — diagram or code.
+ *
+ * This used to throw "Open a system-design whiteboard before asking for a
+ * diagram review" for anything that was not `system_design`. In a coding round
+ * that error was the agent's only information about the workspace, so it
+ * concluded the user was in the wrong place and said so out loud: "It looks
+ * like you're in the coding workspace, not the system design whiteboard. Can
+ * you tell me what code you've added?" — while the buffer was sitting in the
+ * context it had just been handed.
+ *
+ * Both kinds return the same shape (score, verdict, strengths, missingOrWeak,
+ * nextEdits) so the agent needs no separate handling to speak the result.
+ */
 export const reviewOpenWorkspace: AgentTool = {
     name: "reviewOpenWorkspace",
     description:
-        "Review the active system-design solution against its current question and requirements. Uses the structured canvas nodes and connections, not a screenshot. Call for 'is this correct?', 'grade this', or feedback on the current diagram.",
+        "Review the user's current work against the question they are on — a system-design diagram or a coding solution, whichever is open. Uses the structured canvas or the code buffer, never a screenshot. Call for 'is this correct?', 'grade this', 'is this a good start?', or any request for feedback on what they have so far.",
     parameters: { type: "object", properties: {} },
     phase: 3,
     risk: "read",
@@ -359,10 +431,14 @@ export const reviewOpenWorkspace: AgentTool = {
     action: "agent.turn",
     execute: async (ctx) => {
         const workspace = ctx.workspace;
-        if (!workspace || workspace.kind !== "system_design") {
-            throw new Error("Open a system-design whiteboard before asking for a diagram review.");
+        if (!workspace) {
+            throw new Error("No coding or system-design round is open. Ask what they are working on.");
         }
-        if (!workspace.problem) throw new Error("The active whiteboard has no current question yet.");
+        if (!workspace.problem) throw new Error("The open round has no current question yet.");
+
+        if (workspace.kind === "coding") {
+            return reviewCodingWorkspace(workspace);
+        }
 
         const ai = getAIClient(undefined, getVertexLocationForModel(WORKSPACE_REVIEW_MODEL));
         const result = await ai.models.generateContent({
@@ -401,6 +477,7 @@ export const reviewOpenWorkspace: AgentTool = {
         }
         return {
             kind: "workspace_review",
+            workspaceKind: "system_design",
             model: WORKSPACE_REVIEW_MODEL,
             question: workspace.problem,
             reviewedNodes: workspace.nodes?.length ?? 0,
