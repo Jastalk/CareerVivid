@@ -76,6 +76,67 @@ describe('toPublicJob', () => {
         expect(toPublicJob('job-1', stored())!.description).toBe('Own the payments platform roadmap.');
     });
 
+    /*
+     * What the live feed actually returns. Greenhouse, Lever and Ashby all hand
+     * back raw HTML, so cards were rendering
+     * `<h2>Who we are</h2> <h3>About Stripe</h3> <p>Stripe is a financial…`
+     * as visible text — on the page whose entire job is making the listings
+     * look worth trusting.
+     */
+    it('strips the HTML the scrapers hand back', () => {
+        const html = { ...stored(), description: '<h2>Who we are</h2> <h3>About Stripe</h3><p>Stripe is a financial infrastructure platform.</p>' };
+        expect(toPublicJob('job-1', html)!.description)
+            .toBe('Who we are About Stripe Stripe is a financial infrastructure platform.');
+    });
+
+    it('does not run two sentences together where a block tag was', () => {
+        const html = { ...stored(), description: '<p>We build payments.</p><p>We are hiring.</p>' };
+        expect(toPublicJob('job-1', html)!.description).toBe('We build payments. We are hiring.');
+    });
+
+    it('decodes the entities that survive scraping', () => {
+        const html = { ...stored(), description: 'Stripe&nbsp;&amp; friends &#39;build&#39; things' };
+        expect(toPublicJob('job-1', html)!.description).toBe("Stripe & friends 'build' things");
+    });
+
+    it('never lets a script tag through as text', () => {
+        const html = { ...stored(), description: '<script>alert(1)</script>Real copy.' };
+        expect(toPublicJob('job-1', html)!.description).toBe('Real copy.');
+    });
+
+    /*
+     * Scrapers write "Not listed" into the salary field rather than leaving it
+     * empty, and a truthy string renders — so the card showed "Not listed" in
+     * the slot where a number goes, which reads worse than an empty slot.
+     */
+    it('drops a salary that is not a salary', () => {
+        for (const junk of ['Not listed', 'not specified', 'N/A', '—', '-', 'TBD', '  ']) {
+            expect(toPublicJob('j', { ...stored(), salary: junk })!.salary, junk).toBe('');
+        }
+    });
+
+    it('keeps a real salary', () => {
+        expect(toPublicJob('j', stored())!.salary).toBe('$180,000 - $220,000');
+        expect(toPublicJob('j', { ...stored(), salary: 'Not less than $100,000' })!.salary)
+            .toBe('Not less than $100,000');
+    });
+
+    /*
+     * Cards were printing `2026-07-01T11:25:04-04:00`. Formatted on the server
+     * so the crawler HTML and the rendered page agree, and without
+     * toLocaleDateString, whose output depends on the server's locale.
+     */
+    it('turns a timestamp into a date a person reads', () => {
+        expect(toPublicJob('j', { ...stored(), postedAt: '2026-07-01T11:25:04-04:00' })!.postedAt)
+            .toBe('Jul 1, 2026');
+        expect(toPublicJob('j', { ...stored(), postedAt: '2026-12-25' })!.postedAt).toBe('Dec 25, 2026');
+    });
+
+    it('leaves an already-readable date alone and drops nonsense', () => {
+        expect(toPublicJob('j', { ...stored(), postedAt: 'Posted recently' })!.postedAt).toBe('Posted recently');
+        expect(toPublicJob('j', { ...stored(), postedAt: '' })!.postedAt).toBe('');
+    });
+
     it('collapses the whitespace scraped pages are full of', () => {
         const messy = { ...stored(), description: 'Own   the\n\n payments\tplatform.' };
         expect(toPublicJob('job-1', messy)!.description).toBe('Own the payments platform.');

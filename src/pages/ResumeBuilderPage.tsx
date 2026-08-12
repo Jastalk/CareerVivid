@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
-import { FileText, Sparkles, Gauge, Target, Download, Upload, ArrowRight } from 'lucide-react';
+import { FileText, Sparkles, Gauge, Target, Download, Upload, ArrowRight, Check } from 'lucide-react';
 import PublicHeader from '../components/PublicHeader';
 import Footer from '../components/Footer';
 import { navigate } from '../utils/navigation';
@@ -55,6 +55,44 @@ const FEATURES = [
     },
 ];
 
+/**
+ * Template groups a reader actually chooses between.
+ *
+ * Anything not named here falls into "Modern and minimal", so a newly added
+ * template appears in the gallery rather than disappearing from it. Filtered
+ * against TEMPLATES so a rename cannot leave a card pointing at nothing.
+ */
+const GROUPS: Array<{ title: string; blurb: string; ids: string[] }> = [
+    {
+        title: 'Classic and traditional',
+        blurb: 'Conventional layouts for fields that expect one — law, academia, finance, medicine.',
+        ids: ['Harvard', 'Chicago', 'Classic', 'Serif', 'Academic', 'Executive', 'Corporate', 'Professional'],
+    },
+    {
+        title: 'Creative and visual',
+        blurb: 'For work that is itself visual. Use them when the portfolio is the point.',
+        ids: ['Creative', 'Artistic', 'Vibrant', 'Infographic', 'Wave', 'Geometric', 'Timeline', 'Sydney', 'Bold', 'Dynamic'],
+    },
+    {
+        title: 'Technical',
+        blurb: 'Room for stacks, projects and links without crowding out the results.',
+        ids: ['Technical', 'Quantum', 'Vertex', 'Orion', 'Apex', 'Slate', 'Zenith', 'Pinnacle', 'Cascade'],
+    },
+];
+
+const groupedTemplates = () => {
+    const claimed = new Set(GROUPS.flatMap((g) => g.ids));
+    const rest = TEMPLATES.filter((t) => !claimed.has(t.id)).map((t) => t.id);
+    return [
+        ...GROUPS.map((g) => ({ ...g, templates: TEMPLATES.filter((t) => g.ids.includes(t.id)) })),
+        {
+            title: 'Modern and minimal',
+            blurb: 'The safest default. Clean single-column layouts that survive an ATS and a six-second skim equally well.',
+            templates: TEMPLATES.filter((t) => rest.includes(t.id)),
+        },
+    ].filter((g) => g.templates.length > 0);
+};
+
 const FAQS = [
     {
         q: 'Is the CareerVivid resume builder free?',
@@ -72,11 +110,20 @@ const FAQS = [
         q: 'Can I import a resume I already have?',
         a: 'Yes. Upload a PDF, Word document or plain text file and CareerVivid extracts your details, roles and skills into an editable resume.',
     },
+    {
+        q: 'Which resume template is best for ATS?',
+        a: 'Any single-column template with conventional section headings parses most reliably — Modern, Simple, Classic, Minimalist and Harvard are all safe choices. Every CareerVivid template uses selectable text rather than images, which is the part that matters most.',
+    },
+    {
+        q: 'Can I switch templates after writing my resume?',
+        a: 'Yes. Content and design are stored separately, so changing template keeps all of your text and lets you compare designs instantly.',
+    },
 ];
 
 const ResumeBuilderPage: React.FC = () => {
     const { currentUser } = useAuth();
     const start = () => navigate(currentUser ? '/newresume' : '/signup');
+    const groups = groupedTemplates();
 
     return (
         <div className="min-h-screen bg-[var(--cv-bg-public)]">
@@ -112,8 +159,7 @@ const ResumeBuilderPage: React.FC = () => {
                             <ArrowRight className="h-4 w-4" />
                         </button>
                         <a
-                            href="/resume-templates"
-                            onClick={(e) => { e.preventDefault(); navigate('/resume-templates'); }}
+                            href="#templates"
                             className="rounded-xl border border-[var(--cv-border-warm)] px-6 py-3 text-base font-bold text-[var(--cv-text-body)] transition-colors hover:bg-[var(--cv-surface-warm-muted)]"
                         >
                             See all {TEMPLATES.length} templates
@@ -136,6 +182,55 @@ const ResumeBuilderPage: React.FC = () => {
                             </article>
                         ))}
                     </div>
+                </section>
+
+                <section id="templates" className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:px-8">
+                    <h2 className="text-2xl font-black text-[var(--cv-text-heading)]">
+                        All {TEMPLATES.length} templates, free
+                    </h2>
+                    <p className="mb-8 mt-2 max-w-2xl text-sm leading-relaxed text-[var(--cv-text-body)]">
+                        Each is a full document design with its own typography, spacing and colour options,
+                        not a colour swap of one layout. Switching keeps your content, so trying another
+                        costs you nothing but a click.
+                    </p>
+                    {groups.map((group) => (
+                        <div key={group.title} className="mb-10">
+                            <h3 className="text-base font-black text-[var(--cv-text-heading)]">{group.title}</h3>
+                            <p className="mb-4 mt-1 max-w-2xl text-sm leading-relaxed text-[var(--cv-text-body)]">
+                                {group.blurb}
+                            </p>
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {group.templates.map((template) => (
+                                    <button
+                                        key={template.id}
+                                        type="button"
+                                        onClick={start}
+                                        className="cv-design-card cv-design-card-hover p-4 text-left"
+                                    >
+                                        <span className="block text-base font-black text-[var(--cv-text-heading)]">
+                                            {template.name}
+                                        </span>
+                                        <span
+                                            className="mt-3 flex items-center gap-1.5"
+                                            aria-label={`${template.availableColors.length} colour options`}
+                                        >
+                                            {template.availableColors.slice(0, 6).map((colour) => (
+                                                <span
+                                                    key={colour}
+                                                    className="h-4 w-4 rounded-full ring-1 ring-black/10"
+                                                    style={{ backgroundColor: colour }}
+                                                />
+                                            ))}
+                                        </span>
+                                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[var(--cv-text-muted)]">
+                                            <Check className="h-3 w-3" />
+                                            Free · PDF export
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </section>
 
                 <section className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 lg:px-8">

@@ -67,8 +67,21 @@ const PublicHeader: React.FC<PublicHeaderProps> = ({ variant = 'editorial', cont
         const brutalistClasses = "flex items-center gap-1 text-sm font-black uppercase tracking-wide transition-all py-2 px-3 border-2 border-transparent hover:bg-black hover:text-white hover:border-black text-black";
 
         // Default: Existing styles
+        /*
+         * Theme tokens, not literal hex.
+         *
+         * The hover colour used to be `group-hover:text-[#211b16]` — near-black.
+         * index.css remaps `text-[#211b16]` for dark mode, but that rule matches
+         * on `[class~="text-[#211b16]"]`, and `~=` only matches WHOLE
+         * whitespace-separated class tokens. `group-hover:text-[#211b16]` is a
+         * different token, so it was never remapped: hovering a nav item painted
+         * it near-black on the near-black dark page and the label vanished.
+         *
+         * A var() carries its own light and dark values, so there is no second
+         * rule to keep in step and nothing for a variant prefix to hide from.
+         */
         const defaultClasses = isEditorial
-            ? "flex items-center gap-1 py-2 text-sm font-semibold text-[#665a4a] transition-colors group-hover:text-[#211b16]"
+            ? "flex items-center gap-1 py-2 text-sm font-semibold text-[var(--cv-text-muted)] transition-colors group-hover:text-[var(--cv-text-heading)]"
             : "flex items-center gap-1 text-sm font-medium transition-colors py-2 text-gray-600 dark:text-gray-300 group-hover:text-primary-600 dark:group-hover:text-primary-400";
 
         const baseClasses = isBrutalist ? brutalistClasses : defaultClasses;

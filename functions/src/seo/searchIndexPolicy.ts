@@ -241,6 +241,10 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
                 body: "A resume score checks the things a recruiter and an applicant tracking system both look for: whether your bullets carry numbers, whether your summary says anything specific, whether required sections are filled in. It names the weakest line rather than giving you a grade.",
             },
             {
+                heading: "How to choose a template",
+                body: "For most roles a clear single-column layout beats a striking one — it survives an applicant tracking system and a six-second skim equally well. Reach for the visual templates when the work itself is visual, and for Harvard, Chicago or Academic when the field expects a conventional document. Changing your mind is free: content and design are stored separately, so switching template keeps every word in place.",
+            },
+            {
                 heading: "Tailor it to the job you are applying for",
                 body: "Paste a job description and CareerVivid rewrites the summary and reorders your skills for that role, as a new copy. Your original resume is never modified, so you can keep one per application.",
             },
@@ -262,47 +266,6 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
                 question: "Can I import a resume I already have?",
                 answer: "Yes. Upload a PDF, Word document or plain text file and CareerVivid extracts your details, roles and skills into an editable resume.",
             },
-        ],
-        links: [
-            { href: "/resume-templates", label: "See all 36 resume templates" },
-            { href: "/jobs", label: "Find jobs to apply to" },
-            { href: "/pricing", label: "Compare plans" },
-        ],
-    },
-    {
-        path: "/resume-templates",
-        title: "36 Free Resume Templates | CareerVivid",
-        description: "Browse 36 free resume templates — classic, modern, creative, and technical. Every template is editable, ATS-friendly, and downloadable as PDF at no cost.",
-        heading: "36 resume templates, free to use",
-        summary: "Pick a template, fill it in, and download it as a PDF. Switching templates keeps your content, so trying another one costs you nothing but a click.",
-        changefreq: "monthly",
-        priority: "0.9",
-        includeInSitemap: true,
-        sections: [
-            {
-                heading: "Every template",
-                body: "Each is a full document design with its own typography, spacing and colour options, not a colour swap of one layout.",
-                bullets: [
-                    "Academic, Apex, Artistic, Bold, Cascade, Chicago, Classic, Compact, Corporate.",
-                    "Creative, Crisp, Dynamic, Elegant, Executive, Geometric, Harvard, Infographic.",
-                    "Minimalist, Modern, Monochrome, Orion, Pinnacle, Professional, Quantum, Serif.",
-                    "Simple, Slate, Spacious, Swiss, Sydney, Technical, Timeline, Vertex, Vibrant, Wave, Zenith.",
-                ],
-            },
-            {
-                heading: "How to choose one",
-                body: "For most roles, a clear single-column layout beats a striking one — it survives an applicant tracking system and a six-second skim equally well. Reach for the visual templates when the work itself is visual, and for Harvard, Chicago or Academic when the field expects a conventional document.",
-            },
-            {
-                heading: "Changing your mind is free",
-                body: "Your content is stored separately from the design, so switching template keeps every word in place. You can try six and download whichever reads best.",
-            },
-        ],
-        faqs: [
-            {
-                question: "Are these resume templates really free?",
-                answer: "Yes. All 36 templates are available on the free plan with unlimited PDF downloads and no card required.",
-            },
             {
                 question: "Which resume template is best for ATS?",
                 answer: "Any single-column template with conventional section headings parses most reliably — Modern, Simple, Classic, Minimalist and Harvard are all safe choices. Every CareerVivid template uses selectable text rather than images, which is the part that matters most.",
@@ -313,7 +276,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
             },
         ],
         links: [
-            { href: "/resume-builder", label: "Start building a resume" },
+            { href: "/jobs", label: "Find jobs to apply to" },
             { href: "/pricing", label: "Compare plans" },
         ],
     },

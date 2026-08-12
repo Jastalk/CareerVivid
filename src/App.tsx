@@ -49,7 +49,6 @@ const TechLandingPage = React.lazy(() => import('./pages/TechLandingPage'));
 const DemoPage = React.lazy(() => import('./pages/DemoPage'));
 const PricingPage = React.lazy(() => import('./pages/PricingPage'));
 const ResumeBuilderPage = React.lazy(() => import('./pages/ResumeBuilderPage'));
-const ResumeTemplatesPage = React.lazy(() => import('./pages/ResumeTemplatesPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminPage'));
 const StrategyDashboard = React.lazy(() => import('./pages/admin/StrategyDashboard'));
@@ -812,7 +811,6 @@ const AppContent: React.FC = () => {
     // Pages that are definitely public
     else if (path === '/pricing') { content = <PricingPage />; }
     else if (path === '/resume-builder') { content = <ResumeBuilderPage />; }
-    else if (path === '/resume-templates') { content = <ResumeTemplatesPage />; }
     else if (path === '/open') { content = <OpenRevenuePage />; }
     else if (path === '/demo') { content = <DemoPage />; }
     else if (path === '/contact') { content = <ContactPage />; }

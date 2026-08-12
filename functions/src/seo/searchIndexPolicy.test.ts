@@ -27,7 +27,7 @@ const wordsOn = (page: SearchPageDefinition): number => {
 };
 
 /** The pages that have to answer a commercial query, not just exist. */
-const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/resume-templates', '/jobs'];
+const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/jobs'];
 
 const page = (path: string): SearchPageDefinition => {
     const found = getSearchPage(path);

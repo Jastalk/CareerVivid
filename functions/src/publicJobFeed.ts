@@ -35,13 +35,69 @@ export const MAX_PUBLIC_JOB_PAGES = 25;
 
 const MAX_SCAN = PUBLIC_JOBS_PAGE_SIZE * MAX_PUBLIC_JOB_PAGES;
 
+const ENTITIES: Record<string, string> = {
+    "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
+    "&quot;": '"', "&#39;": "'", "&apos;": "'", "&mdash;": "—", "&ndash;": "–",
+};
+
+/**
+ * Turn a scraped description into a sentence a person can read.
+ *
+ * These come out of Greenhouse, Lever and Ashby as raw HTML, so the card was
+ * showing `<h2>Who we are</h2> <h3>About Stripe</h3> <p>Stripe is a financial…`
+ * — the markup rendered as text, on the page whose whole job is to make the
+ * listings look worth trusting.
+ *
+ * Block-level tags become a space rather than nothing, so "…platform.</p><p>We
+ * are…" does not run two sentences together.
+ */
+const plainText = (value: unknown): string => {
+    let text = String(value ?? "");
+    text = text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ");
+    text = text.replace(/<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|section)\b[^>]*>/gi, " ");
+    text = text.replace(/<[^>]+>/g, "");
+    text = text.replace(/&[a-z#0-9]+;/gi, (m) => ENTITIES[m.toLowerCase()] ?? " ");
+    return text.replace(/\s+/g, " ").trim();
+};
+
 /** Trim a description to a readable card blurb without cutting mid-word. */
 const blurb = (value: unknown, max = 260): string => {
-    const text = String(value ?? "").replace(/\s+/g, " ").trim();
+    const text = plainText(value);
     if (text.length <= max) return text;
     const cut = text.slice(0, max);
     const lastSpace = cut.lastIndexOf(" ");
     return `${lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut}…`;
+};
+
+/**
+ * A salary, or nothing.
+ *
+ * Scrapers write "Not listed" into the field rather than leaving it empty, and
+ * a truthy string renders — so cards were showing "Not listed" in the slot
+ * where a number goes, which reads worse than showing nothing at all.
+ */
+const NON_SALARY = /^(not\s*(listed|specified|provided|disclosed)|n\/?a|none|unspecified|tbd|-+|—)$/i;
+const salaryOf = (value: unknown): string => {
+    const text = String(value ?? "").replace(/\s+/g, " ").trim();
+    return !text || NON_SALARY.test(text) ? "" : text;
+};
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * A date a person reads, not a timestamp.
+ *
+ * Cards were printing `2026-07-01T11:25:04-04:00`. Formatted here rather than
+ * in the browser so the crawler HTML and the rendered page agree — and without
+ * toLocaleDateString, whose output depends on the server's locale.
+ */
+const postedOn = (value: unknown): string => {
+    const raw = String(value ?? "").trim();
+    if (!raw) return "";
+    const ms = Date.parse(raw);
+    if (Number.isNaN(ms)) return raw.length <= 24 ? raw : "";
+    const d = new Date(ms);
+    return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
 };
 
 export interface PublicJob {
@@ -81,8 +137,8 @@ export function toPublicJob(id: string, data: any): PublicJob | null {
         workModel: String(data?.workModel ?? "").trim(),
         jobType: String(data?.jobType ?? "").trim(),
         seniority: String(data?.seniority ?? "").trim(),
-        salary: String(data?.salary ?? "").trim(),
-        postedAt: String(data?.postedAt ?? "").trim(),
+        salary: salaryOf(data?.salary),
+        postedAt: postedOn(data?.postedAt),
         sourceLabel: String(data?.sourceLabel ?? "").trim(),
         applyUrl,
         description: blurb(data?.description),

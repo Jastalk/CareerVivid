@@ -12,6 +12,11 @@
     ],
     "redirects": [
       {
+        "source": "/resume-templates",
+        "destination": "/resume-builder",
+        "type": 301
+      },
+      {
         "source": "/jobs/list",
         "destination": "/jobs",
         "type": 301
@@ -211,11 +216,6 @@
       },
       {
         "source": "/resume-builder",
-        "function": "renderSeoContent",
-        "region": "us-west1"
-      },
-      {
-        "source": "/resume-templates",
         "function": "renderSeoContent",
         "region": "us-west1"
       },

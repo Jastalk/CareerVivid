@@ -28,7 +28,6 @@ describe("search indexing policy", () => {
             "/blog",
             "/jobs",
             "/resume-builder",
-            "/resume-templates",
             "/contact",
             "/product",
             "/community/guidelines",
