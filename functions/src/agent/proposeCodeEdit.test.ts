@@ -62,16 +62,52 @@ describe('the scored-round gate', () => {
     });
 
     /*
-     * The whole point. Writing the algorithm into a scored round would make the
-     * score measure the agent instead of the candidate.
+     * "Some of the code, but not the whole solution."
+     *
+     * A blanket refusal of every logic edit left the agent with nothing to
+     * offer, and it told the user it was "running into an issue with the tool"
+     * — blaming the software for a deliberate decision. A scored round now
+     * allows a nudge and refuses a handover.
      */
-    it('refuses a logic edit in a scored round, and says why', async () => {
-        await expect(proposeCodeEdit.execute(ctx(), args({ kind: 'logic' })))
-            .rejects.toThrow(/scored.*may not write logic/is);
+    it('allows a small logic nudge on top of the user own work in a scored round', async () => {
+        const theirWork = Array.from({ length: 20 }, (_, i) => `  const step${i} = ${i};`).join('\n');
+        const nudged = theirWork + '\n  return step19;';
+        const result = await proposeCodeEdit.execute(
+            ctx({ code: theirWork }),
+            args({ kind: 'logic', nextCode: nudged }),
+        ) as any;
+        expect(result.editKind).toBe('logic');
     });
 
-    it('allows a logic edit in guest practice, which persists nothing', async () => {
-        const result = await proposeCodeEdit.execute(ctx({ scored: false }), args({ kind: 'logic' })) as any;
+    it('refuses an edit that would write most of the solution', async () => {
+        const scaffold = 'function trieOps(operations) {\n}';
+        const finished = 'function trieOps(operations) {\n' + Array.from({ length: 25 }, (_, i) => `  const line${i} = ${i};`).join('\n') + '\n}';
+        await expect(proposeCodeEdit.execute(ctx({ code: scaffold }), args({ kind: 'logic', nextCode: finished })))
+            .rejects.toThrow(/most of the solution/i);
+    });
+
+    /* The model must not report a deliberate refusal as a broken tool. */
+    it('tells the agent the refusal is not a tool failure', async () => {
+        const scaffold = 'function f() {\n}';
+        const finished = 'function f() {\n' + Array.from({ length: 25 }, (_, i) => `  const l${i} = ${i};`).join('\n') + '\n}';
+        await expect(proposeCodeEdit.execute(ctx({ code: scaffold }), args({ kind: 'logic', nextCode: finished })))
+            .rejects.toThrow(/not a tool failure/i);
+    });
+
+    it('names a smaller step as the alternative', async () => {
+        const scaffold = 'function f() {\n}';
+        const finished = 'function f() {\n' + Array.from({ length: 25 }, (_, i) => `  const l${i} = ${i};`).join('\n') + '\n}';
+        await expect(proposeCodeEdit.execute(ctx({ code: scaffold }), args({ kind: 'logic', nextCode: finished })))
+            .rejects.toThrow(/SMALLER step/i);
+    });
+
+    it('allows even a whole solution in guest practice, which persists nothing', async () => {
+        const scaffold = 'function f() {\n}';
+        const finished = 'function f() {\n' + Array.from({ length: 25 }, (_, i) => `  const l${i} = ${i};`).join('\n') + '\n}';
+        const result = await proposeCodeEdit.execute(
+            ctx({ scored: false, code: scaffold }),
+            args({ kind: 'logic', nextCode: finished }),
+        ) as any;
         expect(result.editKind).toBe('logic');
     });
 

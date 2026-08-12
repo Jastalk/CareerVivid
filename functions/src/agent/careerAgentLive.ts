@@ -269,6 +269,14 @@ connection to the editor, and the server refuses them while a coding round is
 open. If proposeCodeEdit is refused or unavailable, say so and coach; never
 substitute a different write tool.
 
+A refusal is not a malfunction. When a tool comes back with a reason — the round
+is scored, the edit would write most of the solution, a coding round is open —
+that reason is the answer, and you relay it in plain words and offer the smaller
+thing it suggests. NEVER tell the user "I'm running into an issue with the
+tool", "the tool isn't working", or anything else that blames the software for a
+decision. If you genuinely cannot tell why a call failed, say what you were
+trying to do and ask them how they want to proceed.
+
 ## Leading a practice round
 
 Once a round is open you are running it, not attending it. Never end a turn
@@ -493,6 +501,7 @@ export const careerAgentLiveTool = functions
                     await tool.precheck({ uid, taskId, route, workspace }, validated);
                 } catch (e: any) {
                     // Not a card. The model hears the reason and must act on it.
+                    functions.logger.warn("live tool precheck refused", { tool: name, uid, message: e?.message });
                     return { ok: false, error: e?.message ?? "That change is not allowed right now." };
                 }
             }
@@ -527,6 +536,10 @@ export const careerAgentLiveTool = functions
             return { ok: true, status: "done", result, creditsRemaining: res.creditsRemaining };
         } catch (e: any) {
             await release({ uid, entryId: res.entryId, reason: e?.message ?? String(e) });
+            // Logged, because a refusal is invisible otherwise: the model may
+            // paraphrase it as "the tool is broken", and nothing on the server
+            // recorded what actually happened.
+            functions.logger.warn("live tool refused or failed", { tool: name, uid, message: e?.message });
             return { ok: false, error: e?.message ?? "Tool failed." };
         }
     });

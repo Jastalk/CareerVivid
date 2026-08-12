@@ -26,6 +26,7 @@ import * as admin from "firebase-admin";
 import { type AgentTool } from "./types";
 import { getAIClient, getVertexLocationForModel } from "../utils/ai";
 import { normalizeSpokenCompanyQuery } from "./interviewIntent";
+import { assessCodeEditScale } from "./codeEditScale";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = admin.firestore();
@@ -550,12 +551,28 @@ export const proposeCodeEdit: AgentTool = {
             throw new Error("No coding round is open, so there is no editor to write to.");
         }
 
+        /*
+         * "Some of the code, but not the whole solution."
+         *
+         * syntax-vs-logic could not express that: adding three lines to work
+         * someone already did and turning a scaffold into a finished Trie both
+         * arrive as "logic". Refusing both left the agent with nothing to offer
+         * and it told the user the tool was broken.
+         *
+         * So a scored round allows a nudge and refuses a handover, measured by
+         * how much of the finished result the edit would author.
+         */
         if (a.kind === "logic" && workspace.scored !== false) {
-            throw new Error(
-                "This round is scored, so you may not write logic into their editor — that is the part being " +
-                "measured. Fix what stops the code running if anything does, then coach the logic: name the " +
-                "decision and the input that breaks what they have, and let them write it.",
-            );
+            const scale = assessCodeEditScale(workspace.code ?? "", a.nextCode);
+            if (scale.writesMostOfIt) {
+                throw new Error(
+                    `REFUSED, and this is not a tool failure — say so in plain words rather than blaming the ` +
+                    `tool. That edit would write ${scale.added} of the ${scale.after} lines, which is most of ` +
+                    `the solution, and this round is scored. Offer a SMALLER step instead: one helper, one ` +
+                    `branch, the next few lines — then let them continue. Or coach it: name the decision and ` +
+                    `the input that breaks what they have.`,
+                );
+            }
         }
 
         // The client applies it only if this still matches their buffer.

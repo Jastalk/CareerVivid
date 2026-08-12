@@ -141,3 +141,24 @@ describe.each(Object.entries(PROMPTS))('%s prompt: run vs solve', (_name, prompt
         expect(prompt).toMatch(/Blaming the tool is never the answer/);
     });
 });
+
+/*
+ * "It seems I'm running into an issue with the tool again." — said about a
+ * deliberate refusal, twice. Blaming the software for a product decision leaves
+ * the user with nothing to act on and no idea what actually happened.
+ */
+describe.each(Object.entries(PROMPTS))('%s prompt: refusals', (_name, prompt) => {
+    it('says a refusal is not a malfunction', () => {
+        expect(prompt).toMatch(/A refusal is not a malfunction/);
+    });
+
+    /* The prompt hard-wraps, so these must tolerate a newline mid-phrase. */
+    it('forbids the exact phrasing the user heard', () => {
+        expect(prompt).toMatch(/running\s+into\s+an\s+issue\s+with\s+the\s+tool/);
+        expect(prompt).toMatch(/blames\s+the\s+software\s+for\s+a\s+decision/);
+    });
+
+    it('says what to do instead when the reason is genuinely unknown', () => {
+        expect(prompt).toMatch(/say\s+what\s+you\s+were\s+trying\s+to\s+do\s+and\s+ask\s+them/);
+    });
+});
