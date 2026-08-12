@@ -19,9 +19,11 @@ interface InterviewReportModalProps {
     isGuestMode?: boolean;
     /** If provided, shows an "Improve my solution" button (coding quests only). */
     onImprove?: () => void;
+    onNextProblem?: () => void;
+    remainingProblems?: number;
 }
 
-const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove }) => {
+const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove, onNextProblem, remainingProblems }) => {
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('feedback');
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -131,6 +133,8 @@ const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryE
                                 onDownloadDocx={handleDownloadDocx}
                                 onRateReport={() => setIsFeedbackModalOpen(true)}
                                 onImprove={onImprove}
+                                onNextProblem={onNextProblem}
+                                remainingProblems={remainingProblems}
                             />
                         </>
                     ) : (

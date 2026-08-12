@@ -72,6 +72,7 @@ import {
 
 const AIInterviewAgentModal = React.lazy(() => import('../components/AIInterviewAgentModal'));
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
+const AllProblemsClearedModal = React.lazy(() => import('../components/Quest/AllProblemsClearedModal'));
 const SystemDesignBattle = React.lazy(() => import('../components/Quest/SystemDesignBattle'));
 const CodingBattle = React.lazy(() => import('../components/Quest/CodingBattle'));
 
@@ -269,6 +270,8 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     );
     const codingSolvedCount = useMemo(() => new Set(codingSolvedIds).size, [codingSolvedIds]);
     const [codingPickerStageId, setCodingPickerStageId] = useState<string | null>(null);
+    /** Set to the company name once its coding pool is exhausted. */
+    const [allCodingClearedFor, setAllCodingClearedFor] = useState<string | null>(null);
     const systemDesignPool = useMemo(() => (guide ? getSystemDesignPool(guide) : []), [guide]);
     const systemDesignPoolSize = systemDesignPool.length;
     const systemDesignSolvedIds = useMemo(
@@ -575,6 +578,41 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
 
     const handleGuestCodingSubmissionComplete = (challengeId: string) => {
         setGuestCodingSolvedIds((previous) => previous.includes(challengeId) ? previous : [...previous, challengeId]);
+    };
+
+    /**
+     * Move to the next unsolved coding problem at this company.
+     *
+     * Finishing a problem used to end at "improve this one, or leave", which is
+     * a dead end for someone who wanted to keep going — and the moment they
+     * have just cleared something is exactly when they will.
+     *
+     * Works for guests and signed-in users alike; the only difference is where
+     * the solved set is read from, which `codingSolvedIds` already resolves.
+     * When nothing is left, the modal points them at another company rather
+     * than silently reshuffling problems they have already done.
+     */
+    const codingProblemsRemaining = useMemo(() => {
+        if (!codingBattle) return 0;
+        const solved = new Set([...codingSolvedIds, codingBattle.brief.challenge.id]);
+        return codingPool.filter((c) => !solved.has(c.id)).length;
+    }, [codingBattle, codingPool, codingSolvedIds]);
+
+    const handleNextCodingProblem = () => {
+        if (!guide || !codingBattle) return;
+
+        const solved = new Set([...codingSolvedIds, codingBattle.brief.challenge.id]);
+        const next = codingPool.find((c) => !solved.has(c.id));
+        if (!next) {
+            setAllCodingClearedFor(guide.company);
+            setCodingBattle(null);
+            return;
+        }
+
+        if (codingBattle.isGuestPractice) setGuestCodingSolvedIds([...solved]);
+        setCodingBattle((current) => current
+            ? { ...current, brief: buildCodingBrief(guide, next), initialArtifact: undefined, initialDraft: undefined }
+            : current);
     };
 
     const handleGuestNextCodingChallenge = () => {
@@ -1080,7 +1118,20 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                         onAnalysisComplete={(analysis) => handleStageAnalysis(codingBattle.stage, analysis)}
                         onGuestSubmissionComplete={handleGuestCodingSubmissionComplete}
                         onGuestNextChallenge={handleGuestNextCodingChallenge}
+                        onNextProblem={codingPool.length > 1 ? handleNextCodingProblem : undefined}
+                        remainingProblems={codingProblemsRemaining}
                         onClose={() => setCodingBattle(null)}
+                    />
+                </Suspense>
+            )}
+
+            {allCodingClearedFor && (
+                <Suspense fallback={null}>
+                    <AllProblemsClearedModal
+                        company={allCodingClearedFor}
+                        currentSlug={slug}
+                        solvedCount={codingPool.length}
+                        onClose={() => setAllCodingClearedFor(null)}
                     />
                 </Suspense>
             )}

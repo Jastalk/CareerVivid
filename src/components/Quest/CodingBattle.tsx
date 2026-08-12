@@ -63,6 +63,10 @@ interface CodingBattleProps {
     onAnalysisComplete?: (analysis: InterviewAnalysis) => void;
     onGuestSubmissionComplete?: (challengeId: string) => void;
     onGuestNextChallenge?: () => void;
+    /** Move to another problem at this company, from the report footer. */
+    onNextProblem?: () => void;
+    /** How many are left after this one; 0 means the pool is exhausted. */
+    remainingProblems?: number;
     onClose: () => void;
 }
 
@@ -180,6 +184,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
     onAnalysisComplete,
     onGuestSubmissionComplete,
     onGuestNextChallenge,
+    onNextProblem,
+    remainingProblems,
     onClose,
 }) => {
     const { resolvedTheme } = useTheme();
@@ -660,6 +666,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                     jobHistoryEntry={historyEntry}
                     onClose={onClose}
                     onImprove={() => setReportEntry(null)}
+                    onNextProblem={onNextProblem}
+                    remainingProblems={remainingProblems}
                 />
             </Suspense>
         );
