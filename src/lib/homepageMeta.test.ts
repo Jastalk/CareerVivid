@@ -15,7 +15,19 @@ import { getSearchPage } from '../../functions/src/seo/searchIndexPolicy';
  */
 
 const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8');
-const decode = (s: string) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"');
+
+/*
+ * One pass, not one replace per entity. Decoding `&amp;` and then `&quot;`
+ * unescapes twice: `&amp;quot;` — which is the correct encoding of the literal
+ * text `&quot;` — becomes `&quot;` after the first replace and then `"` after
+ * the second, so the test would compare against a string index.html never
+ * contained. Matching each entity once and mapping it cannot re-read its own
+ * output.
+ */
+const ENTITIES: Record<string, string> = {
+    amp: '&', quot: '"', apos: "'", '#39': "'", lt: '<', gt: '>', nbsp: ' ',
+};
+const decode = (s: string) => s.replace(/&(#?\w+);/g, (whole, name: string) => ENTITIES[name] ?? whole);
 
 const tagContent = (pattern: RegExp): string => {
     const match = html.match(pattern);
