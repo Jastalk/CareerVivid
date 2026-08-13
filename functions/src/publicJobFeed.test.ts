@@ -136,6 +136,36 @@ describe('toPublicJob', () => {
         expect(toPublicJob('j', html)!.description).toBe('Own revenue > $1M and scale > 10k RPS.');
     });
 
+    /*
+     * The mirror case, and the one that is easy to break while fixing the
+     * others: a '<' with no closing '>' looks exactly like a scrape cut
+     * mid-tag, so an unguarded pattern for that eats the rest of the sentence.
+     */
+    it('keeps a less-than sign that is part of the sentence', () => {
+        const html = { ...stored(), description: '<p>Latency < 100ms and cost < $1M.</p>' };
+        expect(toPublicJob('j', html)!.description).toBe('Latency < 100ms and cost < $1M.');
+    });
+
+    it('keeps a trailing comparison that is not a tag at all', () => {
+        const html = { ...stored(), description: 'You will keep p99 <' };
+        expect(toPublicJob('j', html)!.description).toBe('You will keep p99 <');
+    });
+
+    /*
+     * The worst of the three, and the oldest: /<[^>]+>/ matches "< 100ms,
+     * uptime >" and deletes the middle of the sentence. A job ad states a
+     * latency budget far more often than a card renders a tag.
+     */
+    it('does not treat a pair of comparisons as a tag and eat what is between', () => {
+        const html = { ...stored(), description: '<p>Latency < 100ms, uptime > 99.9%.</p>' };
+        expect(toPublicJob('j', html)!.description).toBe('Latency < 100ms, uptime > 99.9%.');
+    });
+
+    it('still strips a real tag that sits next to a comparison', () => {
+        const html = { ...stored(), description: '<p>Keep p99 < 50ms.</p><div>Own it.</div>' };
+        expect(toPublicJob('j', html)!.description).toBe('Keep p99 < 50ms. Own it.');
+    });
+
     it('leaves no markup behind when the markup was encoded', () => {
         const html = { ...stored(), description: 'Copy.&lt;script&gt;alert(1)&lt;/script&gt;' };
         const out = toPublicJob('j', html)!.description;

@@ -76,10 +76,20 @@ const SCRIPTISH = /<(script|style)\b[\s\S]*?(?:<\/\1\s*>|$)/gi;
  * are…" does not run two sentences together. */
 const BLOCK = /<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|section|table|blockquote)\b[^>]*>/gi;
 
-const ANY_TAG = /<[^>]*>/g;
+/* '<' has to be followed by a tag name, a closing '/', a '!' or a '?' for this
+ * to count as markup. The obvious /<[^>]*>/ matches "< 100ms, uptime >" in
+ * "Latency < 100ms, uptime > 99.9%", deleting the middle of the sentence — and
+ * a job ad states a latency budget far more often than a card shows a tag. */
+const ANY_TAG = /<[/!?a-z][^>]*>/gi;
+
 /* A scrape cut mid-tag leaves a "<div class=" with no closing bracket, which no
- * tag pattern matches and which reads as garbage at the end of a blurb. */
-const TRUNCATED_TAG = /<[^>]*$/;
+ * tag pattern matches and which reads as garbage at the end of a blurb.
+ *
+ * The '<' must be followed by a tag name, a '/' or a '!' before this treats it
+ * as markup. Matching a bare '<' instead would delete the rest of the sentence
+ * in "Latency < 100ms" and "revenue < $1M" — things job ads say far more often
+ * than they end mid-tag. */
+const TRUNCATED_TAG = /<[/!a-z][^>]*$/i;
 
 const stripMarkup = (input: string): string =>
     input.replace(COMMENT, " ").replace(SCRIPTISH, " ").replace(BLOCK, " ")
