@@ -35,10 +35,55 @@ export const MAX_PUBLIC_JOB_PAGES = 25;
 
 const MAX_SCAN = PUBLIC_JOBS_PAGE_SIZE * MAX_PUBLIC_JOB_PAGES;
 
-const ENTITIES: Record<string, string> = {
-    "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
-    "&quot;": '"', "&#39;": "'", "&apos;": "'", "&mdash;": "—", "&ndash;": "–",
+const NAMED_ENTITIES: Record<string, string> = {
+    nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+    mdash: "—", ndash: "–", hellip: "…", middot: "·", bull: "•",
+    lsquo: "‘", rsquo: "’", ldquo: "“", rdquo: "”",
+    copy: "©", reg: "®", trade: "™", deg: "°",
 };
+
+/**
+ * Decode the entities a scraped page actually contains.
+ *
+ * An unrecognised entity is left exactly as it was rather than replaced with a
+ * space, which is what the previous `/&[a-z#0-9]+;/` catch-all did — it turned
+ * "&copy; 2026 Stripe" into " 2026 Stripe" and every `&#8217;` apostrophe into a
+ * hole in the middle of a word.
+ */
+const decodeEntities = (text: string): string =>
+    text.replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (whole, body: string) => {
+        if (body.startsWith("#")) {
+            const code = /^#x/i.test(body)
+                ? Number.parseInt(body.slice(2), 16)
+                : Number.parseInt(body.slice(1), 10);
+            const printable = Number.isFinite(code) && code > 0 && code <= 0x10ffff
+                && !(code >= 0xd800 && code <= 0xdfff);
+            return printable ? String.fromCodePoint(code) : whole;
+        }
+        return NAMED_ENTITIES[body.toLowerCase()] ?? whole;
+    });
+
+/* Comments first: `<!-- note > here -->` contains a `>`, so a plain tag regex
+ * ends the match at that `>` and spills " here -->" onto the card as text. */
+const COMMENT = /<!--[\s\S]*?(?:-->|$)/g;
+
+/* An unclosed <script> is why this matches to end-of-string as well as to a
+ * closing tag: a truncated scrape ends mid-script, the tag itself gets stripped,
+ * and the JavaScript body is left behind looking like part of the job ad. */
+const SCRIPTISH = /<(script|style)\b[\s\S]*?(?:<\/\1\s*>|$)/gi;
+
+/* Block-level tags become a space rather than nothing, so "…platform.</p><p>We
+ * are…" does not run two sentences together. */
+const BLOCK = /<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|section|table|blockquote)\b[^>]*>/gi;
+
+const ANY_TAG = /<[^>]*>/g;
+/* A scrape cut mid-tag leaves a "<div class=" with no closing bracket, which no
+ * tag pattern matches and which reads as garbage at the end of a blurb. */
+const TRUNCATED_TAG = /<[^>]*$/;
+
+const stripMarkup = (input: string): string =>
+    input.replace(COMMENT, " ").replace(SCRIPTISH, " ").replace(BLOCK, " ")
+        .replace(ANY_TAG, "").replace(TRUNCATED_TAG, " ");
 
 /**
  * Turn a scraped description into a sentence a person can read.
@@ -48,16 +93,33 @@ const ENTITIES: Record<string, string> = {
  * — the markup rendered as text, on the page whose whole job is to make the
  * listings look worth trusting.
  *
- * Block-level tags become a space rather than nothing, so "…platform.</p><p>We
- * are…" does not run two sentences together.
+ * Stripping and decoding run to a fixed point rather than once each, because
+ * either step can produce input for the other: removing `<b>` from `<<b>i>`
+ * leaves `<i>`, and decoding `&lt;script&gt;` produces a tag that a single
+ * earlier pass has already gone past. One pass leaves markup in the output.
+ *
+ * Consequence worth knowing: a listing that deliberately writes about HTML
+ * loses the tag name from its teaser, because "&lt;div&gt;" decodes to markup
+ * and is then stripped. That is the right way round for a page of listings from
+ * sources we do not control — the alternative shows scraped script source to
+ * strangers as if the ad had been written that way.
+ *
+ * This is a formatter, not a security boundary. Everything it returns is HTML
+ * escaped again by `esc()` in functions/src/seo/renderSeoContent.ts before it
+ * reaches a page, and React escapes it in the client. Neither depends on this.
  */
 const plainText = (value: unknown): string => {
     let text = String(value ?? "");
-    text = text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ");
-    text = text.replace(/<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|section)\b[^>]*>/gi, " ");
-    text = text.replace(/<[^>]+>/g, "");
-    text = text.replace(/&[a-z#0-9]+;/gi, (m) => ENTITIES[m.toLowerCase()] ?? " ");
-    return text.replace(/\s+/g, " ").trim();
+
+    for (let pass = 0; pass < 5; pass += 1) {
+        const before = text;
+        text = decodeEntities(stripMarkup(text));
+        if (text === before) break;
+    }
+
+    // Input crafted to never converge still must not return markup, so the last
+    // word is a strip rather than a decode.
+    return stripMarkup(text).replace(/\s+/g, " ").trim();
 };
 
 /** Trim a description to a readable card blurb without cutting mid-word. */

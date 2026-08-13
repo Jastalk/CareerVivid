@@ -105,6 +105,65 @@ describe('toPublicJob', () => {
     });
 
     /*
+     * CodeQL #152. Every case below survived the old single-pass stripper and
+     * rendered as visible text on the public jobs page.
+     */
+    it('does not spill the inside of an HTML comment onto the card', () => {
+        // The comment contains a '>', so /<[^>]+>/ ended the match early and
+        // left " next quarter -->" behind as body text.
+        const html = { ...stored(), description: 'We are hiring.<!-- move > next quarter -->Apply now.' };
+        expect(toPublicJob('j', html)!.description).toBe('We are hiring. Apply now.');
+    });
+
+    it('drops a script the scraper truncated before its closing tag', () => {
+        const html = { ...stored(), description: 'Real copy.<script>var tracker = 1;' };
+        expect(toPublicJob('j', html)!.description).toBe('Real copy.');
+    });
+
+    it('removes a tag that only appears once an outer tag is gone', () => {
+        const html = { ...stored(), description: 'lead<<b>i>eng' };
+        expect(toPublicJob('j', html)!.description).not.toContain('<');
+    });
+
+    /*
+     * A bare '>' is left alone on purpose. Malformed markup can leave one
+     * behind, but "revenue > $1M" and "scale > 10k RPS" are things job ads
+     * actually say, and deleting the character costs more than the stray does.
+     * What must not survive is a complete tag.
+     */
+    it('keeps a greater-than sign that is part of the sentence', () => {
+        const html = { ...stored(), description: '<p>Own revenue > $1M and scale > 10k RPS.</p>' };
+        expect(toPublicJob('j', html)!.description).toBe('Own revenue > $1M and scale > 10k RPS.');
+    });
+
+    it('leaves no markup behind when the markup was encoded', () => {
+        const html = { ...stored(), description: 'Copy.&lt;script&gt;alert(1)&lt;/script&gt;' };
+        const out = toPublicJob('j', html)!.description;
+        expect(out).not.toContain('<');
+        expect(out).not.toContain('alert(1)');
+    });
+
+    it('does not leave a tag the scrape cut in half', () => {
+        const html = { ...stored(), description: 'Own the roadmap.<div class="job-desc' };
+        expect(toPublicJob('j', html)!.description).toBe('Own the roadmap.');
+    });
+
+    /*
+     * The old catch-all replaced any unrecognised entity with a space, so a
+     * copyright line lost its symbol and every curly apostrophe punched a hole
+     * through the middle of a word.
+     */
+    it('decodes numeric entities instead of blanking them', () => {
+        const html = { ...stored(), description: 'We&#8217;re hiring &#x2014; join us.' };
+        expect(toPublicJob('j', html)!.description).toBe('We\u2019re hiring \u2014 join us.');
+    });
+
+    it('keeps an entity it does not know rather than eating it', () => {
+        const html = { ...stored(), description: '&copy; 2026 Stripe. Salary &euro;90,000.' };
+        expect(toPublicJob('j', html)!.description).toBe('\u00a9 2026 Stripe. Salary &euro;90,000.');
+    });
+
+    /*
      * Scrapers write "Not listed" into the salary field rather than leaving it
      * empty, and a truthy string renders — so the card showed "Not listed" in
      * the slot where a number goes, which reads worse than an empty slot.
