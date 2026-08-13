@@ -199,6 +199,27 @@ const injectPreviewPayload = (page: Page, payload: { resumeData: ResumeData; tem
   }, payload);
 };
 
+/*
+ * @sparticuz/chromium dropped `defaultViewport` and `headless` from its API in
+ * v149, so the values it used to supply are stated here instead.
+ *
+ * These are exactly what v123 returned — the viewport object is identical to
+ * the one v149's own README recommends, and "shell" (the legacy headless mode)
+ * was v123's default. Stating them rather than accepting whatever the next
+ * version defaults to is the point: this renders a PDF users download, and a
+ * silent viewport change would reflow every template at once.
+ */
+const PDF_VIEWPORT = {
+  deviceScaleFactor: 1,
+  hasTouch: false,
+  height: 1080,
+  isLandscape: true,
+  isMobile: false,
+  width: 1920,
+} as const;
+
+const PDF_HEADLESS_MODE = "shell" as const;
+
 const generatePdfBuffer = async (resumeData: ResumeData, templateId: string) => {
   console.log(`Rendering template "${templateId}" via preview page: ${PDF_PREVIEW_URL}`);
 
@@ -212,11 +233,14 @@ const generatePdfBuffer = async (resumeData: ResumeData, templateId: string) => 
 
   const executablePath = await chromium.executablePath();
   const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
+    // @sparticuz/chromium v149 documents wrapping its args in puppeteer's own
+    // defaults rather than passing them alone.
+    args: await puppeteer.defaultArgs({ args: chromium.args, headless: PDF_HEADLESS_MODE }),
+    defaultViewport: PDF_VIEWPORT,
     executablePath,
-    headless: chromium.headless,
-    ignoreHTTPSErrors: true,
+    headless: PDF_HEADLESS_MODE,
+    // Renamed from `ignoreHTTPSErrors` in puppeteer 23.
+    acceptInsecureCerts: true,
   });
 
   const page = await browser.newPage();
@@ -247,6 +271,14 @@ const generatePdfBuffer = async (resumeData: ResumeData, templateId: string) => 
   });
 
   await browser.close();
+
+  /*
+   * A Uint8Array, not a Buffer — `page.pdf()` stopped returning a Buffer in
+   * puppeteer 23. Express 5 sends a Uint8Array as binary and `.length` is the
+   * byte length, so the response and its Content-Length are both still right.
+   * On Express 4 this would need wrapping in Buffer.from, because res.send()
+   * there routes anything that is not Buffer.isBuffer() through res.json().
+   */
   return pdfBuffer;
 };
 
