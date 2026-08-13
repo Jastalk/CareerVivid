@@ -1,7 +1,0 @@
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_00.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_01.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_02.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_03.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_04.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_05.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_dropbox/beat_06.mp4'

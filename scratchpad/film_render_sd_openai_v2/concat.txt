@@ -1,6 +1,0 @@
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-00.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-01.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-02.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-03.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-04.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_sd_openai_v2/beat-05.mp4'

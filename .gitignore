@@ -133,3 +133,18 @@ functions/src/mobileInterviewGuideQuestions.generated.ts
 # them stay tracked for compliance record-keeping.
 third_party/learning-sources/*/
 !third_party/learning-sources/LICENSES/
+
+# ── Video production artifacts ────────────────────────────────────────────────
+# Output, not source. 40,000+ render files made `git status` unusable and hid
+# real changes among them. The scripts that PRODUCE these stay tracked; only
+# what they emit is ignored.
+#
+# public/system-design-lessons/ is deliberately NOT here — the site serves those
+# videos and thumbnails (see src/lib/systemDesignVideoLessons.ts).
+scratchpad/
+media/
+public/assets/system-design-narration/
+public/commercial-videos/
+public/producthunt-assets/
+functions/scratch/
+functions/test_*.js

@@ -1,6 +1,0 @@
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_00_open.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_01_problem.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_02_trap.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_03_switch.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_04_the-code.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/commercial_render/clip_05_takeaway.mp4'

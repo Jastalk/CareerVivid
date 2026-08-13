@@ -1,8 +1,0 @@
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_00.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_01.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_02.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_03.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_04.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_05.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_06.mp4'
-file '/Users/jiawenzhu/Developer/careervivid/scratchpad/film_render_llm_inference_evan/beat_07.mp4'

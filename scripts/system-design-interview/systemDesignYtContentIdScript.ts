@@ -38,7 +38,7 @@ export interface SystemDesignScriptSpec {
 }
 
 export const YOUTUBE_CONTENT_ID_SCRIPT: SystemDesignScriptSpec = {
-    id: 'sd-ytcontentid',
+    id: 'sd-yt-contentid',
     title: 'How to Design YouTube Content ID & Automated Copyright Matching',
     beats: [
         {
