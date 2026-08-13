@@ -4,11 +4,21 @@
 
 ### One practical workspace for the job search, interview practice, and skill building.
 
-[Open the product](https://careervivid.app) · [Browse courses](https://careervivid.app/learning) · [Open Interview Studio](https://careervivid.app/interview-studio) · [View job recommendations](https://careervivid.app/jobs/recommend) · [Read the competition guide](COMPETITION.md)
+[Open the product](https://careervivid.app) · [Build a resume](https://careervivid.app/resume-builder) · [Practice interviews](https://careervivid.app/interview-studio) · [Browse open jobs](https://careervivid.app/jobs) · [Browse courses](https://careervivid.app/learning) · [Read the competition guide](COMPETITION.md)
 
 </div>
 
 ![CareerVivid company interview preparation page showing company-specific interview loops and a mock-interview action](docs/screenshots/company-quest-landing.png)
+
+## Try it without an account
+
+Three surfaces are public, so you can see the real product before signing up:
+
+| | |
+| --- | --- |
+| [careervivid.app/resume-builder](https://careervivid.app/resume-builder) | The builder and all 36 templates |
+| [careervivid.app/jobs](https://careervivid.app/jobs) | Verified, still-open job listings |
+| [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | Interview questions for 301 companies |
 
 ## Test account (for reviewers)
 
@@ -38,6 +48,19 @@ explanations, and reproducible evidence.
 
 ## See the product
 
+### Build the resume
+
+The resume builder is public: 36 templates, AI drafting from your own
+experience, ATS-aware scoring, and unlimited PDF export on the free plan.
+
+![CareerVivid resume builder showing AI drafting, 36 free templates, ATS-aware scoring, tailoring, and unlimited PDF downloads](docs/screenshots/resume-builder.png)
+
+Templates are grouped by the choice a reader actually makes — classic,
+creative, technical, minimal — and switching keeps your content, so comparing
+designs costs nothing.
+
+![Resume template gallery grouped into classic, creative, technical, and minimal, each with colour options and free PDF export](docs/screenshots/resume-templates.png)
+
 ### Find the next role
 
 The dashboard turns a selected resume, target role, readiness, interview
@@ -51,12 +74,23 @@ visible instead of presenting an unexplained match number.
 
 ![Resume-grounded job recommendations with match reasons, gaps to review, salary, location, and apply actions](docs/screenshots/job-recommendations.png)
 
+Anyone can browse the same listings without an account. Every posting is
+fetched from a company's own applicant tracking system and re-checked before it
+is shown, so a role that has closed is removed rather than left to waste an
+application. The match score is what an account adds, because a score is a
+comparison against a resume.
+
+![Public job board showing verified open roles with location, work model, seniority, and a locked match score that unlocks with a free account](docs/screenshots/public-jobs.png)
+
 ### Practice the interview loop
 
 Interview Studio brings together saved sessions, company guides, preparation
-formats, difficulty, and career paths.
+formats, difficulty, and career paths. Guides cover 301 companies, and each one
+is built from the questions candidates reported being asked there.
 
 ![Interview Studio with company-specific interview quests, search, filters, recent sessions, and career paths](docs/screenshots/interview-studio.png)
+
+![Interview Studio hub showing company interview guides, practice rounds, and scored reports](docs/screenshots/interview-studio-hub.png)
 
 A Company Quest gives the learner a visible stage map for recruiter, coding,
 system-design, behavioral, and final-round preparation.
@@ -97,6 +131,19 @@ improvements to practice.
 ![Interview report with overall score, communication confidence and relevance metrics, strengths, practice recommendations, and export actions](docs/screenshots/interview-report.png)
 
 </details>
+
+### The Career Agent
+
+A coach that follows you across the product rather than living on one page. It
+reads the round you actually have open — the code buffer in a coding round, the
+canvas in a system-design one — so it coaches what is on your screen instead of
+asking you to describe it.
+
+In a coding round it can see whether your code parses, and offers the fix as a
+diff you approve before anything reaches your editor. It will make your code
+run; it will not write the solution, because that is what the round is
+measuring. Anything it changes on your resume or job tracker arrives the same
+way: as a card you approve, never as a silent write.
 
 ### Learn by doing
 
@@ -152,6 +199,8 @@ the stated lesson criterion.
 | Job data | Official ATS and career-board ingestion with apply-link validation |
 | Job matching | Resume, role requirements, experience evidence, location, work preferences, and available compensation information |
 | Interview practice | Voice sessions, coding runner, Excalidraw whiteboard, and AI feedback |
+| Career Agent | Gemini Live voice plus a text agent over a shared tool registry, with every write gated behind user approval |
+| Search | Crawler-rendered HTML and a generated sitemap served from Cloud Functions |
 | Course delivery | JSON course definitions rendered through a React widget registry |
 | AI services | Gemini through controlled application services |
 | Hosting | Firebase Hosting |
@@ -182,14 +231,24 @@ locally.
 ### Verify the application
 
 ```bash
-npm test -- --run src/lib/interactiveCourses.test.ts src/lib/codingInterviewRoadmap.test.ts src/lib/learningSeo.test.ts src/lib/systemDesignQuestionBank.test.ts
+npm test -- --run
 npm run build:vite
 ```
 
-The focused suite verifies course contracts, widget registration,
-deterministic system-design simulation steps, question-bank contracts, and the
-experience-roadmap mapping. The Vite build confirms the production bundle can
-be generated.
+The suite covers course contracts and widget registration, deterministic
+system-design simulation steps, question-bank contracts, resume template
+contrast across every theme colour, the SEO content served to crawlers, and the
+agent's tool gates. The Vite build confirms the production bundle can be
+generated.
+
+To refresh the product screenshots this README embeds:
+
+```bash
+node scripts/capture-readme-screenshots.mjs
+```
+
+Public pages only — signed-in surfaces would put one person's real resumes and
+job matches into a public repository.
 
 ## Repository guide
 
@@ -202,6 +261,8 @@ be generated.
 | `docs/screenshots/` | The product evidence used in this README |
 | `src/components/CourseWidgets/` | Interactive course simulations |
 | `src/components/Quest/` | Company Quest coding and system-design practice |
+| `src/features/agent/` | Career Agent panel, live voice session, and approval cards |
+| `scripts/capture-readme-screenshots.mjs` | Regenerates the product screenshots above |
 | `src/pages/` | Application routes and product surfaces |
 | `functions/` | ATS ingestion, AI services, and SEO generation |
 
