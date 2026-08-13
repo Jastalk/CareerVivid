@@ -63,37 +63,126 @@ const decodeEntities = (text: string): string =>
         return NAMED_ENTITIES[body.toLowerCase()] ?? whole;
     });
 
-/* Comments first: `<!-- note > here -->` contains a `>`, so a plain tag regex
- * ends the match at that `>` and spills " here -->" onto the card as text. */
-const COMMENT = /<!--[\s\S]*?(?:-->|$)/g;
+/*
+ * Tags that stand for a break in the text, so "…platform.</p><p>We are…" does
+ * not run two sentences together.
+ */
+const BLOCK_TAGS = new Set([
+    "p", "div", "br", "hr", "li", "ul", "ol", "dl", "dd", "dt",
+    "h1", "h2", "h3", "h4", "h5", "h6", "tr", "td", "th", "table",
+    "section", "article", "header", "footer", "blockquote", "pre",
+]);
 
-/* An unclosed <script> is why this matches to end-of-string as well as to a
- * closing tag: a truncated scrape ends mid-script, the tag itself gets stripped,
- * and the JavaScript body is left behind looking like part of the job ad. */
-const SCRIPTISH = /<(script|style)\b[\s\S]*?(?:<\/\1\s*>|$)/gi;
-
-/* Block-level tags become a space rather than nothing, so "…platform.</p><p>We
- * are…" does not run two sentences together. */
-const BLOCK = /<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|section|table|blockquote)\b[^>]*>/gi;
-
-/* '<' has to be followed by a tag name, a closing '/', a '!' or a '?' for this
- * to count as markup. The obvious /<[^>]*>/ matches "< 100ms, uptime >" in
- * "Latency < 100ms, uptime > 99.9%", deleting the middle of the sentence — and
- * a job ad states a latency budget far more often than a card shows a tag. */
-const ANY_TAG = /<[/!?a-z][^>]*>/gi;
-
-/* A scrape cut mid-tag leaves a "<div class=" with no closing bracket, which no
- * tag pattern matches and which reads as garbage at the end of a blurb.
+/*
+ * A truncated tag: a scrape cut off mid-element, leaving `<div class="job` with
+ * no closing bracket.
  *
- * The '<' must be followed by a tag name, a '/' or a '!' before this treats it
- * as markup. Matching a bare '<' instead would delete the rest of the sentence
- * in "Latency < 100ms" and "revenue < $1M" — things job ads say far more often
- * than they end mid-tag. */
-const TRUNCATED_TAG = /<[/!a-z][^>]*$/i;
+ * It has to look like a real truncation — a closing tag, or a tag name followed
+ * by whitespace, '/' or '=' — because the cheap version of this check treats
+ * the '<' in "Latency < 100ms" as a truncated tag and deletes the rest of the
+ * sentence. A job ad states a latency budget far more often than it ends
+ * mid-tag.
+ */
+const TRUNCATED_TAG = /^<\/[a-z][a-z0-9]*$|^<[a-z][a-z0-9]*[\s/=][^>]*$/i;
 
-const stripMarkup = (input: string): string =>
-    input.replace(COMMENT, " ").replace(SCRIPTISH, " ").replace(BLOCK, " ")
-        .replace(ANY_TAG, "").replace(TRUNCATED_TAG, " ");
+const TAG = /^<\/?([a-z][a-z0-9]*)\b[^>]*>/i;
+const DECLARATION = /^<[!?][^>]*>/;
+
+/**
+ * Walk the string once and copy out the parts that are text.
+ *
+ * This reads rather than deletes, and that is the whole point. Every
+ * remove-the-markup version of this — including the one this replaces — has the
+ * same flaw: taking a substring out can join what was on either side of it into
+ * something new, so `<<b>i>` becomes `<i>`. Reading forward and copying cannot
+ * do that, because nothing downstream of the cursor is ever re-examined against
+ * text already written.
+ *
+ * An unrecognised '<' is copied through as an ordinary character, which is what
+ * keeps "Latency < 100ms" and "revenue > $1M" intact.
+ */
+const readText = (input: string): string => {
+    let out = "";
+    let i = 0;
+
+    while (i < input.length) {
+        if (input[i] !== "<") {
+            out += input[i];
+            i += 1;
+            continue;
+        }
+
+        const rest = input.slice(i);
+
+        if (rest.startsWith("<!--")) {
+            const close = input.indexOf("-->", i + 4);
+            i = close === -1 ? input.length : close + 3;
+            out += " ";
+            continue;
+        }
+
+        if (rest.startsWith("<![CDATA[")) {
+            const close = input.indexOf("]]>", i + 9);
+            i = close === -1 ? input.length : close + 3;
+            out += " ";
+            continue;
+        }
+
+        /* Script and style take their contents with them, closed or not. A
+         * scrape that ends mid-script used to leave the JavaScript behind
+         * looking like part of the job ad. */
+        const scriptish = /^<(script|style)\b/i.exec(rest);
+        if (scriptish) {
+            const close = new RegExp(`</${scriptish[1]}\\s*>`, "i").exec(rest);
+            i = close ? i + close.index + close[0].length : input.length;
+            out += " ";
+            continue;
+        }
+
+        const tag = TAG.exec(rest);
+        if (tag) {
+            out += BLOCK_TAGS.has(tag[1].toLowerCase()) ? " " : "";
+            i += tag[0].length;
+            continue;
+        }
+
+        const declaration = DECLARATION.exec(rest);
+        if (declaration) {
+            out += " ";
+            i += declaration[0].length;
+            continue;
+        }
+
+        if (TRUNCATED_TAG.test(rest)) {
+            out += " ";
+            i = input.length;
+            continue;
+        }
+
+        out += "<";
+        i += 1;
+    }
+
+    return out;
+};
+
+/**
+ * Read the text out, and keep reading until it stops changing.
+ *
+ * One pass is not enough for malformed markup: `<<b>i>` copies the first '<'
+ * through as text and drops `<b>`, which leaves `<i>` — a tag that only exists
+ * once the pass is over. Every pass that changes anything strictly shortens the
+ * string, so this terminates; the guard makes that obvious rather than implied.
+ */
+const stripMarkup = (input: string): string => {
+    let text = input;
+    for (let guard = input.length; guard > 0; guard -= 1) {
+        const next = readText(text);
+        if (next === text) break;
+        text = next;
+    }
+    return text;
+};
 
 /**
  * Turn a scraped description into a sentence a person can read.
@@ -118,19 +207,8 @@ const stripMarkup = (input: string): string =>
  * escaped again by `esc()` in functions/src/seo/renderSeoContent.ts before it
  * reaches a page, and React escapes it in the client. Neither depends on this.
  */
-const plainText = (value: unknown): string => {
-    let text = String(value ?? "");
-
-    for (let pass = 0; pass < 5; pass += 1) {
-        const before = text;
-        text = decodeEntities(stripMarkup(text));
-        if (text === before) break;
-    }
-
-    // Input crafted to never converge still must not return markup, so the last
-    // word is a strip rather than a decode.
-    return stripMarkup(text).replace(/\s+/g, " ").trim();
-};
+const plainText = (value: unknown): string =>
+    stripMarkup(decodeEntities(String(value ?? ""))).replace(/\s+/g, " ").trim();
 
 /** Trim a description to a readable card blurb without cutting mid-word. */
 const blurb = (value: unknown, max = 260): string => {

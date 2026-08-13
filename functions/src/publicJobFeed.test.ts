@@ -232,6 +232,53 @@ describe('toPublicJob', () => {
     });
 });
 
+/*
+ * Two properties, asked in both directions, because fixing one direction is how
+ * the other gets broken: a stripper aggressive enough to guarantee no markup
+ * survives is aggressive enough to eat "Latency < 100ms" out of a sentence.
+ */
+describe('plainText holds up against real scraped input', () => {
+    const out = (description: string) =>
+        toPublicJob('j', { ...stored(), description })!.description;
+
+    it('never returns a complete tag', () => {
+        const inputs = [
+            '<div><p>a</p></div>',
+            '<!--x--><b>y</b>',
+            '<script src=q>z',
+            '<STYLE>a{}</STYLE>hi',
+            '&lt;img src=x onerror=alert(1)&gt;',
+            '&#60;script&#62;bad&#60;/script&#62;',
+            '&amp;lt;b&amp;gt;',
+            '<<div>p>',
+            '<a href="<b>">t',
+            '<!-- <script>bad()</script> -->ok',
+            '<p>a</p<p>a</p<p>a</p',
+            '<svg/onload=alert(1)>',
+            '<img\nsrc=x\nonerror=y>',
+            '<![CDATA[<b>x</b>]]>',
+        ];
+        for (const input of inputs) {
+            const result = out(input);
+            expect(result, `${JSON.stringify(input)} -> ${JSON.stringify(result)}`)
+                .not.toMatch(/<[/!?a-z][^>]*>/i);
+            expect(result, JSON.stringify(input)).not.toContain('alert(1)');
+        }
+    });
+
+    it('leaves ordinary job-ad prose exactly as it was', () => {
+        const prose = [
+            'Latency < 100ms, uptime > 99.9%.',
+            'C++ & Rust. Salary: $180,000 - $220,000.',
+            'Own 5+ services; scale > 10k RPS.',
+            'Email careers@stripe.com (no recruiters).',
+            'Experience with A/B testing & SQL required.',
+            '\u201cMove fast\u201d \u2014 that\u2019s the culture. Cost < $1M.',
+        ];
+        for (const line of prose) expect(out(line), line).toBe(line);
+    });
+});
+
 describe('normalizePage', () => {
     /*
      * The page number arrives from the URL, so it arrives as anything. Offset
