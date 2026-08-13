@@ -56,14 +56,12 @@ explanations, and reproducible evidence.
 
 ### Build the resume
 
-The resume builder is public: 36 templates, AI drafting from your own
-experience, ATS-aware scoring, and unlimited PDF export on the free plan.
+36 templates, AI drafting from your own experience, ATS-aware scoring, and
+unlimited PDF export on the free plan.
 
-![CareerVivid resume builder showing AI drafting, 36 free templates, ATS-aware scoring, tailoring, and unlimited PDF downloads](docs/screenshots/resume-builder.png)
-
-Inside the editor, the template picker, the live PDF preview, the resume
-score, and the Career Agent sit on one screen — so a suggestion, the change
-it describes, and the score it moves are all visible at once.
+The template picker, the live PDF preview, the resume score, and the Career
+Agent sit on one screen — so a suggestion, the change it describes, and the
+score it moves are all visible at once.
 
 ![Resume editor with the template picker, live PDF preview, resume score, and the Career Agent panel open](docs/screenshots/app-resume-editor.png)
 
