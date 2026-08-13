@@ -24,7 +24,6 @@ const OUT = path.join(process.cwd(), 'docs', 'screenshots');
 /** `fullPage` only where the whole page is the point; otherwise the fold. */
 const SHOTS = [
     { file: 'resume-builder.png', path: '/resume-builder', fullPage: false },
-    { file: 'resume-templates.png', path: '/resume-builder#templates', fullPage: false, scrollTo: '#templates' },
     { file: 'public-jobs.png', path: '/jobs', fullPage: false },
     { file: 'interview-studio-hub.png', path: '/interview-studio', fullPage: false },
     { file: 'pricing.png', path: '/pricing', fullPage: false },

@@ -61,12 +61,6 @@ experience, ATS-aware scoring, and unlimited PDF export on the free plan.
 
 ![CareerVivid resume builder showing AI drafting, 36 free templates, ATS-aware scoring, tailoring, and unlimited PDF downloads](docs/screenshots/resume-builder.png)
 
-Templates are grouped by the choice a reader actually makes — classic,
-creative, technical, minimal — and switching keeps your content, so comparing
-designs costs nothing.
-
-![Resume template gallery grouped into classic, creative, technical, and minimal, each with colour options and free PDF export](docs/screenshots/resume-templates.png)
-
 Inside the editor, the template picker, the live PDF preview, the resume
 score, and the Career Agent sit on one screen — so a suggestion, the change
 it describes, and the score it moves are all visible at once.
