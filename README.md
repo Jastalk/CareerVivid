@@ -20,6 +20,12 @@ Three surfaces are public, so you can see the real product before signing up:
 | [careervivid.app/jobs](https://careervivid.app/jobs) | Verified, still-open job listings |
 | [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | Interview questions for 301 companies |
 
+The free plan is a working product rather than a trial: 100 credits a month,
+all 36 templates, unlimited PDF export, and the company interview guides, with
+no card required.
+
+![CareerVivid pricing showing the free plan alongside Pro and Max, with monthly credit allowances](docs/screenshots/pricing.png)
+
 ## Test account (for reviewers)
 
 A shared demo account is available so you can explore the full experience at
@@ -61,12 +67,18 @@ designs costs nothing.
 
 ![Resume template gallery grouped into classic, creative, technical, and minimal, each with colour options and free PDF export](docs/screenshots/resume-templates.png)
 
+Inside the editor, the template picker, the live PDF preview, the resume
+score, and the Career Agent sit on one screen — so a suggestion, the change
+it describes, and the score it moves are all visible at once.
+
+![Resume editor with the template picker, live PDF preview, resume score, and the Career Agent panel open](docs/screenshots/app-resume-editor.png)
+
 ### Find the next role
 
 The dashboard turns a selected resume, target role, readiness, interview
 activity, and next action into a job-search operating plan.
 
-![CareerVivid dashboard showing the job-search setup map, readiness score, target role, resume, and interview progress](docs/screenshots/dashboard.png)
+![CareerVivid dashboard showing today's next step, target role readiness, resume match, and recent interview sessions](docs/screenshots/app-dashboard.png)
 
 Job recommendations stay tied to the selected target resume. Each role makes
 the evidence, gaps, work arrangement, salary information, and direct action
@@ -123,14 +135,22 @@ needs work, then use a language-aware editor, tests, and AI review.
 AI diagram review, and coaching. Course exercises use a course-owned return
 path, so closing a whiteboard returns the learner to the same course lesson.
 
-![System-design whiteboard workspace with requirements, drawing guidance, AI generation, coaching, and submit-for-review action](docs/screenshots/system-design-whiteboard.png)
+![Google system-design round: design a URL shortener at scale, with an editable architecture diagram, requirements, and submit-for-review](docs/screenshots/app-system-design.png)
 
 **Interview reports** turn each attempt into focused strengths and the next
 improvements to practice.
 
-![Interview report with overall score, communication confidence and relevance metrics, strengths, practice recommendations, and export actions](docs/screenshots/interview-report.png)
+![Interview report with an overall score, communication, confidence and answer-relevance metrics, what went well, what to practise next, and export actions](docs/screenshots/app-interview-report.png)
 
 </details>
+
+### Certify what you learned
+
+The Claude Certified Architect track scores readiness per domain and gates each
+lesson behind the one before it. Lessons are places rather than list items, and
+the same material can be worked through as a 3D quest.
+
+![Claude Certified Architect readiness assessment with per-domain scores, gated lessons, and an Enter 3D Quest action](docs/screenshots/app-quest-progress.png)
 
 ### The Career Agent
 
@@ -152,6 +172,12 @@ plan. Progress is saved per lesson; a bare course link resolves to the next
 incomplete exercise rather than resetting the learner to the first lesson.
 
 ![Course catalog showing AI Agent Builder, Coding Interview Patterns, System Design Interview, progress bars, and upcoming courses](docs/screenshots/course-catalog.png)
+
+Each course opens on a roadmap rather than lesson one: pick the level that
+matches the interviews you are preparing for, and every pattern carries its
+recognition signals, a step-through animation, and a practice lab.
+
+![Coding Interview Patterns roadmap with beginner, intermediate and advanced levels and per-pattern lesson progress](docs/screenshots/app-course-lesson.png)
 
 Published courses include:
 
