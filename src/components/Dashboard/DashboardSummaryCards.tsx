@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText, Mic, Globe, Briefcase, MessageSquare, Plus } from 'lucide-react';
 import { navigate } from '../../utils/navigation';
+import '../Landing/live/liveLanding.css';
 
 interface DashboardSummaryCardsProps {
     resumeCount: number;
@@ -19,100 +20,124 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
 }) => {
     const cards = [
         {
-            title: 'My Resumes',
+            title: 'resumes',
+            file: 'resumes.md',
             count: resumeCount,
             icon: FileText,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-green)',
+            soft: 'var(--cvl-green-soft)',
             link: '/newresume',
             isAction: false
         },
         {
-            title: 'Find Jobs',
+            title: 'find jobs',
+            file: 'jobs.md',
             count: null,
             icon: Briefcase,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-amber)',
+            soft: 'var(--cvl-amber-soft)',
             link: '/jobs/recommend',
             isAction: true,
-            actionText: 'Find Jobs'
+            actionText: 'Find jobs'
         },
         {
-            title: 'Technical Interview Simulator Sessions',
-            mobileTitle: 'Interview Sessions',
+            title: 'interview rounds',
+            file: 'rounds.log',
             count: interviewCount,
             icon: Mic,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-purple)',
+            soft: 'var(--cvl-purple-soft)',
             link: '/interview-studio',
             isAction: false
         },
         {
-            title: 'Portfolios',
+            title: 'portfolios',
+            file: 'portfolios.md',
             count: portfolioCount,
             icon: Globe,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-purple)',
+            soft: 'var(--cvl-purple-soft)',
             link: '/portfolio',
             isAction: false
         },
         {
-            title: 'Career Pipeline',
+            title: 'jobs you are chasing',
+            file: 'pipeline.md',
             count: jobCount > 0 ? jobCount : null,
             icon: Briefcase,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-green)',
+            soft: 'var(--cvl-green-soft)',
             link: '/job-tracker',
             isAction: jobCount === 0,
-            actionText: '+ Track Job'
+            actionText: 'Track a job'
         },
         {
-            title: 'Community Posts',
+            title: 'community posts',
+            file: 'posts.md',
             count: communityPostCount,
             icon: MessageSquare,
-            color: 'text-[var(--cv-action-primary)]',
-            bg: 'bg-[var(--cv-action-soft-bg)]',
+            accent: 'var(--cvl-amber)',
+            soft: 'var(--cvl-amber-soft)',
             link: '/my-posts',
             isAction: false
         }
     ];
 
     return (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 md:gap-6 mb-5 md:mb-6">
+        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-5 xl:grid-cols-6">
             {cards.map((card, index) => (
-                <div
+                <button
                     key={index}
+                    type="button"
                     onClick={() => navigate(card.link)}
-                    className="cv-design-card cv-design-card-hover group relative flex min-h-[128px] cursor-pointer flex-col justify-between overflow-hidden p-4 transition-all duration-300 md:h-36 md:p-5"
+                    className="cvl-win cvl-win-lift group relative flex min-h-[128px] cursor-pointer flex-col text-left md:h-40"
                 >
-                    {/* Subtle Top Gradient Line */}
-                    <div className="absolute left-0 top-0 h-[2px] w-full bg-gradient-to-r from-transparent via-[var(--cv-action-border)] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-                    <div className="flex gap-3 items-start min-h-12">
-                        <div className={`flex shrink-0 items-center justify-center rounded-xl border border-[var(--cv-action-border)] p-2 md:p-2.5 ${card.bg}`}>
-                            <card.icon className={`w-4 h-4 ${card.color}`} />
-                        </div>
-                        <h3 className="text-left font-heading text-[11px] font-extrabold uppercase leading-tight tracking-[0.14em] text-[var(--cv-text-muted)]">
-                            <span className="md:hidden">{card.mobileTitle || card.title}</span>
-                            <span className="hidden md:inline">{card.title}</span>
+                    <div className="cvl-bar w-full">
+                        <span className="cvl-dot cvl-dot-r" />
+                        <span className="cvl-dot cvl-dot-y" />
+                        <span className="cvl-dot cvl-dot-g" />
+                        <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                            {card.file}
+                        </span>
+                    </div>
+                    <div className="flex flex-1 flex-col justify-between p-4 md:p-5">
+                    <div className="flex items-start gap-3">
+                        <span
+                            className="flex shrink-0 items-center justify-center rounded-xl p-2 md:p-2.5"
+                            style={{ background: card.soft, color: card.accent }}
+                        >
+                            <card.icon className="h-4 w-4" />
+                        </span>
+                        <h3
+                            className="cvl-mono text-left text-[11px] uppercase leading-tight tracking-[0.18em]"
+                            style={{ color: 'var(--cvl-muted)' }}
+                        >
+                            {card.title}
                         </h3>
                     </div>
 
-                    <div className="flex items-end justify-between mt-auto">
+                    <div className="mt-auto flex items-end justify-between">
                         {card.isAction ? (
-                            <div className="flex items-center gap-2 rounded-lg border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-3 py-1.5 text-xs font-extrabold text-[var(--cv-action-primary)] transition-colors group-hover:bg-[var(--cv-action-soft-bg-strong)]">
+                            <span
+                                className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-[12px] font-bold"
+                                style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                            >
                                 {card.actionText}
-                            </div>
+                            </span>
                         ) : (
-                            <div className="font-heading text-2xl font-extrabold leading-none tracking-tight text-[var(--cv-text-heading)] md:text-3xl">
+                            <span className="text-2xl font-bold leading-none tracking-tight md:text-3xl">
                                 {card.count !== null ? card.count : 0}
-                            </div>
+                            </span>
                         )}
-                        <div className="flex h-7 w-7 -translate-x-1 items-center justify-center rounded-full bg-[var(--cv-surface-warm-muted)] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                            <Plus className="h-3.5 w-3.5 text-[var(--cv-text-muted)] transition-colors group-hover:text-[var(--cv-action-primary)]" />
-                        </div>
+                        <span
+                            className="flex h-7 w-7 -translate-x-1 items-center justify-center rounded-full opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+                            style={{ background: 'var(--cvl-paper-2)', color: 'var(--cvl-purple)' }}
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                        </span>
                     </div>
-                </div>
+                    </div>
+                </button>
             ))}
         </div>
     );

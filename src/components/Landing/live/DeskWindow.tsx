@@ -81,7 +81,7 @@ const DeskWindow: React.FC<DeskWindowProps> = ({
                     <span className="cvl-dot cvl-dot-g" />
                     <span
                         className="cvl-mono truncate text-[11px] font-medium"
-                        style={{ color: 'var(--cvl-faint)' }}
+                        style={{ color: 'var(--cvl-muted)' }}
                     >
                         {filename}
                     </span>

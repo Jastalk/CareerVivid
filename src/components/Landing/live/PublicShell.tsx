@@ -95,7 +95,7 @@ export const AuthShell: React.FC<{
                     <span className="cvl-dot cvl-dot-r" />
                     <span className="cvl-dot cvl-dot-y" />
                     <span className="cvl-dot cvl-dot-g" />
-                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>{filename}</span>
+                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>{filename}</span>
                 </div>
                 <div className="px-6 py-8 sm:px-8">
                     <h1 className="text-center text-2xl font-semibold tracking-tight">{title}</h1>

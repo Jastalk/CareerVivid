@@ -1,13 +1,54 @@
-
-
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import PublicHeader from '../components/PublicHeader';
 import Footer from '../components/Footer';
-import { Send, Loader2, CheckCircle, CreditCard, Activity } from 'lucide-react';
+import { MenuBar } from '../components/Landing/live/PublicShell';
+import '../components/Landing/live/liveLanding.css';
+import { Send, Loader2, CheckCircle, CreditCard, Activity, ChevronDown, AlertTriangle } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
-import FAQSection from '../components/FAQSection';
+import LanguageSelect from '../components/LanguageSelect';
+
+/**
+ * Support and contact, on the same desk as the rest of the public site.
+ *
+ * The form's handler, fields and translation keys are untouched — only the
+ * surface changed. The FAQ below is the same `faq.*` copy the shared component
+ * renders, laid out as <details> rows so it reads as part of this desk rather
+ * than a slab of another design.
+ */
+
+/** The three ways to reach a human, before the form. */
+const CHANNELS = [
+    {
+        href: 'mailto:support@careervivid.app',
+        icon: Send,
+        title: 'general support',
+        address: 'support@careervivid.app',
+        file: 'support.eml',
+    },
+    {
+        href: 'mailto:billing@careervivid.app',
+        icon: CreditCard,
+        title: 'billing and subscriptions',
+        address: 'billing@careervivid.app',
+        file: 'billing.eml',
+    },
+    {
+        href: 'mailto:partners@careervivid.app',
+        icon: Activity,
+        title: 'partnerships and media',
+        address: 'partners@careervivid.app',
+        file: 'partners.eml',
+    },
+];
+
+const FAQ_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+
+const inputStyle: React.CSSProperties = {
+    background: 'var(--cvl-paper-2)',
+    borderColor: 'var(--cvl-line)',
+    color: 'var(--cvl-ink)',
+};
 
 const ContactPage: React.FC = () => {
     const { t } = useTranslation();
@@ -52,131 +93,253 @@ const ContactPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-950 min-h-screen flex flex-col font-sans text-gray-900 dark:text-white">
-            <PublicHeader />
-            <main className="flex-grow pt-24 pb-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center max-w-3xl mx-auto mb-12">
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">Support & Contact</h1>
-                        <p className="text-xl text-gray-600 dark:text-gray-400 mb-12">
+        <div className="cvl min-h-screen">
+            <MenuBar />
+
+            <main className="mx-auto w-full max-w-5xl px-4 pb-16 pt-10 sm:px-6 sm:pt-14">
+                <header className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="max-w-3xl">
+                        <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>
+                            support
+                        </p>
+                        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">support and contact</h1>
+                        <p className="mt-4 text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                             {t('contact.subtitle')}
                         </p>
+                    </div>
+                    {/* Every heading, label, placeholder and answer below comes from
+                        t(). MenuBar has no language control, so without this one the
+                        translations on this page are unreachable. */}
+                    <LanguageSelect />
+                </header>
 
-                        {/* Direct Email Channels */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-                            <a href="mailto:support@careervivid.app" className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 block group">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Send size={20} />
+                {/* Direct Email Channels */}
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                    {CHANNELS.map((channel) => {
+                        const Icon = channel.icon;
+                        return (
+                            <a key={channel.href} href={channel.href} className="cvl-win cvl-win-lift block">
+                                <div className="cvl-bar">
+                                    <span className="cvl-dot cvl-dot-r" />
+                                    <span className="cvl-dot cvl-dot-y" />
+                                    <span className="cvl-dot cvl-dot-g" />
+                                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                                        {channel.file}
+                                    </span>
                                 </div>
-                                <h3 className="font-bold text-lg mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">General Support</h3>
-                                <p className="text-sm text-gray-500">support@careervivid.app</p>
-                            </a>
-                            <a href="mailto:billing@careervivid.app" className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 block group">
-                                <div className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <CreditCard size={20} />
+                                <div className="p-5">
+                                    <span
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg"
+                                        style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                    >
+                                        <Icon size={17} />
+                                    </span>
+                                    <h2 className="mt-3 text-[15px] font-semibold">{channel.title}</h2>
+                                    <p className="cvl-mono mt-1 text-[12px]" style={{ color: 'var(--cvl-muted)' }}>
+                                        {channel.address}
+                                    </p>
                                 </div>
-                                <h3 className="font-bold text-lg mb-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">Billing & Subscriptions</h3>
-                                <p className="text-sm text-gray-500">billing@careervivid.app</p>
                             </a>
-                            <a href="mailto:partners@careervivid.app" className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 block group">
-                                <div className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Activity size={20} />
-                                </div>
-                                <h3 className="font-bold text-lg mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Partnerships & Media</h3>
-                                <p className="text-sm text-gray-500">partners@careervivid.app</p>
-                            </a>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-8 grid gap-6 lg:grid-cols-2">
+                    {/* FAQ */}
+                    <div className="cvl-win self-start">
+                        <div className="cvl-bar">
+                            <span className="cvl-dot cvl-dot-r" />
+                            <span className="cvl-dot cvl-dot-y" />
+                            <span className="cvl-dot cvl-dot-g" />
+                            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                                common-questions.md
+                            </span>
+                        </div>
+                        <div className="p-5 sm:p-7">
+                            <p
+                                className="cvl-mono text-[11px] uppercase tracking-[0.18em]"
+                                style={{ color: 'var(--cvl-faint)' }}
+                            >
+                                answers first
+                            </p>
+                            <h2 className="mt-2 text-xl font-semibold tracking-tight">{t('contact.faq_title')}</h2>
+                            <p className="mt-2 text-[14px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                {t('faq.subtitle')}
+                            </p>
+                            <div className="mt-3">
+                                {FAQ_KEYS.map((key) => (
+                                    <details
+                                        key={key}
+                                        className="group border-b last:border-b-0"
+                                        style={{ borderColor: 'var(--cvl-line)' }}
+                                    >
+                                        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold [&::-webkit-details-marker]:hidden">
+                                            {t(`faq.q${key}`)}
+                                            <ChevronDown
+                                                size={16}
+                                                className="shrink-0 transition group-open:rotate-180"
+                                                style={{ color: 'var(--cvl-faint)' }}
+                                            />
+                                        </summary>
+                                        <p
+                                            className="pb-5 pr-6 text-[15px] leading-[1.75]"
+                                            style={{ color: 'var(--cvl-muted)' }}
+                                        >
+                                            {t(`faq.a${key}`)}
+                                        </p>
+                                    </details>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                        {/* FAQ Section */}
-                        <div>
-                            <h2 className="text-2xl font-bold mb-8 flex items-center gap-2">
-                                <span className="bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 p-2 rounded-lg">?</span>
-                                {t('contact.faq_title')}
-                            </h2>
-                            <FAQSection />
+                    {/* Contact Form */}
+                    <div className="cvl-win self-start">
+                        <div className="cvl-bar">
+                            <span className="cvl-dot cvl-dot-r" />
+                            <span className="cvl-dot cvl-dot-y" />
+                            <span className="cvl-dot cvl-dot-g" />
+                            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                                new-message.txt
+                            </span>
                         </div>
+                        <div className="p-5 sm:p-7">
+                            <p
+                                className="cvl-mono text-[11px] uppercase tracking-[0.18em]"
+                                style={{ color: 'var(--cvl-faint)' }}
+                            >
+                                still stuck
+                            </p>
+                            <h2 className="mt-2 text-xl font-semibold tracking-tight">{t('contact.form_title')}</h2>
+                            <p className="mt-2 text-[14px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                {t('contact.form_subtitle')}
+                            </p>
 
-                        {/* Contact Form */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700">
-                            <div className="mb-8">
-                                <h2 className="text-2xl font-bold mb-2">{t('contact.form_title')}</h2>
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    {t('contact.form_subtitle')}
-                                </p>
-                            </div>
                             {success && (
-                                <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 p-4 rounded-xl flex items-center gap-3 animate-fade-in mb-6">
-                                    <CheckCircle size={20} />
+                                <div
+                                    className="mt-5 flex items-start gap-3 rounded-xl border p-4"
+                                    style={{
+                                        background: 'var(--cvl-green-soft)',
+                                        borderColor: 'var(--cvl-line)',
+                                        color: 'var(--cvl-green)',
+                                    }}
+                                >
+                                    <CheckCircle size={18} className="mt-[2px] shrink-0" />
                                     <div>
-                                        <p className="font-bold">{t('contact.success_title')}</p>
-                                        <p className="text-sm">{success}</p>
+                                        <p className="text-[14px] font-semibold">{t('contact.success_title')}</p>
+                                        <p className="mt-0.5 text-[13.5px] leading-relaxed">{success}</p>
                                     </div>
                                 </div>
                             )}
-                            <form onSubmit={handleSubmit} className="space-y-6">
+
+                            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('contact.label_name')}</label>
+                                    <label
+                                        htmlFor="name"
+                                        className="cvl-mono mb-1.5 block text-[11px] uppercase tracking-[0.14em]"
+                                        style={{ color: 'var(--cvl-faint)' }}
+                                    >
+                                        {t('contact.label_name')}
+                                    </label>
                                     <input
                                         type="text"
                                         id="name"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 transition-all"
+                                        className="w-full rounded-lg border px-4 py-3 text-[15px] transition"
+                                        style={inputStyle}
                                         placeholder={t('contact.placeholder_name')}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('contact.label_email')}</label>
+                                    <label
+                                        htmlFor="email"
+                                        className="cvl-mono mb-1.5 block text-[11px] uppercase tracking-[0.14em]"
+                                        style={{ color: 'var(--cvl-faint)' }}
+                                    >
+                                        {t('contact.label_email')}
+                                    </label>
                                     <input
                                         type="email"
                                         id="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 transition-all"
+                                        className="w-full rounded-lg border px-4 py-3 text-[15px] transition"
+                                        style={inputStyle}
                                         placeholder={t('contact.placeholder_email')}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('contact.label_subject')}</label>
+                                    <label
+                                        htmlFor="subject"
+                                        className="cvl-mono mb-1.5 block text-[11px] uppercase tracking-[0.14em]"
+                                        style={{ color: 'var(--cvl-faint)' }}
+                                    >
+                                        {t('contact.label_subject')}
+                                    </label>
                                     <input
                                         type="text"
                                         id="subject"
                                         value={subject}
                                         onChange={(e) => setSubject(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 transition-all"
+                                        className="w-full rounded-lg border px-4 py-3 text-[15px] transition"
+                                        style={inputStyle}
                                         placeholder={t('contact.placeholder_subject')}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('contact.label_message')}</label>
+                                    <label
+                                        htmlFor="message"
+                                        className="cvl-mono mb-1.5 block text-[11px] uppercase tracking-[0.14em]"
+                                        style={{ color: 'var(--cvl-faint)' }}
+                                    >
+                                        {t('contact.label_message')}
+                                    </label>
                                     <textarea
                                         id="message"
-                                        rows={4}
+                                        rows={5}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
-                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50 dark:bg-gray-700 transition-all resize-none"
+                                        className="w-full resize-none rounded-lg border px-4 py-3 text-[15px] leading-relaxed transition"
+                                        style={inputStyle}
                                         placeholder={t('contact.placeholder_message')}
                                         required
                                     ></textarea>
                                 </div>
-                                {error && <p className="text-red-500 text-sm">{error}</p>}
+                                {error && (
+                                    <div
+                                        role="alert"
+                                        className="flex items-start gap-3 rounded-xl border p-4"
+                                        style={{
+                                            background: 'var(--cvl-amber-soft)',
+                                            borderColor: 'var(--cvl-amber)',
+                                            color: 'var(--cvl-ink)',
+                                        }}
+                                    >
+                                        <AlertTriangle size={18} className="mt-[2px] shrink-0" style={{ color: 'var(--cvl-amber)' }} />
+                                        <p className="text-[13.5px] font-medium leading-relaxed">{error}</p>
+                                    </div>
+                                )}
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-primary-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-700 transition-all transform hover:-translate-y-1 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="cvl-cta flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    {isSubmitting ? <Loader2 className="animate-spin" /> : <Send size={20} />}
+                                    {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={17} />}
                                     {isSubmitting ? t('common.loading') : t('contact.button_send')}
                                 </button>
                             </form>
+
                             {success && (
-                                <div className="mt-6 text-center">
-                                    <button onClick={() => setSuccess(null)} className="text-primary-600 font-bold hover:underline">
+                                <div className="mt-5 text-center">
+                                    <button
+                                        onClick={() => setSuccess(null)}
+                                        className="text-[14px] font-semibold underline underline-offset-2 transition hover:opacity-70"
+                                        style={{ color: 'var(--cvl-purple)' }}
+                                    >
                                         {t('contact.send_another_message')}
                                     </button>
                                 </div>
@@ -185,6 +348,7 @@ const ContactPage: React.FC = () => {
                     </div>
                 </div>
             </main>
+
             <Footer />
         </div>
     );

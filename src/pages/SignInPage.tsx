@@ -385,7 +385,7 @@ const SignInPage: React.FC = () => {
                             <span className="cvl-dot cvl-dot-r" />
                             <span className="cvl-dot cvl-dot-y" />
                             <span className="cvl-dot cvl-dot-g" />
-                            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>sign-in</span>
+                            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>sign-in</span>
                           </div>
                           <div className="p-6 sm:p-8">
                             <div className="mb-7">

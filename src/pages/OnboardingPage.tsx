@@ -2,12 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
     ArrowRight,
-    BadgeCheck,
     Briefcase,
     Building2,
     CheckCircle2,
-    Circle,
-    ClipboardCheck,
     ExternalLink,
     FileText,
     Import,
@@ -15,10 +12,7 @@ import {
     Loader2,
     MapPin,
     Mic,
-    PlayCircle,
-    Sparkles,
-    Target,
-    Timer,
+    PenTool,
     Wand2,
 } from 'lucide-react';
 import AppLayout from '../components/Layout/AppLayout';
@@ -30,6 +24,7 @@ import { useResumes } from '../hooks/useResumes';
 import { getUserJobHistory } from '../services/jobHistoryService';
 import { JobApplicationData, JobPosting } from '../types';
 import { navigate } from '../utils/navigation';
+import '../components/Landing/live/liveLanding.css';
 
 type StepState = 'complete' | 'active' | 'locked';
 type WelcomeJobSource = 'tracker' | 'saved';
@@ -44,22 +39,28 @@ type WelcomeJob = {
     sourceLabel: WelcomeJobSource;
 };
 
-const confettiPieces = [
-    ['8%', '8%', '#a97935', 'square', '.1s', '6.1s'],
-    ['20%', '16%', '#625bd5', 'circle', '.4s', '6.5s'],
-    ['38%', '6%', '#15803d', 'outline', '.8s', '5.8s'],
-    ['56%', '14%', '#d97706', 'dash', '.2s', '6.2s'],
-    ['72%', '7%', '#625bd5', 'triangle', '.6s', '6.6s'],
-    ['88%', '18%', '#166534', 'circle', '.9s', '5.9s'],
-] as const;
+const primaryButtonClass = 'cvl-cta inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[14px] font-semibold transition';
+const secondaryButtonClass = 'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-[14px] font-semibold transition hover:opacity-90';
+const secondaryButtonStyle: React.CSSProperties = {
+    borderColor: 'var(--cvl-line)',
+    background: 'var(--cvl-paper)',
+    color: 'var(--cvl-ink)',
+};
 
-const primaryButtonClass = 'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-[#625bd5] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#514ac5] focus:outline-none focus:ring-4 focus:ring-[#625bd5]/20 dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]';
-const secondaryButtonClass = 'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-[#d9c7ad] bg-[#fffaf1] px-4 py-2.5 text-sm font-bold text-[#211b16] shadow-sm transition hover:bg-[#f6ecd9] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/15 dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]';
+const eyebrowClass = 'cvl-mono text-[11px] uppercase tracking-[0.18em]';
+const eyebrowStyle: React.CSSProperties = { color: 'var(--cvl-faint)' };
 
 const statusCopy: Record<StepState, string> = {
-    complete: 'Ready',
-    active: 'Start here',
-    locked: 'Next',
+    complete: 'done',
+    active: 'start here',
+    locked: 'next',
+};
+
+/** Each state has one border, one wash, one ink. Nothing else changes. */
+const stepTone: Record<StepState, { line: string; wash: string; ink: string }> = {
+    complete: { line: 'var(--cvl-green)', wash: 'var(--cvl-green-soft)', ink: 'var(--cvl-green)' },
+    active: { line: 'var(--cvl-purple)', wash: 'var(--cvl-purple-soft)', ink: 'var(--cvl-purple)' },
+    locked: { line: 'var(--cvl-line)', wash: 'var(--cvl-paper-2)', ink: 'var(--cvl-faint)' },
 };
 
 const cleanText = (value: string | undefined, fallback: string) => {
@@ -89,51 +90,45 @@ const normalizeSavedJob = (job: JobPosting): WelcomeJob => ({
 
 const truncateDescription = (value: string) => {
     const normalized = value.replace(/\s+/g, ' ').trim();
-    if (!normalized) return 'No description attached yet. Add the posting text to make tailoring, match review, and interview prep more specific.';
+    if (!normalized) return 'No description attached yet. Paste the posting text and tailoring, match review, and interview prep all get sharper.';
     return normalized.length > 210 ? `${normalized.slice(0, 207)}...` : normalized;
 };
 
-const QuickMetric = ({ label, value }: { label: string; value: string | number }) => (
-    <div className="rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/82 px-4 py-3 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/82">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8a6027] dark:text-[#caa26c]">{label}</p>
-        <p className="mt-1 text-2xl font-black text-[#211b16] dark:text-[#f4f1e9]">{value}</p>
+/** Every panel on this page is a window on the desk. */
+const Win: React.FC<{
+    filename: string;
+    className?: string;
+    bodyClassName?: string;
+    children: React.ReactNode;
+}> = ({ filename, className = '', bodyClassName = 'p-5', children }) => (
+    <div className={`cvl-win ${className}`}>
+        <div className="cvl-bar">
+            <span className="cvl-dot cvl-dot-r" />
+            <span className="cvl-dot cvl-dot-y" />
+            <span className="cvl-dot cvl-dot-g" />
+            <span className="cvl-mono truncate text-[11px]" style={eyebrowStyle}>{filename}</span>
+        </div>
+        <div className={bodyClassName}>{children}</div>
     </div>
 );
 
-const WarmWelcomeAnimation = ({ firstName, hasJob }: { firstName: string; hasJob: boolean }) => (
-    <div className="cv-warm-card relative overflow-hidden p-5">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            {confettiPieces.map(([left, top, color, shape, delay, duration], index) => (
-                <span
-                    key={`${left}-${top}-${index}`}
-                    className={`cv-welcome-confetti-piece cv-welcome-confetti-${shape} motion-reduce:hidden`}
-                    style={{
-                        left,
-                        top,
-                        backgroundColor: shape === 'outline' || shape === 'triangle' ? 'transparent' : color,
-                        borderColor: shape === 'triangle' ? undefined : color,
-                        color,
-                        animationDelay: delay,
-                        animationDuration: duration,
-                    }}
-                />
-            ))}
-        </div>
-        <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#d9c7ad] bg-[#fffaf1] px-3 py-1.5 text-xs font-bold text-[#8b5a16] shadow-sm dark:border-[#37332d] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                <Sparkles size={14} />
-                Welcome back
-            </div>
-            <h2 className="mt-4 text-[22px] font-extrabold leading-tight tracking-normal text-[#211b16] dark:text-[#f4f1e9]">
-                Hi {firstName}.
-            </h2>
-            <p className="mt-3 max-w-xl text-[13px] font-medium leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                {hasJob
-                    ? 'Your saved role is attached to this workspace. Start from the job packet and keep every next step connected.'
-                    : 'Start with one real role, then use CareerVivid to build the application packet around it.'}
-            </p>
-        </div>
+const QuickMetric = ({ label, value }: { label: string; value: string | number }) => (
+    <div
+        className="rounded-xl border px-4 py-3"
+        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+    >
+        <p className={eyebrowClass} style={eyebrowStyle}>{label}</p>
+        <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
     </div>
+);
+
+const Chip: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <span
+        className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px]"
+        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+    >
+        {children}
+    </span>
 );
 
 const OnboardingStep = ({
@@ -147,41 +142,32 @@ const OnboardingStep = ({
     description: string;
     state: StepState;
 }) => {
+    const tone = stepTone[state];
     const isComplete = state === 'complete';
-    const isActive = state === 'active';
 
     return (
-        <div className={`rounded-lg border px-4 py-3 transition ${isActive
-            ? 'border-[#7069dc] bg-[#f3f2ff] shadow-sm dark:border-[#8d88e6] dark:bg-[#302e4c]/45'
-            : isComplete
-                ? 'border-[#cfe3d6] bg-[#f7fff8] dark:border-emerald-900/50 dark:bg-emerald-950/18'
-                : 'border-[#e4d3bc] bg-[#fffaf1]/70 dark:border-[#37332d] dark:bg-[#262522]/55'
-            }`}
+        <div
+            className="rounded-xl border px-4 py-3 transition"
+            style={{ borderColor: tone.line, background: tone.wash }}
         >
             <div className="flex items-start gap-3">
-                <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-sm font-black ${isComplete
-                    ? 'border-[#cfe3d6] bg-white text-emerald-700 dark:border-emerald-900/50 dark:bg-[#1f1f1d] dark:text-emerald-300'
-                    : isActive
-                        ? 'border-[#7069dc] bg-white text-[#625bd5] dark:border-[#8d88e6] dark:bg-[#1f1f1d] dark:text-[#c8c5ff]'
-                        : 'border-[#e4d3bc] bg-white text-[#8a6027] dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#aaa39a]'
-                    }`}
+                <div
+                    className="cvl-mono mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-[13px] font-semibold"
+                    style={{ borderColor: tone.line, background: 'var(--cvl-paper)', color: tone.ink }}
                 >
                     {isComplete ? <CheckCircle2 size={17} /> : step}
                 </div>
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-black text-[#211b16] dark:text-[#f4f1e9]">{title}</h3>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${isComplete
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
-                            : isActive
-                                ? 'bg-white text-[#625bd5] dark:bg-[#1f1f1d] dark:text-[#c8c5ff]'
-                                : 'bg-[#f6ecd9] text-[#8a6027] dark:bg-[#302e2a] dark:text-[#aaa39a]'
-                            }`}
+                        <h3 className="text-[14.5px] font-semibold">{title}</h3>
+                        <span
+                            className="cvl-mono rounded-full px-2 py-0.5 text-[10px] uppercase tracking-[0.12em]"
+                            style={{ background: 'var(--cvl-paper)', color: tone.ink }}
                         >
                             {statusCopy[state]}
                         </span>
                     </div>
-                    <p className="mt-1 text-sm leading-5 text-[#665a4a] dark:text-[#aaa39a]">{description}</p>
+                    <p className="mt-1 text-[13.5px] leading-6" style={{ color: 'var(--cvl-muted)' }}>{description}</p>
                 </div>
             </div>
         </div>
@@ -190,6 +176,7 @@ const OnboardingStep = ({
 
 const PathCard = ({
     icon,
+    filename,
     eyebrow,
     title,
     description,
@@ -200,6 +187,7 @@ const PathCard = ({
     onSecondary,
 }: {
     icon: React.ReactNode;
+    filename: string;
     eyebrow: string;
     title: string;
     description: string;
@@ -209,21 +197,24 @@ const PathCard = ({
     onPrimary: () => void;
     onSecondary?: () => void;
 }) => (
-    <article className="flex h-full flex-col rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/92 p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/92">
+    <Win filename={filename} className="cvl-win-lift flex h-full flex-col" bodyClassName="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-4">
             <div>
-                <p className="cv-warm-eyebrow">{eyebrow}</p>
-                <h2 className="mt-2 text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">{title}</h2>
+                <p className={eyebrowClass} style={eyebrowStyle}>{eyebrow}</p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight">{title}</h2>
             </div>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#f2dfc2] text-[#8b5a16] dark:bg-[#302e2a] dark:text-[#caa26c]">
+            <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-purple)' }}
+            >
                 {icon}
             </div>
         </div>
-        <p className="mt-3 text-sm leading-6 text-[#665a4a] dark:text-[#aaa39a]">{description}</p>
-        <div className="mt-5 space-y-2">
+        <p className="mt-3 text-[14px] leading-6" style={{ color: 'var(--cvl-muted)' }}>{description}</p>
+        <div className="mt-5 space-y-2.5">
             {checklist.map((item) => (
-                <div key={item} className="flex items-center gap-2 text-sm font-semibold text-[#4f4538] dark:text-[#d8d1c7]">
-                    <CheckCircle2 size={15} className="shrink-0 text-emerald-600 dark:text-emerald-300" />
+                <div key={item} className="flex items-start gap-2.5 text-[13.5px]">
+                    <CheckCircle2 size={15} className="mt-[3px] shrink-0" style={{ color: 'var(--cvl-green)' }} />
                     <span>{item}</span>
                 </div>
             ))}
@@ -234,12 +225,12 @@ const PathCard = ({
                 <ArrowRight size={16} />
             </button>
             {secondaryCta && onSecondary && (
-                <button type="button" onClick={onSecondary} className={secondaryButtonClass}>
+                <button type="button" onClick={onSecondary} className={secondaryButtonClass} style={secondaryButtonStyle}>
                     {secondaryCta}
                 </button>
             )}
         </div>
-    </article>
+    </Win>
 );
 
 const OnboardingPage: React.FC = () => {
@@ -262,8 +253,6 @@ const OnboardingPage: React.FC = () => {
     const resumeTarget = primaryResume?.id ? `/edit/${primaryResume.id}` : '/newresume?scrollTo=create-section';
     const tailorTarget = primaryResume?.id ? `/edit/${primaryResume.id}?source=onboarding_tailor` : '/newresume?scrollTo=create-section';
     const firstTailorTarget = hasResume && hasJob ? tailorTarget : hasResume ? '/jobs/recommend' : '/newresume?scrollTo=create-section';
-    const completedCount = [currentUser, hasResume, hasJob, hasPractice].filter(Boolean).length;
-    const progressPercent = Math.round((completedCount / 4) * 100);
     const isLoadingWorkspace = isLoadingResumes || isLoadingJobs || isLoadingPractice;
     const isLoadingJobContext = isLoadingJobs || isLoadingSavedJobs;
 
@@ -334,34 +323,37 @@ const OnboardingPage: React.FC = () => {
         }
     };
 
-    const steps = useMemo(() => {
-        return [
+    const steps = useMemo(() => (
+        [
             {
                 step: '1',
-                title: 'Create your base resume',
-                description: 'Import an existing resume or start a structured resume in the editor.',
+                title: 'Build or import your resume',
+                description: 'Drop in a PDF or start one in the editor. Everything else on the site reads from it.',
                 state: hasResume ? 'complete' : 'active',
             },
             {
                 step: '2',
-                title: 'Attach one target role',
-                description: 'Save a job from Chrome or add one in the job tracker so tailoring has real context.',
-                state: !hasResume ? 'locked' : hasJob ? 'complete' : 'active',
+                title: 'Run one graded round',
+                description: 'Draw a system on the whiteboard, or say an answer out loud. Either one ends in a scored report.',
+                state: !hasResume ? 'locked' : hasPractice ? 'complete' : 'active',
             },
             {
                 step: '3',
-                title: 'Tailor the resume',
-                description: 'Open the resume editor and use the job context to tighten summary, proof, and skills.',
-                state: hasResume && hasJob ? 'complete' : 'locked',
+                title: 'Attach the role you are chasing',
+                description: 'Save one job from Chrome or the tracker, so the rounds have a real posting to aim at.',
+                state: !hasResume ? 'locked' : hasJob ? 'complete' : 'active',
             },
             {
                 step: '4',
-                title: 'Run one mock interview',
-                description: 'Practice out loud, capture the transcript, and review the feedback report.',
-                state: !hasResume || !hasJob ? 'locked' : hasPractice ? 'complete' : 'active',
+                title: 'Tailor the resume to it',
+                description: 'The editor rewrites your bullets against that posting and scores the result before you apply.',
+                state: hasResume && hasJob ? 'complete' : 'locked',
             },
-        ] as Array<{ step: string; title: string; description: string; state: StepState }>;
-    }, [hasJob, hasPractice, hasResume]);
+        ] as Array<{ step: string; title: string; description: string; state: StepState }>
+    ), [hasJob, hasPractice, hasResume]);
+
+    const completedCount = steps.filter((item) => item.state === 'complete').length;
+    const progressPercent = Math.round((completedCount / steps.length) * 100);
 
     return (
         <AppLayout>
@@ -369,25 +361,32 @@ const OnboardingPage: React.FC = () => {
                 <title>Quick Start Onboarding | CareerVivid</title>
                 <meta name="robots" content="noindex,nofollow" />
             </Helmet>
-            <div className="cv-warm-page cv-warm-grid min-h-screen px-4 py-6 text-[#211b16] dark:text-[#f4f1e9] sm:px-6 lg:px-8">
+            <div className="cvl min-h-screen px-4 py-6 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-screen-2xl">
-                    <header className="flex flex-col gap-4 border-b border-[#e4d3bc] pb-6 dark:border-[#37332d] md:flex-row md:items-center md:justify-between">
+                    <header
+                        className="flex flex-col gap-4 border-b pb-6 md:flex-row md:items-center md:justify-between"
+                        style={{ borderColor: 'var(--cvl-line)' }}
+                    >
                         <div className="flex items-start gap-4">
-                            <div className="hidden h-12 w-12 items-center justify-center rounded-lg border border-[#e4d3bc] bg-[#fffaf1] shadow-sm dark:border-[#37332d] dark:bg-[#262522] sm:flex">
+                            <div
+                                className="hidden h-12 w-12 items-center justify-center rounded-xl border sm:flex"
+                                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}
+                            >
                                 <Logo className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="cv-warm-eyebrow">Quick start workspace</p>
-                                <h1 className="mt-2 max-w-3xl text-3xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9] sm:text-4xl">
-                                    Start with a strong resume, then rehearse the role.
+                                <p className={eyebrowClass} style={eyebrowStyle}>first ten minutes</p>
+                                <h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
+                                    The first four moves.
                                 </h1>
-                                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                                    Hi {firstName}. This plan gets a new CareerVivid workspace moving quickly without guessing where to click first.
+                                <p className="mt-3 max-w-2xl text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                    Hi {firstName}. Get your resume in, run one graded round, attach the role you are
+                                    chasing, then tailor the resume to it. The rest of the workspace follows from those.
                                 </p>
                             </div>
                         </div>
                         <div className="flex flex-wrap gap-3">
-                            <button type="button" onClick={() => navigate('/dashboard')} className={secondaryButtonClass}>
+                            <button type="button" onClick={() => navigate('/dashboard')} className={secondaryButtonClass} style={secondaryButtonStyle}>
                                 <LayoutDashboard size={16} />
                                 Dashboard
                             </button>
@@ -399,140 +398,62 @@ const OnboardingPage: React.FC = () => {
                     </header>
 
                     <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.55fr)]">
-                        <div className="rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/88">
+                        <Win filename="workspace-readiness.log">
                             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                                 <div>
-                                    <div className="inline-flex items-center gap-2 rounded-full border border-[#d9c7ad] bg-[#fffaf1] px-3 py-1.5 text-xs font-bold text-[#8b5a16] shadow-sm dark:border-[#37332d] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                                        <Timer size={14} />
-                                        First 10 minutes
-                                    </div>
-                                    <h2 className="mt-3 text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">
-                                        {isLoadingWorkspace ? 'Checking your workspace...' : `${completedCount} of 4 setup signals ready`}
+                                    <p className={eyebrowClass} style={eyebrowStyle}>where you are</p>
+                                    <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+                                        {isLoadingWorkspace ? 'Checking your workspace...' : `${completedCount} of ${steps.length} steps done`}
                                     </h2>
-                                    <p className="mt-2 text-sm leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                                        The onboarding path is intentionally short: resume, one target job, one tailored pass, one interview rehearsal.
+                                    <p className="mt-2 text-[14px] leading-6" style={{ color: 'var(--cvl-muted)' }}>
+                                        Short on purpose: a resume, one graded round, one real job. The rest is optional until you want it.
                                     </p>
                                 </div>
                                 <div className="w-full max-w-xs">
-                                    <div className="flex items-center justify-between text-xs font-bold text-[#665a4a] dark:text-[#aaa39a]">
-                                        <span>Workspace readiness</span>
-                                        <span>{progressPercent}%</span>
+                                    <div className="cvl-mono flex items-center justify-between text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                                        <span>readiness</span>
+                                        <span className="tabular-nums">{progressPercent}%</span>
                                     </div>
-                                    <div className="mt-2 h-3 overflow-hidden rounded-full border border-[#e4d3bc] bg-[#f6ecd9] dark:border-[#37332d] dark:bg-[#1f1f1d]">
-                                        <div className="h-full rounded-full bg-[#625bd5] transition-all" style={{ width: `${progressPercent}%` }} />
+                                    <div
+                                        className="mt-2 h-3 overflow-hidden rounded-full border"
+                                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+                                    >
+                                        <div
+                                            className="h-full rounded-full transition-all"
+                                            style={{ width: `${progressPercent}%`, background: 'var(--cvl-purple)' }}
+                                        />
                                     </div>
                                 </div>
                             </div>
                             <div className="mt-5 grid gap-3 md:grid-cols-4">
-                                <QuickMetric label="Resumes" value={isLoadingResumes ? '...' : resumes.length} />
-                                <QuickMetric label="Saved jobs" value={isLoadingJobs ? '...' : jobApplications.length} />
-                                <QuickMetric label="Interviews" value={isLoadingPractice ? '...' : practiceHistory.length} />
-                                <QuickMetric label="Next step" value={hasResume ? (hasPractice ? 'Review' : 'Practice') : 'Resume'} />
+                                <QuickMetric label="resumes" value={isLoadingResumes ? '...' : resumes.length} />
+                                <QuickMetric label="saved roles" value={isLoadingJobs ? '...' : jobApplications.length} />
+                                <QuickMetric label="rounds run" value={isLoadingPractice ? '...' : practiceHistory.length} />
+                                <QuickMetric label="next up" value={hasResume ? (hasPractice ? 'review' : 'practice') : 'resume'} />
                             </div>
-                        </div>
+                        </Win>
 
-                        <div className="rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/88">
-                            <p className="cv-warm-eyebrow">Current setup</p>
+                        <Win filename="next-steps.md">
+                            <p className={eyebrowClass} style={eyebrowStyle}>your steps</p>
                             <div className="mt-4 space-y-3">
                                 {steps.map((item) => (
                                     <OnboardingStep key={item.step} {...item} />
                                 ))}
                             </div>
-                        </div>
+                        </Win>
                     </section>
 
-                    <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.64fr)_minmax(360px,0.46fr)]">
-                        <WarmWelcomeAnimation firstName={firstName} hasJob={Boolean(featuredJob)} />
-
-                        <aside className="cv-warm-card p-5">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div>
-                                    <p className="cv-warm-eyebrow">Saved job attached</p>
-                                    <h2 className="mt-2 text-[18px] font-extrabold leading-snug tracking-normal text-[#211b16] dark:text-[#f4f1e9]">
-                                        {featuredJob ? featuredJob.title : 'Attach your first role'}
-                                    </h2>
-                                </div>
-                                {isLoadingJobContext && (
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-[#d9c7ad] bg-[#fffaf1] px-3 py-1 text-xs font-bold text-[#8b5a16] dark:border-[#37332d] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                                        <Loader2 size={13} className="animate-spin" />
-                                        Checking
-                                    </span>
-                                )}
-                            </div>
-
-                            {featuredJob ? (
-                                <>
-                                    <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-[#665a4a] dark:text-[#aaa39a]">
-                                        <span className="inline-flex items-center gap-1 rounded-full border border-[#e4d3bc] bg-[#fffaf1] px-3 py-1 dark:border-[#37332d] dark:bg-[#1f1f1d]">
-                                            <Building2 size={13} />
-                                            {featuredJob.company}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1 rounded-full border border-[#e4d3bc] bg-[#fffaf1] px-3 py-1 dark:border-[#37332d] dark:bg-[#1f1f1d]">
-                                            <MapPin size={13} />
-                                            {featuredJob.location}
-                                        </span>
-                                        <span className="rounded-full border border-[#dfe2ff] bg-[#f3f2ff] px-3 py-1 text-[#625bd5] dark:border-[#484273] dark:bg-[#302e4c]/45 dark:text-[#c8c5ff]">
-                                            {featuredJob.sourceLabel === 'tracker' ? 'From job tracker' : 'From saved jobs'}
-                                        </span>
-                                    </div>
-                                    <p className="mt-4 rounded-lg border border-[#d9c7ad] bg-[#f9efe0]/72 p-4 text-sm leading-6 text-[#665a4a] dark:border-[#37332d] dark:bg-[#302e2a]/80 dark:text-[#aaa39a]">
-                                        {truncateDescription(featuredJob.description)}
-                                    </p>
-                                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                                        <button type="button" onClick={() => navigate(featuredJob.sourceLabel === 'tracker' ? `/job-tracker?job=${featuredJob.id}` : '/job-tracker')} className={primaryButtonClass}>
-                                            <Briefcase size={16} />
-                                            Open packet
-                                        </button>
-                                        <button type="button" onClick={openTailoredResume} className={secondaryButtonClass}>
-                                            <Wand2 size={16} />
-                                            Tailor resume
-                                        </button>
-                                        <button type="button" onClick={() => navigate('/interview-studio')} className={secondaryButtonClass}>
-                                            <Mic size={16} />
-                                            Practice
-                                        </button>
-                                        {featuredJob.sourceUrl ? (
-                                            <button type="button" onClick={openSourceJob} className={secondaryButtonClass}>
-                                                Source job
-                                                <ExternalLink size={15} />
-                                            </button>
-                                        ) : (
-                                            <button type="button" onClick={() => navigate('/jobs/recommend')} className={secondaryButtonClass}>
-                                                Find roles
-                                                <ArrowRight size={15} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="mt-4 rounded-lg border border-[#d9c7ad] bg-[#f9efe0]/72 p-4 dark:border-[#37332d] dark:bg-[#302e2a]/80">
-                                    <p className="text-sm leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                                        Save a role from the Chrome extension, paste a job URL, or find a recommended role. Once a role is attached, this welcome page will show the job packet here.
-                                    </p>
-                                    <div className="mt-4 flex flex-wrap gap-3">
-                                        <button type="button" onClick={() => navigate('/job-tracker')} className={primaryButtonClass}>
-                                            <Briefcase size={16} />
-                                            Add job
-                                        </button>
-                                        <button type="button" onClick={() => navigate('/jobs/recommend')} className={secondaryButtonClass}>
-                                            Find roles
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </aside>
-                    </section>
-
-                    <section className="mt-6 grid gap-4 lg:grid-cols-2">
+                    <section className="mt-6 grid gap-4 lg:grid-cols-3">
                         <PathCard
-                            eyebrow="Resume editor"
+                            filename="base-resume.md"
+                            eyebrow="step one"
                             icon={<FileText size={21} />}
-                            title="Build the base resume first"
-                            description="Create the reusable resume that every tailored version starts from. A clean base resume makes the AI review, ATS pass, and PDF export easier to trust."
+                            title="Get the resume in."
+                            description="One base resume every tailored version starts from. Import the PDF you already have, or write it here."
                             checklist={[
                                 'Import PDF, text, or markdown',
-                                'Review profile, experience, skills, and links',
-                                'Open the editor whenever a role needs tailoring',
+                                'Check profile, experience, skills, links',
+                                'Reopen it whenever a role needs tailoring',
                             ]}
                             cta={hasResume ? 'Open resume editor' : 'Create base resume'}
                             secondaryCta="View dashboard"
@@ -540,30 +461,45 @@ const OnboardingPage: React.FC = () => {
                             onSecondary={() => navigate('/dashboard')}
                         />
                         <PathCard
-                            eyebrow="Mock interview"
-                            icon={<Mic size={21} />}
-                            title="Practice from the same job context"
-                            description="Once a target role exists, run a focused interview session and keep the transcript, feedback, and next prep action connected to your workspace."
+                            filename="system-design.quest"
+                            eyebrow="step two"
+                            icon={<PenTool size={21} />}
+                            title="Draw the system."
+                            description="A whiteboard round from a real company loop. You design it, the coach probes what you left out, and the diagram gets scored."
                             checklist={[
-                                'Choose behavioral, technical, mixed, or screening mode',
-                                'Use your current resume as interview context',
-                                'Review the transcript and debrief after the session',
+                                'Whiteboard the design, no multiple choice',
+                                'Follow-ups on the parts you skipped',
+                                'Scored on coverage, trade-offs, and clarity',
                             ]}
-                            cta="Start mock interview"
+                            cta="Start a quest"
                             secondaryCta={hasJob ? 'Open job tracker' : 'Find a target job'}
                             onPrimary={() => navigate('/interview-studio')}
                             onSecondary={() => navigate(hasJob ? '/job-tracker' : '/jobs/recommend')}
                         />
+                        <PathCard
+                            filename="voice-round.mov"
+                            eyebrow="step three"
+                            icon={<Mic size={21} />}
+                            title="Talk it through."
+                            description="A live voice interviewer asks the follow-up you were hoping to avoid, then scores the answer on clarity, depth, and signal."
+                            checklist={[
+                                'Behavioural, technical, mixed, or screening',
+                                'Your resume and saved role as context',
+                                'A transcript and a scored report after',
+                            ]}
+                            cta="Start a voice round"
+                            onPrimary={() => navigate('/interview-studio')}
+                        />
                     </section>
 
-                    <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(320px,0.4fr)]">
-                        <div className="rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/88">
+                    <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.64fr)_minmax(360px,0.46fr)]">
+                        <Win filename="first-packet.md">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <p className="cv-warm-eyebrow">Recommended first run</p>
-                                    <h2 className="mt-2 text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">One job packet, end to end</h2>
+                                    <p className={eyebrowClass} style={eyebrowStyle}>after the first three</p>
+                                    <h2 className="mt-2 text-xl font-semibold tracking-tight">One job, all the way through.</h2>
                                 </div>
-                                <button type="button" onClick={() => navigate(firstTailorTarget)} className={secondaryButtonClass}>
+                                <button type="button" onClick={() => navigate(firstTailorTarget)} className={secondaryButtonClass} style={secondaryButtonStyle}>
                                     <Wand2 size={16} />
                                     Resume tailoring
                                 </button>
@@ -572,22 +508,22 @@ const OnboardingPage: React.FC = () => {
                                 {[
                                     {
                                         icon: <Briefcase size={18} />,
-                                        title: 'Capture',
-                                        copy: 'Save one role from Chrome or add it manually so the job description is attached.',
-                                        action: 'Save or find job',
+                                        title: 'Attach',
+                                        copy: 'Save one role from Chrome or add it by hand, so the description travels with it.',
+                                        action: 'Save or find a job',
                                         path: hasJob ? '/job-tracker' : '/jobs/recommend',
                                     },
                                     {
-                                        icon: <Target size={18} />,
+                                        icon: <Wand2 size={18} />,
                                         title: 'Tailor',
-                                        copy: 'Use the editor to align the summary, strongest bullets, and key skills to the role.',
-                                        action: hasResume && hasJob ? 'Open tailor flow' : 'Attach target job',
+                                        copy: 'The editor rewrites the summary, the strongest bullets, and the skills against that posting.',
+                                        action: hasResume && hasJob ? 'Open tailor flow' : 'Attach a target job',
                                         path: firstTailorTarget,
                                     },
                                     {
-                                        icon: <PlayCircle size={18} />,
+                                        icon: <Mic size={18} />,
                                         title: 'Rehearse',
-                                        copy: 'Start one live practice and answer out loud before reviewing the transcript.',
+                                        copy: 'Run the round again with the posting attached, and answer it the way you would on the day.',
                                         action: 'Practice now',
                                         path: '/interview-studio',
                                     },
@@ -596,60 +532,120 @@ const OnboardingPage: React.FC = () => {
                                         key={item.title}
                                         type="button"
                                         onClick={() => navigate(item.path)}
-                                        className="group rounded-lg border border-[#e4d3bc] bg-[#fffaf1] p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#caa26c] hover:bg-[#fff7e8] dark:border-[#37332d] dark:bg-[#1f1f1d] dark:hover:bg-[#302e2a]"
+                                        className="group rounded-xl border p-4 text-left transition hover:-translate-y-0.5"
+                                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
                                     >
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f2dfc2] text-[#8b5a16] dark:bg-[#302e2a] dark:text-[#caa26c]">
+                                        <div
+                                            className="flex h-10 w-10 items-center justify-center rounded-xl border"
+                                            style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-purple)' }}
+                                        >
                                             {item.icon}
                                         </div>
-                                        <h3 className="mt-4 text-base font-black text-[#211b16] dark:text-[#f4f1e9]">{item.title}</h3>
-                                        <p className="mt-2 min-h-[60px] text-sm leading-5 text-[#665a4a] dark:text-[#aaa39a]">{item.copy}</p>
-                                        <span className="mt-4 inline-flex items-center gap-2 text-sm font-black text-[#625bd5] dark:text-[#c8c5ff]">
+                                        <h3 className="mt-4 text-[15px] font-semibold">{item.title}</h3>
+                                        <p className="mt-2 min-h-[60px] text-[13.5px] leading-6" style={{ color: 'var(--cvl-muted)' }}>{item.copy}</p>
+                                        <span
+                                            className="mt-4 inline-flex items-center gap-2 text-[13.5px] font-semibold"
+                                            style={{ color: 'var(--cvl-purple)' }}
+                                        >
                                             {item.action}
                                             <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
                                         </span>
                                     </button>
                                 ))}
                             </div>
-                        </div>
+                        </Win>
 
-                        <aside className="rounded-lg border border-[#e4d3bc] bg-[#fffaf1]/88 p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/88">
-                            <p className="cv-warm-eyebrow">What good looks like</p>
-                            <div className="mt-4 space-y-4">
-                                {[
-                                    {
-                                        icon: <ClipboardCheck size={18} />,
-                                        title: 'One source of truth',
-                                        copy: 'The role, resume, interview prep, and next action stay attached to the same job packet.',
-                                    },
-                                    {
-                                        icon: <BadgeCheck size={18} />,
-                                        title: 'Proof over polish',
-                                        copy: 'Every tailored bullet should make a real requirement easier for a recruiter to verify.',
-                                    },
-                                    {
-                                        icon: <Sparkles size={18} />,
-                                        title: 'Fast repeatable loop',
-                                        copy: 'After the first packet, repeat the same capture, tailor, rehearse workflow for each serious role.',
-                                    },
-                                ].map((item) => (
-                                    <div key={item.title} className="grid grid-cols-[40px_1fr] gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#f2dfc2] text-[#8b5a16] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                                            {item.icon}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-black text-[#211b16] dark:text-[#f4f1e9]">{item.title}</h3>
-                                            <p className="mt-1 text-sm leading-5 text-[#665a4a] dark:text-[#aaa39a]">{item.copy}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="mt-5 rounded-lg border border-[#d9c7ad] bg-[#f9efe0]/80 p-4 dark:border-[#37332d] dark:bg-[#302e2a]/80">
-                                <div className="flex items-center gap-2 text-sm font-black text-[#211b16] dark:text-[#f4f1e9]">
-                                    {hasResume && hasJob ? <CheckCircle2 size={17} className="text-emerald-600" /> : <Circle size={17} className="text-[#8a6027]" />}
-                                    {hasResume && hasJob ? 'Ready for a serious application packet' : 'Finish resume plus one target job first'}
+                        <Win filename="job-packet.json">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p className={eyebrowClass} style={eyebrowStyle}>attached role</p>
+                                    <h2 className="mt-2 text-[18px] font-semibold leading-snug tracking-tight">
+                                        {featuredJob ? featuredJob.title : 'Nothing attached yet.'}
+                                    </h2>
                                 </div>
+                                {isLoadingJobContext && (
+                                    <Chip>
+                                        <Loader2 size={13} className="animate-spin" />
+                                        checking
+                                    </Chip>
+                                )}
                             </div>
-                        </aside>
+
+                            {featuredJob ? (
+                                <>
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <Chip>
+                                            <Building2 size={13} />
+                                            {featuredJob.company}
+                                        </Chip>
+                                        <Chip>
+                                            <MapPin size={13} />
+                                            {featuredJob.location}
+                                        </Chip>
+                                        <span
+                                            className="inline-flex items-center rounded-full border px-3 py-1 text-[12px]"
+                                            style={{
+                                                borderColor: 'var(--cvl-purple)',
+                                                background: 'var(--cvl-purple-soft)',
+                                                color: 'var(--cvl-purple)',
+                                            }}
+                                        >
+                                            {featuredJob.sourceLabel === 'tracker' ? 'from job tracker' : 'from saved jobs'}
+                                        </span>
+                                    </div>
+                                    <p
+                                        className="mt-4 rounded-xl border p-4 text-[13.5px] leading-6"
+                                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                                    >
+                                        {truncateDescription(featuredJob.description)}
+                                    </p>
+                                    <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                                        <button type="button" onClick={() => navigate(featuredJob.sourceLabel === 'tracker' ? `/job-tracker?job=${featuredJob.id}` : '/job-tracker')} className={primaryButtonClass}>
+                                            <Briefcase size={16} />
+                                            Open packet
+                                        </button>
+                                        <button type="button" onClick={openTailoredResume} className={secondaryButtonClass} style={secondaryButtonStyle}>
+                                            <Wand2 size={16} />
+                                            Tailor resume
+                                        </button>
+                                        <button type="button" onClick={() => navigate('/interview-studio')} className={secondaryButtonClass} style={secondaryButtonStyle}>
+                                            <Mic size={16} />
+                                            Practice
+                                        </button>
+                                        {featuredJob.sourceUrl ? (
+                                            <button type="button" onClick={openSourceJob} className={secondaryButtonClass} style={secondaryButtonStyle}>
+                                                Source job
+                                                <ExternalLink size={15} />
+                                            </button>
+                                        ) : (
+                                            <button type="button" onClick={() => navigate('/jobs/recommend')} className={secondaryButtonClass} style={secondaryButtonStyle}>
+                                                Find roles
+                                                <ArrowRight size={15} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div
+                                    className="mt-4 rounded-xl border p-4"
+                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+                                >
+                                    <p className="text-[13.5px] leading-6" style={{ color: 'var(--cvl-muted)' }}>
+                                        Save a role from the Chrome extension, paste a job URL, or pick a recommended one.
+                                        The packet shows up here as soon as one is attached.
+                                    </p>
+                                    <div className="mt-4 flex flex-wrap gap-3">
+                                        <button type="button" onClick={() => navigate('/job-tracker')} className={primaryButtonClass}>
+                                            <Briefcase size={16} />
+                                            Add job
+                                        </button>
+                                        <button type="button" onClick={() => navigate('/jobs/recommend')} className={secondaryButtonClass} style={secondaryButtonStyle}>
+                                            Find roles
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </Win>
                     </section>
                 </div>
             </div>

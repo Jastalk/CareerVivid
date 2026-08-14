@@ -8,6 +8,16 @@ import { SidebarContextMenu } from '../Navigation/SidebarContextMenu';
 import { createPortal } from 'react-dom';
 import ConfirmationModal from '../ConfirmationModal';
 import { formatRelativeTime, formatAbsoluteTime } from '../../utils/relativeTime';
+import '../Landing/live/liveLanding.css';
+
+/** Titles read like files on a desk, so the window bar shows one. */
+const toFilename = (title: string, extension: string): string => {
+    const slug = (title || 'untitled').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `${slug || 'untitled'}.${extension}`;
+};
+
+/** Icon buttons: one muted colour, hover is opacity. */
+const ICON_BUTTON = 'rounded-lg p-2 transition hover:opacity-65';
 
 interface ResumeCardProps {
     resume: ResumeData;
@@ -89,10 +99,16 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onUpdate, onDuplicate, 
             draggable
             onDragStart={onDragStart}
             onContextMenu={handleContextMenu}
-            className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-xl rounded-2xl border border-slate-200/80 dark:border-slate-800/80 transition-all duration-300 hover:border-indigo-500/40 dark:hover:border-indigo-400/40 shadow-sm hover:shadow-md hover:shadow-indigo-500/[0.03] flex flex-col cursor-grab active:cursor-grabbing overflow-hidden group relative select-none"
+            className="cvl-win cvl-win-lift group relative flex cursor-grab select-none flex-col active:cursor-grabbing"
         >
-            <div onClick={!isEditingTitle ? navigateToEdit : undefined} className="block p-4 border-b border-slate-200/50 dark:border-slate-800/50 group-hover:bg-gray-50/50 dark:group-hover:bg-[#1a2029] transition-colors flex-grow cursor-pointer">
-                <div ref={previewContainerRef} className="w-full aspect-[210/297] bg-white dark:bg-gray-800 rounded-xl mb-4 overflow-hidden relative shadow-inner ring-1 ring-slate-200/70 dark:ring-slate-700/60 select-none">
+            <div className="cvl-bar">
+                <span className="cvl-dot cvl-dot-r" />
+                <span className="cvl-dot cvl-dot-y" />
+                <span className="cvl-dot cvl-dot-g" />
+                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>{toFilename(resume.title, 'pdf')}</span>
+            </div>
+            <div onClick={!isEditingTitle ? navigateToEdit : undefined} className="block flex-grow cursor-pointer border-b p-4" style={{ borderColor: 'var(--cvl-line)' }}>
+                <div ref={previewContainerRef} className="relative mb-4 w-full select-none overflow-hidden rounded-lg border aspect-[210/297]" style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}>
                     <div
                         aria-hidden="true"
                         className="pointer-events-none select-none"
@@ -128,20 +144,21 @@ const ResumeCard: React.FC<ResumeCardProps> = ({ resume, onUpdate, onDuplicate, 
                             }
                         }}
                         autoFocus
-                        className="font-bold text-lg text-gray-800 dark:text-gray-100 truncate w-full border rounded-md px-2 py-0.5 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary-500 focus:outline-none select-text"
+                        className="w-full select-text truncate rounded-md border px-2 py-0.5 text-[16px] font-semibold"
+                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-ink)' }}
                     />
                 ) : (
-                    <h3 onDoubleClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }} className="font-bold text-lg text-gray-800 dark:text-gray-100 truncate" title="Double-click to rename">{resume.title}</h3>
+                    <h3 onDoubleClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }} className="truncate text-[16px] font-semibold tracking-tight" title="Double-click to rename">{resume.title}</h3>
                 )}
-                <p className="text-sm text-gray-500 dark:text-gray-400">Updated <time dateTime={new Date(resume.updatedAt).toISOString()} title={formatAbsoluteTime(resume.updatedAt)}>{formatRelativeTime(resume.updatedAt)}</time></p>
+                <p className="mt-0.5 text-[12.5px]" style={{ color: 'var(--cvl-muted)' }}>Updated <time dateTime={new Date(resume.updatedAt).toISOString()} title={formatAbsoluteTime(resume.updatedAt)}>{formatRelativeTime(resume.updatedAt)}</time></p>
             </div>
-            <div className="p-2.5 flex justify-between items-center bg-gray-50/50 dark:bg-[#10141a]">
-                <div className="flex gap-1.5">
-                    <button onClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }} title="Rename Resume" className="p-2 block rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"><Edit3 size={16} /></button>
-                    <button onClick={() => onDuplicate(resume.id)} title="Duplicate Resume" className="p-2 rounded-lg hover:bg-gray-200/50 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"><Copy size={16} /></button>
-                    <button onClick={handleDelete} title="Delete Resume" className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"><Trash2 size={16} /></button>
+            <div className="flex items-center justify-between p-2.5" style={{ background: 'var(--cvl-paper-2)' }}>
+                <div className="flex gap-1.5" style={{ color: 'var(--cvl-muted)' }}>
+                    <button onClick={(e) => { e.stopPropagation(); setIsEditingTitle(true); }} title="Rename Resume" className={`block ${ICON_BUTTON}`}><Edit3 size={16} /></button>
+                    <button onClick={() => onDuplicate(resume.id)} title="Duplicate Resume" className={ICON_BUTTON}><Copy size={16} /></button>
+                    <button onClick={handleDelete} title="Delete Resume" className={ICON_BUTTON} style={{ color: 'var(--cvl-amber)' }}><Trash2 size={16} /></button>
                 </div>
-                <button onClick={() => onShare(resume)} title="Share Resume" className="p-2 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-500/10 text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"><Share2 size={16} /></button>
+                <button onClick={() => onShare(resume)} title="Share Resume" className={ICON_BUTTON} style={{ color: 'var(--cvl-purple)' }}><Share2 size={16} /></button>
             </div>
 
             {/* Context Menu */}

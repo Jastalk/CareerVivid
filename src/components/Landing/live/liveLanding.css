@@ -13,8 +13,10 @@
     --cvl-paper: #fffdf8;
     --cvl-paper-2: #faf6ee;
     --cvl-ink: #1b1712;
+    /* Both text tiers clear 4.5:1 on --cvl-paper. --cvl-muted additionally
+     * clears it on --cvl-chrome, so the title-bar filename uses that one. */
     --cvl-muted: #6d6153;
-    --cvl-faint: #9b9080;
+    --cvl-faint: #776c5e;
     --cvl-line: #e3dbcd;
     --cvl-chrome: #ece6da;
     --cvl-purple: #4a4392;
@@ -44,7 +46,7 @@ html.dark .cvl {
     --cvl-paper-2: #232019;
     --cvl-ink: #f7f2e9;
     --cvl-muted: #b0a596;
-    --cvl-faint: #8b8172;
+    --cvl-faint: #978c7c;
     --cvl-line: #332d25;
     --cvl-chrome: #262119;
     --cvl-purple: #a9a4f0;

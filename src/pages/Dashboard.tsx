@@ -16,14 +16,15 @@ import ShareWhiteboardModal from '../components/ShareWhiteboardModal';
 import LanguageSelect from '../components/LanguageSelect';
 import AIUsageProgressBar from '../components/AIUsageProgressBar';
 import { getPlanDisplayName } from '../config/subscriptionCatalog';
+import '../components/Landing/live/liveLanding.css';
 
 // Refactored Sections
-import { 
-    ResumesSection, 
-    PortfoliosSection, 
-    InterviewStudioSection, 
-    WhiteboardsSection, 
-    JobTrackerSection 
+import {
+    ResumesSection,
+    PortfoliosSection,
+    InterviewStudioSection,
+    WhiteboardsSection,
+    JobTrackerSection
 } from '../components/Dashboard/DashboardSections';
 
 import DashboardPreviewSection from '../components/Dashboard/DashboardPreviewSection';
@@ -36,28 +37,45 @@ import DashboardOverview from '../components/Dashboard/DashboardOverview';
 // Lazy load modal
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
 
+/** One row in either dropdown. Hover is opacity, so no second colour is needed. */
+const MENU_ITEM = 'flex w-full items-center gap-3 px-4 py-2.5 text-left text-[13px] transition hover:opacity-65';
+
+// The three things the product actually sells lead this list, in the same
+// order the public page sells them.
 const mobileWorkflowActions = [
-    { label: 'Start', icon: Sparkles, path: '/onboarding', className: 'bg-amber-50 text-amber-800 border-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900/50' },
-    { label: 'Resume', icon: FileText, path: '/newresume', className: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/30 dark:text-blue-200 dark:border-blue-900/50' },
-    { label: 'Portfolio', icon: Globe, path: '/portfolio', className: 'bg-pink-50 text-pink-700 border-pink-100 dark:bg-pink-950/30 dark:text-pink-200 dark:border-pink-900/50' },
-    { label: 'Interview', icon: Mic, path: '/interview-studio', className: 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/30 dark:text-purple-200 dark:border-purple-900/50' },
-    { label: 'Jobs', icon: Briefcase, path: '/jobs/recommend', className: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-200 dark:border-emerald-900/50' },
-    { label: 'Community', icon: MessageSquare, path: '/community', className: 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900/50' },
-    { label: 'Whiteboard', icon: PenTool, path: '/whiteboard', className: 'bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-900/60 dark:text-slate-200 dark:border-slate-800' },
+    { label: 'Quests', icon: Mic, path: '/interview-studio', accent: 'var(--cvl-purple)', soft: 'var(--cvl-purple-soft)' },
+    { label: 'Resume', icon: FileText, path: '/newresume', accent: 'var(--cvl-green)', soft: 'var(--cvl-green-soft)' },
+    { label: 'Whiteboard', icon: PenTool, path: '/whiteboard', accent: 'var(--cvl-amber)', soft: 'var(--cvl-amber-soft)' },
+    { label: 'Jobs', icon: Briefcase, path: '/jobs/recommend', accent: 'var(--cvl-green)', soft: 'var(--cvl-green-soft)' },
+    { label: 'Portfolio', icon: Globe, path: '/portfolio', accent: 'var(--cvl-purple)', soft: 'var(--cvl-purple-soft)' },
+    { label: 'Community', icon: MessageSquare, path: '/community', accent: 'var(--cvl-amber)', soft: 'var(--cvl-amber-soft)' },
+    { label: 'Start', icon: Sparkles, path: '/onboarding', accent: 'var(--cvl-purple)', soft: 'var(--cvl-purple-soft)' },
 ];
 
 const MobileWorkflowLauncher: React.FC = () => (
-    <nav className="md:hidden mb-6" aria-label="Dashboard workflows">
-        <div className="grid grid-cols-3 gap-2">
-            {mobileWorkflowActions.map(({ label, icon: Icon, path, className }) => (
+    <nav className="cvl-win md:hidden" aria-label="Dashboard workflows">
+        <div className="cvl-bar">
+            <span className="cvl-dot cvl-dot-r" />
+            <span className="cvl-dot cvl-dot-y" />
+            <span className="cvl-dot cvl-dot-g" />
+            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>shortcuts.txt</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 p-3">
+            {mobileWorkflowActions.map(({ label, icon: Icon, path, accent, soft }) => (
                 <button
                     key={path}
                     type="button"
                     onClick={() => navigate(path)}
-                    className={`min-h-[76px] rounded-2xl border px-2.5 py-3 text-center shadow-sm transition active:scale-[0.98] ${className}`}
+                    className="min-h-[76px] rounded-xl border px-2.5 py-3 text-center transition active:scale-[0.98]"
+                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
                 >
-                    <Icon size={19} className="mx-auto mb-2" />
-                    <span className="block text-[11px] font-bold leading-tight">{label}</span>
+                    <span
+                        className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-lg"
+                        style={{ background: soft, color: accent }}
+                    >
+                        <Icon size={17} aria-hidden="true" />
+                    </span>
+                    <span className="block text-[11px] font-semibold leading-tight">{label}</span>
                 </button>
             ))}
         </div>
@@ -145,16 +163,16 @@ const Dashboard: React.FC = () => {
 
     if (isDesktop && isLoadingResumes) {
         return (
-            <div className="cv-design-page cv-design-grid flex h-screen flex-col items-center justify-center">
-                <Loader2 className="h-12 w-12 animate-spin text-[var(--cv-action-primary)]" />
-                <p className="cv-design-body mt-4">{t('dashboard.loading')}</p>
+            <div className="cvl flex h-screen flex-col items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin" style={{ color: 'var(--cvl-purple)' }} />
+                <p className="cvl-mono mt-4 text-[12px]" style={{ color: 'var(--cvl-muted)' }}>{t('dashboard.loading')}</p>
             </div>
         );
     }
 
     return (
         <AppLayout>
-            <div className="cv-design-page cv-design-grid relative min-h-screen overflow-hidden">
+            <div className="cvl min-h-screen">
                 <ConfirmationModal
                     isOpen={isUpgradeModalOpen}
                     onCancel={() => setIsUpgradeModalOpen(false)}
@@ -166,15 +184,21 @@ const Dashboard: React.FC = () => {
                     variant="default"
                 />
 
-                <header className="cv-design-header sticky top-0 z-20 md:hidden">
+                <header
+                    className="sticky top-0 z-20 border-b backdrop-blur-md md:hidden"
+                    style={{ borderColor: 'var(--cvl-line)', background: 'color-mix(in srgb, var(--cvl-desk) 84%, transparent)' }}
+                >
                     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center h-16 sm:h-20">
                             <div className="flex min-w-0 items-center gap-3">
                                 <a href="/dashboard" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }} className="flex items-center gap-2">
                                     <Logo className="h-8 w-8" />
-                                    <span className="hidden font-heading text-xl font-bold text-[var(--cv-text-heading)] sm:inline">CareerVivid</span>
+                                    <span className="hidden text-lg font-semibold tracking-tight sm:inline">careervivid</span>
                                 </a>
-                                <span className="hidden max-w-[240px] truncate rounded-full border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] px-3 py-1 text-xs font-semibold text-[var(--cv-text-body)] md:inline-flex">
+                                <span
+                                    className="cvl-mono hidden max-w-[240px] truncate rounded-full border px-3 py-1 text-[11px] md:inline-flex"
+                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                                >
                                     {currentUser?.email || 'Workspace'}
                                 </span>
                             </div>
@@ -186,42 +210,55 @@ const Dashboard: React.FC = () => {
                                 )}
                                 <LanguageSelect />
                                 <ThemeToggle />
-                                <button onClick={() => navigate('/community')} className="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--cv-success-soft)] px-3 py-2 font-semibold text-[var(--cv-success-text)] transition-colors md:hidden">
+                                <button
+                                    onClick={() => navigate('/community')}
+                                    className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-semibold transition hover:opacity-80 md:hidden"
+                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-ink)' }}
+                                >
                                     <Users size={20} /> <span className="hidden md:inline">{t('nav.community', 'Community')}</span>
                                 </button>
                                 <div className="relative hidden md:block" ref={newMenuRef}>
-                                    <button onClick={() => setIsNewMenuOpen(!isNewMenuOpen)} className="cv-design-button-primary px-4 py-2.5 text-sm">
+                                    <button
+                                        onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
+                                        className="cvl-cta inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold transition"
+                                    >
                                         <PlusCircle size={18} /> <span>{t('dashboard.create_new')}</span> <ChevronDown size={18} />
                                     </button>
                                     {isNewMenuOpen && (
-                                        <div className="cv-design-card absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-lg shadow-lg">
+                                        <div className="cvl-win absolute right-0 z-20 mt-2 w-60">
+                                            <div className="cvl-bar">
+                                                <span className="cvl-dot cvl-dot-r" />
+                                                <span className="cvl-dot cvl-dot-y" />
+                                                <span className="cvl-dot cvl-dot-g" />
+                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>new.txt</span>
+                                            </div>
                                             <div className="py-1">
-                                                <button onClick={() => { navigate('/onboarding'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/onboarding'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <Sparkles size={16} /> Quick Start
                                                 </button>
-                                                <button onClick={() => { navigate('/newresume'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/newresume'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <FileText size={16} /> {t('dashboard.new_resume')}
                                                 </button>
-                                                <button onClick={() => { navigate('/portfolio'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/portfolio'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <Globe size={16} /> New Portfolio
                                                 </button>
-                                                <button onClick={async () => { const id = await createWhiteboard(); navigate(`/whiteboard/${id}`); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={async () => { const id = await createWhiteboard(); navigate(`/whiteboard/${id}`); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <PenTool size={16} /> New Whiteboard
                                                 </button>
-                                                {/* <button onClick={() => { navigate('/sop/new'); setIsNewMenuOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                {/* <button onClick={() => { navigate('/sop/new'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <ClipboardList size={16} /> New SOP Document
                                                 </button> */}
-                                                <button onClick={() => { navigate('/interview-studio'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/interview-studio'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <Mic size={16} /> {t('dashboard.interview_practice')}
                                                 </button>
-                                                <button onClick={() => { navigate('/job-market'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/job-market'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <Briefcase size={16} /> Find Jobs (Professional)
                                                 </button>
-                                                <button onClick={() => { navigate('/job-tracker'); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { navigate('/job-tracker'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <Briefcase size={16} /> {t('dashboard.track_new_job')}
                                                 </button>
-                                                <div className="my-1 border-t border-[var(--cv-border-subtle)]"></div>
-                                                <button onClick={() => { handleAddFolder(); setIsNewMenuOpen(false); }} className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <div className="my-1 border-t" style={{ borderColor: 'var(--cvl-line)' }}></div>
+                                                <button onClick={() => { handleAddFolder(); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
                                                     <FolderPlus size={16} /> {t('dashboard.new_folder')}
                                                 </button>
                                             </div>
@@ -229,34 +266,44 @@ const Dashboard: React.FC = () => {
                                     )}
                                 </div>
                                 <div className="relative" ref={userMenuRef}>
-                                    <button onClick={handleStep1Click} className="relative flex h-10 w-10 items-center justify-center rounded-full bg-[var(--cv-surface-warm-muted)] text-[var(--cv-text-body)]">
+                                    <button
+                                        onClick={handleStep1Click}
+                                        className="relative flex h-10 w-10 items-center justify-center rounded-full border"
+                                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                                    >
                                         {currentUser?.photoURL ? <img src={currentUser.photoURL} alt="User" className="w-full h-full rounded-full object-cover" /> : <UserIcon size={20} />}
                                         {!isPremium && upgradeStep === 1 && (
                                             <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce-vertical pointer-events-none z-50">
-                                                <svg className="w-8 h-8 text-orange-500 transform -rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                                <span className="whitespace-nowrap rounded bg-[var(--cv-surface-warm-card-strong)] px-1 text-sm font-bold text-[var(--cv-warning-text)] shadow-sm">Click on Profile</span>
+                                                <svg className="w-8 h-8 transform -rotate-90" style={{ color: 'var(--cvl-amber)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                                <span className="whitespace-nowrap rounded px-1 text-[13px] font-bold" style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}>Click on Profile</span>
                                             </div>
                                         )}
                                     </button>
                                     {isUserMenuOpen && (
-                                        <div className="cv-design-card absolute right-0 z-20 mt-2 w-48 overflow-hidden rounded-lg shadow-lg">
+                                        <div className="cvl-win absolute right-0 z-20 mt-2 w-52">
+                                            <div className="cvl-bar">
+                                                <span className="cvl-dot cvl-dot-r" />
+                                                <span className="cvl-dot cvl-dot-y" />
+                                                <span className="cvl-dot cvl-dot-g" />
+                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>account.txt</span>
+                                            </div>
                                             <div className="py-1">
-                                                <button onClick={() => { handleStep2Click(); navigate('/profile'); }} className="relative block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">
+                                                <button onClick={() => { handleStep2Click(); navigate('/profile'); }} className={`relative ${MENU_ITEM}`}>
                                                     {t('dashboard.profile')}
                                                     {!isPremium && upgradeStep === 2 && (
                                                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 animate-bounce-horizontal pointer-events-none">
-                                                            <svg className="w-6 h-6 text-orange-500 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                                            <span className="text-orange-500 font-bold text-xs whitespace-nowrap">Click Here</span>
+                                                            <svg className="w-6 h-6 transform rotate-180" style={{ color: 'var(--cvl-amber)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                                            <span className="text-[11px] font-bold whitespace-nowrap" style={{ color: 'var(--cvl-amber)' }}>Click Here</span>
                                                         </div>
                                                     )}
                                                 </button>
-                                                <button onClick={() => navigate('/developer')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Developer Settings (API/MCP)</button>
-                                                {isPremium && <button onClick={() => navigate('/referrals')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Referrals</button>}
-                                                {(userProfile?.roles?.includes('academic_partner') || userProfile?.role === 'academic_partner') && <button onClick={() => navigate('/academic-partner')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">{t('dashboard.academic_partner')}</button>}
-                                                {(userProfile?.roles?.includes('business_partner') || userProfile?.role === 'business_partner') && <button onClick={() => navigate('/business-partner/dashboard')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Business Partner</button>}
-                                                {(userProfile?.roles?.includes('agency_partner') || userProfile?.role === 'agency_partner') && <button onClick={() => navigate('/agency-partner/dashboard')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Agency Partner</button>}
-                                                {isAdmin && <button onClick={() => navigate('/admin')} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">{t('dashboard.admin')}</button>}
-                                                <button onClick={logOut} className="block w-full px-4 py-2 text-left text-sm text-[var(--cv-text-body)] hover:bg-[var(--cv-danger-soft)] hover:text-[var(--cv-danger-text)]">{t('dashboard.sign_out')}</button>
+                                                <button onClick={() => navigate('/developer')} className={MENU_ITEM}>Developer Settings (API/MCP)</button>
+                                                {isPremium && <button onClick={() => navigate('/referrals')} className={MENU_ITEM}>Referrals</button>}
+                                                {(userProfile?.roles?.includes('academic_partner') || userProfile?.role === 'academic_partner') && <button onClick={() => navigate('/academic-partner')} className={MENU_ITEM}>{t('dashboard.academic_partner')}</button>}
+                                                {(userProfile?.roles?.includes('business_partner') || userProfile?.role === 'business_partner') && <button onClick={() => navigate('/business-partner/dashboard')} className={MENU_ITEM}>Business Partner</button>}
+                                                {(userProfile?.roles?.includes('agency_partner') || userProfile?.role === 'agency_partner') && <button onClick={() => navigate('/agency-partner/dashboard')} className={MENU_ITEM}>Agency Partner</button>}
+                                                {isAdmin && <button onClick={() => navigate('/admin')} className={MENU_ITEM}>{t('dashboard.admin')}</button>}
+                                                <button onClick={logOut} className={MENU_ITEM} style={{ color: 'var(--cvl-muted)' }}>{t('dashboard.sign_out')}</button>
                                             </div>
                                         </div>
                                     )}
@@ -272,40 +319,45 @@ const Dashboard: React.FC = () => {
                 </header>
 
                 <div className="w-full px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-                    <div className="mb-6 md:hidden">
-                        <h1 className="cv-design-title text-[22px] transition-all">{dashboardTitle}</h1>
-                        <p className="cv-design-body mt-0.5 text-[13px]">{t('dashboard.subtitle', "Here's your job search at a glance.")}</p>
+                    {/* One heading for the page. It used to be printed twice — once
+                        for mobile, once for desktop — which is two <h1>s in the DOM. */}
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-semibold tracking-tight">{dashboardTitle}</h1>
+                        <p className="mt-1 text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                            {t('dashboard.subtitle', "Here's your job search at a glance.")}
+                        </p>
                     </div>
-
-                    <div className="mb-6 hidden md:block">
-                        <h1 className="cv-design-title text-[22px] transition-all">{dashboardTitle}</h1>
-                        <p className="cv-design-body mt-0.5 text-[13px]">{t('dashboard.subtitle', "Here's your job search at a glance.")}</p>
-                    </div>
-
-                    <MobileWorkflowLauncher />
 
                     <DashboardOverview
                         resumes={resumes}
                         portfolios={portfolios}
                         practiceHistory={practiceHistory}
                         jobApplications={jobApplications}
+                        whiteboards={whiteboards}
                         communityPostCount={myCommunityPosts.length}
                         onInterviewSelect={setSelectedJobForReport}
                     />
 
-                    <section className="mt-8 border-t border-[var(--cv-border-subtle)] pt-5" aria-labelledby="workspace-details-heading">
+                    {/* The shortcut grid sits under the three primary windows: it is a
+                        way to jump around, not the reason you opened the page. */}
+                    <div className="mt-8">
+                        <MobileWorkflowLauncher />
+                    </div>
+
+                    <section className="mt-10 border-t pt-6" style={{ borderColor: 'var(--cvl-line)' }} aria-labelledby="workspace-details-heading">
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>
                                 {/* "Workspace details" / "collections" name internal concepts.
                                     The user came here for their resumes and files. */}
-                                <h2 id="workspace-details-heading" className="font-heading text-base font-extrabold text-[var(--cv-text-heading-product)] dark:text-white">All your files</h2>
-                                <p className="mt-1 text-xs text-[var(--cv-text-muted)]">Resumes, portfolios, and whiteboards.</p>
+                                <h2 id="workspace-details-heading" className="text-[17px] font-semibold tracking-tight">All your files</h2>
+                                <p className="mt-1 text-[12.5px]" style={{ color: 'var(--cvl-muted)' }}>Resumes, portfolios, and whiteboards.</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setIsWorkspaceDetailsOpen((open) => !open)}
                                 aria-expanded={isWorkspaceDetailsOpen}
-                                className="inline-flex items-center gap-2 rounded-lg border border-[var(--cv-border-product)] bg-[var(--cv-surface)] px-3 py-2 text-xs font-bold text-[var(--cv-text-heading-product)] transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)] dark:bg-slate-900 dark:text-white"
+                                className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px] font-semibold transition hover:opacity-80"
+                                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-ink)' }}
                             >
                                 {isWorkspaceDetailsOpen ? 'Hide' : 'Show'}
                                 <ChevronDown size={15} className={`transition-transform ${isWorkspaceDetailsOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -314,7 +366,12 @@ const Dashboard: React.FC = () => {
 
                         {isWorkspaceDetailsOpen && <>
                             <div className="hidden justify-end mt-6 mb-2 pr-1 md:flex">
-                                <button onClick={() => setViewMode(viewMode === 'row' ? 'grid' : 'row')} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading-product)] dark:hover:bg-slate-800" title={viewMode === 'row' ? 'Switch to Grid View' : 'Switch to Row View'}>
+                                <button
+                                    onClick={() => setViewMode(viewMode === 'row' ? 'grid' : 'row')}
+                                    className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium transition hover:opacity-80"
+                                    style={{ color: 'var(--cvl-muted)' }}
+                                    title={viewMode === 'row' ? 'Switch to Grid View' : 'Switch to Row View'}
+                                >
                                     {viewMode === 'row' ? (<><LayoutGrid size={18} /> <span className="hidden sm:inline">Grid View</span></>) : (<><List size={18} /> <span className="hidden sm:inline">Row View</span></>)}
                                 </button>
                             </div>
@@ -364,7 +421,24 @@ const Dashboard: React.FC = () => {
                 {/* Modals & Overlays */}
                 <ConfirmationModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onCancel={closeConfirmModal} confirmText={confirmModal.confirmText} />
                 {selectedJobForReport && (
-                    <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center text-white">Loading Report...</div>}>
+                    <Suspense fallback={(
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+                            style={{ background: 'color-mix(in srgb, var(--cvl-desk) 82%, transparent)' }}
+                        >
+                            <div className="cvl-win">
+                                <div className="cvl-bar">
+                                    <span className="cvl-dot cvl-dot-r" />
+                                    <span className="cvl-dot cvl-dot-y" />
+                                    <span className="cvl-dot cvl-dot-g" />
+                                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>report.log</span>
+                                </div>
+                                <div className="p-5">
+                                    <span className="cvl-mono text-[12px]" style={{ color: 'var(--cvl-muted)' }}>loading report…</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}>
                         {/* Reopening a submitted design is the modal's own
                             default now; this page navigates away when it fires,
                             which unmounts the modal with it. */}

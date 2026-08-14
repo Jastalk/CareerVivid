@@ -23,6 +23,7 @@ import {
 } from './DashboardMobileCards';
 import StatusOverview from '../JobTracker/StatusOverview';
 import KanbanBoard from '../JobTracker/KanbanBoard';
+import '../Landing/live/liveLanding.css';
 
 export const WorkspaceSummaryCards: React.FC = () => {
     const { resumes } = useResumes();
@@ -208,9 +209,9 @@ export const WhiteboardsSection: React.FC<SectionProps & { setShareModalWhiteboa
                             const id = await createWhiteboard();
                             navigate(`/whiteboard/${id}`);
                         }}
-                        className="cv-design-button-primary rounded-lg px-6 py-2 text-sm"
+                        className="cvl-cta rounded-xl px-6 py-2.5 text-[14px] font-semibold transition"
                     >
-                        + Create a New Whiteboard
+                        Create a whiteboard
                     </button>
                 </div>
             )}

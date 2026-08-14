@@ -32,7 +32,7 @@ const QuestTape: React.FC = () => {
                         <span className="cvl-dot cvl-dot-r" />
                         <span className="cvl-dot cvl-dot-y" />
                         <span className="cvl-dot cvl-dot-g" />
-                        <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                        <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                             {demo.id}-system-design.quest
                         </span>
                         <span

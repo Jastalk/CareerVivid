@@ -456,7 +456,7 @@ const CareerProfileGraphCard: React.FC<CareerProfileGraphCardProps> = ({
                                 <div className="flex min-w-0 items-center gap-4">
                                     <div
                                         className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full p-1"
-                                        style={{ background: `conic-gradient(#625bd5 ${graph.completionScore * 3.6}deg, #e7e5e4 0deg)` }}
+                                        style={{ background: `conic-gradient(#4a4392 ${graph.completionScore * 3.6}deg, #e7e5e4 0deg)` }}
                                         aria-label={`CareerVivid setup ${graph.completionScore}% ready`}
                                     >
                                         <div className="flex h-full w-full flex-col items-center justify-center rounded-full bg-white text-center dark:bg-slate-950">
