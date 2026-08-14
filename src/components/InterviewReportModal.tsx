@@ -17,13 +17,29 @@ interface InterviewReportModalProps {
     jobHistoryEntry: PracticeHistoryEntry;
     onClose: () => void;
     isGuestMode?: boolean;
-    /** If provided, shows an "Improve my solution" button (coding quests only). */
-    onImprove?: () => void;
+    /**
+     * If provided, shows a button that reopens the workspace for a report.
+     *
+     * It receives the analysis currently selected in the session list, not the
+     * newest one — otherwise picking an older session and clicking improve
+     * silently reopens different work than the report on screen.
+     */
+    onImprove?: (analysis: InterviewAnalysis) => void;
+    /** Defaults to "Improve my solution"; system design says "design". */
+    improveLabel?: string;
+    /**
+     * Whether the selected session can be reopened at all.
+     *
+     * A job's history mixes stages — a voice round has no workspace to return
+     * to, a whiteboard round does. Without this the button shows on every
+     * session in the list and does nothing on most of them.
+     */
+    canImprove?: (analysis: InterviewAnalysis) => boolean;
     onNextProblem?: () => void;
     remainingProblems?: number;
 }
 
-const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove, onNextProblem, remainingProblems }) => {
+const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove, improveLabel, canImprove, onNextProblem, remainingProblems }) => {
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('feedback');
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -132,7 +148,10 @@ const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryE
                                 onExportGoogleDocs={handleGoogleDocsExport}
                                 onDownloadDocx={handleDownloadDocx}
                                 onRateReport={() => setIsFeedbackModalOpen(true)}
-                                onImprove={onImprove}
+                                onImprove={onImprove && currentAnalysis && (!canImprove || canImprove(currentAnalysis))
+                                    ? () => onImprove(currentAnalysis)
+                                    : undefined}
+                                improveLabel={improveLabel}
                                 onNextProblem={onNextProblem}
                                 remainingProblems={remainingProblems}
                             />

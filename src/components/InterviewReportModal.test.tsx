@@ -80,6 +80,72 @@ describe('InterviewReportModal', () => {
     expect(screen.getAllByText('Fallback answer')[0]).toBeInTheDocument();
   });
 
+  /*
+   * The reported bug, in the shape it was reported: submit a design, score it,
+   * click improve, and the workspace came back on an OLDER submission — so the
+   * next score belonged to work the user had already moved past.
+   *
+   * The modal's half of that is which analysis it hands back. It used to hand
+   * back nothing at all, leaving the caller to guess, and the caller guessed
+   * the newest.
+   */
+  it('improves the session on screen, not the newest one', () => {
+    const onImprove = vi.fn();
+    render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={vi.fn()} onImprove={onImprove} />);
+
+    fireEvent.change(screen.getByLabelText('Session'), { target: { value: 'analysis-2' } });
+    fireEvent.click(screen.getAllByRole('button', { name: /improve my solution/i })[0]);
+
+    expect(onImprove).toHaveBeenCalledTimes(1);
+    expect(onImprove.mock.calls[0][0].id).toBe('analysis-2');
+  });
+
+  it('improves the newest session when nothing else is selected', () => {
+    const onImprove = vi.fn();
+    render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={vi.fn()} onImprove={onImprove} />);
+
+    fireEvent.click(screen.getAllByRole('button', { name: /improve my solution/i })[0]);
+
+    expect(onImprove.mock.calls[0][0].id).toBe('analysis-1');
+  });
+
+  it('names the button whatever the workspace is', () => {
+    render(
+      <InterviewReportModal
+        jobHistoryEntry={jobHistoryEntry}
+        onClose={vi.fn()}
+        onImprove={vi.fn()}
+        improveLabel="Open this design"
+      />,
+    );
+
+    expect(screen.getAllByRole('button', { name: /open this design/i })[0]).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /improve my solution/i })).not.toBeInTheDocument();
+  });
+
+  /*
+   * A quest's history mixes stages and only whiteboard rounds carry a diagram,
+   * so the button has to disappear on the sessions that have nothing to open
+   * rather than sit there doing nothing.
+   */
+  it('hides the button on a session with nothing to reopen', () => {
+    const onImprove = vi.fn();
+    render(
+      <InterviewReportModal
+        jobHistoryEntry={jobHistoryEntry}
+        onClose={vi.fn()}
+        onImprove={onImprove}
+        improveLabel="Open this design"
+        canImprove={(analysis) => analysis.id === 'analysis-1'}
+      />,
+    );
+
+    expect(screen.getAllByRole('button', { name: /open this design/i })[0]).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Session'), { target: { value: 'analysis-2' } });
+    expect(screen.queryByRole('button', { name: /open this design/i })).not.toBeInTheDocument();
+  });
+
   it('opens feedback from the inline rate action and closes on Escape', () => {
     const onClose = vi.fn();
     render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={onClose} />);

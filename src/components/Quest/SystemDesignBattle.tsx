@@ -259,6 +259,32 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
         onClose();
     }, [onClose, persistLatestDraft]);
 
+    /**
+     * Reopen the canvas on the design that produced the report being improved.
+     *
+     * For a report the user just submitted this restores what is already on the
+     * canvas, so nothing visibly happens — which is the point. It matters when
+     * the report is an older session: improving it has to open THAT diagram
+     * rather than whatever the canvas happens to be holding.
+     */
+    const handleImprove = useCallback((analysis: InterviewAnalysis) => {
+        const artifact = analysis.questArtifact;
+        const api = excalidrawAPIRef.current;
+        if (api && artifact?.type === 'system_design' && artifact.challengeId === brief.challengeId) {
+            const elements = getArtifactElements(artifact);
+            const files = getArtifactFiles(artifact);
+            if (files && Object.keys(files).length) api.addFiles(Object.values(files));
+            api.updateScene({
+                elements,
+                appState: { activeTool: { type: 'selection' }, selectedElementIds: {} },
+            });
+            if (elements.length) {
+                api.scrollToContent(elements, { fitToViewport: true, viewportZoomFactor: 0.78 });
+            }
+        }
+        setReportEntry(null);
+    }, [brief.challengeId]);
+
     // ── Diagram style picker ─────────────────────────────────────────────────
     const [selectedStyle, setSelectedStyle] = useState<DiagramStyle>('auto');
     const [stylePickerOpen, setStylePickerOpen] = useState(false);
@@ -552,32 +578,44 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
         );
     }
 
-    // ── Report view ──────────────────────────────────────────────────────────
-    if (reportEntry) {
-        const historyEntry = {
-            id: reportEntry.id,
-            job: {
-                id: reportEntry.id,
-                title: practiceContext === 'course' ? `${company} course practice — ${stageTitle}` : `${company} quest — ${stageTitle}`,
-                company,
-                location: '',
-                description: brief.prompt,
-                url: '',
-            },
-            questions: [],
-            timestamp: reportEntry.timestamp,
-            interviewHistory: [reportEntry],
-        };
-        return (
-            <Suspense fallback={<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" size={28} /></div>}>
+    // ── Report ───────────────────────────────────────────────────────────────
+    /*
+     * Rendered OVER the canvas, not instead of it.
+     *
+     * This used to `return` the report on its own, which unmounted Excalidraw —
+     * and Excalidraw reads `initialData` only when it mounts. So "Improve my
+     * solution" put the canvas back seeded from the props this battle opened
+     * with, which hold the PREVIOUS submission's artifact. You submitted a
+     * design, scored it, clicked improve, and got an older diagram back; submit
+     * that and the second report scores the older work. Keeping the canvas
+     * mounted keeps the scene you actually drew, with its undo history and
+     * viewport intact.
+     */
+    const reportOverlay = reportEntry ? (
+        <Suspense fallback={<div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" size={28} /></div>}>
+            <div className="fixed inset-0 z-[70]">
                 <InterviewReportModal
-                    jobHistoryEntry={historyEntry}
+                    jobHistoryEntry={{
+                        id: reportEntry.id,
+                        job: {
+                            id: reportEntry.id,
+                            title: practiceContext === 'course' ? `${company} course practice — ${stageTitle}` : `${company} quest — ${stageTitle}`,
+                            company,
+                            location: '',
+                            description: brief.prompt,
+                            url: '',
+                        },
+                        questions: [],
+                        timestamp: reportEntry.timestamp,
+                        interviewHistory: [reportEntry],
+                    }}
                     onClose={handleClose}
-                    onImprove={() => setReportEntry(null)}
+                    onImprove={handleImprove}
+                    improveLabel="Improve this design"
                 />
-            </Suspense>
-        );
-    }
+            </div>
+        </Suspense>
+    ) : null;
 
     // AppLayout intentionally uses CSS `zoom` to provide the compact product
     // density. Excalidraw calculates pointer coordinates against the physical
@@ -585,7 +623,14 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
     // selection, and drag gestures. A body portal gives the full-screen editor
     // an unscaled 1:1 coordinate space while preserving the surrounding shell.
     return createPortal((
-        <div className="fixed inset-0 z-50 flex flex-col bg-white p-0 sm:bg-[#171411]/70 sm:p-3 sm:backdrop-blur-sm dark:bg-gray-900 sm:dark:bg-[#171411]/70">
+        <>
+        {/* `inert` while the report is open: Excalidraw keeps its own key and
+            pointer handlers on a mounted canvas, and a stray Delete behind an
+            open report would edit the design being reviewed. */}
+        <div
+            className="fixed inset-0 z-50 flex flex-col bg-white p-0 sm:bg-[#171411]/70 sm:p-3 sm:backdrop-blur-sm dark:bg-gray-900 sm:dark:bg-[#171411]/70"
+            {...(reportEntry ? { inert: '' } : {})}
+        >
             <div className="mx-auto flex h-[100dvh] w-full max-w-[1800px] flex-col overflow-hidden border-gray-200 bg-white sm:h-full sm:rounded-3xl sm:border sm:shadow-[0_24px_70px_rgba(17,24,39,0.24)] dark:border-gray-700 dark:bg-gray-900">
 
                 {/* Header */}
@@ -1061,6 +1106,8 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                 </div>
             </div>
         </div>
+            {reportOverlay}
+        </>
     ), document.body);
 };
 

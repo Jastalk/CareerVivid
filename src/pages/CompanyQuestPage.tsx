@@ -316,6 +316,14 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     const handleStartStage = async (
         stage: QuestStage,
         challengeOverride?: CodingChallenge | SystemDesignPattern,
+        /**
+         * Reopen this exact saved design rather than the stage's latest.
+         *
+         * Passed when the user opens an older report and asks to work on it.
+         * Without it every route into the whiteboard lands on the most recent
+         * submission, so past designs were visible as a score and nothing else.
+         */
+        artifactOverride?: QuestSystemDesignArtifact,
     ) => {
         if (!guide) return;
         const isGuestLocalPractice = !currentUser && canGuestUseLocalQuestStage(slug, stage.id);
@@ -399,11 +407,17 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     stageEntry,
                     quest?.stageResults?.[stage.id]?.lastAnalysisId,
                 )?.questArtifact;
-                const matchingArtifact = artifact?.type === 'system_design' && artifact.challengeId === brief.challengeId
-                    ? artifact
-                    : undefined;
-                const cloudDraft = stageEntry?.activeSystemDesignDrafts?.[brief.challengeId];
-                const localDraft = readQuestSystemDesignDraftLocal(workspaceOwner, slug, brief.challengeId);
+                const reopened = artifactOverride?.challengeId === brief.challengeId ? artifactOverride : undefined;
+                const matchingArtifact = reopened
+                    ?? (artifact?.type === 'system_design' && artifact.challengeId === brief.challengeId ? artifact : undefined);
+                /*
+                 * SystemDesignBattle seeds the canvas with `initialDraft ?? initialArtifact`,
+                 * so handing it a newer autosave alongside a specific reopened
+                 * design would quietly show the autosave instead of the design
+                 * the user asked for.
+                 */
+                const cloudDraft = reopened ? undefined : stageEntry?.activeSystemDesignDrafts?.[brief.challengeId];
+                const localDraft = reopened ? undefined : readQuestSystemDesignDraftLocal(workspaceOwner, slug, brief.challengeId);
                 const draft = newestDraft(cloudDraft, localDraft);
                 const jobId = currentUser
                     ? await addJob({
@@ -543,6 +557,37 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         stages,
         systemDesignPool,
     ]);
+
+    /**
+     * Whether a saved report still has a design behind it that can be opened.
+     *
+     * A quest's history mixes stages, and only whiteboard rounds carry a
+     * diagram. The challenge also has to still exist in this guide's pool — a
+     * report for a prompt that has since been retired has nothing to open.
+     */
+    const canReopenDesign = (analysis: InterviewAnalysis): boolean => {
+        const artifact = analysis.questArtifact;
+        return artifact?.type === 'system_design'
+            && systemDesignPool.some((candidate) => candidate.id === artifact.challengeId);
+    };
+
+    /**
+     * Open the whiteboard on the design a saved report was scored from.
+     *
+     * Every past submission already stores its own diagram, but nothing read
+     * them back: the only route into the whiteboard was the newest one, so an
+     * older report was a score with no way to see, compare or continue the work
+     * that earned it.
+     */
+    const reopenDesignFromReport = (analysis: InterviewAnalysis) => {
+        const artifact = analysis.questArtifact;
+        if (artifact?.type !== 'system_design') return;
+        const stage = stages.find((candidate) => candidate.id === 'system_design');
+        const challenge = systemDesignPool.find((candidate) => candidate.id === artifact.challengeId);
+        if (!stage || !challenge) return;
+        setSelectedReportEntry(null);
+        void handleStartStage(stage, challenge, artifact);
+    };
 
     const handleStageAnalysis = (stage: QuestStage, analysis: InterviewAnalysis) => {
         void recordStageAttempt(stage, stages, analysis)
@@ -1163,6 +1208,9 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     <InterviewReportModal
                         jobHistoryEntry={selectedReportEntry}
                         onClose={() => setSelectedReportEntry(null)}
+                        onImprove={reopenDesignFromReport}
+                        canImprove={canReopenDesign}
+                        improveLabel="Open this design"
                     />
                 </Suspense>
             )}
