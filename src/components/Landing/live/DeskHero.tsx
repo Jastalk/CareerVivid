@@ -124,9 +124,10 @@ const DeskHero: React.FC = () => {
                     careervivid
                 </h1>
 
-                <p className="mx-auto mt-4 max-w-md text-[16px] leading-relaxed sm:text-[18px]" style={{ color: 'var(--cvl-muted)' }}>
-                    Practise the interview before it happens — the whiteboard, the voice round,
-                    and the resume that gets you in the room.
+                <p className="mx-auto mt-4 max-w-lg text-[16px] leading-relaxed sm:text-[18px]" style={{ color: 'var(--cvl-muted)' }}>
+                    A coach that sits with you — writing the resume so you get your evening back,
+                    then working through the hard problem until you can say it out loud. Understand
+                    it, explain it well, and the offer follows.
                 </p>
 
                 {/* A prompt box that types itself, then hands you the button. */}

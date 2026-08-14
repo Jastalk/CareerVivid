@@ -163,12 +163,13 @@ const LiveLandingPage: React.FC = () => (
             <FeatureRow
                 id="resume"
                 eyebrow="resume editor"
-                title="Your resume, rewritten against the job you want."
-                copy="Paste the posting. Weak bullets get struck out and replaced with the version that carries evidence — and the match score moves while you watch."
+                title="Your resume, finished — not just written."
+                copy="Any model can draft a bullet. The hour goes on formatting, ATS rules, and which file the recruiter actually wants. Paste the posting and the agent rewrites, scores, and exports it — then translates the whole thing when the role is in another country."
                 points={[
-                    'Rewrites keep your facts and fix your phrasing',
-                    'Scored against the specific posting, not a generic template',
-                    'ATS-safe export, one tailored version per application',
+                    'Your facts and your evidence — better phrasing, nothing invented',
+                    'Scored against this posting, not a generic template',
+                    'Export as PDF, DOCX, or straight to Google Docs',
+                    '103 languages, and your original stays exactly where it was',
                 ]}
                 href="/newresume"
                 cta="Open the resume editor"
@@ -180,12 +181,12 @@ const LiveLandingPage: React.FC = () => (
             <FeatureRow
                 id="studio"
                 eyebrow="interview studio"
-                title="Talk it through. It talks back."
-                copy="A live voice interviewer asks the follow-up you were hoping to avoid, then scores the answer on clarity, depth, and signal."
+                title="Hear the whole loop before you live it."
+                copy="The agent reads your resume, runs the round the way that company runs it, and asks the follow-up out loud. You finish knowing what the day will feel like — and exactly what to work on before it arrives."
                 points={[
-                    'Realtime voice, not a chat box pretending to be one',
-                    `Questions pulled from ${COMPANY_COUNT} verified company guides`,
-                    'A scored report at the end of every round',
+                    'Real voice, not a chat box pretending to be one',
+                    `Questions drawn from ${COMPANY_COUNT} verified company guides`,
+                    'A report at the end that names what to practise, not just a score',
                 ]}
                 href="/interview-studio"
                 cta="Open the studio"

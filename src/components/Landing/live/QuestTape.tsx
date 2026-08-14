@@ -18,11 +18,13 @@ const QuestTape: React.FC = () => {
                     system design quests
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
-                    draw it. get told what&apos;s wrong with it.
+                    A design coach, sitting next to you.
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
-                    Pick a company. Get their prompt on a whiteboard. Every gap and diagnosis
-                    below is what the coach sent back for the design you can see beside it.
+                    Pick a company and their prompt lands on your whiteboard. Draw it however you
+                    think — the agent follows along, asks what the interviewer would ask, and names
+                    the gap while it is still cheap to find. Every diagnosis below is real coaching
+                    output, for the design beside it.
                 </p>
             </div>
 
