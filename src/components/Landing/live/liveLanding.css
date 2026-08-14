@@ -17,9 +17,12 @@
     --cvl-faint: #9b9080;
     --cvl-line: #e3dbcd;
     --cvl-chrome: #ece6da;
-    --cvl-purple: #625bd5;
-    --cvl-purple-ink: #4b44b8;
-    --cvl-purple-soft: #f0efff;
+    --cvl-purple: #4a4392;
+    --cvl-purple-ink: #37316f;
+    --cvl-purple-soft: #edecf9;
+    --cvl-cta-bg: #3c3768;
+    --cvl-cta-hover: #2e2a52;
+    --cvl-cta-ink: #ffffff;
     --cvl-amber: #b4791b;
     --cvl-amber-soft: #fdf3df;
     --cvl-green: #15803d;
@@ -44,9 +47,12 @@ html.dark .cvl {
     --cvl-faint: #8b8172;
     --cvl-line: #332d25;
     --cvl-chrome: #262119;
-    --cvl-purple: #9a95ec;
-    --cvl-purple-ink: #b6b2f3;
-    --cvl-purple-soft: #23213a;
+    --cvl-purple: #a9a4f0;
+    --cvl-purple-ink: #c2bff6;
+    --cvl-purple-soft: #242040;
+    --cvl-cta-bg: #5b54c4;
+    --cvl-cta-hover: #6c65d2;
+    --cvl-cta-ink: #ffffff;
     --cvl-amber: #e0ac52;
     --cvl-amber-soft: #2c2415;
     --cvl-green: #6ee7a0;
@@ -228,17 +234,21 @@ html.dark .cvl {
 }
 
 /*
- * The one button on the site. Pages that predate the token set reach for this
- * class instead of repeating the purple, so a change here reaches all of them.
+ * The one button on the site.
+ *
+ * The fill is its own token, separate from the accent. They cannot be the same
+ * value: the accent has to read as text against the page, which in dark mode
+ * makes it light — and a light fill under white text lands around 2:1. Keeping
+ * them apart lets each be correct for its own job.
  */
 .cvl .cvl-cta,
 .cvl-cta {
-    background: var(--cvl-purple, #625bd5);
-    color: #fff;
-    box-shadow: 0 14px 34px -18px rgba(98, 91, 213, 0.7);
+    background: var(--cvl-cta-bg, #3c3768);
+    color: var(--cvl-cta-ink, #ffffff);
+    box-shadow: 0 10px 26px -16px rgba(30, 26, 60, 0.55);
 }
 
 .cvl .cvl-cta:hover,
 .cvl-cta:hover {
-    background: var(--cvl-purple-ink, #4b44b8);
+    background: var(--cvl-cta-hover, #2e2a52);
 }

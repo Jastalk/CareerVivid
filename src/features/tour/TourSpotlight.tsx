@@ -125,7 +125,7 @@ export const TourSpotlight: React.FC<Props> = ({ step, stepIndex, stepCount, onS
                             {Array.from({ length: stepCount }, (_, i) => (
                                 <motion.span
                                     key={i}
-                                    className={`block h-1.5 rounded-full ${i <= stepIndex ? 'bg-[#625bd5]' : 'bg-[#dcd7f5] dark:bg-[#3d3765]'}`}
+                                    className={`block h-1.5 rounded-full ${i <= stepIndex ? 'bg-[#4a4392]' : 'bg-[#dcd7f5] dark:bg-[#3d3765]'}`}
                                     animate={{ width: i === stepIndex ? 16 : 6 }}
                                     transition={spring}
                                 />
@@ -155,7 +155,7 @@ export const TourSpotlight: React.FC<Props> = ({ step, stepIndex, stepCount, onS
                         {/* The hint has to name the action that actually advances.
                             The last step ends on a real edit, and telling someone
                             to click there would be a dead end. */}
-                        <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#625bd5] dark:text-[#b8b4ff]">
+                        <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#4a4392] dark:text-[#b8b4ff]">
                             <motion.span
                                 animate={reduceMotion ? {} : isEditStep ? { y: [0, -2, 0] } : { x: [0, 3, 0], y: [0, -3, 0] }}
                                 transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}

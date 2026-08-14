@@ -25,7 +25,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
                             className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive
-                                    ? 'text-[#625bd5]'
+                                    ? 'text-[#4a4392]'
                                     : 'text-gray-500 hover:text-gray-900'
                                 }`}
                         >

@@ -10,7 +10,7 @@ import { getInteractiveCourses, getCourseExerciseCount } from '../../lib/interac
 const DIFFICULTY_TONE: Record<string, string> = {
     Beginner: 'bg-[#eef7ee] text-[#137245] border-[#cfe8d5]',
     Intermediate: 'bg-[#fdf3e3] text-[#a97935] border-[#eeddc0]',
-    Advanced: 'bg-[#f3f2ff] text-[#625bd5] border-[#dfe2ff]',
+    Advanced: 'bg-[#f3f2ff] text-[#4a4392] border-[#dfe2ff]',
 };
 
 const CourseShowcaseSection: React.FC = () => {

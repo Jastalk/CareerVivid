@@ -290,7 +290,7 @@ export const ReportActions: React.FC<{
             {onImprove && (
                 <button
                     onClick={onImprove}
-                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-[#625bd5] bg-[#f3f2ff] px-4 py-2 text-sm font-semibold text-[#625bd5] shadow-sm transition-colors hover:bg-[#e8e6ff] dark:border-[#7069dc] dark:bg-[#312d6b]/50 dark:text-[#c8c5ff] dark:hover:bg-[#312d6b]"
+                    className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-[#4a4392] bg-[#f3f2ff] px-4 py-2 text-sm font-semibold text-[#4a4392] shadow-sm transition-colors hover:bg-[#e8e6ff] dark:border-[#5b5599] dark:bg-[#312d6b]/50 dark:text-[#c8c5ff] dark:hover:bg-[#312d6b]"
                 >
                     <Code2 size={16} /> {improveLabel ?? 'Improve my solution'}
                 </button>

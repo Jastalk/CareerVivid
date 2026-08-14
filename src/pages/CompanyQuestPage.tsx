@@ -814,7 +814,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     <button
                         type="button"
                         onClick={() => navigate('/interview-studio')}
-                        className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#dfe2ff] bg-[#eef0ff] px-4 py-2 text-sm font-semibold text-[#625bd5] hover:bg-[#e6e8ff] hover:text-[#514ac5] dark:border-[#625bd5]/40 dark:bg-[#252244] dark:text-[#c9ccff] dark:hover:bg-[#312d6b]"
+                        className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[#dfe2ff] bg-[#eef0ff] px-4 py-2 text-sm font-semibold text-[#4a4392] hover:bg-[#e6e8ff] hover:text-[#37316f] dark:border-[#4a4392]/40 dark:bg-[#252244] dark:text-[#c9ccff] dark:hover:bg-[#312d6b]"
                     >
                         <ArrowLeft size={16} /> Back to Interview Studio
                     </button>

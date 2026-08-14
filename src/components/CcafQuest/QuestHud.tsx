@@ -33,7 +33,7 @@ export const QuestHud: React.FC<QuestHudProps> = ({ xp, level, clearedCount, dom
                 <p className="text-sm font-extrabold leading-tight">{domain ? localize(domain.name) : '—'}</p>
 
                 <div className="mt-2 flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#625bd5] to-[#7c74e0] text-xs font-extrabold">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-[#4a4392] to-[#7c74e0] text-xs font-extrabold">
                         {level}
                     </span>
                     <div className="w-28">

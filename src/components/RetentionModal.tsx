@@ -22,7 +22,7 @@ const RetentionModal: React.FC<RetentionModalProps> = ({ isOpen, step, onAccept,
             accept: 'Apply 10% discount',
             decline: 'No thanks, continue',
             icon: Percent,
-            tone: 'text-[#625bd5] bg-[#eef0ff]',
+            tone: 'text-[#4a4392] bg-[#eef0ff]',
         }
         : {
             eyebrow: 'Final retention offer',
@@ -64,7 +64,7 @@ const RetentionModal: React.FC<RetentionModalProps> = ({ isOpen, step, onAccept,
                     <div className="rounded-2xl border border-[#e9e1d6] bg-[#fffaf1] p-4 dark:border-[#37332d] dark:bg-[#262522]">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#625bd5] shadow-sm dark:bg-[#1f1f1d] dark:text-[#8d88e6]">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#4a4392] shadow-sm dark:bg-[#1f1f1d] dark:text-[#8d88e6]">
                                     <Sparkles size={18} />
                                 </div>
                                 <div>

@@ -8,7 +8,7 @@ import type { WorkspaceSnapshot } from './workspaceSnapshot';
 
 const KEY_TERM_CLASS =
     'box-decoration-clone rounded-md border border-[#dfe2ff] bg-[#f3f2ff] px-1 py-0.5 ' +
-    'font-semibold text-[#625bd5] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]';
+    'font-semibold text-[#4a4392] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]';
 
 interface AgentMessageTextProps {
     text: string;

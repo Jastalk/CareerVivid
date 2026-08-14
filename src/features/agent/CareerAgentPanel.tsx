@@ -283,7 +283,7 @@ export const CareerAgentPanel: React.FC<Props> = ({ variant = 'drawer' }) => {
                                         </p>
                                     ) : (
                                         <div className="flex min-w-0 items-start gap-2.5">
-                                            <span aria-hidden="true" className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] text-[#625bd5] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]">
+                                            <span aria-hidden="true" className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] text-[#4a4392] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]">
                                                 <Sparkles className="h-3.5 w-3.5" />
                                             </span>
                                             <div className="min-w-0 flex-1">

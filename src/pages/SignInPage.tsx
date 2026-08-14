@@ -342,7 +342,7 @@ const SignInPage: React.FC = () => {
                         <div className="mt-8 grid max-w-xl gap-3">
                             <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/92 p-4 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/92">
                                 <div className="flex items-start gap-3">
-                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                                         <Briefcase size={18} />
                                     </div>
                                     <div className="min-w-0">
@@ -364,7 +364,7 @@ const SignInPage: React.FC = () => {
                                     <p className="mt-1 text-xs font-semibold leading-5 text-[#665a4a] dark:text-[#aaa39a]">Open your resume with the selected job already loaded.</p>
                                 </div>
                                 <div className="rounded-2xl border border-[#e4d3bc] bg-white/90 p-4 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/90">
-                                    <PanelRightOpen size={18} className="text-[#625bd5] dark:text-[#8d88e6]" />
+                                    <PanelRightOpen size={18} className="text-[#4a4392] dark:text-[#8d88e6]" />
                                     <h3 className="mt-3 text-sm font-bold text-[#211b16] dark:text-[#f4f1e9]">Practice interview</h3>
                                     <p className="mt-1 text-xs font-semibold leading-5 text-[#665a4a] dark:text-[#aaa39a]">Use the job description to generate focused questions.</p>
                                 </div>
@@ -422,7 +422,7 @@ const SignInPage: React.FC = () => {
                                             name="email"
                                             type="email"
                                             required
-                                            className="block h-12 w-full rounded-xl border border-[#e4d3bc] bg-white px-4 pl-10 text-sm font-semibold text-[#211b16] placeholder:text-[#9b8b79] transition focus:border-[#7069dc] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/15 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:placeholder:text-[#777069]"
+                                            className="block h-12 w-full rounded-xl border border-[#e4d3bc] bg-white px-4 pl-10 text-sm font-semibold text-[#211b16] placeholder:text-[#9b8b79] transition focus:border-[#5b5599] focus:outline-none focus:ring-4 focus:ring-[#5b5599]/15 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:placeholder:text-[#777069]"
                                             placeholder={t('auth.email_placeholder')}
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
@@ -433,7 +433,7 @@ const SignInPage: React.FC = () => {
                                 <div>
                                     <div className="mb-2 flex items-center justify-between gap-3">
                                         <label htmlFor="password" className="block text-xs font-bold text-[#665a4a] dark:text-[#aaa39a]">{t('auth.password_label')}</label>
-                                        <button type="button" onClick={handlePasswordReset} className="text-xs font-bold text-[#625bd5] transition hover:text-[#4e46bf] focus:outline-none focus:ring-2 focus:ring-[#7069dc]/30 dark:text-[#8d88e6]">
+                                        <button type="button" onClick={handlePasswordReset} className="text-xs font-bold text-[#4a4392] transition hover:text-[#4e46bf] focus:outline-none focus:ring-2 focus:ring-[#5b5599]/30 dark:text-[#8d88e6]">
                                             {t('auth.forgot_password')}
                                         </button>
                                     </div>
@@ -446,7 +446,7 @@ const SignInPage: React.FC = () => {
                                             name="password"
                                             type={showPassword ? 'text' : 'password'}
                                             required
-                                            className="block h-12 w-full rounded-xl border border-[#e4d3bc] bg-white px-4 pl-10 pr-11 text-sm font-semibold text-[#211b16] placeholder:text-[#9b8b79] transition focus:border-[#7069dc] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/15 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:placeholder:text-[#777069]"
+                                            className="block h-12 w-full rounded-xl border border-[#e4d3bc] bg-white px-4 pl-10 pr-11 text-sm font-semibold text-[#211b16] placeholder:text-[#9b8b79] transition focus:border-[#5b5599] focus:outline-none focus:ring-4 focus:ring-[#5b5599]/15 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:placeholder:text-[#777069]"
                                             placeholder={t('auth.password_placeholder')}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
@@ -454,7 +454,7 @@ const SignInPage: React.FC = () => {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#7d6e5e] transition hover:text-[#211b16] focus:outline-none focus:ring-2 focus:ring-[#7069dc]/30 dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]"
+                                            className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#7d6e5e] transition hover:text-[#211b16] focus:outline-none focus:ring-2 focus:ring-[#5b5599]/30 dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]"
                                             aria-label={showPassword ? 'Hide password' : 'Show password'}
                                         >
                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -488,7 +488,7 @@ const SignInPage: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#5650c8] bg-[#625bd5] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#5650c8] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/25 disabled:cursor-not-allowed disabled:border-[#d7d0c5] disabled:bg-[#ece5da] disabled:text-[#9b8b79] dark:border-[#8d88e6] dark:bg-[#7069dc] dark:hover:bg-[#8079e4] dark:disabled:border-[#37332d] dark:disabled:bg-[#302e2a] dark:disabled:text-[#777069]"
+                                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#5650c8] bg-[#4a4392] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#5650c8] focus:outline-none focus:ring-4 focus:ring-[#5b5599]/25 disabled:cursor-not-allowed disabled:border-[#d7d0c5] disabled:bg-[#ece5da] disabled:text-[#9b8b79] dark:border-[#8d88e6] dark:bg-[#5b5599] dark:hover:bg-[#8079e4] dark:disabled:border-[#37332d] dark:disabled:bg-[#302e2a] dark:disabled:text-[#777069]"
                                 >
                                     {loading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                                     {t('auth.sign_in')}
@@ -506,7 +506,7 @@ const SignInPage: React.FC = () => {
                                     <button
                                         onClick={handleTikTokLogin}
                                         disabled={loading}
-                                        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#e4d3bc] bg-white px-4 text-sm font-bold text-[#211b16] shadow-sm transition hover:border-[#d9c7ad] hover:bg-[#fffaf1] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
+                                        className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#e4d3bc] bg-white px-4 text-sm font-bold text-[#211b16] shadow-sm transition hover:border-[#d9c7ad] hover:bg-[#fffaf1] focus:outline-none focus:ring-4 focus:ring-[#5b5599]/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
                                     >
                                         <svg className="h-5 w-5 fill-current" viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17h0A122.18 122.18 0 0 0 381 102.39a121.43 121.43 0 0 0 67 20.14z" /></svg>
                                         Continue with TikTok
@@ -516,7 +516,7 @@ const SignInPage: React.FC = () => {
                                 <button
                                     onClick={handleGoogleSignIn}
                                     disabled={loading}
-                                    className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#e4d3bc] bg-white px-4 text-sm font-bold text-[#211b16] shadow-sm transition hover:border-[#d9c7ad] hover:bg-[#fffaf1] focus:outline-none focus:ring-4 focus:ring-[#7069dc]/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
+                                    className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-[#e4d3bc] bg-white px-4 text-sm font-bold text-[#211b16] shadow-sm transition hover:border-[#d9c7ad] hover:bg-[#fffaf1] focus:outline-none focus:ring-4 focus:ring-[#5b5599]/15 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
                                 >
                                     <svg className="h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 398.2 0 256S111.8 0 244 0c71.2 0 130.9 27.8 176.9 72.9l-63.1 61.3C294.3 93.6 270.3 80 244 80 158.4 80 90 148.2 90 233.9s68.4 153.9 154 153.9c75.5 0 120.9-42.3 124.9-97.9H244v-77.3h236.1c2.4 12.7 3.9 26.1 3.9 40.2z"></path></svg>
                                     {t('auth.google')}
@@ -529,7 +529,7 @@ const SignInPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => navigate(email ? `/signup?email=${encodeURIComponent(email)}` : '/signup')}
-                                        className="font-bold text-[#625bd5] hover:text-[#4e46bf] dark:text-[#8d88e6]"
+                                        className="font-bold text-[#4a4392] hover:text-[#4e46bf] dark:text-[#8d88e6]"
                                     >
                                         Start for free
                                     </button>

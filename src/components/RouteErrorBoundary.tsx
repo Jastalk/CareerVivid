@@ -60,7 +60,7 @@ class RouteErrorBoundary extends React.Component<RouteErrorBoundaryProps, RouteE
             <button
               type="button"
               onClick={this.reloadRoute}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#625bd5] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#544cc4] focus:outline-none focus:ring-2 focus:ring-[#8d88e6] focus:ring-offset-2 focus:ring-offset-[#fffaf1] dark:focus:ring-offset-[#262522]"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4a4392] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#544cc4] focus:outline-none focus:ring-2 focus:ring-[#8d88e6] focus:ring-offset-2 focus:ring-offset-[#fffaf1] dark:focus:ring-offset-[#262522]"
             >
               <RefreshCw className="h-4 w-4" />
               Refresh

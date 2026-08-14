@@ -13,7 +13,7 @@ const ROW_GAP = 100;
 
 const LAYER_COLORS: Record<SystemDesignDiagramNode['layer'], { fill: string; stroke: string }> = {
   client: { fill: '#eff6ff', stroke: '#2563eb' },
-  edge: { fill: '#f3f2ff', stroke: '#625bd5' },
+  edge: { fill: '#f3f2ff', stroke: '#4a4392' },
   service: { fill: '#eef9f2', stroke: '#15803d' },
   event: { fill: '#fff7e8', stroke: '#d97706' },
   data: { fill: '#fffbeb', stroke: '#b45309' },

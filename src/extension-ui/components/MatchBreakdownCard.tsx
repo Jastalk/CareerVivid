@@ -166,7 +166,7 @@ export const MatchBreakdownCard: React.FC<MatchBreakdownCardProps> = ({
 
     const toneClasses = {
         emerald: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300',
-        indigo: 'border-[#d9d7fb] bg-[#f3f2ff] text-[#625bd5] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]',
+        indigo: 'border-[#d9d7fb] bg-[#f3f2ff] text-[#4a4392] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]',
         slate: 'border-[#dce2ec] bg-[#f4f5f8] text-[#43546d] dark:border-[#3a3834] dark:bg-[#302e2a] dark:text-[#c9c3ba]',
         amber: 'border-[#e6dac8] bg-[#fffaf1] text-[#7c5b2c] dark:border-[#4a4035] dark:bg-[#302e2a] dark:text-[#d8c7a8]',
     };
@@ -191,7 +191,7 @@ export const MatchBreakdownCard: React.FC<MatchBreakdownCardProps> = ({
                     )}
                 </div>
                 {isJobSite && (
-                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-[#e2e4ff] bg-[#eef0ff] text-[#625bd5] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl border border-[#e2e4ff] bg-[#eef0ff] text-[#4a4392] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                         <Briefcase size={15} />
                     </div>
                 )}
@@ -215,7 +215,7 @@ export const MatchBreakdownCard: React.FC<MatchBreakdownCardProps> = ({
 
             {isJobSite && scrapedJob && (
                 <div className="mt-3 rounded-2xl border border-[#ececf4] bg-[#f8f8fb] p-3 dark:border-[#3a3834] dark:bg-[#1f1f1d]">
-                    <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#625bd5] dark:text-[#b8b3ff]">
+                    <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-[#4a4392] dark:text-[#b8b3ff]">
                         <Sparkles size={13} />
                         Job Brief
                     </div>

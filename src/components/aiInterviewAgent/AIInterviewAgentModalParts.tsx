@@ -293,7 +293,7 @@ export const QuestionQueuePanel: React.FC<{
           <ClipboardList size={14} aria-hidden="true" />
           Question flow
         </div>
-        <span className="rounded-full bg-[#f3f2ff] px-2 py-0.5 text-[10px] font-bold text-[#625bd5] dark:bg-[#34314e] dark:text-[#b7b2ff]">
+        <span className="rounded-full bg-[#f3f2ff] px-2 py-0.5 text-[10px] font-bold text-[#4a4392] dark:bg-[#34314e] dark:text-[#b7b2ff]">
           {coveredCount}/{questions.length || 0}
         </span>
       </div>
@@ -311,7 +311,7 @@ export const QuestionQueuePanel: React.FC<{
             <div
               key={`${question}-${index}`}
               className={`rounded-lg border p-3 transition-colors ${isActive
-                ? 'border-[#8d88e6] bg-[#f3f2ff] dark:border-[#7069dc] dark:bg-[#302f48]'
+                ? 'border-[#8d88e6] bg-[#f3f2ff] dark:border-[#5b5599] dark:bg-[#302f48]'
                 : isDone
                   ? 'border-[#cfe8dc] bg-[#f4fbf7] dark:border-[#315443] dark:bg-[#1e2b26]'
                   : 'border-[#efe1ce] bg-[#fffaf1] dark:border-[#3b3730] dark:bg-[#1f1f1d]'
@@ -321,7 +321,7 @@ export const QuestionQueuePanel: React.FC<{
                 {isDone ? (
                   <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
                 ) : (
-                  <Circle size={12} className={isActive ? 'text-[#625bd5]' : 'text-[#b79a72] dark:text-[#7c7063]'} aria-hidden="true" />
+                  <Circle size={12} className={isActive ? 'text-[#4a4392]' : 'text-[#b79a72] dark:text-[#7c7063]'} aria-hidden="true" />
                 )}
                 <span className="text-[10px] font-bold text-[#665a4a] dark:text-[#aaa39a]">
                   {isDone ? 'Covered' : isActive ? 'Current' : 'Queued'}
@@ -405,7 +405,7 @@ export const SessionMapPanel: React.FC<{ status: InterviewStatus; hasTranscript:
       <div className="space-y-2">
         {steps.map(step => (
           <div key={step.label} className="flex items-center gap-2">
-            <span className={`h-2.5 w-2.5 rounded-full ${step.done ? 'bg-emerald-500' : step.active ? 'bg-[#625bd5]' : 'bg-[#d9c9b4] dark:bg-[#5a5147]'}`} />
+            <span className={`h-2.5 w-2.5 rounded-full ${step.done ? 'bg-emerald-500' : step.active ? 'bg-[#4a4392]' : 'bg-[#d9c9b4] dark:bg-[#5a5147]'}`} />
             <span className={`text-xs font-semibold ${step.active ? 'text-[#211b16] dark:text-[#f4f1e9]' : 'text-[#665a4a] dark:text-[#aaa39a]'}`}>{step.label}</span>
           </div>
         ))}

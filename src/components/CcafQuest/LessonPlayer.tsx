@@ -77,7 +77,7 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({ video, alreadyWatche
                     <button
                         type="button"
                         onClick={finish}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#625bd5] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#514ac5]"
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#4a4392] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#37316f]"
                     >
                         {t('ccaf_quest.lesson_start_questions')} <Check size={13} />
                     </button>

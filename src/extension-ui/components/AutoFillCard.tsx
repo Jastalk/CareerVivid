@@ -34,11 +34,11 @@ export const AutoFillCard: React.FC<AutoFillCardProps> = ({
         <div className="rounded-[22px] overflow-hidden shadow-[0_12px_30px_rgba(15,23,42,0.06)] border border-[#ececf4] bg-white">
             <div className="p-3.5">
                 <div className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f3f2ff] text-[#625bd5] text-[10px] font-semibold border border-[#e4e2ff]">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#f3f2ff] text-[#4a4392] text-[10px] font-semibold border border-[#e4e2ff]">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#7b75df] animate-pulse" />
                         {atsPlatform || 'Application'} detected
                     </span>
-                    <div className="h-8 w-8 rounded-xl bg-[#eef0ff] text-[#625bd5] flex items-center justify-center border border-[#e4e7ff]">
+                    <div className="h-8 w-8 rounded-xl bg-[#eef0ff] text-[#4a4392] flex items-center justify-center border border-[#e4e7ff]">
                         <Layers3 size={15} />
                     </div>
                 </div>

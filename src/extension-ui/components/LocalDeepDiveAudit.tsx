@@ -33,7 +33,7 @@ export const LocalDeepDiveAudit: React.FC<LocalDeepDiveAuditProps> = ({ audit, i
             <section className="rounded-[22px] border border-[#ececf4] bg-white p-3.5 shadow-[0_12px_30px_rgba(15,23,42,0.05)] dark:border-[#3a3834] dark:bg-[#262522] dark:shadow-none">
                 <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                             <Loader2 size={15} className="animate-spin" />
                         </span>
                         <div>
@@ -64,7 +64,7 @@ export const LocalDeepDiveAudit: React.FC<LocalDeepDiveAuditProps> = ({ audit, i
             {isLoading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/72 backdrop-blur-[2px] dark:bg-[#262522]/78">
                     <div className="w-[86%] rounded-2xl border border-[#ececf4] bg-white p-3 shadow-sm dark:border-[#3a3834] dark:bg-[#1f1f1d]">
-                        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#625bd5] dark:text-[#b8b3ff]">
+                        <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#4a4392] dark:text-[#b8b3ff]">
                             <Loader2 size={13} className="animate-spin" />
                             Refreshing audit
                         </div>
@@ -79,7 +79,7 @@ export const LocalDeepDiveAudit: React.FC<LocalDeepDiveAuditProps> = ({ audit, i
 
             <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-[#625bd5] dark:text-[#b8b3ff]">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-[#4a4392] dark:text-[#b8b3ff]">
                         <Sparkles size={13} />
                         Deep-Dive Audit
                     </div>
@@ -125,7 +125,7 @@ export const LocalDeepDiveAudit: React.FC<LocalDeepDiveAuditProps> = ({ audit, i
                 <div className="space-y-2">
                     {audit.recommendations.map((item, index) => (
                         <div key={`${item}-${index}`} className="flex gap-2 rounded-2xl border border-[#ececf4] bg-[#fffaf6] p-2.5 dark:border-[#3a3834] dark:bg-[#1f1f1d]">
-                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[10px] font-bold text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                            <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#eef0ff] text-[10px] font-bold text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                                 {index + 1}
                             </span>
                             <p className="text-[11px] leading-snug text-slate-700 dark:text-[#c9c3ba]">{item}</p>

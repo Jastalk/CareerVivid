@@ -103,14 +103,14 @@ const CcafQuestPage: React.FC = () => {
                     <ArrowLeft size={15} /> {t('ccaf_quest.back_to_courses')}
                 </button>
 
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f3f2ff] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#625bd5] dark:bg-[#2a2657] dark:text-[#b8b4ff]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f3f2ff] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#4a4392] dark:bg-[#2a2657] dark:text-[#b8b4ff]">
                     <Gamepad2 size={13} /> {t('ccaf_quest.badge')}
                 </span>
 
                 <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[var(--cv-text-heading)] sm:text-4xl">
                     Claude Certified Architect
                 </h1>
-                <p className="mt-1 text-lg font-semibold text-[#625bd5]">Foundations · CCA-F</p>
+                <p className="mt-1 text-lg font-semibold text-[#4a4392]">Foundations · CCA-F</p>
 
                 <PlayButton className="mt-5" label={started ? t('ccaf_quest.resume') : t('ccaf_quest.enter')} onPlay={() => enter(null)} />
 
@@ -121,14 +121,14 @@ const CcafQuestPage: React.FC = () => {
                             <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">
                                 {t('ccaf_quest.readiness_title')}
                             </h2>
-                            <span className="text-2xl font-black text-[#625bd5]">
+                            <span className="text-2xl font-black text-[#4a4392]">
                                 {Math.round(examReadiness.overall)}%
                             </span>
                         </div>
 
                         <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                             <div
-                                className="h-full rounded-full bg-gradient-to-r from-[#f5871f] via-[#625bd5] to-[#1d9e75] transition-[width] duration-700"
+                                className="h-full rounded-full bg-gradient-to-r from-[#f5871f] via-[#4a4392] to-[#1d9e75] transition-[width] duration-700"
                                 style={{ width: `${examReadiness.overall}%` }}
                             />
                         </div>
@@ -145,7 +145,7 @@ const CcafQuestPage: React.FC = () => {
                                     <span className="w-24 shrink-0">
                                         <span className="block h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                                             <span
-                                                className="block h-full rounded-full bg-[#625bd5] transition-[width] duration-500"
+                                                className="block h-full rounded-full bg-[#4a4392] transition-[width] duration-500"
                                                 style={{ width: `${ratio * 100}%` }}
                                             />
                                         </span>
@@ -218,7 +218,7 @@ const CcafQuestPage: React.FC = () => {
                                     </h2>
                                 </div>
                                 {loaded && (
-                                    <span className="shrink-0 text-xs font-bold text-[#625bd5]">
+                                    <span className="shrink-0 text-xs font-bold text-[#4a4392]">
                                         {cleared}/{domain.missions.length}
                                     </span>
                                 )}
@@ -250,24 +250,24 @@ const CcafQuestPage: React.FC = () => {
                                                 onClick={() => enter(mission.id)}
                                                 aria-label={open ? `${localize(mission.name)} — ${t('ccaf_quest.open_mission')}` : undefined}
                                                 className={`group relative flex w-full items-center gap-3 rounded-lg py-1.5 pl-3 pr-2 text-left text-sm transition-colors duration-150 ${
-                                                    current ? 'bg-[#625bd5]/[0.07] dark:bg-[#7c74e0]/[0.10]' : ''
+                                                    current ? 'bg-[#4a4392]/[0.07] dark:bg-[#7c74e0]/[0.10]' : ''
                                                 } ${open
                                                     ? 'cursor-pointer hover:bg-black/[0.035] dark:hover:bg-white/[0.05]'
                                                     : 'cursor-default'}`}
                                             >
                                             {current && (
-                                                <span className="absolute inset-y-1 left-0 w-[3px] rounded-full bg-[#625bd5]" aria-hidden />
+                                                <span className="absolute inset-y-1 left-0 w-[3px] rounded-full bg-[#4a4392]" aria-hidden />
                                             )}
                                             <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                                                 done ? 'bg-[#1d9e75] text-white'
-                                                    : current ? 'bg-[#625bd5] text-white'
+                                                    : current ? 'bg-[#4a4392] text-white'
                                                         : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500'
                                             }`}>
                                                 {done ? <Check size={13} /> : open ? index + 1 : <Lock size={11} />}
                                             </span>
                                             <span className={`font-semibold transition-colors ${
                                                 open
-                                                    ? 'text-gray-800 group-hover:text-[#625bd5] dark:text-gray-100 dark:group-hover:text-[#b8b4ff]'
+                                                    ? 'text-gray-800 group-hover:text-[#4a4392] dark:text-gray-100 dark:group-hover:text-[#b8b4ff]'
                                                     : 'text-gray-400 dark:text-gray-600'
                                             }`}>
                                                 {mission.isBoss && <span className="mr-1 text-[#f5871f]">★</span>}
@@ -292,7 +292,7 @@ const CcafQuestPage: React.FC = () => {
                                                 {open && (
                                                     <ChevronRight
                                                         size={14}
-                                                        className="-ml-1 shrink-0 text-[#625bd5] opacity-0 transition-all duration-150 group-hover:ml-0 group-hover:opacity-100 dark:text-[#b8b4ff]"
+                                                        className="-ml-1 shrink-0 text-[#4a4392] opacity-0 transition-all duration-150 group-hover:ml-0 group-hover:opacity-100 dark:text-[#b8b4ff]"
                                                         aria-hidden
                                                     />
                                                 )}

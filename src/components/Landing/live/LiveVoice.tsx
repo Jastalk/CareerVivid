@@ -105,7 +105,7 @@ const LiveVoice: React.FC<{ playing: boolean }> = ({ playing }) => {
                         <p
                             className="max-w-[85%] rounded-2xl px-3 py-2 text-[12.5px] leading-relaxed"
                             style={line.who === 'you'
-                                ? { background: 'var(--cvl-purple)', color: '#fff', borderBottomRightRadius: 6 }
+                                ? { background: 'var(--cvl-cta-bg)', color: 'var(--cvl-cta-ink)', borderBottomRightRadius: 6 }
                                 : { background: 'var(--cvl-paper-2)', color: 'var(--cvl-ink)', borderBottomLeftRadius: 6 }}
                         >
                             {line.text}

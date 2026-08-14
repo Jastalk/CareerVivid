@@ -169,7 +169,7 @@ const Waveform: React.FC = () => {
       {WAVEFORM_HEIGHTS.map((height, index) => (
         <motion.span
           key={index}
-          className="w-1.5 rounded-full bg-[#625bd5]"
+          className="w-1.5 rounded-full bg-[#4a4392]"
           style={{ height }}
           animate={reduceMotion ? undefined : { height: [height * 0.45, height, height * 0.6, height * 0.9, height * 0.45] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: index * 0.08 }}
@@ -204,7 +204,7 @@ const IOSAppLandingPage: React.FC = () => (
             transition={{ duration: 0.55, ease: easeOutExpo }}
             className="cv-warm-eyebrow inline-flex items-center gap-2"
           >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] text-[#625bd5]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] text-[#4a4392]">
               <Mic className="h-4 w-4" aria-hidden="true" />
             </span>
             CareerVivid for iOS
@@ -232,13 +232,13 @@ const IOSAppLandingPage: React.FC = () => (
               href={IOS_REPOSITORY_URL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#625bd5] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#514ac5] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#625bd5] focus:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4a4392] px-5 py-3 text-sm font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:bg-[#37316f] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#4a4392] focus:ring-offset-2"
             >
               See the app on GitHub <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </a>
             <a
               href="/interview-studio"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#dfe2ff] bg-[#eef0ff] px-5 py-3 text-sm font-bold text-[#625bd5] transition-all hover:-translate-y-0.5 hover:bg-[#e5e5ff] focus:outline-none focus:ring-2 focus:ring-[#625bd5] focus:ring-offset-2"
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#dfe2ff] bg-[#eef0ff] px-5 py-3 text-sm font-bold text-[#4a4392] transition-all hover:-translate-y-0.5 hover:bg-[#e5e5ff] focus:outline-none focus:ring-2 focus:ring-[#4a4392] focus:ring-offset-2"
             >
               Practice on the web now
             </a>
@@ -270,7 +270,7 @@ const IOSAppLandingPage: React.FC = () => (
                     </span>
                     Interview practice
                   </span>
-                  <span className="rounded-full bg-[#f3f2ff] px-2.5 py-1 text-[#625bd5]">iOS</span>
+                  <span className="rounded-full bg-[#f3f2ff] px-2.5 py-1 text-[#4a4392]">iOS</span>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-[0.8fr_1.2fr]">
                   <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-sm">
@@ -278,7 +278,7 @@ const IOSAppLandingPage: React.FC = () => (
                     <QuestionCycler />
                     <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#eeeff8]">
                       <motion.div
-                        className="h-full rounded-full bg-[#625bd5]"
+                        className="h-full rounded-full bg-[#4a4392]"
                         initial={{ width: 0 }}
                         animate={{ width: '66%' }}
                         transition={{ duration: 1, delay: 0.6, ease: 'easeOut' }}
@@ -287,7 +287,7 @@ const IOSAppLandingPage: React.FC = () => (
                     <p className="mt-2 text-xs font-semibold text-[#665a4a]">2 of 3 answers complete</p>
                   </div>
                   <div className="rounded-2xl border border-[#dfe2ff] bg-[#f3f2ff] p-4">
-                    <div className="flex items-center gap-2 text-[#625bd5]">
+                    <div className="flex items-center gap-2 text-[#4a4392]">
                       <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white"><Mic className="h-4 w-4" /></span>
                       <span className="text-sm font-bold">Voice practice</span>
                     </div>
@@ -306,7 +306,7 @@ const IOSAppLandingPage: React.FC = () => (
                       { score: 75, label: 'Confidence' },
                       { score: 90, label: 'Relevance' },
                     ].map(({ score, label }) => (
-                      <div key={label} className="rounded-xl bg-[#f8f8fb] p-2 text-[#625bd5]">
+                      <div key={label} className="rounded-xl bg-[#f8f8fb] p-2 text-[#4a4392]">
                         <CountUp value={score} />
                         <br />
                         <span className="font-semibold text-[#665a4a]">{label}</span>
@@ -353,7 +353,7 @@ const IOSAppLandingPage: React.FC = () => (
                 className="cv-warm-card p-5"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#dfe2ff] bg-[#f3f2ff] text-[#625bd5]"><Icon className="h-4 w-4" /></span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#dfe2ff] bg-[#f3f2ff] text-[#4a4392]"><Icon className="h-4 w-4" /></span>
                   <span className="text-xs font-bold uppercase tracking-[0.16em] text-[#a97935]">0{index + 1}</span>
                 </div>
                 <h3 className="mt-5 text-lg font-extrabold text-[#211b16] dark:text-[#f4f1e9]">{title}</h3>
@@ -409,11 +409,11 @@ const IOSAppLandingPage: React.FC = () => (
           transition={{ duration: 0.6, ease: easeOutExpo }}
           className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-7 text-center shadow-sm sm:p-10"
         >
-          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#dfe2ff] bg-[#f3f2ff] text-[#625bd5]"><Sparkles className="h-5 w-5" /></span>
+          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-[#dfe2ff] bg-[#f3f2ff] text-[#4a4392]"><Sparkles className="h-5 w-5" /></span>
           <h2 className="mt-4 text-3xl font-extrabold tracking-[-0.03em] text-[#211b16] dark:text-[#f4f1e9]">Know what they&rsquo;ll ask before you walk in.</h2>
           <p className="mx-auto mt-3 max-w-2xl text-base font-medium leading-7 text-[#665a4a] dark:text-[#aaa39a]">The app, its architecture, and every design decision are public on GitHub. Explore how it&rsquo;s built — or start practicing on the web today.</p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <a href={IOS_REPOSITORY_URL} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#625bd5] px-5 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-[#514ac5] hover:shadow-lg"><Github className="h-4 w-4" /> View the iOS project</a>
+            <a href={IOS_REPOSITORY_URL} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4a4392] px-5 py-3 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-[#37316f] hover:shadow-lg"><Github className="h-4 w-4" /> View the iOS project</a>
             <a href="/interview-studio" className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#e4d3bc] bg-white px-5 py-3 text-sm font-bold text-[#211b16] transition-all hover:-translate-y-0.5 hover:bg-[#f6ecd9] dark:border-[#37332d] dark:bg-[#302e2a] dark:text-[#f4f1e9]"><FileText className="h-4 w-4" /> Browse company questions</a>
           </div>
         </motion.div>

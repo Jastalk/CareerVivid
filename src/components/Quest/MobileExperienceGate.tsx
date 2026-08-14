@@ -32,11 +32,11 @@ const MobileExperienceGate: React.FC<MobileExperienceGateProps> = ({ roundType, 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[#171411]/70 p-5 backdrop-blur-sm">
             <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-[0_24px_70px_rgba(17,24,39,0.28)] dark:border-gray-700 dark:bg-gray-900 sm:p-8">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#625bd5] dark:bg-[#312d6b]/60 dark:text-[#b8b4ff]">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#4a4392] dark:bg-[#312d6b]/60 dark:text-[#b8b4ff]">
                     <MonitorSmartphone size={26} />
                 </span>
 
-                <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#9b96ef]">
                     {copy.label}
                 </p>
                 <h2 className="mt-1.5 text-xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100">
@@ -49,7 +49,7 @@ const MobileExperienceGate: React.FC<MobileExperienceGateProps> = ({ roundType, 
                 <button
                     type="button"
                     onClick={onContinue}
-                    className="mt-6 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#625bd5] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#514ac5] dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]"
+                    className="mt-6 inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#4a4392] px-4 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#37316f] dark:bg-[#5b5599] dark:hover:bg-[#8d88e6]"
                 >
                     Continue on mobile
                     <ArrowRight size={16} />

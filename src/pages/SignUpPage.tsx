@@ -366,8 +366,7 @@ const SignUpPage: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white disabled:opacity-70 disabled:cursor-not-allowed transition hover:opacity-90"
-                            style={{ background: 'var(--cvl-purple)' }}
+                            className="cvl-cta w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold disabled:opacity-70 disabled:cursor-not-allowed transition hover:opacity-90"
                         >
                             {t('auth.create_account_btn')}
                         </button>

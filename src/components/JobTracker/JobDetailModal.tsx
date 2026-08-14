@@ -404,7 +404,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose, onUpdate,
                                             <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">{t('job_tracker.modal.job_description')}</h3>
                                             <button
                                                 onClick={() => setIsEditingDescription(true)}
-                                                className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-3 py-1 text-xs font-semibold text-[#625bd5] transition-colors hover:bg-[#ecebff] dark:border-[#4a456f] dark:bg-[#302e4c] dark:text-[#c8c5ff]"
+                                                className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-3 py-1 text-xs font-semibold text-[#4a4392] transition-colors hover:bg-[#ecebff] dark:border-[#4a456f] dark:bg-[#302e4c] dark:text-[#c8c5ff]"
                                             >
                                                 Edit
                                             </button>
@@ -445,7 +445,7 @@ const JobDetailModal: React.FC<JobDetailModalProps> = ({ job, onClose, onUpdate,
                                             <button
                                                 onClick={handleGenerateAllPrepNotes}
                                                 disabled={isGeneratingAll}
-                                                className={`flex items-center justify-center gap-2 rounded-lg bg-[#625bd5] px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-[#5750c8] disabled:bg-[#c8c5ff] ${shouldAnimateButton ? 'animate-gentle-pulse' : ''}`}
+                                                className={`flex items-center justify-center gap-2 rounded-lg bg-[#4a4392] px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-[#5750c8] disabled:bg-[#c8c5ff] ${shouldAnimateButton ? 'animate-gentle-pulse' : ''}`}
                                             >
                                                 {isGeneratingAll ? <Loader2 className="animate-spin" /> : <Wand2 size={18} />}
                                                 {isGeneratingAll ? t('job_tracker.modal.generating') : t('job_tracker.modal.generate_prep')}

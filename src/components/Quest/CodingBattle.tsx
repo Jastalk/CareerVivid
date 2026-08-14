@@ -679,7 +679,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                 {/* Header */}
                 <header className="flex shrink-0 flex-col gap-2 border-b border-gray-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-3.5 dark:border-gray-800">
                     <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#625bd5] text-white shadow-[0_4px_12px_rgba(98,91,213,0.25)] sm:h-10 sm:w-10 sm:rounded-xl dark:bg-[#7069dc]">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#4a4392] text-white shadow-[0_4px_12px_rgba(98,91,213,0.25)] sm:h-10 sm:w-10 sm:rounded-xl dark:bg-[#5b5599]">
                             <Code2 size={16} className="sm:hidden" />
                             <Code2 size={18} className="hidden sm:block" />
                         </span>
@@ -702,7 +702,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                     type="button"
                                     onClick={() => { setLanguage(lang); setRunSummary(null); setLogs([]); setError(''); }}
                                     className={`px-3 py-1.5 transition-colors ${language === lang
-                                        ? 'bg-[#625bd5] text-white dark:bg-[#7069dc]'
+                                        ? 'bg-[#4a4392] text-white dark:bg-[#5b5599]'
                                         : 'bg-white text-gray-500 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800'}`}
                                 >
                                     {CODING_LANGUAGE_LABELS[lang]}
@@ -737,7 +737,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             type="button"
                             onClick={handleSubmit}
                             disabled={isSubmitting || isRunning}
-                            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-transparent bg-[#625bd5] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#514ac5] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]"
+                            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-transparent bg-[#4a4392] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#37316f] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 dark:bg-[#5b5599] dark:hover:bg-[#8d88e6]"
                         >
                             {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                             <span className="sm:hidden">Submit</span><span className="hidden sm:inline">{isSubmitting ? (isGuestPractice ? 'Submitting…' : 'Reviewing…') : isGuestPractice ? 'Submit solution' : 'Submit for review'}</span>
@@ -751,9 +751,9 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             title={isListening || voiceTranscript.trim() ? 'Send this explanation to the AI code agent' : 'Describe your solution verbally'}
                             className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 ${
                                 isListening
-                                    ? 'animate-pulse border-[#625bd5]/40 bg-[#f3f2ff] text-[#625bd5] dark:border-[#7069dc]/40 dark:bg-[#312d6b]/50 dark:text-[#c8c5ff]'
+                                    ? 'animate-pulse border-[#4a4392]/40 bg-[#f3f2ff] text-[#4a4392] dark:border-[#5b5599]/40 dark:bg-[#312d6b]/50 dark:text-[#c8c5ff]'
                                     : voiceTranscript.trim()
-                                        ? 'border-[#625bd5] bg-[#625bd5] text-white hover:bg-[#514ac5] dark:border-[#7069dc] dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]'
+                                        ? 'border-[#4a4392] bg-[#4a4392] text-white hover:bg-[#37316f] dark:border-[#5b5599] dark:bg-[#5b5599] dark:hover:bg-[#8d88e6]'
                                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
                             }`}
                         >
@@ -771,7 +771,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                 type="button"
                                 onClick={() => setCoachPanelOpen((o) => !o)}
                                 title="Toggle AI code agent panel"
-                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#625bd5]/30 bg-[#f3f2ff] text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#4a4392]/30 bg-[#f3f2ff] text-[#4a4392] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
                             >
                                 <Bot size={16} />
                             </button>
@@ -813,8 +813,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                 {isListening && (
                     <div className="shrink-0 border-b border-[#dfe2ff] bg-[#f8f7ff] px-4 py-2 dark:border-[#484273] dark:bg-[#1a1730]">
                         <div className="flex items-center gap-2">
-                            <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#625bd5] dark:bg-[#b8b4ff]" />
-                            <span className="text-xs font-bold text-[#625bd5] dark:text-[#b8b4ff]">Recording your approach</span>
+                            <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-[#4a4392] dark:bg-[#b8b4ff]" />
+                            <span className="text-xs font-bold text-[#4a4392] dark:text-[#b8b4ff]">Recording your approach</span>
                             <span className="min-w-0 truncate text-xs text-[#4a4499]/80 dark:text-[#c8c5ff]/80">
                                 {voiceTranscript || 'Explain the algorithm, data structure, and edge cases. Send it to the code agent when ready.'}
                             </span>
@@ -830,7 +830,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                         <button
                             type="button"
                             onClick={undoVoiceCode}
-                            className="shrink-0 rounded-md border border-[#625bd5]/30 bg-white px-2 py-1 text-[11px] font-bold text-[#625bd5] transition-colors hover:bg-[#f3f2ff] dark:bg-[#1a1730] dark:text-[#c8c5ff] dark:hover:bg-[#312d6b]"
+                            className="shrink-0 rounded-md border border-[#4a4392]/30 bg-white px-2 py-1 text-[11px] font-bold text-[#4a4392] transition-colors hover:bg-[#f3f2ff] dark:bg-[#1a1730] dark:text-[#c8c5ff] dark:hover:bg-[#312d6b]"
                         >
                             Undo voice draft
                         </button>
@@ -845,9 +845,9 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                         onClick={() => setBriefOpen(true)}
                         className="flex shrink-0 items-center gap-2 border-b border-[#ececf4] bg-[#fbfbfe] px-4 py-2.5 text-left lg:hidden dark:border-gray-800 dark:bg-gray-900/60"
                     >
-                        <ClipboardList size={14} className="shrink-0 text-[#625bd5] dark:text-[#9b96ef]" />
+                        <ClipboardList size={14} className="shrink-0 text-[#4a4392] dark:text-[#9b96ef]" />
                         <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-gray-700 dark:text-gray-200">{challenge.title}</span>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#f3f2ff] px-2 py-1 text-[11px] font-bold text-[#625bd5] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff]">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#f3f2ff] px-2 py-1 text-[11px] font-bold text-[#4a4392] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff]">
                             Brief <ChevronDown size={12} />
                         </span>
                     </button>
@@ -855,7 +855,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                     {/* Brief panel — overlay on mobile when expanded, static column on desktop */}
                     <aside className={`${briefOpen ? 'flex' : 'hidden'} absolute inset-0 z-30 flex-col overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:static lg:z-auto lg:flex lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]`}>
                         <div className="mb-3 flex items-center justify-between lg:hidden">
-                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#9b96ef]">
                                 <ClipboardList size={13} /> Coding brief
                             </span>
                             <button
@@ -867,7 +867,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                 <X size={16} />
                             </button>
                         </div>
-                        <div className="hidden items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] lg:flex dark:text-[#9b96ef]">
+                        <div className="hidden items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#4a4392] lg:flex dark:text-[#9b96ef]">
                             <ClipboardList size={13} /> Coding brief
                         </div>
                         <p className="mt-2.5 text-base font-bold leading-snug text-gray-900 dark:text-gray-100">{challenge.title}</p>
@@ -876,7 +876,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                         <ul className="mt-2 space-y-2.5">
                             {challenge.requirements.map((req, reqIndex) => (
                                 <li key={req} className="flex gap-2.5 text-[13px] leading-relaxed text-gray-600 dark:text-gray-300">
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[11px] font-extrabold text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40">
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[11px] font-extrabold text-[#4a4392] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#4a4392]/40">
                                         {reqIndex + 1}
                                     </span>
                                     {req}
@@ -895,8 +895,8 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                             <CheckCircle2 size={13} className="text-[#15803d] dark:text-emerald-300" /> {isGuestPractice ? 'Submitting runs the local test suite in this browser. Sign in to save your work or receive AI review.' : 'Submitting runs a hidden test suite — passing it clears this stage.'}
                         </p>
                         {!isGuestPractice && (
-                            <div className="mt-4 rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] p-3 dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30">
-                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#b8b4ff]">
+                            <div className="mt-4 rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] p-3 dark:border-[#4a4392]/30 dark:bg-[#312d6b]/30">
+                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#b8b4ff]">
                                 <Mic size={12} /> Code agent
                             </p>
                             <p className="mt-1.5 text-[11px] leading-relaxed text-[#4a4499] dark:text-[#c8c5ff]">
@@ -907,7 +907,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                               * chats at once. Without it people ask the coach
                               * about their resume and wonder why it cannot help.
                               */}
-                            <p className="mt-2 border-t border-[#dfe2ff] pt-2 text-[10px] leading-relaxed text-[#6b66a8] dark:border-[#625bd5]/30 dark:text-[#a8a3d8]">
+                            <p className="mt-2 border-t border-[#dfe2ff] pt-2 text-[10px] leading-relaxed text-[#6b66a8] dark:border-[#4a4392]/30 dark:text-[#a8a3d8]">
                                 Writes code for this problem only. For a live conversation that
                                 remembers your practice across rounds, use <strong>Career Agent</strong>.
                             </p>
@@ -977,7 +977,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                         <aside className="flex h-[44svh] w-full shrink-0 flex-col border-t border-[#ececf4] bg-[#faf9ff] lg:h-auto lg:w-80 lg:border-l lg:border-t-0 dark:border-gray-800 dark:bg-[#1a1730] xl:w-[320px]">
                             <div className="flex shrink-0 items-center justify-between border-b border-[#ececf4] px-4 py-3 dark:border-gray-800">
                                 <div className="flex items-center gap-2">
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#625bd5] text-white dark:bg-[#7069dc]">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a4392] text-white dark:bg-[#5b5599]">
                                         <Bot size={14} />
                                     </span>
                                     <span className="text-xs font-bold text-gray-900 dark:text-gray-100">AI Code Agent</span>
@@ -1006,14 +1006,14 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                         <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
                                             msg.role === 'user'
                                                 ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-                                                : 'bg-[#625bd5] text-white dark:bg-[#7069dc]'
+                                                : 'bg-[#4a4392] text-white dark:bg-[#5b5599]'
                                         }`}>
                                             {msg.role === 'user' ? 'You' : 'AI'}
                                         </span>
                                         <div className={`max-w-[220px] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${
                                             msg.role === 'user'
                                                 ? 'rounded-tr-sm bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200'
-                                                : 'rounded-tl-sm bg-[#625bd5]/10 text-[#3d3699] dark:bg-[#625bd5]/20 dark:text-[#c8c5ff]'
+                                                : 'rounded-tl-sm bg-[#4a4392]/10 text-[#3d3699] dark:bg-[#4a4392]/20 dark:text-[#c8c5ff]'
                                         }`}>
                                             {msg.text}
                                         </div>
@@ -1021,11 +1021,11 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                 ))}
                                 {isProcessingVoice && (
                                     <div className="flex gap-2">
-                                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#625bd5] text-[10px] font-bold text-white dark:bg-[#7069dc]">AI</span>
-                                        <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-[#625bd5]/10 px-3 py-2 dark:bg-[#625bd5]/20">
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5] dark:bg-[#b8b4ff]" style={{ animationDelay: '0ms' }} />
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5] dark:bg-[#b8b4ff]" style={{ animationDelay: '150ms' }} />
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5] dark:bg-[#b8b4ff]" style={{ animationDelay: '300ms' }} />
+                                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4a4392] text-[10px] font-bold text-white dark:bg-[#5b5599]">AI</span>
+                                        <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-[#4a4392]/10 px-3 py-2 dark:bg-[#4a4392]/20">
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392] dark:bg-[#b8b4ff]" style={{ animationDelay: '0ms' }} />
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392] dark:bg-[#b8b4ff]" style={{ animationDelay: '150ms' }} />
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392] dark:bg-[#b8b4ff]" style={{ animationDelay: '300ms' }} />
                                         </div>
                                     </div>
                                 )}
@@ -1033,10 +1033,10 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
 
                             {lastCoachResult && (
                                 <div className="shrink-0 border-t border-[#ececf4] bg-white/60 px-4 py-3 dark:border-gray-800 dark:bg-transparent">
-                                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#b8b4ff]">Your next move</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#b8b4ff]">Your next move</p>
                                     <p className="mt-1 text-xs font-bold text-gray-800 dark:text-gray-100">{lastCoachResult.focusArea}</p>
                                     <p className="mt-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">{lastCoachResult.whyItMatters}</p>
-                                    <div className="mt-2 rounded-md border border-[#dfe2ff] bg-[#f8f7ff] px-2.5 py-2 text-[11px] leading-relaxed text-[#4a4499] dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30 dark:text-[#c8c5ff]">
+                                    <div className="mt-2 rounded-md border border-[#dfe2ff] bg-[#f8f7ff] px-2.5 py-2 text-[11px] leading-relaxed text-[#4a4499] dark:border-[#4a4392]/30 dark:bg-[#312d6b]/30 dark:text-[#c8c5ff]">
                                         <span className="font-bold">Try this: </span>{lastCoachResult.nextAction}
                                     </div>
 
@@ -1048,16 +1048,16 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                       * it themselves.
                                       */}
                                     {lastCoachResult.codeSnippet && (
-                                        <div className="mt-2.5 overflow-hidden rounded-md border border-[#dfe2ff] dark:border-[#625bd5]/30">
-                                            <div className="flex items-center gap-2 border-b border-[#dfe2ff] bg-white px-2.5 py-1.5 dark:border-[#625bd5]/30 dark:bg-[#1a1730]">
-                                                <Code2 size={11} className="shrink-0 text-[#625bd5] dark:text-[#b8b4ff]" />
+                                        <div className="mt-2.5 overflow-hidden rounded-md border border-[#dfe2ff] dark:border-[#4a4392]/30">
+                                            <div className="flex items-center gap-2 border-b border-[#dfe2ff] bg-white px-2.5 py-1.5 dark:border-[#4a4392]/30 dark:bg-[#1a1730]">
+                                                <Code2 size={11} className="shrink-0 text-[#4a4392] dark:text-[#b8b4ff]" />
                                                 <span className="min-w-0 flex-1 truncate text-[10px] font-semibold text-gray-600 dark:text-gray-300">
                                                     {lastCoachResult.snippetCaption || `${CODING_LANGUAGE_LABELS[language]} snippet`}
                                                 </span>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleCopySnippet(lastCoachResult.codeSnippet)}
-                                                    className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold text-[#625bd5] transition-colors hover:bg-[#625bd5]/10 dark:text-[#b8b4ff]"
+                                                    className="inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold text-[#4a4392] transition-colors hover:bg-[#4a4392]/10 dark:text-[#b8b4ff]"
                                                 >
                                                     {snippetCopied ? <Check size={10} /> : <Copy size={10} />}
                                                     {snippetCopied ? 'Copied' : 'Copy'}
@@ -1073,7 +1073,7 @@ const CodingBattle: React.FC<CodingBattleProps> = ({
                                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Test next</p>
                                             <div className="mt-1.5 flex flex-wrap gap-1.5">
                                                 {suggestedTests.map((test) => (
-                                                    <span key={test} className="rounded-md border border-[#dfe2ff] bg-white px-2 py-1 text-[10px] font-semibold text-[#4a4499] dark:border-[#625bd5]/30 dark:bg-[#1a1730] dark:text-[#c8c5ff]">
+                                                    <span key={test} className="rounded-md border border-[#dfe2ff] bg-white px-2 py-1 text-[10px] font-semibold text-[#4a4499] dark:border-[#4a4392]/30 dark:bg-[#1a1730] dark:text-[#c8c5ff]">
                                                         {test}
                                                     </span>
                                                 ))}

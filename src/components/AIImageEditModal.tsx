@@ -59,7 +59,7 @@ const STYLE_PRESETS: StylePreset[] = [
         prompt: 'Digital avatar in a modern corporate illustration style. Character features natural skin tones, expressive facial features, and thick energetic linework. Minimalist shading, vibrant but flat colors, wearing smart-casual office wear.',
         visiblePrompt: 'Warm modern avatar with smart-casual styling.',
         Icon: Rocket,
-        tone: 'bg-[#f3f2ff] text-[#625bd5]',
+        tone: 'bg-[#f3f2ff] text-[#4a4392]',
     },
     {
         id: 'campus',
@@ -297,14 +297,14 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
             disabled={!image && accent === 'result'}
             className={`group min-w-0 rounded-2xl border bg-white p-3 text-left shadow-sm transition dark:bg-[#262522] ${
                 selected
-                    ? 'border-[#625bd5] ring-2 ring-[#625bd5]/15'
+                    ? 'border-[#4a4392] ring-2 ring-[#4a4392]/15'
                     : 'border-[#e6dac8] hover:border-[#d9c7ad] dark:border-[#37332d]'
             } ${!image && accent === 'result' ? 'cursor-default' : 'cursor-pointer'}`}
         >
             <div className="mb-2 flex items-center justify-between gap-2">
                 <span className="text-xs font-bold text-[#211b16] dark:text-[#f4f1e9]">{title}</span>
                 {selected && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f2ff] px-2 py-0.5 text-[10px] font-bold text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#f3f2ff] px-2 py-0.5 text-[10px] font-bold text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                         <Check size={11} /> Active
                     </span>
                 )}
@@ -320,8 +320,8 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
                 )}
                 {isLoading && accent === 'result' && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 text-center backdrop-blur-sm dark:bg-[#262522]/85">
-                        <Loader2 className="mb-2 h-7 w-7 animate-spin text-[#625bd5]" />
-                        <p className="text-xs font-bold text-[#625bd5]">Generating...</p>
+                        <Loader2 className="mb-2 h-7 w-7 animate-spin text-[#4a4392]" />
+                        <p className="text-xs font-bold text-[#4a4392]">Generating...</p>
                     </div>
                 )}
             </div>
@@ -333,7 +333,7 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
             <div className="flex max-h-[92vh] w-full max-w-[980px] flex-col overflow-hidden rounded-[24px] border border-[#e6dac8] bg-[#fffaf1] shadow-2xl dark:border-[#37332d] dark:bg-[#1f1f1d]">
                 <div className="flex items-start justify-between gap-4 border-b border-[#e6dac8] bg-white px-5 py-4 dark:border-[#37332d] dark:bg-[#262522]">
                     <div className="flex min-w-0 items-start gap-3">
-                        <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                        <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                             <Sparkles size={19} />
                         </div>
                         <div className="min-w-0">
@@ -423,7 +423,7 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
                                             disabled={isLoading}
                                             className={`rounded-2xl border p-3 text-left shadow-sm transition ${
                                                 selected
-                                                    ? 'border-[#625bd5] bg-[#f3f2ff] ring-1 ring-[#625bd5]/20 dark:border-[#8d88e6] dark:bg-[#302e2a]'
+                                                    ? 'border-[#4a4392] bg-[#f3f2ff] ring-1 ring-[#4a4392]/20 dark:border-[#8d88e6] dark:bg-[#302e2a]'
                                                     : 'border-[#e6dac8] bg-white hover:border-[#d9c7ad] dark:border-[#37332d] dark:bg-[#262522]'
                                             }`}
                                         >
@@ -480,7 +480,7 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
                                 placeholder="Add optional details for the profile image..."
                                 disabled={isLoading}
                                 rows={4}
-                                className="mt-3 w-full resize-none rounded-2xl border border-[#e6dac8] bg-white px-3 py-3 text-sm font-medium leading-5 text-[#211b16] outline-none transition placeholder:text-[#9b9186] focus:border-[#625bd5] focus:ring-2 focus:ring-[#625bd5]/15 dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9]"
+                                className="mt-3 w-full resize-none rounded-2xl border border-[#e6dac8] bg-white px-3 py-3 text-sm font-medium leading-5 text-[#211b16] outline-none transition placeholder:text-[#9b9186] focus:border-[#4a4392] focus:ring-2 focus:ring-[#4a4392]/15 dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9]"
                             />
                             <button
                                 type="button"
@@ -519,7 +519,7 @@ const AIImageEditModal: React.FC<AIImageEditModalProps> = ({
                             type="button"
                             onClick={handleSaveAndUse}
                             disabled={!canSave}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#625bd5] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#514bc4] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4a4392] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#514bc4] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <ImageIcon size={15} />
                             Save & apply

@@ -48,8 +48,8 @@ const planToneClasses = {
         card: 'border-[#cbd9f4] bg-white shadow-[0_18px_55px_rgba(74,90,140,0.12)]',
         chip: 'border-[#dbe7ff] bg-[#eef4ff] text-[#315da7]',
         icon: 'bg-[#eef4ff] text-[#315da7]',
-        button: 'bg-[#625bd5] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
-        check: 'text-[#625bd5]',
+        button: 'bg-[#4a4392] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
+        check: 'text-[#4a4392]',
     },
     slate: {
         card: 'border-[#ccd4df] bg-[#fbfcff]',
@@ -463,7 +463,7 @@ const BillingDashboard: React.FC = () => {
                         </article>
                         <article className="rounded-2xl border border-[#e4d3bc] bg-white/80 p-6 shadow-sm dark:border-[#37332d] dark:bg-gray-900/80">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef0ff] text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                                     <Users size={18} />
                                 </div>
                                 <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Team credits</h3>
@@ -478,7 +478,7 @@ const BillingDashboard: React.FC = () => {
                         <article className="rounded-3xl border border-[#e4d3bc] bg-white/90 p-6 shadow-sm dark:border-[#37332d] dark:bg-gray-900/85 md:p-7">
                             <div className="grid gap-6 lg:grid-cols-[minmax(220px,0.75fr)_minmax(0,1.25fr)] lg:items-stretch">
                                 <div className="flex items-start gap-4">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#625bd5] shadow-sm dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#4a4392] shadow-sm dark:bg-[#302e2a] dark:text-[#8d88e6]">
                                         <CreditCard size={22} />
                                     </div>
                                     <div>
@@ -494,9 +494,9 @@ const BillingDashboard: React.FC = () => {
                                     <div className="min-w-0 rounded-2xl border border-[#e9e1d6] bg-[#fffaf1] p-5 dark:border-[#37332d] dark:bg-[#262522]">
                                         <div className="flex items-center justify-between gap-3">
                                             <span className="text-[11px] font-black uppercase tracking-[0.14em] text-[#7d6e5e] dark:text-[#aaa39a]">Active plan</span>
-                                            <Shield className="h-4 w-4 shrink-0 text-[#625bd5]" />
+                                            <Shield className="h-4 w-4 shrink-0 text-[#4a4392]" />
                                         </div>
-                                        <div className="mt-3 break-words text-2xl font-black tracking-tight text-[#625bd5] dark:text-[#8d88e6]">{readablePlan}</div>
+                                        <div className="mt-3 break-words text-2xl font-black tracking-tight text-[#4a4392] dark:text-[#8d88e6]">{readablePlan}</div>
                                         <p className="mt-1 text-xs font-bold text-[#7d6e5e] dark:text-[#aaa39a]">
                                             {isFreeCurrentPlan ? 'Free subscription' : isCancellationScheduled ? 'Moving to Free at period end' : 'Monthly subscription'}
                                         </p>
@@ -581,7 +581,7 @@ const BillingDashboard: React.FC = () => {
                             </article>
                         ) : (
                             <article className="relative overflow-hidden rounded-3xl border border-[#252c40] bg-[#151a2b] p-6 text-white shadow-[0_18px_50px_rgba(21,26,43,0.18)] dark:border-[#37332d] md:p-7">
-                                <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#625bd5]/18 blur-3xl" />
+                                <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#4a4392]/18 blur-3xl" />
                                 <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                                     <div className="flex items-start gap-4">
                                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-300/15 text-amber-300">

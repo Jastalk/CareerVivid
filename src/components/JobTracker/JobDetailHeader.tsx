@@ -28,7 +28,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
 <header className="sticky top-0 z-20 flex-shrink-0 border-b border-[#e6dac8] bg-[#fffaf4]/95 p-4 backdrop-blur dark:border-gray-800 dark:bg-[#1f1f1d]/95 sm:p-5">
   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
     <div className="flex items-start gap-3 min-w-0">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-[#e7ddcf] bg-white text-[#625bd5] shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-[#aaa6ff]">
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border border-[#e7ddcf] bg-white text-[#4a4392] shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-[#aaa6ff]">
             <Briefcase size={22} />
         </div>
         <div className="min-w-0">
@@ -39,7 +39,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
                 {localJob.companyName || t('job_tracker.modal.company')}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-2.5 py-1 font-semibold text-[#625bd5] dark:border-[#4a456f] dark:bg-[#302e4c] dark:text-[#c8c5ff]">
+                <span className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-2.5 py-1 font-semibold text-[#4a4392] dark:border-[#4a456f] dark:bg-[#302e4c] dark:text-[#c8c5ff]">
                     {localJob.applicationStatus}
                 </span>
                 <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 font-semibold text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
@@ -57,7 +57,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
         <div className="relative">
             <button
                 onClick={() => setIsVoiceDropdownOpen(!isVoiceDropdownOpen)}
-                className={`rounded-lg p-2 transition-colors ${isVoiceDropdownOpen ? 'bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302e4c] dark:text-[#c8c5ff]' : 'text-gray-500 hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100'}`}
+                className={`rounded-lg p-2 transition-colors ${isVoiceDropdownOpen ? 'bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302e4c] dark:text-[#c8c5ff]' : 'text-gray-500 hover:bg-white hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-gray-100'}`}
                 title="Voice Settings"
             >
                 <Volume2 size={20} />
@@ -75,7 +75,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
                         <button
                             key={voice.voiceURI}
                             onClick={() => handleVoiceSelect(voice)}
-                            className={`w-full text-left px-2 py-1.5 text-sm rounded-lg truncate transition-colors flex justify-between items-center ${selectedVoice?.voiceURI === voice.voiceURI ? 'bg-[#f3f2ff] dark:bg-[#302e4c] text-[#625bd5] dark:text-[#c8c5ff] font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
+                            className={`w-full text-left px-2 py-1.5 text-sm rounded-lg truncate transition-colors flex justify-between items-center ${selectedVoice?.voiceURI === voice.voiceURI ? 'bg-[#f3f2ff] dark:bg-[#302e4c] text-[#4a4392] dark:text-[#c8c5ff] font-medium' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'}`}
                         >
                             <span className="truncate flex-1">{voice.name}</span>
                             <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">{voice.lang}</span>

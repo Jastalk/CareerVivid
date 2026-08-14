@@ -485,7 +485,7 @@ const InteractiveLessonPage: React.FC<InteractiveLessonPageProps> = ({ courseId,
                                     <ul className="mt-1.5 grid gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400 sm:grid-cols-2">
                                         {(exercise.whiteboardBrief?.requirements ?? []).map((requirement, requirementIndex) => (
                                             <li key={requirement} className="flex min-w-0 gap-1.5">
-                                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[10px] font-extrabold text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40">
+                                                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[10px] font-extrabold text-[#4a4392] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#4a4392]/40">
                                                     {requirementIndex + 1}
                                                 </span>
                                                 <span>{requirement}</span>

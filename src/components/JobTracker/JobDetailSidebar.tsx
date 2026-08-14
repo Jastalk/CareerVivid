@@ -143,7 +143,7 @@ return (
         <button
             onClick={handleAnalyzeMatch}
             disabled={isAnalyzing || !localJob.jobDescription}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#625bd5] px-4 py-2.5 font-semibold text-white shadow-[0_10px_20px_rgba(98,91,213,0.16)] transition-colors hover:bg-[#5750c8] disabled:bg-[#c8c5ff]"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#4a4392] px-4 py-2.5 font-semibold text-white shadow-[0_10px_20px_rgba(98,91,213,0.16)] transition-colors hover:bg-[#5750c8] disabled:bg-[#c8c5ff]"
         >
             {isAnalyzing ? <Loader2 className="animate-spin" /> : <Wand2 size={18} />}
             {isAnalyzing ? t('job_tracker.modal.analyzing') : t('job_tracker.modal.analyze_match')}
@@ -212,7 +212,7 @@ return (
                 </div>
                 <button
                     onClick={handleOptimizeResume}
-                    className="w-full bg-[#625bd5] text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-[#5750c8] transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-[#4a4392] text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-[#5750c8] transition-colors flex items-center justify-center gap-2"
                 >
                     {t('job_tracker.modal.optimize_resume')} <ArrowRight size={16} />
                 </button>
@@ -227,7 +227,7 @@ return (
                 handleGenerateAllPrepNotes();
             }}
             disabled={isGeneratingAll}
-            className={`w-full bg-[#625bd5] text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm hover:bg-[#5750c8] transition-colors flex items-center justify-center gap-2 disabled:bg-[#c8c5ff] ${shouldAnimateButton ? 'animate-gentle-pulse' : ''}`}
+            className={`w-full bg-[#4a4392] text-white font-semibold py-2.5 px-4 rounded-lg shadow-sm hover:bg-[#5750c8] transition-colors flex items-center justify-center gap-2 disabled:bg-[#c8c5ff] ${shouldAnimateButton ? 'animate-gentle-pulse' : ''}`}
         >
             {isGeneratingAll ? <Loader2 className="animate-spin" /> : <Wand2 size={18} />}
             {isGeneratingAll ? t('job_tracker.modal.generating') : t('job_tracker.modal.generate_prep')}

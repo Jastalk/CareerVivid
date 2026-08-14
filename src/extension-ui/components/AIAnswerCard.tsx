@@ -78,7 +78,7 @@ export const AIAnswerCard: React.FC<{ answer: AIAnswer; onInject: () => void }> 
                         className={`flex-shrink-0 flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg transition-all ${
                             answer.injected
                                 ? 'bg-green-100 text-green-600 cursor-default'
-                                : 'bg-[#625bd5] text-white hover:bg-[#5851c8] active:scale-95'
+                                : 'bg-[#4a4392] text-white hover:bg-[#5851c8] active:scale-95'
                         }`}
                     >
                         {answer.injected ? <CheckCheck size={11} /> : <Copy size={11} />}

@@ -20,15 +20,15 @@
     /* Muted text that still clears AA on the warm page background. */
     --cv-neutral-550: #5c6672;
     --cv-neutral-900: #111827;
-    --cv-purple-50: #f3f2ff;
-    --cv-purple-75: #eef0ff;
-    --cv-purple-100: #e5e7ff;
-    --cv-purple-200: #dfdcff;
-    --cv-purple-250: #dfe2ff;
-    --cv-purple-400: #8d88e6;
-    --cv-purple-500: #7069dc;
-    --cv-purple-600: #625bd5;
-    --cv-purple-700: #514ac5;
+    --cv-purple-50: #f4f3fb;
+    --cv-purple-75: #edecf9;
+    --cv-purple-100: #e4e2f3;
+    --cv-purple-200: #dad7ed;
+    --cv-purple-250: #dcdaef;
+    --cv-purple-400: #7d78c9;
+    --cv-purple-500: #5b5599;
+    --cv-purple-600: #4a4392;
+    --cv-purple-700: #37316f;
     --cv-amber-50: #fff7e8;
     --cv-amber-600: #a97935;
     --cv-amber-400: #caa26c;
@@ -71,15 +71,16 @@
      * the filled-button background so each can move independently.
      */
     --cv-action-primary: var(--cv-purple-600);
-    --cv-action-solid: var(--cv-purple-600);
-    --cv-action-primary-hover: var(--cv-purple-700);
+    /* The fill under white text — deeper than the accent on purpose. */
+    --cv-action-solid: #3c3768;
+    --cv-action-primary-hover: #2e2a52;
     --cv-action-soft-bg: var(--cv-purple-75);
     --cv-action-soft-hover: var(--cv-purple-100);
     --cv-action-soft-text: var(--cv-purple-600);
     --cv-action-soft-border: var(--cv-purple-250);
     --cv-focus-ring: rgba(98, 91, 213, 0.22);
     /* Solid companion to the soft ring: 22% alpha is a glow, not an indicator. */
-    --cv-focus-outline: #514ac5;
+    --cv-focus-outline: #37316f;
     --cv-grid-line-v: rgba(139, 90, 22, 0.07);
     --cv-grid-line-h: rgba(139, 90, 22, 0.06);
     /*

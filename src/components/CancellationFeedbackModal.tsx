@@ -53,7 +53,7 @@ const CancellationFeedbackModal: React.FC<CancellationFeedbackModalProps> = ({
             <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-[#e4d3bc] bg-white shadow-2xl dark:border-[#37332d] dark:bg-[#1f1f1d]">
                 <div className="border-b border-[#eee3d2] bg-[#fffaf1] p-6 dark:border-[#37332d] dark:bg-[#262522]">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                             <MessageSquare size={22} />
                         </div>
                         <div>
@@ -79,7 +79,7 @@ const CancellationFeedbackModal: React.FC<CancellationFeedbackModalProps> = ({
                                 onClick={() => setSelectedReason(reason)}
                                 className={`rounded-2xl border px-4 py-3 text-left text-sm font-black transition ${
                                     selectedReason === reason
-                                        ? 'border-[#625bd5] bg-[#eef0ff] text-[#211b16] ring-2 ring-[#625bd5]/15 dark:border-[#8d88e6] dark:bg-[#302e2a] dark:text-[#f4f1e9]'
+                                        ? 'border-[#4a4392] bg-[#eef0ff] text-[#211b16] ring-2 ring-[#4a4392]/15 dark:border-[#8d88e6] dark:bg-[#302e2a] dark:text-[#f4f1e9]'
                                         : 'border-[#e9e1d6] bg-white text-[#665a4a] hover:border-[#d8c6ad] hover:bg-[#fffaf1] dark:border-[#37332d] dark:bg-[#262522] dark:text-[#d7d0c6] dark:hover:bg-[#302e2a]'
                                 }`}
                             >

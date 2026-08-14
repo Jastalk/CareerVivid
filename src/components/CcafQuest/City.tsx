@@ -14,7 +14,7 @@ const seeded = (n: number) => {
 const BUILDING_COLORS = ['#e8e3d8', '#dcd5c6', '#cfc7b6', '#efeae1', '#d5cfc2'];
 /** Roofs start muted and turn brand-purple as a district gets completed. */
 const ROOF_DORMANT = ['#a8a396', '#9c978b', '#b2ada0'];
-const ROOF_LIT = ['#625bd5', '#7c74e0', '#8d88e6', '#5a52c9'];
+const ROOF_LIT = ['#4a4392', '#7c74e0', '#8d88e6', '#5a52c9'];
 
 interface Block {
     position: [number, number, number];

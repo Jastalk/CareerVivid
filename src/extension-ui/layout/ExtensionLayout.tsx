@@ -97,7 +97,7 @@ const ExtensionLayout: React.FC = () => {
         return (
             <div className={`${rootThemeClass} min-h-[520px] h-screen w-full bg-[#f8f8fb] flex items-center justify-center dark:bg-[#1f1f1d]`}>
                 <div className="mx-4 w-full max-w-[320px] rounded-[24px] border border-[#ececf4] bg-white p-5 text-center shadow-[0_16px_34px_rgba(15,23,42,0.08)] dark:border-[#3a3834] dark:bg-[#262522] dark:shadow-none">
-                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                         <div className="h-5 w-5 rounded-full border-2 border-current border-t-transparent animate-spin"></div>
                     </div>
                     <p className="mt-4 text-sm font-semibold text-slate-950 dark:text-[#f4f1e9]">Preparing your CareerVivid workspace...</p>

@@ -97,7 +97,7 @@ const AddJobEditForm: React.FC<AddJobEditFormProps> = ({
             <AddJobEditHeader jobTitle={jobTitle} companyName={companyName} onClose={onClose} />
             {initialJobData?.resumeTitle && (
                 <div className="border-b border-[#ececf4] bg-[#fbfbfe] px-6 py-3 text-xs font-semibold text-gray-600 dark:border-[#2e2b38] dark:bg-[#201e27] dark:text-gray-300 sm:px-8">
-                    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#d9d7fb] bg-white px-3 py-1.5 text-[#625bd5] dark:border-indigo-900/50 dark:bg-[#1a1820] dark:text-indigo-300">
+                    <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#d9d7fb] bg-white px-3 py-1.5 text-[#4a4392] dark:border-indigo-900/50 dark:bg-[#1a1820] dark:text-indigo-300">
                         <FileText size={13} className="shrink-0" />
                         <span className="truncate">Resume context: {initialJobData.resumeTitle}</span>
                     </span>

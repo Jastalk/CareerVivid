@@ -35,7 +35,7 @@ const ExtensionProfile: React.FC = () => {
 
     return (
         <div className="p-5 flex flex-col items-center justify-center h-[500px] text-center bg-[#f8f8fb] text-gray-500">
-            <div className="h-14 w-14 rounded-2xl bg-[#eef0ff] text-[#625bd5] flex items-center justify-center border border-[#e4e7ff] mb-4">
+            <div className="h-14 w-14 rounded-2xl bg-[#eef0ff] text-[#4a4392] flex items-center justify-center border border-[#e4e7ff] mb-4">
                 <User size={24} />
             </div>
             <h3 className="text-lg font-semibold text-gray-950">Profile</h3>

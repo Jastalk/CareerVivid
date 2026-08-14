@@ -44,7 +44,7 @@ const ExtensionThemeMenu: React.FC = () => {
                                 onClick={() => setTheme(option.value)}
                                 className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-colors ${
                                     isActive
-                                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#625bd5] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]'
+                                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#4a4392] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]'
                                         : 'border-transparent text-slate-400 hover:border-[#ececf4] hover:bg-[#f8f8fb] hover:text-slate-700 dark:text-[#aaa39a] dark:hover:border-[#3a3834] dark:hover:bg-[#302e2a] dark:hover:text-[#f4f1e9]'
                                 }`}
                                 title={option.label}

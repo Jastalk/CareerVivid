@@ -81,8 +81,7 @@ const QuestTape: React.FC = () => {
                             </div>
                             <a
                                 href={`/quest/${demo.slug}`}
-                                className="mt-auto inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-90"
-                                style={{ background: 'var(--cvl-purple)' }}
+                                className="cvl-cta mt-auto inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition hover:opacity-90"
                             >
                                 Open the {demo.company.split(' · ')[0]} quest <ArrowUpRight size={14} />
                             </a>

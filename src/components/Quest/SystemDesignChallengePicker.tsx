@@ -12,7 +12,7 @@ interface SystemDesignChallengePickerProps {
 }
 
 const CATEGORY_TONE: Record<SystemDesignPattern['category'], string> = {
-    'System Design': 'bg-[#eef0ff] text-[#625bd5] ring-[#dfe2ff] dark:bg-[#252244] dark:text-[#c9ccff] dark:ring-[#625bd5]/40',
+    'System Design': 'bg-[#eef0ff] text-[#4a4392] ring-[#dfe2ff] dark:bg-[#252244] dark:text-[#c9ccff] dark:ring-[#4a4392]/40',
     'Mobile System Design': 'bg-[#eef9f2] text-[#15803d] ring-[#cfe8d5] dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/60',
 };
 
@@ -66,7 +66,7 @@ const SystemDesignChallengePicker: React.FC<SystemDesignChallengePickerProps> = 
                                             <CheckCircle2 size={14} /> Cleared
                                         </span>
                                     ) : (
-                                        <ChevronRight size={15} className="shrink-0 text-gray-300 transition-colors group-hover:text-[#625bd5] dark:text-gray-600" />
+                                        <ChevronRight size={15} className="shrink-0 text-gray-300 transition-colors group-hover:text-[#4a4392] dark:text-gray-600" />
                                     )}
                                 </button>
                             </li>

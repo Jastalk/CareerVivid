@@ -262,7 +262,7 @@ export default function EmailPracticeSettings() {
         <section className="bg-white dark:bg-[#161b22] p-6 lg:p-8 rounded-2xl border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow duration-300">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#625bd5] dark:bg-primary-900/30 dark:text-primary-300">
+                    <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#4a4392] dark:bg-primary-900/30 dark:text-primary-300">
                         <Mail className="h-5 w-5" />
                     </div>
                     <div>
@@ -319,7 +319,7 @@ export default function EmailPracticeSettings() {
                                     onChange={event => setRowEnabled(row, event.target.checked)}
                                     className="sr-only peer"
                                 />
-                                <span className="h-6 w-11 rounded-full bg-gray-200 transition-colors peer-checked:bg-[#625bd5] peer-focus-visible:ring-2 peer-focus-visible:ring-[#625bd5]/40 dark:bg-gray-700" />
+                                <span className="h-6 w-11 rounded-full bg-gray-200 transition-colors peer-checked:bg-[#4a4392] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4a4392]/40 dark:bg-gray-700" />
                                 <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
                             </span>
                         </label>
@@ -333,7 +333,7 @@ export default function EmailPracticeSettings() {
                     <select
                         value={preferences.frequency}
                         onChange={event => setPreferences(prev => ({ ...prev, frequency: event.target.value as EmailPreferences['frequency'] }))}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#625bd5]/40 dark:border-gray-800 dark:bg-[#0a0c10] dark:text-gray-100"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4a4392]/40 dark:border-gray-800 dark:bg-[#0a0c10] dark:text-gray-100"
                     >
                         <option value="daily">Daily</option>
                         <option value="every_3_days">Every 3 days</option>
@@ -346,7 +346,7 @@ export default function EmailPracticeSettings() {
 
                 <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-xs leading-5 text-gray-600 dark:border-gray-800 dark:bg-[#0a0c10] dark:text-gray-400">
                     <div className="mb-1 flex items-center gap-1.5 font-bold text-gray-800 dark:text-gray-200">
-                        <ShieldCheck className="h-3.5 w-3.5 text-[#625bd5]" />
+                        <ShieldCheck className="h-3.5 w-3.5 text-[#4a4392]" />
                         Required emails
                     </div>
                     Billing, security, subscription, and account receipts remain enabled.
@@ -364,7 +364,7 @@ export default function EmailPracticeSettings() {
                                 value="smart"
                                 checked={preferences.topicSource !== 'manual'}
                                 onChange={() => setPreferences(prev => ({ ...prev, topicSource: 'smart' }))}
-                                className="mt-1 h-4 w-4 border-gray-300 text-[#625bd5] focus:ring-[#625bd5]"
+                                className="mt-1 h-4 w-4 border-gray-300 text-[#4a4392] focus:ring-[#4a4392]"
                             />
                             <span>
                                 <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">Smart recommendation</span>
@@ -378,7 +378,7 @@ export default function EmailPracticeSettings() {
                                 value="manual"
                                 checked={preferences.topicSource === 'manual'}
                                 onChange={() => setPreferences(prev => ({ ...prev, topicSource: 'manual' }))}
-                                className="mt-1 h-4 w-4 border-gray-300 text-[#625bd5] focus:ring-[#625bd5]"
+                                className="mt-1 h-4 w-4 border-gray-300 text-[#4a4392] focus:ring-[#4a4392]"
                             />
                             <span className="w-full">
                                 <span className="mb-2 block text-sm font-semibold text-gray-900 dark:text-gray-100">Choose a topic</span>
@@ -388,7 +388,7 @@ export default function EmailPracticeSettings() {
                                         value={preferences.manualTopic}
                                         onChange={event => setPreferences(prev => ({ ...prev, manualTopic: event.target.value }))}
                                         placeholder="e.g., Senior Software Engineer behavioral questions"
-                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#625bd5]/40 dark:border-gray-800 dark:bg-[#0a0c10] dark:text-gray-100"
+                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#4a4392]/40 dark:border-gray-800 dark:bg-[#0a0c10] dark:text-gray-100"
                                     />
                                 )}
                             </span>
@@ -418,7 +418,7 @@ export default function EmailPracticeSettings() {
                     type="button"
                     onClick={handleSave}
                     disabled={saving}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#625bd5] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#514abf] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4a4392] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#514abf] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     Save preferences

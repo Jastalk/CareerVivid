@@ -29,7 +29,7 @@ export async function celebrateTourFinish(): Promise<void> {
             gravity: 0.9,
             scalar: 0.9,
             ticks: 160,
-            colors: ['#625bd5', '#8b7cf6', '#e2b93d', '#34d399', '#ffffff'],
+            colors: ['#4a4392', '#8b7cf6', '#e2b93d', '#34d399', '#ffffff'],
             disableForReducedMotion: true,
         };
 

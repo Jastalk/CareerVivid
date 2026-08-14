@@ -14,7 +14,7 @@ export const EditableField: React.FC<{ label: string; value: string; onChange: (
                         href={value}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[11px] font-semibold text-[#625bd5] hover:text-[#4f46b5] dark:text-[#aaa6ff] dark:hover:text-[#c8c5ff] flex items-center gap-1 transition-colors"
+                        className="text-[11px] font-semibold text-[#4a4392] hover:text-[#4f46b5] dark:text-[#aaa6ff] dark:hover:text-[#c8c5ff] flex items-center gap-1 transition-colors"
                     >
                         <span>Open URL</span>
                         <ExternalLink size={12} />

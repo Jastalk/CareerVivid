@@ -141,7 +141,7 @@ export const QuestCelebration: React.FC<QuestCelebrationProps> = ({ celebration,
                 >
                     {/* Screen flash */}
                     <motion.div
-                        className="absolute inset-0 bg-gradient-to-b from-[#625bd5]/45 to-transparent"
+                        className="absolute inset-0 bg-gradient-to-b from-[#4a4392]/45 to-transparent"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 0.9, 0] }}
                         transition={{ duration: 1.1, times: [0, 0.2, 1] }}
@@ -153,7 +153,7 @@ export const QuestCelebration: React.FC<QuestCelebrationProps> = ({ celebration,
                         transition={{ duration: 0.6, ease: 'backOut' }}
                     >
                         <motion.span
-                            className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#625bd5] to-[#7c74e0] shadow-2xl"
+                            className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-[#4a4392] to-[#7c74e0] shadow-2xl"
                             animate={{ rotate: [0, -8, 8, 0] }}
                             transition={{ duration: 0.7, delay: 0.2 }}
                         >

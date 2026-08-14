@@ -17,7 +17,7 @@ const ToolButton: React.FC<{
         aria-label={label}
         aria-pressed={active}
         className={`rounded-full p-2.5 backdrop-blur-sm transition-colors ${
-            active === true ? 'bg-[#625bd5] text-white'
+            active === true ? 'bg-[#4a4392] text-white'
                 : active === false ? 'bg-[#171411]/85 text-white/30 hover:text-white/60'
                     : 'bg-[#171411]/85 text-white/70 hover:text-white'
         }`}

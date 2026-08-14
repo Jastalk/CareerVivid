@@ -31,7 +31,7 @@ const WORKSPACE_STEPS = [
         title: 'Save jobs',
         description: 'Keep roles organized with the job context attached.',
         icon: Briefcase,
-        iconClassName: 'bg-[#eef0ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]',
+        iconClassName: 'bg-[#eef0ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]',
     },
     {
         title: 'Tailor resume',
@@ -75,7 +75,7 @@ const ExtensionThemeMenu: React.FC = () => {
                                 onClick={() => setTheme(option.value)}
                                 className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d88e6] ${
                                     isActive
-                                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#625bd5] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]'
+                                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#4a4392] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]'
                                         : 'border-transparent text-slate-400 hover:border-[#ececf4] hover:bg-[#f8f8fb] hover:text-slate-700 dark:text-[#aaa39a] dark:hover:border-[#3a3834] dark:hover:bg-[#302e2a] dark:hover:text-[#f4f1e9]'
                                 }`}
                                 title={option.label}
@@ -177,7 +177,7 @@ const ExtensionLogin: React.FC = () => {
                     <div className="mt-4 space-y-2.5">
                         <button
                             onClick={() => openAuthPage('signin')}
-                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#625bd5] px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-colors hover:bg-[#5851c8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d88e6] focus-visible:ring-offset-2 focus-visible:ring-offset-white active:translate-y-px dark:bg-[#8d88e6] dark:text-[#111827] dark:shadow-none dark:hover:bg-[#a19df0] dark:focus-visible:ring-offset-[#262522]"
+                            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4a4392] px-4 py-3 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-colors hover:bg-[#5851c8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d88e6] focus-visible:ring-offset-2 focus-visible:ring-offset-white active:translate-y-px dark:bg-[#8d88e6] dark:text-[#111827] dark:shadow-none dark:hover:bg-[#a19df0] dark:focus-visible:ring-offset-[#262522]"
                         >
                             <LogIn size={15} />
                             Sign in
@@ -195,7 +195,7 @@ const ExtensionLogin: React.FC = () => {
 
                 <section className="rounded-[20px] border border-[#e6dac8] bg-[#fffaf1] p-3 dark:border-[#4b4235] dark:bg-[#262522]">
                     <div className="flex items-start gap-2.5">
-                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                             <Sparkles size={14} />
                         </span>
                         <div>
@@ -212,7 +212,7 @@ const ExtensionLogin: React.FC = () => {
                 <button
                     type="button"
                     onClick={() => openWebPage('/terms')}
-                    className="text-[10px] font-medium text-slate-400 transition-colors hover:text-[#625bd5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d88e6] dark:text-[#8e887f] dark:hover:text-[#b8b3ff]"
+                    className="text-[10px] font-medium text-slate-400 transition-colors hover:text-[#4a4392] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8d88e6] dark:text-[#8e887f] dark:hover:text-[#b8b3ff]"
                 >
                     By continuing, you agree to our Terms of Service
                 </button>

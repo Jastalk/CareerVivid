@@ -70,7 +70,7 @@ const platformCards = [
         icon: Smartphone,
         action: 'iOS coming soon',
         href: '/signup',
-        tone: 'bg-[#f3f2ff] text-[#625bd5] border-[#dfdcff]',
+        tone: 'bg-[#f3f2ff] text-[#4a4392] border-[#dfdcff]',
         external: false,
     },
     {
@@ -115,7 +115,7 @@ const fastStartActions = [
         copy: 'Start from a PDF or DOCX, then turn it into editable resume sections.',
         action: 'Upload resume',
         href: '/newresume',
-        tone: 'bg-[#f3f2ff] text-[#625bd5] border-[#dfdcff]',
+        tone: 'bg-[#f3f2ff] text-[#4a4392] border-[#dfdcff]',
     },
     {
         key: 'paste',
@@ -139,7 +139,7 @@ const fastStartActions = [
 ];
 
 const readinessChecks = [
-    ['ats_keywords', 'ATS keywords', 86, 'Keyword coverage from the target role', 'bg-[#625bd5]'],
+    ['ats_keywords', 'ATS keywords', 86, 'Keyword coverage from the target role', 'bg-[#4a4392]'],
     ['experience_proof', 'Experience proof', 72, 'Specific projects and measurable outcomes', 'bg-[#15803d]'],
     ['interview_readiness', 'Interview readiness', 64, 'Practice prompts tied to the saved job', 'bg-[#d97706]'],
 ];
@@ -211,7 +211,7 @@ const userStories = [
         name: 'Maya, product analyst',
         avatar: 'M',
         avatarSrc: '/avatars/persona-maya.jpg',
-        avatarTone: 'bg-[#f3f2ff] text-[#625bd5] border-[#e8e6ff]',
+        avatarTone: 'bg-[#f3f2ff] text-[#4a4392] border-[#e8e6ff]',
         quote: 'I need to know which applications deserve a tailored resume today, not just collect another list of jobs.',
         outcome: 'Prioritized job cards with match gaps and next steps.',
     },
@@ -395,7 +395,7 @@ export const ProductIndex = () => (
                     onClick={() => navigate(href)}
                     className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:-translate-y-0.5 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
                 >
-                    <Icon size={16} className="text-[#625bd5] dark:text-[#a9a5ff]" />
+                    <Icon size={16} className="text-[#4a4392] dark:text-[#a9a5ff]" />
                     <LocalizedCopy path={`landing.public.product_index.${key}`} fallback={label} />
                 </button>
             ))}
@@ -470,7 +470,7 @@ export const DemoVideoSection = () => (
         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:px-8">
             <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/90 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
-                    <PlayCircle size={15} className="text-[#625bd5]" />
+                    <PlayCircle size={15} className="text-[#4a4392]" />
                     <LocalizedCopy path="landing.public.demo.eyebrow" fallback="Product walkthrough" />
                 </div>
                 <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#211b16] sm:text-4xl">
@@ -542,7 +542,7 @@ export const ResumeReadinessSection = () => (
                             <LocalizedCopy path="landing.public.readiness.title" fallback="Show users what improves before they apply." />
                         </h2>
                     </div>
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full border-[10px] border-[#f0e5d5] border-t-[#625bd5] bg-white text-center shadow-sm">
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full border-[10px] border-[#f0e5d5] border-t-[#4a4392] bg-white text-center shadow-sm">
                         <div>
                             <p className="text-3xl font-bold text-[#211b16]">75</p>
                             <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#665a4a]">
@@ -563,7 +563,7 @@ export const ResumeReadinessSection = () => (
                                         <LocalizedCopy path={`landing.public.readiness.checks.${key}.copy`} fallback={copy as string} />
                                     </p>
                                 </div>
-                                <span className="rounded-full bg-[#f3f2ff] px-3 py-1 text-sm font-bold text-[#625bd5]">{value as number}%</span>
+                                <span className="rounded-full bg-[#f3f2ff] px-3 py-1 text-sm font-bold text-[#4a4392]">{value as number}%</span>
                             </div>
                             <div className="h-2.5 overflow-hidden rounded-full bg-[#eee5d7]">
                                 <div className={`h-full rounded-full ${tone as string}`} style={{ width: `${value}%` }} />
@@ -575,7 +575,7 @@ export const ResumeReadinessSection = () => (
 
             <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/90 px-3 py-2 text-xs font-bold text-[#8a6027] shadow-sm">
-                    <Gauge size={15} className="text-[#625bd5]" />
+                    <Gauge size={15} className="text-[#4a4392]" />
                     <LocalizedCopy path="landing.public.readiness.side_eyebrow" fallback="ATS checker + interview prep" />
                 </div>
                 <h2 className="mt-4 text-4xl font-semibold tracking-tight text-[#211b16] sm:text-5xl">
@@ -646,7 +646,7 @@ export const ResumeExamplesSection = () => (
                                     <LocalizedCopy path="landing.public.resume_examples.preview_role" fallback="Frontend Engineer" />
                                 </p>
                             </div>
-                            <span className="rounded-full bg-[#f3f2ff] px-3 py-1 text-xs font-bold text-[#625bd5]">
+                            <span className="rounded-full bg-[#f3f2ff] px-3 py-1 text-xs font-bold text-[#4a4392]">
                                 <LocalizedCopy path="landing.public.resume_examples.ats_ready" fallback="ATS ready" />
                             </span>
                         </div>
@@ -697,7 +697,7 @@ export const ResumeExamplesSection = () => (
                 <div className="grid gap-4 sm:grid-cols-2">
                     {resumeExamples.map(({ key, title, copy, tags }) => (
                         <article key={title} className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/90 p-5 shadow-sm">
-                            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#625bd5]">
+                            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#4a4392]">
                                 <FileText size={21} />
                             </div>
                             <h3 className="text-xl font-semibold text-[#211b16]">
@@ -977,7 +977,7 @@ export const PricingPreviewSection = () => (
                             // text-[#211b16] children were lightened by the same
                             // sweep — pale text on a pale card, contrast 1.02:1.
                             featured
-                                ? 'border-[#625bd5] bg-[#f3f2ff]/90 dark:bg-[#2b2740]/90 shadow-[#625bd5]/10'
+                                ? 'border-[#4a4392] bg-[#f3f2ff]/90 dark:bg-[#2b2740]/90 shadow-[#4a4392]/10'
                                 : 'border-[#e4d3bc] bg-[#fffaf1]/90 shadow-[#8b5a16]/5'
                         }`}
                     >
@@ -991,7 +991,7 @@ export const PricingPreviewSection = () => (
                                 </p>
                             </div>
                             {featured && (
-                                <span className="rounded-full bg-[#625bd5] px-3 py-1 text-xs font-bold text-white">
+                                <span className="rounded-full bg-[#4a4392] px-3 py-1 text-xs font-bold text-white">
                                     <LocalizedCopy path="landing.public.pricing.popular" fallback="Popular" />
                                 </span>
                             )}
@@ -1012,7 +1012,7 @@ export const PricingPreviewSection = () => (
                             onClick={() => navigate(href)}
                             className={`mt-7 inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-semibold ${
                                 featured
-                                    ? 'bg-[#625bd5] text-white shadow-lg shadow-[#625bd5]/20'
+                                    ? 'bg-[#4a4392] text-white shadow-lg shadow-[#4a4392]/20'
                                     : 'border border-[#d8c6ad] bg-[#fffaf1] text-[#211b16]'
                             }`}
                         >

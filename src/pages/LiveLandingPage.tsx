@@ -53,8 +53,7 @@ const FeatureRow: React.FC<{
                     </ul>
                     <a
                         href={href}
-                        className="mt-7 inline-flex items-center gap-1.5 rounded-xl px-5 py-3 text-[14px] font-semibold text-white transition hover:opacity-90"
-                        style={{ background: 'var(--cvl-purple)' }}
+                        className="cvl-cta mt-7 inline-flex items-center gap-1.5 rounded-xl px-5 py-3 text-[14px] font-semibold transition hover:opacity-90"
                     >
                         {cta} <ArrowRight size={15} />
                     </a>
@@ -245,9 +244,9 @@ const LiveLandingPage: React.FC = () => (
                             </ul>
                             <a
                                 href={plan.href}
-                                className="mt-6 inline-flex items-center justify-center gap-1.5 rounded-xl border px-4 py-3 text-[14px] font-semibold transition hover:opacity-90"
+                                className={`mt-6 inline-flex items-center justify-center gap-1.5 rounded-xl border px-4 py-3 text-[14px] font-semibold transition hover:opacity-90 ${plan.featured ? 'cvl-cta' : ''}`}
                                 style={plan.featured
-                                    ? { background: 'var(--cvl-purple)', borderColor: 'var(--cvl-purple)', color: '#fff' }
+                                    ? { borderColor: 'transparent' }
                                     : { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-ink)' }}
                             >
                                 {plan.cta}
@@ -272,8 +271,7 @@ const LiveLandingPage: React.FC = () => (
                 <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                     <a
                         href="/signup"
-                        className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-90"
-                        style={{ background: 'var(--cvl-purple)' }}
+                        className="cvl-cta inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-semibold transition hover:opacity-90"
                     >
                         Start free <ArrowRight size={16} />
                     </a>

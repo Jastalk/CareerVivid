@@ -619,8 +619,8 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
     };
 
     const GUIDE_AVATAR_TONES = [
-        'bg-[#f3f2ff] text-[#625bd5] ring-[#dfdcff]',
-        'bg-[#eef0ff] text-[#7069dc] ring-[#dfe2ff]',
+        'bg-[#f3f2ff] text-[#4a4392] ring-[#dfdcff]',
+        'bg-[#eef0ff] text-[#5b5599] ring-[#dfe2ff]',
         'bg-[#f7f1ff] text-[#7c5fd6] ring-[#eadfff]',
         'bg-[#f5f7ff] text-[#5c62d6] ring-[#e0e5ff]',
     ];

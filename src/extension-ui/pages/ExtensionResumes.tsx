@@ -69,7 +69,7 @@ const ExtensionResumes: React.FC = () => {
             <div className="p-4 space-y-2">
                 {isLoading && (
                     <div className="flex justify-center py-8">
-                        <Loader2 size={20} className="animate-spin text-[#625bd5]" />
+                        <Loader2 size={20} className="animate-spin text-[#4a4392]" />
                     </div>
                 )}
 
@@ -78,7 +78,7 @@ const ExtensionResumes: React.FC = () => {
                         <p className="text-sm text-gray-400">No resumes found.</p>
                         <button
                             onClick={() => window.open(getAppUrl('/newresume'), '_blank')}
-                            className="mt-3 text-sm font-semibold text-[#625bd5] hover:underline"
+                            className="mt-3 text-sm font-semibold text-[#4a4392] hover:underline"
                         >
                             Create your first resume →
                         </button>
@@ -102,7 +102,7 @@ const ExtensionResumes: React.FC = () => {
                             }`}
                         >
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                                isSelected ? 'bg-[#e9e8ff] text-[#625bd5]' : 'bg-[#f4f5f8] text-gray-400'
+                                isSelected ? 'bg-[#e9e8ff] text-[#4a4392]' : 'bg-[#f4f5f8] text-gray-400'
                             }`}>
                                 <FileText size={16} />
                             </div>
@@ -112,7 +112,7 @@ const ExtensionResumes: React.FC = () => {
                                     {resume.title || 'Untitled Resume'}
                                 </div>
                                 {isSelected && (
-                                    <div className="text-[10px] text-[#625bd5] font-semibold mt-0.5">
+                                    <div className="text-[10px] text-[#4a4392] font-semibold mt-0.5">
                                         Active resume
                                     </div>
                                 )}
@@ -120,9 +120,9 @@ const ExtensionResumes: React.FC = () => {
 
                             <div className="flex-shrink-0">
                                 {isSyncing ? (
-                                    <Loader2 size={16} className="animate-spin text-[#625bd5]" />
+                                    <Loader2 size={16} className="animate-spin text-[#4a4392]" />
                                 ) : isSelected ? (
-                                    <div className="h-5 w-5 rounded-full bg-[#625bd5] flex items-center justify-center">
+                                    <div className="h-5 w-5 rounded-full bg-[#4a4392] flex items-center justify-center">
                                         <Check size={11} className="text-white" />
                                     </div>
                                 ) : (

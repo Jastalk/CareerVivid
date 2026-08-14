@@ -103,7 +103,7 @@ const PipelineControls: React.FC<PipelineControlsProps> = ({
                                     key={mode}
                                     onClick={() => setViewMode(mode)}
                                     className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === mode
-                                        ? 'bg-white text-[#625bd5] shadow-sm dark:bg-gray-800 dark:text-[#c8c5ff]'
+                                        ? 'bg-white text-[#4a4392] shadow-sm dark:bg-gray-800 dark:text-[#c8c5ff]'
                                         : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
                                     }`}
                                 >
@@ -129,8 +129,8 @@ const PipelineControls: React.FC<PipelineControlsProps> = ({
                     type="button"
                     onClick={() => setStatusFilter('All')}
                     className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-xs font-bold transition ${statusFilter === 'All'
-                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#625bd5]'
-                        : 'border-[#e6e2dc] bg-[#fbfbfe] text-gray-600 hover:border-[#d9d7fb] hover:text-[#625bd5] dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300'
+                        ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#4a4392]'
+                        : 'border-[#e6e2dc] bg-[#fbfbfe] text-gray-600 hover:border-[#d9d7fb] hover:text-[#4a4392] dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300'
                     }`}
                 >
                     <span>All</span>
@@ -144,8 +144,8 @@ const PipelineControls: React.FC<PipelineControlsProps> = ({
                             type="button"
                             onClick={() => setStatusFilter(status)}
                             className={`inline-flex h-8 shrink-0 items-center gap-2 rounded-full border px-3 text-xs font-bold transition ${isActive
-                                ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#625bd5]'
-                                : 'border-[#e6e2dc] bg-[#fbfbfe] text-gray-600 hover:border-[#d9d7fb] hover:text-[#625bd5] dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300'
+                                ? 'border-[#c8c7f4] bg-[#f3f2ff] text-[#4a4392]'
+                                : 'border-[#e6e2dc] bg-[#fbfbfe] text-gray-600 hover:border-[#d9d7fb] hover:text-[#4a4392] dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300'
                             }`}
                         >
                             <span className={`h-2 w-2 rounded-full ${statusDotClass(status)}`} />

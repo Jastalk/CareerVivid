@@ -38,7 +38,7 @@ const makeResume = (overrides: Partial<ResumeData> = {}): ResumeData => ({
     }],
     education: [],
     languages: [],
-    themeColor: '#625bd5',
+    themeColor: '#4a4392',
     titleFont: 'Inter',
     bodyFont: 'Inter',
     language: 'en',

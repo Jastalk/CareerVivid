@@ -55,8 +55,8 @@ const planToneClasses = {
         card: 'border-[#cbd9f4] bg-white shadow-[0_18px_55px_rgba(74,90,140,0.12)]',
         chip: 'border-[#dbe7ff] bg-[#eef4ff] text-[#315da7]',
         icon: 'bg-[#eef4ff] text-[#315da7]',
-        button: 'bg-[#625bd5] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
-        check: 'text-[#625bd5]',
+        button: 'bg-[#4a4392] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
+        check: 'text-[#4a4392]',
     },
     slate: {
         card: 'border-[#ccd4df] bg-[#fbfcff]',
@@ -371,7 +371,7 @@ const PricingPage: React.FC = () => {
                             </p>
                         </article>
                         <article className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-6 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef0ff] text-[#625bd5] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
                                 <Clock size={22} />
                             </div>
                             <h2 className="mt-5 text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Credits reset monthly</h2>

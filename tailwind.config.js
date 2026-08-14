@@ -9,20 +9,20 @@ export default {
         extend: {
             colors: {
                 "primary": {
-                    DEFAULT: "#625bd5",
+                    DEFAULT: "#4a4392",
                     50: "#EEF2FF",
                     100: "#E0E7FF",
                     200: "#C7D2FE",
                     300: "#A5B4FC",
-                    400: "#818CF8",
-                    500: "#7069DC",
-                    600: "#625BD5",
-                    700: "#5146C7",
+                    400: "#7D78C9",
+                    500: "#5B5599",
+                    600: "#4A4392",
+                    700: "#37316F",
                     800: "#4338A8",
                     900: "#312E81",
                     950: "#1E1B4B",
-                    dark: "#5146C7",
-                    light: "#818CF8",
+                    dark: "#37316F",
+                    light: "#7D78C9",
                 },
                 "promax": {
                     start: "#4f46e5", // Indigo

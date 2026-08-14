@@ -28,7 +28,7 @@ export const AgentActivityIndicator: React.FC<{ activity: AgentActivity }> = ({ 
             aria-label={`${copy.title} ${copy.detail}`}
             className="inline-flex max-w-full items-center gap-2.5 rounded-xl border border-[#dfe2ff] bg-[#f3f2ff] px-3 py-2 text-left shadow-sm dark:border-[#484273] dark:bg-[#312d6b]/35"
         >
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#1a1730] dark:text-[#b8b4ff] dark:ring-[#484273]">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white text-[#4a4392] ring-1 ring-[#dfe2ff] dark:bg-[#1a1730] dark:text-[#b8b4ff] dark:ring-[#484273]">
                 <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
             </span>
             <span className="min-w-0">
@@ -39,7 +39,7 @@ export const AgentActivityIndicator: React.FC<{ activity: AgentActivity }> = ({ 
                 {[0, 150, 300].map((delay) => (
                     <span
                         key={delay}
-                        className="h-1 w-1 animate-bounce rounded-full bg-[#625bd5] motion-reduce:animate-none dark:bg-[#9b96ef]"
+                        className="h-1 w-1 animate-bounce rounded-full bg-[#4a4392] motion-reduce:animate-none dark:bg-[#9b96ef]"
                         style={{ animationDelay: `${delay}ms` }}
                     />
                 ))}

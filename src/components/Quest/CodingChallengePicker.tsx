@@ -67,7 +67,7 @@ const CodingChallengePicker: React.FC<CodingChallengePickerProps> = ({ pool, sol
                                             <CheckCircle2 size={14} /> Solved
                                         </span>
                                     ) : (
-                                        <ChevronRight size={15} className="shrink-0 text-gray-300 transition-colors group-hover:text-[#625bd5] dark:text-gray-600" />
+                                        <ChevronRight size={15} className="shrink-0 text-gray-300 transition-colors group-hover:text-[#4a4392] dark:text-gray-600" />
                                     )}
                                 </button>
                             </li>

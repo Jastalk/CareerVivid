@@ -140,8 +140,7 @@ const DeskHero: React.FC = () => {
                     </span>
                     <a
                         href="/interview-studio"
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold text-white transition hover:opacity-90"
-                        style={{ background: 'var(--cvl-purple)' }}
+                        className="cvl-cta inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold transition hover:opacity-90"
                     >
                         Start a quest <ArrowRight size={14} />
                     </a>

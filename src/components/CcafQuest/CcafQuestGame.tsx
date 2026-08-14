@@ -400,7 +400,7 @@ export const CcafQuestGame: React.FC<CcafQuestGameProps> = ({ focusMissionId = n
                         <button
                             type="button"
                             onClick={() => controls.onInteract.current?.()}
-                            className="pointer-events-auto rounded-full bg-[#625bd5] px-6 py-3 text-sm font-bold text-white shadow-xl transition-transform active:scale-95"
+                            className="pointer-events-auto rounded-full bg-[#4a4392] px-6 py-3 text-sm font-bold text-white shadow-xl transition-transform active:scale-95"
                         >
                             {t('ccaf_quest.accept')}: {localize(nearbyMission.name)}
                             <span className="ml-2 hidden rounded bg-white/25 px-1.5 py-0.5 text-[11px] md:inline">E</span>

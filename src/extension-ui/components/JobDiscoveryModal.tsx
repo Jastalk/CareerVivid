@@ -27,7 +27,7 @@ const routeIcons: Record<JobBoardRoute['id'], React.ElementType> = {
 
 const routeAccentClasses: Record<JobBoardRoute['id'], string> = {
     linkedin: 'bg-[#eef5ff] text-[#2563eb] dark:bg-[#1d2a42] dark:text-[#93c5fd]',
-    indeed: 'bg-[#eef0ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]',
+    indeed: 'bg-[#eef0ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]',
     handshake: 'bg-[#fff7ed] text-[#a16207] dark:bg-[#332a1f] dark:text-[#facc15]',
     builtin: 'bg-[#ecfdf5] text-[#047857] dark:bg-[#123126] dark:text-[#86efac]',
 };
@@ -52,7 +52,7 @@ export const JobDiscoveryModal: React.FC<JobDiscoveryModalProps> = ({
                 <div className="flex items-start justify-between gap-3 border-b border-[#efe5d6] px-4 py-4 dark:border-[#3a3834]">
                     <div className="min-w-0">
                         <div className="inline-flex items-center gap-1.5 rounded-full border border-[#e6dac8] bg-white px-2.5 py-1 text-[10px] font-semibold text-[#665a4a] dark:border-[#3a3834] dark:bg-[#262522] dark:text-[#c9c3ba]">
-                            <Sparkles size={12} className="text-[#625bd5] dark:text-[#b8b3ff]" />
+                            <Sparkles size={12} className="text-[#4a4392] dark:text-[#b8b3ff]" />
                             Resume-powered search
                         </div>
                         <h2 id="job-discovery-title" className="mt-2 text-lg font-semibold leading-tight text-[#211b16] dark:text-[#f4f1e9]">
@@ -116,7 +116,7 @@ export const JobDiscoveryModal: React.FC<JobDiscoveryModalProps> = ({
                                             {route.description}
                                         </span>
                                     </span>
-                                    <ExternalLink size={14} className="flex-shrink-0 text-[#9ca3af] transition-colors group-hover:text-[#625bd5] dark:text-[#6d675f] dark:group-hover:text-[#b8b3ff]" />
+                                    <ExternalLink size={14} className="flex-shrink-0 text-[#9ca3af] transition-colors group-hover:text-[#4a4392] dark:text-[#6d675f] dark:group-hover:text-[#b8b3ff]" />
                                 </a>
                             );
                         })}

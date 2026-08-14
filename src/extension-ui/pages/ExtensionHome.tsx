@@ -65,7 +65,7 @@ const WORKSPACE_HANDOFF_COPY: Record<WorkspaceActionId, {
         description: 'Logging this role to your pipeline before opening the tracker.',
         step: 'Syncing job record',
         icon: Briefcase,
-        iconClassName: 'bg-[#eef0ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]',
+        iconClassName: 'bg-[#eef0ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]',
     },
     tailor_resume: {
         title: 'Opening resume workspace',
@@ -86,7 +86,7 @@ const WORKSPACE_HANDOFF_COPY: Record<WorkspaceActionId, {
         description: 'Carrying the job context into your application workspace.',
         step: 'Drafting handoff',
         icon: Mail,
-        iconClassName: 'bg-[#f3f2ff] text-[#7069dc] dark:bg-[#302f49] dark:text-[#b8b3ff]',
+        iconClassName: 'bg-[#f3f2ff] text-[#5b5599] dark:bg-[#302f49] dark:text-[#b8b3ff]',
     },
 };
 
@@ -102,14 +102,14 @@ const WorkspaceHandoffCard: React.FC<{ action: WorkspaceActionId | null; jobTitl
             <div className="flex items-start gap-3">
                 <span className={`relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl ${config.iconClassName}`}>
                     <Icon size={16} />
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#625bd5] shadow-sm dark:bg-[#1f1f1d] dark:text-[#b8b3ff]">
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[#4a4392] shadow-sm dark:bg-[#1f1f1d] dark:text-[#b8b3ff]">
                         <Loader2 size={10} className="animate-spin" />
                     </span>
                 </span>
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-slate-950 dark:text-[#f4f1e9]">{config.title}</p>
-                        <span className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-2 py-1 text-[9px] font-semibold text-[#625bd5] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                        <span className="rounded-full border border-[#d9d7fb] bg-[#f3f2ff] px-2 py-1 text-[9px] font-semibold text-[#4a4392] dark:border-[#4d4a73] dark:bg-[#302f49] dark:text-[#b8b3ff]">
                             Working
                         </span>
                     </div>
@@ -134,7 +134,7 @@ const WorkspaceHandoffCard: React.FC<{ action: WorkspaceActionId | null; jobTitl
                         key={label}
                         className={`rounded-2xl px-2 py-2 text-center text-[9px] font-semibold ${
                             index === 1
-                                ? 'bg-[#f3f2ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]'
+                                ? 'bg-[#f3f2ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]'
                                 : 'bg-[#f8f8fb] text-slate-400 dark:bg-[#1f1f1d] dark:text-[#8e887f]'
                         }`}
                     >
@@ -1478,7 +1478,7 @@ const ExtensionHome: React.FC = () => {
     if (!isAuthResolved || authLoading) {
         return (
             <div className="min-h-[540px] h-screen w-full bg-[#f8f8fb] flex flex-col items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#625bd5] flex items-center justify-center shadow-[0_10px_20px_rgba(98,91,213,0.16)]">
+                <div className="w-10 h-10 rounded-2xl bg-[#4a4392] flex items-center justify-center shadow-[0_10px_20px_rgba(98,91,213,0.16)]">
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
                 <p className="text-xs font-semibold text-gray-400">Loading CareerVivid...</p>
@@ -1492,7 +1492,7 @@ const ExtensionHome: React.FC = () => {
             <div className="min-h-[540px] h-screen w-full bg-[#f8f8fb] flex flex-col font-sans text-gray-900 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
                 <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
                     {/* Logo mark */}
-                    <div className="w-14 h-14 rounded-2xl bg-[#625bd5] flex items-center justify-center shadow-[0_14px_28px_rgba(98,91,213,0.18)] mb-5">
+                    <div className="w-14 h-14 rounded-2xl bg-[#4a4392] flex items-center justify-center shadow-[0_14px_28px_rgba(98,91,213,0.18)] mb-5">
                         <Wand2 className="w-7 h-7 text-white" />
                     </div>
 
@@ -1511,7 +1511,7 @@ const ExtensionHome: React.FC = () => {
                             { icon: MessageSquareText, text: 'Support for application questions' },
                         ].map(({ icon: Icon, text }) => (
                             <div key={text} className="flex items-center gap-2.5 bg-white rounded-2xl px-3 py-2.5 border border-[#ececf4] shadow-sm dark:border-[#3a3834] dark:bg-[#262522] dark:shadow-none">
-                                <span className="h-6 w-6 rounded-xl bg-[#eef0ff] text-[#625bd5] flex items-center justify-center flex-shrink-0 dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                                <span className="h-6 w-6 rounded-xl bg-[#eef0ff] text-[#4a4392] flex items-center justify-center flex-shrink-0 dark:bg-[#302f49] dark:text-[#b8b3ff]">
                                     <Icon size={12} />
                                 </span>
                                 <span className="text-[11px] font-semibold text-gray-700 dark:text-[#f4f1e9]">{text}</span>
@@ -1523,7 +1523,7 @@ const ExtensionHome: React.FC = () => {
                     <div className="mt-6 w-full max-w-[260px] space-y-2.5">
                         <button
                             onClick={() => window.open(getAppUrl('/login'), '_blank')}
-                            className="w-full py-3 rounded-2xl bg-[#625bd5] hover:bg-[#5851c8] text-white font-semibold text-sm shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            className="w-full py-3 rounded-2xl bg-[#4a4392] hover:bg-[#5851c8] text-white font-semibold text-sm shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-all hover:scale-[1.01] active:scale-[0.99]"
                         >
                             Sign in to CareerVivid
                         </button>
@@ -1549,7 +1549,7 @@ const ExtensionHome: React.FC = () => {
             <div className="min-h-[540px] h-screen w-full bg-[#f8f8fb] flex flex-col font-sans text-gray-900 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
                 <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
                     {/* Icon */}
-                    <div className="w-14 h-14 rounded-2xl bg-[#625bd5] flex items-center justify-center shadow-[0_14px_28px_rgba(98,91,213,0.18)] mb-5">
+                    <div className="w-14 h-14 rounded-2xl bg-[#4a4392] flex items-center justify-center shadow-[0_14px_28px_rgba(98,91,213,0.18)] mb-5">
                         <FileText className="w-7 h-7 text-white" />
                     </div>
 
@@ -1577,7 +1577,7 @@ const ExtensionHome: React.FC = () => {
                     <div className="mt-6 w-full max-w-[260px] space-y-2.5">
                         <button
                             onClick={() => window.open(getResumeBuilderUrl(), '_blank')}
-                            className="w-full py-3 rounded-2xl bg-[#625bd5] hover:bg-[#5851c8] text-white font-semibold text-sm shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            className="w-full py-3 rounded-2xl bg-[#4a4392] hover:bg-[#5851c8] text-white font-semibold text-sm shadow-[0_12px_24px_rgba(98,91,213,0.18)] transition-all hover:scale-[1.01] active:scale-[0.99]"
                         >
                             Build my resume
                         </button>
@@ -1619,7 +1619,7 @@ const ExtensionHome: React.FC = () => {
                             <p className="text-xs font-semibold text-amber-800 leading-snug dark:text-amber-200">{aiError}</p>
                             <button
                                 onClick={() => window.open('https://careervivid.app/subscription', '_blank')}
-                                className="mt-1.5 text-[10px] font-semibold text-[#625bd5] hover:text-[#4f4a9f] transition-colors underline underline-offset-2 dark:text-[#b8b3ff] dark:hover:text-[#d8d5ff]"
+                                className="mt-1.5 text-[10px] font-semibold text-[#4a4392] hover:text-[#4f4a9f] transition-colors underline underline-offset-2 dark:text-[#b8b3ff] dark:hover:text-[#d8d5ff]"
                             >
                                 Upgrade to CareerVivid Pro →
                             </button>
@@ -1724,7 +1724,7 @@ const ExtensionHome: React.FC = () => {
                         aria-busy={isActionBusy('save_job')}
                         className={getActionCardClass('save_job', 'hover:border-[#c8c7f4] dark:hover:border-[#4d4a73]')}
                     >
-                        <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#625bd5] transition-transform group-hover:scale-105 dark:bg-[#302f49] dark:text-[#b8b3ff]">
+                        <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#4a4392] transition-transform group-hover:scale-105 dark:bg-[#302f49] dark:text-[#b8b3ff]">
                             {isActionBusy('save_job') ? <Loader2 size={17} className="animate-spin" /> : <Briefcase size={17} />}
                         </div>
                         <span className="text-left text-[12px] font-semibold leading-tight text-gray-900 dark:text-[#f4f1e9]">Save to Job Tracker</span>
@@ -1769,7 +1769,7 @@ const ExtensionHome: React.FC = () => {
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-xs font-semibold text-gray-400 dark:text-[#aaa39a]">Resumes</h3>
                         <button onClick={() => window.open(getResumeBuilderUrl(), '_blank')}
-                            className="text-[10px] text-[#625bd5] font-semibold hover:underline flex items-center gap-0.5 dark:text-[#b8b3ff]">
+                            className="text-[10px] text-[#4a4392] font-semibold hover:underline flex items-center gap-0.5 dark:text-[#b8b3ff]">
                             View all <ChevronRight size={10} />
                         </button>
                     </div>
@@ -1784,13 +1784,13 @@ const ExtensionHome: React.FC = () => {
                                         : 'border-[#ececf4] bg-white hover:border-[#d9d7fb] dark:border-[#3a3834] dark:bg-[#262522] dark:hover:border-[#4d4a73]'
                                 }`}
                             >
-                                <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${selectedResumeId === resume.id ? 'bg-[#e9e8ff] text-[#625bd5] dark:bg-[#3b3760] dark:text-[#b8b3ff]' : 'bg-[#f4f5f8] text-gray-400 group-hover:text-[#625bd5] dark:bg-[#302e2a] dark:text-[#aaa39a] dark:group-hover:text-[#b8b3ff]'}`}>
+                                <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${selectedResumeId === resume.id ? 'bg-[#e9e8ff] text-[#4a4392] dark:bg-[#3b3760] dark:text-[#b8b3ff]' : 'bg-[#f4f5f8] text-gray-400 group-hover:text-[#4a4392] dark:bg-[#302e2a] dark:text-[#aaa39a] dark:group-hover:text-[#b8b3ff]'}`}>
                                     <FileText size={15} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="text-sm font-semibold text-gray-900 truncate dark:text-[#f4f1e9]">{resume.title || 'Untitled'}</div>
                                     {selectedResumeId === resume.id && (
-                                        <div className="text-[10px] text-[#625bd5] font-semibold dark:text-[#b8b3ff]">Used for autofill</div>
+                                        <div className="text-[10px] text-[#4a4392] font-semibold dark:text-[#b8b3ff]">Used for autofill</div>
                                     )}
                                 </div>
                                 <ExternalLink size={12} className="text-gray-300 group-hover:text-[#8d88e6] flex-shrink-0 dark:text-[#6d675f] dark:group-hover:text-[#b8b3ff]" />
@@ -1819,7 +1819,7 @@ const ExtensionHome: React.FC = () => {
                                 className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
                                     fillAllConfirm
                                         ? 'bg-amber-500 text-white animate-pulse'
-                                        : 'bg-[#f3f2ff] text-[#625bd5] hover:bg-[#ecebff] dark:bg-[#302f49] dark:text-[#b8b3ff] dark:hover:bg-[#3b3760]'
+                                        : 'bg-[#f3f2ff] text-[#4a4392] hover:bg-[#ecebff] dark:bg-[#302f49] dark:text-[#b8b3ff] dark:hover:bg-[#3b3760]'
                                 }`}
                             >
                                 {fillAllConfirm ? 'Confirm fill all?' : 'Fill all'}
@@ -1842,8 +1842,8 @@ const ExtensionHome: React.FC = () => {
             <footer className="px-3.5 pt-3 pb-4 bg-white/95 backdrop-blur sticky bottom-0 z-10 dark:bg-[#1f1f1d]/95">
                 <div className="grid grid-cols-4 gap-1.5 rounded-[28px] bg-[#f1f4f8] px-2.5 py-3 dark:bg-[#262522]">
                     {[
-                        { label: 'New resume',   icon: FileText,        color: 'bg-[#eef0ff] text-[#625bd5] dark:bg-[#302f49] dark:text-[#b8b3ff]', action: () => handleAction('new_resume') },
-                        { label: 'Cover letter', icon: Mail,            color: 'bg-[#f3f2ff] text-[#7069dc] dark:bg-[#302f49] dark:text-[#b8b3ff]', action: () => handleAction('cover_letter') },
+                        { label: 'New resume',   icon: FileText,        color: 'bg-[#eef0ff] text-[#4a4392] dark:bg-[#302f49] dark:text-[#b8b3ff]', action: () => handleAction('new_resume') },
+                        { label: 'Cover letter', icon: Mail,            color: 'bg-[#f3f2ff] text-[#5b5599] dark:bg-[#302f49] dark:text-[#b8b3ff]', action: () => handleAction('cover_letter') },
                         { label: 'Interview',    icon: Mic,             color: 'bg-[#fff0f7] text-[#d95b92] dark:bg-[#3a2630] dark:text-[#ff9ac4]', action: () => handleAction('practice_interview') },
                         { label: 'Dashboard',    icon: LayoutDashboard, color: 'bg-[#f4f5f8] text-slate-600 dark:bg-[#302e2a] dark:text-[#c9c3ba]', action: () => window.open('https://careervivid.app/dashboard', '_blank') },
                     ].map(({ label, icon: Icon, color, action }) => (

@@ -636,7 +636,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                 {/* Header */}
                 <header className="flex shrink-0 flex-col gap-2 border-b border-gray-200 px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-3.5 dark:border-gray-800">
                     <div className="flex min-w-0 items-center gap-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#625bd5] text-white shadow-[0_4px_12px_rgba(98,91,213,0.25)] sm:h-10 sm:w-10 sm:rounded-xl dark:bg-[#7069dc]">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#4a4392] text-white shadow-[0_4px_12px_rgba(98,91,213,0.25)] sm:h-10 sm:w-10 sm:rounded-xl dark:bg-[#5b5599]">
                             <Swords size={16} className="sm:hidden" />
                             <Swords size={18} className="hidden sm:block" />
                         </span>
@@ -685,11 +685,11 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                             onClick={() => { setSelectedStyle(s); setStylePickerOpen(false); }}
                                             className={`flex w-full items-start gap-3 px-3 py-2.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 ${selectedStyle === s ? 'bg-[#f3f2ff] dark:bg-[#312d6b]/50' : ''}`}
                                         >
-                                            <span className={`mt-0.5 shrink-0 ${selectedStyle === s ? 'text-[#625bd5] dark:text-[#b8b4ff]' : 'text-gray-400'}`}>
+                                            <span className={`mt-0.5 shrink-0 ${selectedStyle === s ? 'text-[#4a4392] dark:text-[#b8b4ff]' : 'text-gray-400'}`}>
                                                 <StyleIcon style={s} size={15} />
                                             </span>
                                             <div>
-                                                <p className={`text-xs font-bold ${selectedStyle === s ? 'text-[#625bd5] dark:text-[#b8b4ff]' : 'text-gray-700 dark:text-gray-200'}`}>
+                                                <p className={`text-xs font-bold ${selectedStyle === s ? 'text-[#4a4392] dark:text-[#b8b4ff]' : 'text-gray-700 dark:text-gray-200'}`}>
                                                     {DIAGRAM_STYLE_LABELS[s]}
                                                 </p>
                                                 <p className="mt-0.5 text-[11px] text-gray-400 dark:text-gray-500">
@@ -712,9 +712,9 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                             title={isListening || voiceTranscript.trim() ? 'Send this explanation to the AI coach' : 'Describe your architecture verbally'}
                             className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 ${
                                 isListening
-                                    ? 'animate-pulse border-[#625bd5]/40 bg-[#f3f2ff] text-[#625bd5] dark:border-[#7069dc]/40 dark:bg-[#312d6b]/50 dark:text-[#c8c5ff]'
+                                    ? 'animate-pulse border-[#4a4392]/40 bg-[#f3f2ff] text-[#4a4392] dark:border-[#5b5599]/40 dark:bg-[#312d6b]/50 dark:text-[#c8c5ff]'
                                     : voiceTranscript.trim()
-                                        ? 'border-[#625bd5] bg-[#625bd5] text-white hover:bg-[#514ac5] dark:border-[#7069dc] dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]'
+                                        ? 'border-[#4a4392] bg-[#4a4392] text-white hover:bg-[#37316f] dark:border-[#5b5599] dark:bg-[#5b5599] dark:hover:bg-[#8d88e6]'
                                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700'
                             }`}
                         >
@@ -731,7 +731,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                 type="button"
                                 onClick={() => setCoachPanelOpen((o) => !o)}
                                 title="Toggle AI coach panel"
-                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#625bd5]/30 bg-[#f3f2ff] text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#4a4392]/30 bg-[#f3f2ff] text-[#4a4392] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
                             >
                                 <Bot size={16} />
                             </button>
@@ -751,7 +751,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                             type="button"
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-transparent bg-[#625bd5] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#514ac5] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 dark:bg-[#7069dc] dark:hover:bg-[#8d88e6]"
+                            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-transparent bg-[#4a4392] px-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#37316f] disabled:cursor-not-allowed disabled:opacity-60 sm:px-3.5 dark:bg-[#5b5599] dark:hover:bg-[#8d88e6]"
                         >
                             {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                             <span className="sm:hidden">Submit</span><span className="hidden sm:inline">{isSubmitting ? (isGuestPractice ? 'Submitting…' : 'Reviewing…') : isGuestPractice ? 'Submit design' : 'Submit for review'}</span>
@@ -830,9 +830,9 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         onClick={() => setBriefOpen(true)}
                         className="flex shrink-0 items-center gap-2 border-b border-[#ececf4] bg-[#fbfbfe] px-4 py-2.5 text-left lg:hidden dark:border-gray-800 dark:bg-gray-900/60"
                     >
-                        <ClipboardList size={14} className="shrink-0 text-[#625bd5] dark:text-[#9b96ef]" />
+                        <ClipboardList size={14} className="shrink-0 text-[#4a4392] dark:text-[#9b96ef]" />
                         <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-gray-700 dark:text-gray-200">{brief.challenge}</span>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#f3f2ff] px-2 py-1 text-[11px] font-bold text-[#625bd5] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff]">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#f3f2ff] px-2 py-1 text-[11px] font-bold text-[#4a4392] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff]">
                             Brief <ChevronDown size={12} />
                         </span>
                     </button>
@@ -856,7 +856,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                 onClick={toggleBriefCollapsed}
                                 aria-label="Expand the brief"
                                 title="Show the design brief"
-                                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f3f2ff] text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                                className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f3f2ff] text-[#4a4392] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
                             >
                                 <ChevronRight size={15} />
                             </button>
@@ -873,8 +873,8 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                     title={req}
                                     className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-extrabold ring-1 transition-colors ${
                                         peekedRequirement === i
-                                            ? 'bg-[#625bd5] text-white ring-[#625bd5]'
-                                            : 'bg-[#f3f2ff] text-[#625bd5] ring-[#dfe2ff] hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40 dark:hover:bg-[#312d6b]'
+                                            ? 'bg-[#4a4392] text-white ring-[#4a4392]'
+                                            : 'bg-[#f3f2ff] text-[#4a4392] ring-[#dfe2ff] hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#4a4392]/40 dark:hover:bg-[#312d6b]'
                                     }`}
                                 >
                                     {i + 1}
@@ -893,7 +893,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                 <>
                                     <div
                                         ref={peekCardRef}
-                                        className="absolute left-[52px] top-12 z-50 w-72 rounded-xl border border-[#dfe2ff] bg-white p-3 shadow-xl dark:border-[#625bd5]/40 dark:bg-gray-900"
+                                        className="absolute left-[52px] top-12 z-50 w-72 rounded-xl border border-[#dfe2ff] bg-white p-3 shadow-xl dark:border-[#4a4392]/40 dark:bg-gray-900"
                                     >
                                         <p className="mb-2 text-[13px] font-bold leading-snug text-gray-900 dark:text-gray-100">
                                             {brief.challenge}
@@ -908,7 +908,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                                             : 'text-gray-500 dark:text-gray-400'
                                                     }`}
                                                 >
-                                                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#f3f2ff] text-[10px] font-extrabold text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40">
+                                                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded bg-[#f3f2ff] text-[10px] font-extrabold text-[#4a4392] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#4a4392]/40">
                                                         {i + 1}
                                                     </span>
                                                     {req}
@@ -918,7 +918,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                         <button
                                             type="button"
                                             onClick={() => { setPeekedRequirement(null); toggleBriefCollapsed(); }}
-                                            className="mt-2.5 w-full rounded-lg bg-[#f3f2ff] py-1.5 text-[11px] font-bold text-[#625bd5] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
+                                            className="mt-2.5 w-full rounded-lg bg-[#f3f2ff] py-1.5 text-[11px] font-bold text-[#4a4392] transition-colors hover:bg-[#e8e6ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:hover:bg-[#312d6b]"
                                         >
                                             Open the full brief
                                         </button>
@@ -931,7 +931,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                     {/* Brief panel — overlay on mobile when expanded, static column on desktop */}
                     <aside className={`${briefOpen ? 'flex' : 'hidden'} absolute inset-0 z-30 flex-col overflow-y-auto border-b border-[#ececf4] bg-[#fbfbfe] p-4 dark:border-gray-800 dark:bg-gray-900/60 sm:p-5 lg:static lg:z-auto ${briefCollapsed ? 'lg:hidden' : 'lg:flex'} lg:max-h-none lg:w-80 lg:border-b-0 lg:border-r xl:w-[360px]`}>
                         <div className="mb-3 flex items-center justify-between lg:hidden">
-                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#9b96ef]">
                                 <ClipboardList size={13} /> Design brief
                             </span>
                             <button
@@ -944,7 +944,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                             </button>
                         </div>
                         <div className="hidden items-center justify-between lg:flex">
-                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#9b96ef]">
+                            <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#9b96ef]">
                                 <ClipboardList size={13} /> Design brief
                             </span>
                             <button
@@ -962,7 +962,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         <ul className="mt-2 space-y-2.5">
                             {brief.requirements.map((req, i) => (
                                 <li key={req} className="flex gap-2.5 text-[13px] leading-relaxed text-gray-600 dark:text-gray-300">
-                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[11px] font-extrabold text-[#625bd5] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#625bd5]/40">
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#f3f2ff] text-[11px] font-extrabold text-[#4a4392] ring-1 ring-[#dfe2ff] dark:bg-[#312d6b]/50 dark:text-[#b8b4ff] dark:ring-[#4a4392]/40">
                                         {i + 1}
                                     </span>
                                     {req}
@@ -982,8 +982,8 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         </p>
                         {/* Voice coach tip */}
                         {!isGuestPractice && (
-                            <div className="mt-4 rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] p-3 dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30">
-                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#b8b4ff]">
+                            <div className="mt-4 rounded-lg border border-[#dfe2ff] bg-[#f3f2ff] p-3 dark:border-[#4a4392]/30 dark:bg-[#312d6b]/30">
+                            <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#b8b4ff]">
                                 <Mic size={12} /> Voice coach
                             </p>
                             <p className="mt-1.5 text-[11px] leading-relaxed text-[#4a4499] dark:text-[#c8c5ff]">
@@ -1004,7 +1004,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         {isCanvasGuideVisible && (
                             <div className="absolute bottom-4 left-4 z-10 hidden max-w-[320px] rounded-lg border border-[#dfe2ff] bg-white/95 px-3 py-2.5 shadow-sm backdrop-blur sm:block dark:border-[#484273] dark:bg-gray-900/95">
                                 <div className="flex items-start justify-between gap-3">
-                                    <p className="flex items-center gap-1.5 text-[11px] font-bold text-[#625bd5] dark:text-[#b8b4ff]">
+                                    <p className="flex items-center gap-1.5 text-[11px] font-bold text-[#4a4392] dark:text-[#b8b4ff]">
                                         <MousePointer2 size={13} /> Canvas controls
                                     </p>
                                     <button
@@ -1029,7 +1029,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                         <aside className="flex h-[44svh] w-full shrink-0 flex-col border-t border-[#ececf4] bg-[#faf9ff] lg:h-auto lg:w-80 lg:border-l lg:border-t-0 dark:border-gray-800 dark:bg-[#1a1730] xl:w-[320px]">
                             <div className="flex shrink-0 items-center justify-between border-b border-[#ececf4] px-4 py-3 dark:border-gray-800">
                                 <div className="flex items-center gap-2">
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#625bd5] text-white dark:bg-[#7069dc]">
+                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4a4392] text-white dark:bg-[#5b5599]">
                                         <Bot size={14} />
                                     </span>
                                     <span className="text-xs font-bold text-gray-900 dark:text-gray-100">AI Design Coach</span>
@@ -1052,21 +1052,21 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                 )}
                                 {coachHistory.map((msg, i) => (
                                     <div key={i} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                        <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${msg.role === 'user' ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-[#625bd5] text-white dark:bg-[#7069dc]'}`}>
+                                        <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${msg.role === 'user' ? 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-[#4a4392] text-white dark:bg-[#5b5599]'}`}>
                                             {msg.role === 'user' ? 'You' : 'AI'}
                                         </span>
-                                        <div className={`max-w-[220px] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${msg.role === 'user' ? 'rounded-tr-sm bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200' : 'rounded-tl-sm bg-[#625bd5]/10 text-[#3d3699] dark:bg-[#625bd5]/20 dark:text-[#c8c5ff]'}`}>
+                                        <div className={`max-w-[220px] rounded-2xl px-3 py-2 text-[12px] leading-relaxed ${msg.role === 'user' ? 'rounded-tr-sm bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200' : 'rounded-tl-sm bg-[#4a4392]/10 text-[#3d3699] dark:bg-[#4a4392]/20 dark:text-[#c8c5ff]'}`}>
                                             {msg.text}
                                         </div>
                                     </div>
                                 ))}
                                 {isProcessingVoice && (
                                     <div className="flex gap-2">
-                                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#625bd5] text-[10px] font-bold text-white dark:bg-[#7069dc]">AI</span>
-                                        <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-[#625bd5]/10 px-3 py-2 dark:bg-[#625bd5]/20">
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5]" style={{ animationDelay: '0ms' }} />
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5]" style={{ animationDelay: '150ms' }} />
-                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#625bd5]" style={{ animationDelay: '300ms' }} />
+                                        <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4a4392] text-[10px] font-bold text-white dark:bg-[#5b5599]">AI</span>
+                                        <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-[#4a4392]/10 px-3 py-2 dark:bg-[#4a4392]/20">
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392]" style={{ animationDelay: '0ms' }} />
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392]" style={{ animationDelay: '150ms' }} />
+                                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#4a4392]" style={{ animationDelay: '300ms' }} />
                                         </div>
                                     </div>
                                 )}
@@ -1075,10 +1075,10 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                             {/* Candidate-specific, incremental coaching prompt. */}
                             {lastCoachResult && (
                                 <div className="shrink-0 border-t border-[#ececf4] bg-white/60 px-4 py-3 dark:border-gray-800 dark:bg-transparent">
-                                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#625bd5] dark:text-[#b8b4ff]">Your next move</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#4a4392] dark:text-[#b8b4ff]">Your next move</p>
                                     <p className="mt-1 text-xs font-bold text-gray-800 dark:text-gray-100">{lastCoachResult.focusArea}</p>
                                     <p className="mt-1 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">{lastCoachResult.whyItMatters}</p>
-                                    <div className="mt-2 rounded-md border border-[#dfe2ff] bg-[#f8f7ff] px-2.5 py-2 text-[11px] leading-relaxed text-[#4a4499] dark:border-[#625bd5]/30 dark:bg-[#312d6b]/30 dark:text-[#c8c5ff]">
+                                    <div className="mt-2 rounded-md border border-[#dfe2ff] bg-[#f8f7ff] px-2.5 py-2 text-[11px] leading-relaxed text-[#4a4499] dark:border-[#4a4392]/30 dark:bg-[#312d6b]/30 dark:text-[#c8c5ff]">
                                         <span className="font-bold">Try this: </span>{lastCoachResult.nextAction}
                                     </div>
                                     {suggestedComponents.length > 0 && (
@@ -1086,7 +1086,7 @@ const SystemDesignBattle: React.FC<SystemDesignBattleProps> = ({
                                             <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-gray-500">Possible building blocks</p>
                                             <div className="mt-1.5 flex flex-wrap gap-1.5">
                                                 {suggestedComponents.map((component) => (
-                                                    <span key={component} className="rounded-md border border-[#dfe2ff] bg-white px-2 py-1 text-[10px] font-semibold text-[#4a4499] dark:border-[#625bd5]/30 dark:bg-[#1a1730] dark:text-[#c8c5ff]">
+                                                    <span key={component} className="rounded-md border border-[#dfe2ff] bg-white px-2 py-1 text-[10px] font-semibold text-[#4a4499] dark:border-[#4a4392]/30 dark:bg-[#1a1730] dark:text-[#c8c5ff]">
                                                         {component}
                                                     </span>
                                                 ))}

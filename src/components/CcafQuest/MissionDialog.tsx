@@ -49,7 +49,7 @@ const PrimaryAction: React.FC<{
         className={`inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-transform active:scale-95 ${
             tone === 'finale'
                 ? 'bg-gradient-to-r from-[#f5871f] to-[#ffb066] shadow-lg shadow-[#f5871f]/30'
-                : 'bg-[#625bd5] hover:bg-[#514ac5]'
+                : 'bg-[#4a4392] hover:bg-[#37316f]'
         }`}
     >
         {children}
@@ -182,7 +182,7 @@ export const MissionDialog: React.FC<MissionDialogProps> = ({
                                         className={`h-1.5 rounded-full transition-all ${
                                             i < stepIndex || (i === stepIndex && stepSolved)
                                                 ? 'w-8 bg-[#1d9e75]'
-                                                : i === stepIndex ? 'w-8 bg-[#625bd5]' : 'w-4 bg-gray-300 dark:bg-gray-600'
+                                                : i === stepIndex ? 'w-8 bg-[#4a4392]' : 'w-4 bg-gray-300 dark:bg-gray-600'
                                         }`}
                                     />
                                 ))}
@@ -230,7 +230,7 @@ export const MissionDialog: React.FC<MissionDialogProps> = ({
                             const wasMissed = missedKeys.includes(option.key);
                             const revealCorrect = stepSolved && isCorrect;
 
-                            let tone = 'border-gray-200 bg-white hover:border-[#625bd5] hover:bg-[#f5f4ff] dark:border-gray-700 dark:bg-gray-800 dark:hover:border-[#7c74e0]';
+                            let tone = 'border-gray-200 bg-white hover:border-[#4a4392] hover:bg-[#f5f4ff] dark:border-gray-700 dark:bg-gray-800 dark:hover:border-[#7c74e0]';
                             if (revealCorrect) tone = 'border-[#1d9e75] bg-[#e7f7f1] dark:bg-[#0f3b2c]';
                             else if (wasMissed) tone = 'border-[#e5645f] bg-[#fdeceb] opacity-70 dark:bg-[#3d1f1e]';
 
@@ -281,7 +281,7 @@ export const MissionDialog: React.FC<MissionDialogProps> = ({
                                     {localize(step.explanation)}
                                 </p>
                             </div>
-                            <div className="rounded-xl border border-[#625bd5]/30 bg-[#f3f2ff] p-4 dark:bg-[#2a2657]/60">
+                            <div className="rounded-xl border border-[#4a4392]/30 bg-[#f3f2ff] p-4 dark:bg-[#2a2657]/60">
                                 <p className="flex items-center gap-2 text-sm font-bold text-[#534ab7] dark:text-[#b8b4ff]">
                                     <Lightbulb size={16} /> {t('ccaf_quest.takeaway')}
                                 </p>
@@ -316,7 +316,7 @@ export const MissionDialog: React.FC<MissionDialogProps> = ({
                         <button
                             type="button"
                             onClick={onRewatch}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 transition-colors hover:text-[#625bd5] dark:text-gray-400"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 transition-colors hover:text-[#4a4392] dark:text-gray-400"
                         >
                             <PlayCircle size={14} /> {t('ccaf_quest.lesson_rewatch')}
                         </button>
