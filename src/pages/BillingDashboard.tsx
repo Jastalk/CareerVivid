@@ -29,47 +29,43 @@ import {
     ENTERPRISE_PLAN_CREDIT_LIMIT
 } from '../config/creditCosts';
 import { SUBSCRIPTION_CATALOG } from '../config/subscriptionCatalog';
-import AIUsageProgressBar from '../components/AIUsageProgressBar';
 import RetentionModal from '../components/RetentionModal';
 import CancellationFeedbackModal from '../components/CancellationFeedbackModal';
+import { usePrefersReducedMotion } from '../components/Landing/live/liveHooks';
+import '../components/Landing/live/liveLanding.css';
 
 type BillingInterval = 'monthly' | 'yearly';
 type CancellationStep = 'idle' | 'offer_10' | 'offer_20' | 'feedback' | 'confirm';
 
-const planToneClasses = {
-    green: {
-        card: 'border-emerald-200 bg-[#fbfff7]',
-        chip: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        icon: 'bg-emerald-50 text-emerald-700',
-        button: 'border border-[#d8c6ad] bg-white text-[#211b16] hover:border-[#bfa782] hover:bg-[#fffaf1]',
-        check: 'text-emerald-600',
-    },
-    blue: {
-        card: 'border-[#cbd9f4] bg-white shadow-[0_18px_55px_rgba(74,90,140,0.12)]',
-        chip: 'border-[#dbe7ff] bg-[#eef4ff] text-[#315da7]',
-        icon: 'bg-[#eef4ff] text-[#315da7]',
-        button: 'bg-[#4a4392] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
-        check: 'text-[#4a4392]',
-    },
-    slate: {
-        card: 'border-[#ccd4df] bg-[#fbfcff]',
-        chip: 'border-[#dbe4f3] bg-white text-[#43566f]',
-        icon: 'bg-[#eef2f7] text-[#43566f]',
-        button: 'bg-[#211b16] text-white shadow-[0_14px_34px_rgba(33,27,22,0.15)] hover:bg-[#3a2b20]',
-        check: 'text-[#43566f]',
-    },
-    amber: {
-        card: 'border-[#ead7b9] bg-[#fffaf1]',
-        chip: 'border-[#ead7b9] bg-[#fff7e8] text-[#9a651f]',
-        icon: 'bg-[#fff4cc] text-[#9a651f]',
-        button: 'bg-[#211b16] text-white shadow-[0_14px_34px_rgba(33,27,22,0.15)] hover:bg-[#3a2b20]',
-        check: 'text-[#9a651f]',
-    },
-} as const;
+const LABEL = 'cvl-mono text-[11px] uppercase tracking-[0.18em]';
+const CTA = 'cvl-cta inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-3 text-[13.5px] font-semibold transition disabled:opacity-60';
+const BTN = 'cvl-btn inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-3 text-[13.5px] font-semibold disabled:opacity-60';
+
+/** Each tier gets one accent from the token set. No new colours. */
+type PlanTone = 'green' | 'purple' | 'ink' | 'amber';
+
+const planTone: Record<PlanTone, { ink: string; soft: string }> = {
+    green: { ink: 'var(--cvl-green)', soft: 'var(--cvl-green-soft)' },
+    purple: { ink: 'var(--cvl-purple)', soft: 'var(--cvl-purple-soft)' },
+    ink: { ink: 'var(--cvl-ink)', soft: 'var(--cvl-chrome)' },
+    amber: { ink: 'var(--cvl-amber)', soft: 'var(--cvl-amber-soft)' },
+};
+
+/**
+ * The quietest label tier. `on="inset"` steps it up one, because
+ * `.cvl-panel-inset` is --cvl-paper-2 — a shade darker than --cvl-paper — and
+ * --cvl-faint is only rated against paper. 11px uppercase at 0.18em tracking is
+ * the hardest text on the page to read; it does not get the thin end of a
+ * margin as well.
+ */
+const Eyebrow: React.FC<{ children: React.ReactNode; id?: string; on?: 'panel' | 'inset' }> = ({ children, id, on = 'panel' }) => (
+    <p id={id} className={LABEL} style={{ color: on === 'inset' ? 'var(--cvl-muted)' : 'var(--cvl-faint)' }}>{children}</p>
+);
 
 const BillingDashboard: React.FC = () => {
     const { currentUser, userProfile, isPremium, aiUsage } = useAuth();
     const { t } = useTranslation();
+    const reducedMotion = usePrefersReducedMotion();
     const [isLoading, setIsLoading] = useState(false);
     const [isCanceling, setIsCanceling] = useState(false);
     const [cancelStep, setCancelStep] = useState<CancellationStep>('idle');
@@ -129,7 +125,7 @@ const BillingDashboard: React.FC = () => {
             cta: (currentPlan === 'pro' || ['premium', 'pro_monthly', 'pro_sprint'].includes(currentPlan)) ? (isCancellationScheduled ? 'Cancel scheduled' : 'Current plan') : 'Start Pro',
             limit: PRO_PLAN_CREDIT_LIMIT,
             priceId: isYearly ? SUBSCRIPTION_CATALOG.pro.annualPriceId : SUBSCRIPTION_CATALOG.pro.monthlyPriceId,
-            tone: 'blue' as const,
+            tone: 'purple' as const,
             featured: true,
             features: [
                 'Everything in Free',
@@ -149,7 +145,7 @@ const BillingDashboard: React.FC = () => {
             cta: (currentPlan === 'max' || currentPlan === 'pro_max') ? (isCancellationScheduled ? 'Cancel scheduled' : 'Current plan') : 'Get Max',
             limit: PRO_MAX_PLAN_CREDIT_LIMIT,
             priceId: isYearly ? SUBSCRIPTION_CATALOG.max.annualPriceId : SUBSCRIPTION_CATALOG.max.monthlyPriceId,
-            tone: 'slate' as const,
+            tone: 'ink' as const,
             features: [
                 'Everything in Pro',
                 '4.5x more AI capacity than Pro',
@@ -274,143 +270,299 @@ const BillingDashboard: React.FC = () => {
 
     const readablePlan = getReadablePlanName(currentPlan);
 
-    return (
-        <div className="min-h-screen bg-gray-50/50 dark:bg-gray-950 font-sans selection:bg-primary-500/30 relative overflow-hidden">
-            {/* Background glowing orb matching pricing page */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary-500/10 dark:bg-primary-600/10 blur-[120px] rounded-full pointer-events-none z-0" />
+    // The meter reads off the same numbers the header bar does; nothing is
+    // recalculated here, it is only painted with the token ramp.
+    const usedCredits = aiUsage?.count ?? 0;
+    const creditLimit = aiUsage?.limit ?? 0;
+    const usedPercent = creditLimit > 0 ? Math.min(100, (usedCredits / creditLimit) * 100) : 0;
+    const creditsRemaining = Math.max(0, creditLimit - usedCredits);
+    const meterTone = usedPercent >= 90
+        ? { ink: 'var(--cvl-danger)', soft: 'var(--cvl-danger-soft)' }
+        : usedPercent >= 70
+            ? { ink: 'var(--cvl-amber)', soft: 'var(--cvl-amber-soft)' }
+            : { ink: 'var(--cvl-green)', soft: 'var(--cvl-green-soft)' };
 
-            <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-10 transition-all duration-300">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 text-gray-900 dark:text-white hover:opacity-70 transition-all group">
-                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform stroke-[2.5]" />
-                        <span className="text-sm font-semibold">Dashboard</span>
+    return (
+        <div className="cvl min-h-screen">
+            <header
+                className="sticky top-0 z-30 border-b backdrop-blur"
+                style={{ borderColor: 'var(--cvl-line)', background: 'color-mix(in srgb, var(--cvl-paper) 88%, transparent)' }}
+            >
+                <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/dashboard')}
+                        className="cvl-btn-ghost -ml-2 inline-flex min-h-10 items-center gap-2 px-2 text-[13px] font-semibold"
+                    >
+                        <ArrowLeft size={16} aria-hidden="true" />
+                        Dashboard
                     </button>
-                    <div className="flex items-center gap-4">
-                        <div className="px-4 py-1.5 bg-gradient-to-r from-primary-500/10 to-purple-500/10 dark:from-primary-900/40 dark:to-purple-900/40 text-primary-700 dark:text-primary-300 border border-primary-200/50 dark:border-primary-800/50 rounded-full text-xs font-black uppercase tracking-widest shadow-sm flex items-center gap-2">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-                            </span>
-                            {readablePlan}
-                        </div>
-                    </div>
+                    <span
+                        className="cvl-mono inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] uppercase tracking-[0.14em]"
+                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--cvl-purple)' }} aria-hidden="true" />
+                        {readablePlan}
+                    </span>
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+            <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={reducedMotion ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="space-y-8"
+                    transition={{ duration: reducedMotion ? 0 : 0.45 }}
+                    className="space-y-6"
                 >
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight">Plan and billing</h1>
+                        <p className="mt-1 text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                            What you are on, what you have used, and what else is available.
+                        </p>
+                    </div>
+
                     {showSuccess && (
-                        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/30">
-                            <Check className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                            <div className="text-sm text-emerald-800 dark:text-emerald-200">
-                                <p className="font-bold">{t('billing.successTitle', 'Payment received — your plan is active.')}</p>
-                                <p className="mt-1 font-medium opacity-80">
+                        <div
+                            className="flex items-start gap-3 rounded-xl border px-4 py-3.5"
+                            style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-green-soft)' }}
+                            role="status"
+                        >
+                            <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'var(--cvl-green)' }} aria-hidden="true" />
+                            <div className="text-[13.5px]">
+                                <p className="font-semibold">{t('billing.successTitle', 'Payment received — your plan is active.')}</p>
+                                <p className="mt-1 leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                     {t('billing.successBody', 'Your new credit allowance is available now. A receipt is on its way to your email.')}
                                 </p>
                             </div>
                         </div>
                     )}
                     {error && (
-                        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-bold text-rose-700 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+                        <p
+                            className="rounded-xl border px-4 py-3.5 text-[13.5px] font-semibold"
+                            style={{ borderColor: 'var(--cvl-danger)', background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                            role="alert"
+                        >
                             {error}
-                        </div>
+                        </p>
                     )}
                     {notice && (
-                        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-800 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200">
+                        <p
+                            className="rounded-xl border px-4 py-3.5 text-[13.5px] font-semibold"
+                            style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-green-soft)' }}
+                            role="status"
+                        >
                             {notice}
-                        </div>
+                        </p>
                     )}
 
-                    <section className="rounded-3xl border border-[#e4d3bc] bg-[#fffaf1]/82 p-6 shadow-sm dark:border-[#37332d] dark:bg-[#262522]/80 md:p-8">
-                        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+                    {/* Where you are: the plan you pay for and the credits it bought. */}
+                    <section className="cvl-panel p-5 sm:p-6" aria-labelledby="account-summary-heading">
+                        <div className="flex items-center gap-2.5">
+                            <span
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                            >
+                                <CreditCard size={16} aria-hidden="true" />
+                            </span>
+                            <h2 id="account-summary-heading" className="text-[17px] font-semibold tracking-tight">Your account</h2>
+                        </div>
+
+                        <div className="mt-5 grid gap-4 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                            <div className="cvl-panel-inset min-w-0 p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <Eyebrow on="inset">Active plan</Eyebrow>
+                                    <Shield size={15} className="shrink-0" style={{ color: 'var(--cvl-purple)' }} aria-hidden="true" />
+                                </div>
+                                <p className="mt-2 break-words text-2xl font-semibold tracking-tight" style={{ color: 'var(--cvl-purple)' }}>
+                                    {readablePlan}
+                                </p>
+                                <p className="mt-1 text-[12.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                                    {isFreeCurrentPlan ? 'Free subscription' : isCancellationScheduled ? 'Moving to Free at period end' : 'Monthly subscription'}
+                                </p>
+                                {!isFreeCurrentPlan && (
+                                    isCancellationScheduled ? (
+                                        <p
+                                            className="cvl-mono mt-4 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em]"
+                                            style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                        >
+                                            <Check size={13} aria-hidden="true" /> Cancel scheduled
+                                        </p>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={startCancellationFlow}
+                                            disabled={isCanceling}
+                                            className="mt-4 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-[13px] font-semibold transition hover:opacity-85 disabled:opacity-60"
+                                            style={{ borderColor: 'var(--cvl-danger)', background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                                        >
+                                            <Trash2 size={14} aria-hidden="true" /> Cancel to Free
+                                        </button>
+                                    )
+                                )}
+                            </div>
+
+                            <div className="cvl-panel-inset min-w-0 p-4">
+                                <div className="flex items-center justify-between gap-3">
+                                    <Eyebrow on="inset">AI credits this month</Eyebrow>
+                                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meterTone.ink }} aria-hidden="true" />
+                                </div>
+                                {aiUsage ? (
+                                    <>
+                                        <p className="mt-2 flex items-baseline gap-1.5">
+                                            <span className="text-2xl font-semibold leading-none tracking-tight" style={{ color: meterTone.ink }}>
+                                                {usedCredits.toLocaleString()}
+                                            </span>
+                                            <span className="cvl-mono text-[12px]" style={{ color: 'var(--cvl-muted)' }}>
+                                                / {creditLimit.toLocaleString()} used
+                                            </span>
+                                        </p>
+                                        <div
+                                            className="mt-3 h-2 overflow-hidden rounded-full"
+                                            style={{ background: 'var(--cvl-chrome)' }}
+                                            role="progressbar"
+                                            aria-valuenow={Math.round(usedPercent)}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-label="AI credits used this month"
+                                        >
+                                            <div
+                                                className="h-full rounded-full transition-[width] duration-500"
+                                                style={{ width: `${usedPercent}%`, background: meterTone.ink }}
+                                            />
+                                        </div>
+                                        {/*
+                                          * Running out is its own state, not a "0 left"
+                                          * sentence in the same grey as every other line.
+                                          * The meter this replaced said LIMIT REACHED in
+                                          * red, and losing that made the one moment a
+                                          * user needs to act look like every other month.
+                                          */}
+                                        {creditsRemaining <= 0 ? (
+                                            <p
+                                                className="cvl-mono mt-2.5 inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em]"
+                                                style={{ background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                                            >
+                                                Limit reached
+                                            </p>
+                                        ) : (
+                                            <p className="mt-2.5 text-[12.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                                                {creditsRemaining.toLocaleString()} left on {isPremium ? readablePlan : 'Free'}. Credits reset on the 1st.
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="cvl-mono mt-3 text-[12px]" style={{ color: 'var(--cvl-muted)' }}>loading usage…</p>
+                                )}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* The tiers. */}
+                    <section className="cvl-panel p-5 sm:p-6" aria-labelledby="plans-heading">
+                        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                             <div>
-                                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#a97935] dark:text-[#caa26c]">Available tiers</p>
-                                <h2 className="mt-3 text-3xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">
-                                    Choose your plan.
-                                </h2>
-                                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                                    Switch between monthly and yearly billing, then choose the plan that matches your current search.
+                                <Eyebrow>available tiers</Eyebrow>
+                                <h2 id="plans-heading" className="mt-2 text-[19px] font-semibold tracking-tight">Choose your plan</h2>
+                                <p className="mt-1.5 max-w-xl text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                    Switch between monthly and yearly billing, then pick the tier that matches your current search.
                                 </p>
                             </div>
 
                             <div className="flex flex-col items-start gap-2 md:items-end">
-                                <div className="inline-flex rounded-full bg-[#e9e1d6] p-1 shadow-inner dark:bg-[#1f1f1d]">
-                                    {(['monthly', 'yearly'] as const).map((interval) => (
-                                        <button
-                                            key={interval}
-                                            type="button"
-                                            aria-pressed={billingInterval === interval}
-                                            onClick={() => setBillingInterval(interval)}
-                                            className={`min-w-[112px] rounded-full px-5 py-2.5 text-xs font-black transition-all ${
-                                                billingInterval === interval
-                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
-                                                    : 'text-[#766955] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'
-                                            }`}
-                                        >
-                                            {interval === 'monthly' ? 'Monthly' : 'Yearly'}
-                                        </button>
-                                    ))}
+                                <div
+                                    className="inline-flex rounded-full border p-1"
+                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+                                    role="group"
+                                    aria-label="Billing interval"
+                                >
+                                    {(['monthly', 'yearly'] as const).map((interval) => {
+                                        const active = billingInterval === interval;
+                                        return (
+                                            <button
+                                                key={interval}
+                                                type="button"
+                                                aria-pressed={active}
+                                                onClick={() => setBillingInterval(interval)}
+                                                className="min-h-9 min-w-[104px] rounded-full px-4 py-2 text-[12.5px] font-semibold transition"
+                                                style={active
+                                                    ? { background: 'var(--cvl-paper)', color: 'var(--cvl-ink)', boxShadow: '0 1px 2px var(--cvl-shadow)' }
+                                                    : { color: 'var(--cvl-muted)' }}
+                                            >
+                                                {interval === 'monthly' ? 'Monthly' : 'Yearly'}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
-                                <p className="text-xs font-bold text-[#665a4a] dark:text-[#aaa39a]">
-                                    Yearly saves on Pro and Max.
-                                </p>
+                                <p className="text-[12px]" style={{ color: 'var(--cvl-muted)' }}>Yearly saves on Pro and Max.</p>
                             </div>
                         </div>
 
-                        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                             {plans.map((p) => {
-                                const tone = planToneClasses[p.tone];
+                                const tone = planTone[p.tone];
                                 const isCurrentPlan = currentPlan === p.id || (p.id === 'pro' && ['premium', 'pro_monthly', 'pro_sprint'].includes(currentPlan));
                                 const isFreePlan = p.id === 'free';
                                 const isCancelTarget = isFreePlan && !isFreeCurrentPlan;
                                 const isCancelTargetDisabled = isCancelTarget && isCancellationScheduled;
                                 const isEnterprisePlan = p.id === 'enterprise';
+                                const showsAsDone = isCurrentPlan || isCancelTargetDisabled;
 
                                 return (
                                     <article
                                         key={p.id}
-                                        className={`relative flex min-h-[500px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[#37332d] dark:bg-[#262522]`}
+                                        className="cvl-panel cvl-panel-lift relative flex flex-col p-5"
+                                        style={p.featured ? { borderColor: 'var(--cvl-purple)' } : undefined}
+                                        aria-labelledby={`plan-${p.id}-name`}
                                     >
-                                        {p.featured && (
-                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
-                                                Popular
-                                            </div>
-                                        )}
-                                        {isCurrentPlan && (
-                                            <div className="absolute left-5 top-5 rounded-full bg-[#e9e1d6] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-[#211b16] dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
-                                                Current plan
-                                            </div>
-                                        )}
-
-                                        <div className={`mb-5 mt-8 flex h-11 w-11 items-center justify-center rounded-xl ${tone.icon}`}>
-                                            {isEnterprisePlan ? <Users size={21} /> : isFreePlan ? <Layout size={21} /> : <Zap size={21} />}
+                                        <div className="flex min-h-[26px] items-start justify-between gap-2">
+                                            <span
+                                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                                style={{ background: tone.soft, color: tone.ink }}
+                                            >
+                                                {isEnterprisePlan ? <Users size={17} aria-hidden="true" /> : isFreePlan ? <Layout size={17} aria-hidden="true" /> : <Zap size={17} aria-hidden="true" />}
+                                            </span>
+                                            {isCurrentPlan ? (
+                                                <span
+                                                    className="cvl-mono rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em]"
+                                                    style={{ background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)' }}
+                                                >
+                                                    Current
+                                                </span>
+                                            ) : p.featured ? (
+                                                <span
+                                                    className="cvl-mono rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em]"
+                                                    style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                                >
+                                                    Popular
+                                                </span>
+                                            ) : null}
                                         </div>
 
-                                        <h3 className="text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">{p.name}</h3>
-                                        <p className="mt-2 min-h-[48px] text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                                        <h3 id={`plan-${p.id}-name`} className="mt-4 text-[19px] font-semibold tracking-tight">{p.name}</h3>
+                                        <p className="mt-1.5 min-h-[40px] text-[13px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                             {p.description}
                                         </p>
 
-                                        <div className="mt-7">
-                                            <div className="flex items-end gap-1">
-                                                <span className="text-5xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">{p.price}</span>
-                                                <span className="max-w-[92px] pb-2 text-xs font-black leading-4 text-[#665a4a] dark:text-[#aaa39a]">{p.period}</span>
+                                        <div className="mt-5">
+                                            <div className="flex items-end gap-1.5">
+                                                <span className="text-4xl font-bold leading-none tracking-tight">{p.price}</span>
+                                                <span className="cvl-mono max-w-[96px] pb-0.5 text-[11px] leading-4" style={{ color: 'var(--cvl-muted)' }}>
+                                                    {p.period}
+                                                </span>
                                             </div>
-                                            <div className={`mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] ${tone.chip}`}>
-                                                <Sparkles size={13} /> {p.credits}
-                                            </div>
-                                            <p className="mt-2 text-xs font-bold text-[#7d6e5e] dark:text-[#aaa39a]">{p.note}</p>
+                                            <span
+                                                className="cvl-mono mt-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-bold"
+                                                style={{ background: tone.soft, color: tone.ink }}
+                                            >
+                                                <Sparkles size={12} aria-hidden="true" /> {p.credits}
+                                            </span>
+                                            <p className="mt-2 text-[12px]" style={{ color: 'var(--cvl-muted)' }}>{p.note}</p>
                                         </div>
 
-                                        <ul className="mt-7 flex-grow space-y-3.5">
+                                        <ul className="mt-5 flex-grow space-y-2.5">
                                             {p.features.map((feature) => (
-                                                <li key={feature} className="flex items-start gap-3 text-sm font-semibold leading-5 text-[#665a4a] dark:text-[#d7d0c6]">
-                                                    <Check className={`mt-0.5 h-4 w-4 shrink-0 ${tone.check}`} strokeWidth={3} />
+                                                <li key={feature} className="flex items-start gap-2.5 text-[13px] leading-5" style={{ color: 'var(--cvl-muted)' }}>
+                                                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: tone.ink }} strokeWidth={3} aria-hidden="true" />
                                                     <span>{feature}</span>
                                                 </li>
                                             ))}
@@ -431,15 +583,33 @@ const BillingDashboard: React.FC = () => {
                                                 handleUpgrade(p.priceId, isEnterprisePlan ? p.minimumSeats : 1);
                                             }}
                                             disabled={isLoading || isCanceling || isCurrentPlan || isCancelTargetDisabled}
-                                            className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black transition disabled:cursor-default disabled:opacity-70 ${isCurrentPlan ? 'border border-[#d8c6ad] bg-white text-[#211b16] dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9]' : tone.button}`}
+                                            className={
+                                                showsAsDone || isCancelTarget
+                                                    ? 'mt-6 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-[13.5px] font-semibold transition disabled:cursor-default disabled:opacity-70'
+                                                    : `${p.featured ? CTA : BTN} mt-6 w-full disabled:cursor-default`
+                                            }
+                                            style={
+                                                showsAsDone
+                                                    ? { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }
+                                                    // The account panel above already carries the loud
+                                                    // version of this action; a second filled red button
+                                                    // in the grid would just shout over it.
+                                                    : isCancelTarget
+                                                        ? { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-danger)' }
+                                                        : undefined
+                                            }
                                         >
-                                            {isCurrentPlan || isCancelTargetDisabled ? (
+                                            {showsAsDone ? (
                                                 <>
-                                                    <Check size={16} /> {p.cta}
+                                                    <Check size={15} aria-hidden="true" /> {p.cta}
+                                                </>
+                                            ) : isCancelTarget ? (
+                                                <>
+                                                    <Trash2 size={15} aria-hidden="true" /> {p.cta}
                                                 </>
                                             ) : (
                                                 <>
-                                                    {p.cta} <ArrowRight size={16} />
+                                                    {p.cta} <ArrowRight size={15} aria-hidden="true" />
                                                 </>
                                             )}
                                         </button>
@@ -449,169 +619,121 @@ const BillingDashboard: React.FC = () => {
                         </div>
                     </section>
 
-                    <section className="grid gap-5 md:grid-cols-2">
-                        <article className="rounded-2xl border border-[#e4d3bc] bg-white/80 p-6 shadow-sm dark:border-[#37332d] dark:bg-gray-900/80">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#f4ead8] text-[#9a651f] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                                    <Database size={18} />
-                                </div>
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Usage invariants</h3>
+                    <section className="grid gap-4 md:grid-cols-2" aria-label="How credits work">
+                        <article className="cvl-panel p-5">
+                            <div className="flex items-center gap-2.5">
+                                <span
+                                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                    style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                >
+                                    <Database size={16} aria-hidden="true" />
+                                </span>
+                                <h2 className="text-[14px] font-semibold tracking-tight">How credits renew</h2>
                             </div>
-                            <p className="mt-4 text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                            <p className="mt-3 text-[13px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                 Credits reset on the 1st of every month automatically.
                             </p>
                         </article>
-                        <article className="rounded-2xl border border-[#e4d3bc] bg-white/80 p-6 shadow-sm dark:border-[#37332d] dark:bg-gray-900/80">
-                            <div className="flex items-center gap-3">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
-                                    <Users size={18} />
-                                </div>
-                                <h3 className="text-sm font-black text-gray-900 dark:text-white tracking-tight">Team credits</h3>
+                        <article className="cvl-panel p-5">
+                            <div className="flex items-center gap-2.5">
+                                <span
+                                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                    style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                >
+                                    <Users size={16} aria-hidden="true" />
+                                </span>
+                                <h2 className="text-[14px] font-semibold tracking-tight">Team credits</h2>
                             </div>
-                            <p className="mt-4 text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                            <p className="mt-3 text-[13px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                 Enterprise seats contribute to a shared pool across the organization.
                             </p>
                         </article>
                     </section>
 
-                    <section className="space-y-5">
-                        <article className="rounded-3xl border border-[#e4d3bc] bg-white/90 p-6 shadow-sm dark:border-[#37332d] dark:bg-gray-900/85 md:p-7">
-                            <div className="grid gap-6 lg:grid-cols-[minmax(220px,0.75fr)_minmax(0,1.25fr)] lg:items-stretch">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[#4a4392] shadow-sm dark:bg-[#302e2a] dark:text-[#8d88e6]">
-                                        <CreditCard size={22} />
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-[0.16em] text-[#a97935] dark:text-[#caa26c]">Account summary</p>
-                                        <h2 className="mt-2 text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Billing & Plan</h2>
-                                        <p className="mt-2 max-w-sm text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
-                                            Your current plan and monthly AI-credit usage.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="grid min-w-0 gap-4 md:grid-cols-[0.85fr_1.15fr]">
-                                    <div className="min-w-0 rounded-2xl border border-[#e9e1d6] bg-[#fffaf1] p-5 dark:border-[#37332d] dark:bg-[#262522]">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="text-[11px] font-black uppercase tracking-[0.14em] text-[#7d6e5e] dark:text-[#aaa39a]">Active plan</span>
-                                            <Shield className="h-4 w-4 shrink-0 text-[#4a4392]" />
-                                        </div>
-                                        <div className="mt-3 break-words text-2xl font-black tracking-tight text-[#4a4392] dark:text-[#8d88e6]">{readablePlan}</div>
-                                        <p className="mt-1 text-xs font-bold text-[#7d6e5e] dark:text-[#aaa39a]">
-                                            {isFreeCurrentPlan ? 'Free subscription' : isCancellationScheduled ? 'Moving to Free at period end' : 'Monthly subscription'}
-                                        </p>
-                                        {!isFreeCurrentPlan && (
-                                            <button
-                                                type="button"
-                                                onClick={startCancellationFlow}
-                                                disabled={isCanceling || isCancellationScheduled}
-                                                className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-black transition ${
-                                                    isCancellationScheduled
-                                                        ? 'cursor-default border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300'
-                                                        : 'border-[#d8c6ad] bg-white text-[#211b16] hover:border-[#bfa782] hover:bg-[#fffaf1] dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]'
-                                                }`}
-                                            >
-                                                {isCancellationScheduled ? (
-                                                    <>
-                                                        <Check size={14} /> Cancel scheduled
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Trash2 size={14} /> Cancel to Free
-                                                    </>
-                                                )}
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="min-w-0 rounded-2xl border border-[#e9e1d6] bg-[#fffaf1] p-5 dark:border-[#37332d] dark:bg-[#262522]">
-                                        <div className="mb-3 flex items-center justify-between gap-3">
-                                            <span className="text-[11px] font-black uppercase tracking-[0.14em] text-[#7d6e5e] dark:text-[#aaa39a]">AI credits</span>
-                                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.65)]" />
-                                        </div>
-                                        <div className="min-w-0">
-                                            {aiUsage ? (
-                                                <AIUsageProgressBar
-                                                    used={aiUsage.count}
-                                                    limit={aiUsage.limit}
-                                                    isPremium={isPremium}
-                                                    variant="minimal"
-                                                />
-                                            ) : (
-                                                <p className="text-sm font-bold text-[#665a4a] dark:text-[#aaa39a]">Usage loading...</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </article>
-
-                        {isEnterprise ? (
-                            <article className="rounded-3xl border border-[#ead7b9] bg-[#fffaf1] p-6 shadow-sm dark:border-[#37332d] dark:bg-[#262522] md:p-7">
-                                <div className="grid gap-6 lg:grid-cols-[minmax(220px,0.75fr)_minmax(0,1.25fr)] lg:items-center">
-                                    <div className="flex items-start justify-between gap-4">
-                                        <div className="flex items-start gap-4">
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#fff4cc] text-[#9a651f] dark:bg-[#302e2a] dark:text-[#caa26c]">
-                                                <Users size={22} />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#a97935] dark:text-[#caa26c]">Team workspace</p>
-                                                <h2 className="mt-2 text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Team Management</h2>
-                                                <p className="mt-2 text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">Managing {enterpriseSeats} developer seats.</p>
-                                            </div>
-                                        </div>
-                                        <button className="rounded-xl p-2.5 text-[#665a4a] transition hover:bg-[#f4ead8] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:bg-[#302e2a] dark:hover:text-[#f4f1e9]">
-                                            <Settings size={20} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3 sm:flex-row">
-                                        <input
-                                            type="email"
-                                            placeholder="developer@company.com"
-                                            value={newTeamMember}
-                                            onChange={(e) => setNewTeamMember(e.target.value)}
-                                            className="min-w-0 flex-1 rounded-xl border border-[#e4d3bc] bg-white px-4 py-3 text-sm font-semibold text-[#211b16] outline-none transition focus:border-[#caa26c] focus:ring-2 focus:ring-[#caa26c]/30 dark:border-[#37332d] dark:bg-[#1f1f1d] dark:text-[#f4f1e9]"
-                                        />
-                                        <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
-                                            <Plus size={16} /> Invite
-                                        </button>
-                                    </div>
-                                </div>
-                            </article>
-                        ) : (
-                            <article className="relative overflow-hidden rounded-3xl border border-[#252c40] bg-[#151a2b] p-6 text-white shadow-[0_18px_50px_rgba(21,26,43,0.18)] dark:border-[#37332d] md:p-7">
-                                <div className="pointer-events-none absolute right-0 top-0 h-40 w-40 rounded-full bg-[#4a4392]/18 blur-3xl" />
-                                <div className="relative grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-                                    <div className="flex items-start gap-4">
-                                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-300/15 text-amber-300">
-                                            <Zap size={23} />
-                                        </div>
+                    {isEnterprise ? (
+                        <section className="cvl-panel p-5 sm:p-6" aria-labelledby="team-heading">
+                            <div className="grid gap-5 lg:grid-cols-[minmax(240px,0.8fr)_minmax(0,1.2fr)] lg:items-center">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                        <span
+                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                            style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                        >
+                                            <Users size={17} aria-hidden="true" />
+                                        </span>
                                         <div>
-                                            <p className="text-xs font-black uppercase tracking-[0.16em] text-amber-200/80">Team upgrade</p>
-                                            <h2 className="mt-2 text-2xl font-black tracking-tight text-white">Upgrade to Enterprise</h2>
-                                            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-300">
-                                                Need a team credit pool? Enterprise includes <span className="font-black text-white">{ENTERPRISE_PLAN_CREDIT_LIMIT.toLocaleString()}</span> credits per seat, SSO, and Private Workspaces from $12 per seat.
+                                            <Eyebrow>team workspace</Eyebrow>
+                                            <h2 id="team-heading" className="mt-1.5 text-[17px] font-semibold tracking-tight">Team management</h2>
+                                            <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                                Managing {enterpriseSeats} developer seats.
                                             </p>
-                                            <div className="mt-5 flex flex-wrap gap-2 text-xs font-black uppercase tracking-[0.12em] text-slate-200">
-                                                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">2-seat minimum</span>
-                                                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">Pooled credits</span>
-                                            </div>
                                         </div>
                                     </div>
-
-                                    <button
-                                        onClick={() => handleUpgrade(SUBSCRIPTION_CATALOG.enterprise.monthlyPriceId, SUBSCRIPTION_CATALOG.enterprise.minimumSeats)}
-                                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-black text-[#211b16] transition hover:-translate-y-0.5 hover:bg-[#fffaf1] sm:w-auto"
-                                    >
-                                        Explore Enterprise <ArrowRight size={16} />
+                                    <button type="button" className="cvl-btn-ghost flex h-10 w-10 shrink-0 items-center justify-center">
+                                        <Settings size={18} aria-hidden="true" />
+                                        <span className="sr-only">Team settings</span>
                                     </button>
                                 </div>
-                            </article>
-                        )}
-                    </section>
+
+                                <div className="flex flex-col gap-2.5 sm:flex-row">
+                                    <label htmlFor="invite-email" className="sr-only">Teammate email</label>
+                                    <input
+                                        id="invite-email"
+                                        type="email"
+                                        placeholder="developer@company.com"
+                                        value={newTeamMember}
+                                        onChange={(e) => setNewTeamMember(e.target.value)}
+                                        className="cvl-field min-w-0 flex-1 px-4 py-3 text-[14px]"
+                                    />
+                                    <button type="button" className={CTA}>
+                                        <Plus size={15} aria-hidden="true" /> Invite
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+                    ) : (
+                        <section className="cvl-panel p-5 sm:p-6" aria-labelledby="enterprise-upsell-heading">
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                                <div className="flex items-start gap-3">
+                                    <span
+                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                        style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                    >
+                                        <Zap size={17} aria-hidden="true" />
+                                    </span>
+                                    <div>
+                                        <Eyebrow>team upgrade</Eyebrow>
+                                        <h2 id="enterprise-upsell-heading" className="mt-1.5 text-[17px] font-semibold tracking-tight">Running a search with a team?</h2>
+                                        <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                            Enterprise pools <span className="font-semibold" style={{ color: 'var(--cvl-ink)' }}>{ENTERPRISE_PLAN_CREDIT_LIMIT.toLocaleString()}</span> credits per seat, adds SSO and private workspaces, and starts at ${SUBSCRIPTION_CATALOG.enterprise.monthlyPrice} per seat.
+                                        </p>
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {[`${SUBSCRIPTION_CATALOG.enterprise.minimumSeats}-seat minimum`, 'Pooled credits'].map((chip) => (
+                                                <span
+                                                    key={chip}
+                                                    className="cvl-mono rounded-md border px-2.5 py-1 text-[11px]"
+                                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                                                >
+                                                    {chip}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleUpgrade(SUBSCRIPTION_CATALOG.enterprise.monthlyPriceId, SUBSCRIPTION_CATALOG.enterprise.minimumSeats)}
+                                    className={`${CTA} w-full sm:w-auto`}
+                                >
+                                    Explore Enterprise <ArrowRight size={15} aria-hidden="true" />
+                                </button>
+                            </div>
+                        </section>
+                    )}
                 </motion.div>
             </main>
+
             <RetentionModal
                 isOpen={cancelStep === 'offer_10' || cancelStep === 'offer_20'}
                 step={cancelStep === 'offer_10' ? 'offer_10' : 'offer_20'}
@@ -634,50 +756,51 @@ const BillingDashboard: React.FC = () => {
             />
 
             {cancelStep === 'confirm' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#211b16]/45 px-4 backdrop-blur-sm">
-                    <div className="w-full max-w-md rounded-3xl border border-[#e4d3bc] bg-white p-6 shadow-2xl dark:border-[#37332d] dark:bg-[#1f1f1d]">
-                        <div className="flex items-start gap-4">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
-                                <Layout size={20} />
-                            </div>
-                            <div>
-                                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#a97935] dark:text-[#caa26c]">Cancel subscription</p>
-                                <h2 className="mt-2 text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Move back to Free?</h2>
-                                <p className="mt-3 text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm"
+                    style={{ background: 'color-mix(in srgb, var(--cvl-desk) 82%, transparent)' }}
+                >
+                    <div className="cvl-panel w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
+                        <div className="flex items-start gap-3">
+                            <span
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                                style={{ background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                            >
+                                <Trash2 size={18} aria-hidden="true" />
+                            </span>
+                            <div className="min-w-0">
+                                <Eyebrow>cancel subscription</Eyebrow>
+                                <h2 id="cancel-confirm-title" className="mt-1.5 text-[19px] font-semibold tracking-tight">Move back to Free?</h2>
+                                <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                     Your paid plan will be cancelled at the end of the current billing period, then your account returns to the Free plan with {FREE_PLAN_CREDIT_LIMIT.toLocaleString()} credits per month.
                                 </p>
                                 {feedbackData?.reason && (
-                                    <div className="mt-4 rounded-2xl border border-[#e9e1d6] bg-[#fffaf1] p-4 text-sm dark:border-[#37332d] dark:bg-[#262522]">
-                                        <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#7d6e5e] dark:text-[#aaa39a]">Reason</p>
-                                        <p className="mt-1 font-bold text-[#211b16] dark:text-[#f4f1e9]">{feedbackData.reason}</p>
+                                    <div className="cvl-panel-inset mt-4 p-3.5">
+                                        <Eyebrow on="inset">reason</Eyebrow>
+                                        <p className="mt-1 text-[13.5px] font-semibold">{feedbackData.reason}</p>
                                     </div>
                                 )}
                             </div>
                         </div>
-                        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <button
-                                type="button"
-                                onClick={() => setCancelStep('feedback')}
-                                disabled={isCanceling}
-                                className="inline-flex items-center justify-center rounded-xl border border-[#d8c6ad] bg-white px-4 py-3 text-sm font-black text-[#211b16] transition hover:bg-[#fffaf1] disabled:opacity-60 dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
-                            >
+                        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+                            <button type="button" onClick={() => setCancelStep('feedback')} disabled={isCanceling} className={BTN}>
                                 Back
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setCancelStep('idle')}
-                                disabled={isCanceling}
-                                className="inline-flex items-center justify-center rounded-xl border border-[#d8c6ad] bg-white px-4 py-3 text-sm font-black text-[#211b16] transition hover:bg-[#fffaf1] disabled:opacity-60 dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9] dark:hover:bg-[#302e2a]"
-                            >
+                            {/* Bordered, not filled. This dialog already has one filled
+                                button — the destructive one it exists to confirm — and a
+                                second fill beside it makes the row read as two competing
+                                primaries with the dangerous one no longer dominant. */}
+                            <button type="button" onClick={() => setCancelStep('idle')} disabled={isCanceling} className={BTN}>
                                 Keep paid plan
                             </button>
                             <button
                                 type="button"
                                 onClick={handleCancelSubscription}
                                 disabled={isCanceling}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#211b16] px-4 py-3 text-sm font-black text-white transition hover:bg-[#3a2b20] disabled:cursor-wait disabled:opacity-70 dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]"
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-3 text-[13.5px] font-semibold transition disabled:cursor-wait disabled:opacity-70"
+                                style={{ background: 'var(--cvl-danger)', color: 'var(--cvl-desk)' }}
                             >
-                                {isCanceling ? 'Scheduling...' : 'Cancel to Free'}
+                                {isCanceling ? 'Scheduling…' : 'Cancel to Free'}
                             </button>
                         </div>
                     </div>

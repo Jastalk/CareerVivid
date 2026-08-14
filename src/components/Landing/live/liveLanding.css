@@ -254,3 +254,94 @@ html.dark .cvl {
 .cvl-cta:hover {
     background: var(--cvl-cta-hover, #2e2a52);
 }
+
+/* ---------- panels without the chrome ---------- */
+
+/*
+ * The signed-in pages use the same paper, border, radius and tokens as the
+ * public ones, but no title bar. Traffic lights on the landing page are
+ * personality; on a page you open forty times a week they are noise, and the
+ * filename above a settings form would be a label that means nothing.
+ */
+.cvl-panel {
+    background: var(--cvl-paper);
+    border: 1px solid var(--cvl-line);
+    border-radius: 12px;
+    box-shadow: 0 1px 2px var(--cvl-shadow);
+}
+
+.cvl-panel-lift {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.cvl-panel-lift:hover {
+    transform: translateY(-2px);
+    border-color: var(--cvl-purple);
+    box-shadow: 0 1px 2px var(--cvl-shadow), 0 16px 32px -22px var(--cvl-shadow);
+}
+
+/* A panel nested inside another one, a shade back so the layers read. */
+.cvl-panel-inset {
+    background: var(--cvl-paper-2);
+    border: 1px solid var(--cvl-line);
+    border-radius: 10px;
+}
+
+/* ---------- form controls ---------- */
+
+.cvl-field {
+    background: var(--cvl-paper-2);
+    border: 1px solid var(--cvl-line);
+    border-radius: 10px;
+    color: var(--cvl-ink);
+}
+
+/*
+ * Placeholders cannot be set from an inline style, so they have to live here or
+ * they fall back to the browser default and miss the palette entirely.
+ */
+.cvl input::placeholder,
+.cvl textarea::placeholder,
+.cvl-field::placeholder {
+    color: var(--cvl-faint);
+    opacity: 1;
+}
+
+/* The secondary button. Same shape as .cvl-cta, no fill. */
+.cvl-btn {
+    background: var(--cvl-paper);
+    border: 1px solid var(--cvl-line);
+    color: var(--cvl-ink);
+    transition: border-color 160ms ease, background 160ms ease;
+}
+
+.cvl-btn:hover {
+    border-color: var(--cvl-purple);
+    background: var(--cvl-paper-2);
+}
+
+/* The quiet button — toolbar icons, row actions, anything that repeats. */
+.cvl-btn-ghost {
+    color: var(--cvl-muted);
+    border-radius: 8px;
+    transition: background 160ms ease, color 160ms ease;
+}
+
+.cvl-btn-ghost:hover {
+    background: var(--cvl-paper-2);
+    color: var(--cvl-ink);
+}
+
+/*
+ * The one destructive colour. The token set had none, so the dashboard repair
+ * pass reached for amber and made deletes look like warnings.
+ */
+.cvl {
+    --cvl-danger: #a3312a;
+    --cvl-danger-soft: #fbeceb;
+}
+
+html.dark .cvl {
+    --cvl-danger: #f2938c;
+    --cvl-danger-soft: #2e1a18;
+}

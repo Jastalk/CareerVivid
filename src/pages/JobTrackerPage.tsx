@@ -17,6 +17,7 @@ import AppLayout from '../components/Layout/AppLayout';
 import { useNavigation } from '../contexts/NavigationContext';
 import { db } from '../firebase';
 import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import '../components/Landing/live/liveLanding.css';
 
 type TrackerTransitData = {
     scrapeId?: string;
@@ -356,95 +357,109 @@ const JobTrackerPage: React.FC = () => {
               * the page pushed past the viewport instead of letting the board use
               * its own horizontal scroll.
               */}
-            <div className="cv-design-page cv-design-grid mx-auto min-h-screen w-full min-w-0 max-w-screen-2xl">
-                {/* Inline page header */}
-                <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                        {navPosition !== 'side' && (
-                            <button
-                                onClick={() => navigate('/dashboard')}
-                                title={t('nav.dashboard')}
-                                className="shrink-0 text-[var(--cv-text-body)] hover:text-[var(--cv-text-heading)]"
-                            >
-                                <ArrowLeft size={20} />
-                            </button>
-                        )}
-                        <div className="min-w-0">
-                            <h1 className="cv-design-title text-[22px]">
-                                {t('job_tracker.title')}
-                            </h1>
-                            <p className="cv-design-body mt-0.5 text-[13px]">
-                                {t('job_tracker.subtitle')}
-                            </p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="cv-design-button-primary h-9 shrink-0 px-3.5 text-xs"
+            <div className="cvl min-h-screen w-full min-w-0">
+                {/*
+                  * The width limit lives here, not on the `.cvl` root. `.cvl` paints
+                  * the desk ground and its dot grid, so limiting it would stop that
+                  * ground at 1536px and let AppLayout's own ground and 64px line grid
+                  * show through the gutters — two patterns meeting at a hard seam.
+                  */}
+                <div className="mx-auto w-full min-w-0 max-w-screen-2xl">
+                    {/* Inline page header */}
+                    <div
+                        className="flex flex-wrap items-start justify-between gap-3 border-b px-4 pt-5 pb-4 sm:flex-nowrap sm:items-center sm:px-5"
+                        style={{ borderColor: 'var(--cvl-line)' }}
                     >
-                        <PlusCircle size={14} />
-                        {t('job_tracker.track_new')}
-                    </button>
-                </div>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            {navPosition !== 'side' && (
+                                <button
+                                    onClick={() => navigate('/dashboard')}
+                                    title={t('nav.dashboard')}
+                                    aria-label={t('nav.dashboard')}
+                                    className="cvl-btn-ghost -ml-1 flex h-9 w-9 shrink-0 items-center justify-center"
+                                >
+                                    <ArrowLeft size={18} aria-hidden="true" />
+                                </button>
+                            )}
+                            <div className="min-w-0">
+                                <h1 className="text-[22px] font-semibold leading-tight tracking-tight" style={{ color: 'var(--cvl-ink)' }}>
+                                    {t('job_tracker.title')}
+                                </h1>
+                                <p className="mt-1 text-[13px] leading-snug" style={{ color: 'var(--cvl-muted)' }}>
+                                    {t('job_tracker.subtitle')}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="cvl-cta inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-semibold transition"
+                        >
+                            <PlusCircle size={15} aria-hidden="true" />
+                            {t('job_tracker.track_new')}
+                        </button>
+                    </div>
 
-                <div className="px-3 pb-6 sm:px-5 lg:px-6">
-                        {isLoading ? (
-                            <p className="text-center text-gray-500 dark:text-gray-400">{t('job_tracker.loading')}</p>
-                        ) : (
-                            <>
-                                {/*
-                                  * The status strip that used to sit here is gone in Kanban view.
-                                  *
-                                  * Every figure on it — total, active, interviewing, offers,
-                                  * rejected — was already printed on the board's own column
-                                  * headers a few hundred pixels below, where the jobs those
-                                  * numbers count actually live. Between it, the plan's counters
-                                  * and the status chips, `Interviewing 0` appeared three times on
-                                  * one screen, and 448px of the 820px viewport was spent before
-                                  * the first job card. Strategy view has no columns of its own, so
-                                  * it keeps the strip.
-                                  */}
-                                {viewMode === 'strategy' && (
-                                    <StatusOverview applications={jobApplications} variant="compact" />
-                                )}
-
-                                <TodayJobSearchPlan applications={jobApplications} onJobSelect={handleCardClick} />
-
-                                <PipelineControls
-                                    searchQuery={searchQuery}
-                                    setSearchQuery={setSearchQuery}
-                                    priorityFilter={priorityFilter}
-                                    setPriorityFilter={setPriorityFilter}
-                                    sortMode={sortMode}
-                                    setSortMode={setSortMode}
-                                    viewMode={viewMode}
-                                    setViewMode={setViewMode}
-                                    statusFilter={statusFilter}
-                                    setStatusFilter={setStatusFilter}
-                                    statusCounts={statusCounts}
-                                    filteredCount={filteredApplications.length}
-                                    totalCount={jobApplications.length}
-                                />
-
-                                <div className="mt-4">
-                                    {viewMode === 'kanban' ? (
-                                        <KanbanBoard
-                                            applications={filteredApplications}
-                                            onCardClick={handleCardClick}
-                                            onUpdateApplication={updateJobApplication}
-                                            focusedStatus={focusedStatus}
-                                        />
-                                    ) : (
-                                        <StrategyMap
-                                            applications={filteredApplications}
-                                            resumes={resumes} // Pass resumes
-                                            onCardClick={handleCardClick}
-                                            onUpdateJob={updateJobApplication} // Pass update function
-                                        />
+                    <div className="px-3 pb-6 sm:px-5 lg:px-6">
+                            {isLoading ? (
+                                <p className="cvl-mono py-12 text-center text-[12px]" style={{ color: 'var(--cvl-muted)' }}>
+                                    {t('job_tracker.loading')}
+                                </p>
+                            ) : (
+                                <>
+                                    {/*
+                                      * The status strip that used to sit here is gone in Kanban view.
+                                      *
+                                      * Every figure on it — total, active, interviewing, offers,
+                                      * rejected — was already printed on the board's own column
+                                      * headers a few hundred pixels below, where the jobs those
+                                      * numbers count actually live. Between it, the plan's counters
+                                      * and the status chips, `Interviewing 0` appeared three times on
+                                      * one screen, and 448px of the 820px viewport was spent before
+                                      * the first job card. Strategy view has no columns of its own, so
+                                      * it keeps the strip.
+                                      */}
+                                    {viewMode === 'strategy' && (
+                                        <StatusOverview applications={jobApplications} variant="compact" />
                                     )}
-                                </div>
-                            </>
-                        )}
+
+                                    <TodayJobSearchPlan applications={jobApplications} onJobSelect={handleCardClick} />
+
+                                    <PipelineControls
+                                        searchQuery={searchQuery}
+                                        setSearchQuery={setSearchQuery}
+                                        priorityFilter={priorityFilter}
+                                        setPriorityFilter={setPriorityFilter}
+                                        sortMode={sortMode}
+                                        setSortMode={setSortMode}
+                                        viewMode={viewMode}
+                                        setViewMode={setViewMode}
+                                        statusFilter={statusFilter}
+                                        setStatusFilter={setStatusFilter}
+                                        statusCounts={statusCounts}
+                                        filteredCount={filteredApplications.length}
+                                        totalCount={jobApplications.length}
+                                    />
+
+                                    <div className="mt-4">
+                                        {viewMode === 'kanban' ? (
+                                            <KanbanBoard
+                                                applications={filteredApplications}
+                                                onCardClick={handleCardClick}
+                                                onUpdateApplication={updateJobApplication}
+                                                focusedStatus={focusedStatus}
+                                            />
+                                        ) : (
+                                            <StrategyMap
+                                                applications={filteredApplications}
+                                                resumes={resumes} // Pass resumes
+                                                onCardClick={handleCardClick}
+                                                onUpdateJob={updateJobApplication} // Pass update function
+                                            />
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                    </div>
                 </div>
 
                 {isAddModalOpen && (

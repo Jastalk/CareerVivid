@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useAgentSession } from './AgentSessionContext';
 import { useDrawerCorner, CORNER_STYLE, RESIZE_EDGE } from './useDrawerCorner';
 import { getDrawerMode, setDrawerMode, subscribeDrawerMode, type DrawerMode } from './drawerMode';
+import '../../components/Landing/live/liveLanding.css';
 
 /**
  * Routes where a floating panel would obstruct the actual work.
@@ -30,6 +31,15 @@ const MAX_WIDTH = 720;
 const WIDTH_KEY = 'cv_agent_drawer_width';
 const CLOSED_AT_KEY = 'cv_agent_closed_at';
 const REOPEN_HINT_MS = 6_000;
+
+/*
+ * `.cvl-panel` ships a resting-card shadow — 1px, enough to lift a card off the
+ * page it belongs to. Everything in this file floats over live page content at
+ * z-60, which needs real elevation or it reads as pasted onto whatever is
+ * behind it. Both values are built from --cvl-shadow, so they follow the theme.
+ */
+const OVERLAY_SHADOW = '0 2px 6px var(--cvl-shadow), 0 30px 60px -22px var(--cvl-shadow)';
+const TOAST_SHADOW = '0 2px 5px var(--cvl-shadow), 0 18px 38px -20px var(--cvl-shadow)';
 
 /*
  * closed → the pill. open → the full drawer. mini → a compact card that keeps
@@ -67,9 +77,24 @@ const DragHandle: React.FC<{ onPointerDown: (e: React.PointerEvent) => void; hin
             title="Drag to move"
             className="group absolute left-1/2 top-0 z-10 flex h-4 w-16 -translate-x-1/2 cursor-grab items-center justify-center active:cursor-grabbing"
         >
-            <GripHorizontal className="h-3 w-3 text-transparent transition-colors group-hover:text-[var(--cv-text-muted)]" />
+            <GripHorizontal className="h-3 w-3 text-transparent transition-colors group-hover:text-[color:var(--cvl-muted)]" />
+            {/*
+              * Inverted, not paper. The tooltip renders over the drawer body,
+              * which is already paper — a paper chip on paper reads as part of
+              * the panel rather than as something floating above it. Swapping
+              * ink and paper keeps it inside the token set and gives it the
+              * contrast step a tooltip needs in both themes.
+              */}
             {hovered && !hintSeen && (
-                <span className="pointer-events-none absolute top-5 whitespace-nowrap rounded-lg bg-gray-900 px-2 py-1 text-[10px] font-medium text-white shadow-lg dark:bg-white dark:text-gray-900">
+                <span
+                    className="pointer-events-none absolute top-5 whitespace-nowrap px-2 py-1 text-[10px] font-medium"
+                    style={{
+                        background: 'var(--cvl-ink)',
+                        color: 'var(--cvl-paper)',
+                        borderRadius: 8,
+                        boxShadow: '0 10px 24px -14px var(--cvl-shadow)',
+                    }}
+                >
                     Drag here to move me to any corner
                 </span>
             )}
@@ -121,19 +146,30 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         : undefined;
 
     // Cmd/Ctrl+K toggles, Esc closes — the panel is used mid-task, and reaching
-    // for the mouse breaks the thing it is meant to support.
+    // for the mouse breaks the thing it is meant to support. ⌘K is now the only
+    // way back once it is hidden, so the shortcut is load-bearing rather than a
+    // convenience.
+    const closeRef = useRef(closeWithHint);
+    closeRef.current = closeWithHint;
+
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
                 e.preventDefault();
-                setDrawerMode(getDrawerMode() === 'open' ? 'closed' : 'open');
+                if (getDrawerMode() === 'open') {
+                    closeRef.current();
+                } else {
+                    localStorage.removeItem(CLOSED_AT_KEY);
+                    setClosedAt(0);
+                    setDrawerMode('open');
+                }
             } else if (e.key === 'Escape' && !draggingRef.current) {
                 // Only when the panel itself has focus. Escape is load-bearing
                 // elsewhere — on the whiteboard it finishes a multi-point arrow,
                 // and stealing it closed the agent instead of ending the line.
                 const target = e.target as Node | null;
                 if (!target || !rootRef.current?.contains(target)) return;
-                setDrawerMode('closed');
+                closeRef.current();
             }
         };
         window.addEventListener('keydown', onKey);
@@ -165,32 +201,29 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     if (!currentUser) return null;
     if (SUPPRESSED.some((re) => re.test(path))) return null;
 
+    /*
+     * Closed means gone. Not parked behind a pill in the corner — a companion
+     * that cannot be fully dismissed is a companion you resent, and the mode is
+     * persisted, so it stays gone across reloads until it is asked for.
+     *
+     * The toast is the whole handoff: it names the shortcut once, on the way
+     * out, while the user is still looking at the corner they just cleared.
+     */
     if (mode === 'closed') {
+        if (!showReopenHint) return null;
         return (
-            <>
-                {/* Says where it went. Dismissing a companion should not feel
-                    like losing it — and the sidebar entry is the durable answer
-                    once this toast is gone. */}
-                {showReopenHint && (
-                    <div
-                        style={{ ...CORNER_STYLE[corner], marginBottom: 64 }}
-                        className="fixed z-[61] max-w-[15rem] rounded-xl bg-gray-900 px-3 py-2 text-xs text-white shadow-xl dark:bg-white dark:text-gray-900"
-                    >
-                        Career Agent is hidden. Reopen it from the sidebar, or press ⌘K.
-                    </div>
-                )}
-                <button
-                    type="button"
-                    onClick={() => { localStorage.removeItem(CLOSED_AT_KEY); setClosedAt(0); setMode('open'); }}
-                    aria-label="Open Career Agent"
-                    title="Career Agent (⌘K)"
-                    style={CORNER_STYLE[corner]}
-                    className="fixed z-[60] flex items-center gap-2 rounded-full bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 dark:bg-white dark:text-gray-900"
-                >
-                    <Sparkles className="h-4 w-4 text-amber-400 dark:text-amber-500" />
-                    Career Agent
-                </button>
-            </>
+            <div
+                style={{
+                    ...CORNER_STYLE[corner],
+                    background: 'var(--cvl-paper)',
+                    color: 'var(--cvl-ink)',
+                    boxShadow: TOAST_SHADOW,
+                }}
+                className="cvl cvl-panel fixed z-[61] max-w-[15rem] px-3 py-2 text-[12px]"
+                role="status"
+            >
+                Career Agent hidden. Press <kbd className="cvl-mono font-semibold">⌘K</kbd> to bring it back.
+            </div>
         );
     }
 
@@ -200,18 +233,20 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
         return (
             <aside
                 ref={rootRef}
-                style={dragStyle ?? CORNER_STYLE[corner]}
-                className={`fixed z-[60] w-72 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950 ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
+                style={{ ...(dragStyle ?? CORNER_STYLE[corner]), boxShadow: OVERLAY_SHADOW }}
+                /* `.cvl-panel` follows `.cvl` in the stylesheet, so the paper fill wins
+                   over the desk grid the token class would otherwise paint here. */
+                className={`cvl cvl-panel fixed z-[60] w-72 overflow-hidden ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
             >
                 <DragHandle onPointerDown={startDrag} hintSeen={hintSeen} />
-                <div className="flex items-center gap-1.5 border-b border-gray-100 px-2.5 py-1.5 dark:border-gray-800/60">
-                    <Sparkles className="h-3 w-3 shrink-0 text-amber-500" />
-                    <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-gray-700 dark:text-gray-200">
+                <div className="flex items-center gap-1.5 border-b px-2.5 py-1.5" style={{ borderColor: 'var(--cvl-line)' }}>
+                    <Sparkles className="h-3 w-3 shrink-0" style={{ color: 'var(--cvl-purple)' }} />
+                    <span className="min-w-0 flex-1 truncate text-[11px] font-semibold">
                         Career Agent
                         {onCall && (
-                            <span className="ml-1.5 font-normal text-[var(--cv-text-muted)]">
+                            <span className="cvl-mono ml-1.5 font-normal" style={{ color: 'var(--cvl-muted)' }}>
                                 {Math.floor(live.elapsedSeconds / 60)}:{String(live.elapsedSeconds % 60).padStart(2, '0')}
-                                {live.muted && <span className="ml-1 text-red-500">muted</span>}
+                                {live.muted && <span className="ml-1" style={{ color: 'var(--cvl-danger)' }}>muted</span>}
                             </span>
                         )}
                     </span>
@@ -219,21 +254,25 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                         <>
                             <button type="button" onClick={live.toggleMute} aria-pressed={live.muted}
                                 title={live.muted ? 'Unmute' : 'Mute'}
-                                className={`rounded-md p-1 ${live.muted ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-black/5 dark:hover:bg-white/10'}`}>
+                                className="cvl-btn-ghost rounded-md p-1"
+                                style={live.muted
+                                    ? { background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }
+                                    : undefined}>
                                 {live.muted ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
                             </button>
                             <button type="button" onClick={() => void live.stop()} title="End the call"
-                                className="rounded-md bg-red-600 p-1 text-white hover:bg-red-500">
+                                className="rounded-md border p-1 transition hover:opacity-80"
+                                style={{ borderColor: 'var(--cvl-danger)', background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}>
                                 <PhoneOff className="h-3 w-3" />
                             </button>
                         </>
                     )}
                     <button type="button" onClick={() => setMode('open')} title="Expand"
-                        className="rounded-md p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10">
+                        className="cvl-btn-ghost rounded-md p-1">
                         <Maximize2 className="h-3 w-3" />
                     </button>
                     <button type="button" onClick={closeWithHint} title="Close"
-                        className="rounded-md p-1 text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10">
+                        className="cvl-btn-ghost rounded-md p-1">
                         <X className="h-3 w-3" />
                     </button>
                 </div>
@@ -242,15 +281,15 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                     type="button"
                     onClick={() => setMode('open')}
                     title="Expand the conversation"
-                    className="block w-full px-3 py-2 text-left hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+                    className="cvl-btn-ghost block w-full px-3 py-2 text-left"
                 >
                     {last ? (
-                        <p className="line-clamp-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
-                            {last.role === 'user' && <span className="font-semibold text-gray-400">You: </span>}
+                        <p className="line-clamp-3 text-[12px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                            {last.role === 'user' && <span className="font-semibold" style={{ color: 'var(--cvl-faint)' }}>You: </span>}
                             {last.text || (text.isThinking ? '…' : '')}
                         </p>
                     ) : (
-                        <p className="text-xs text-gray-400">No messages yet — tap to start.</p>
+                        <p className="text-[12px]" style={{ color: 'var(--cvl-muted)' }}>No messages yet — tap to start.</p>
                     )}
                 </button>
             </aside>
@@ -260,8 +299,8 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
     return (
         <aside
             ref={rootRef}
-            style={{ width: `min(${width}px, 100vw)`, ...(dragStyle ?? CORNER_STYLE[corner]) }}
-            className={`fixed z-[60] flex h-[min(38rem,88vh)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-950 ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
+            style={{ width: `min(${width}px, 100vw)`, ...(dragStyle ?? CORNER_STYLE[corner]), boxShadow: OVERLAY_SHADOW }}
+            className={`cvl cvl-panel fixed z-[60] flex h-[min(38rem,88vh)] flex-col overflow-hidden ${dragging ? 'cursor-grabbing opacity-90' : ''}`}
         >
             <DragHandle onPointerDown={startDrag} hintSeen={hintSeen} />
             <div
@@ -269,16 +308,16 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                 title="Drag to resize"
                 role="separator"
                 aria-orientation="vertical"
-                className={`group absolute top-0 hidden h-full w-2 cursor-col-resize items-center justify-center hover:bg-[var(--cv-action-soft-bg)] sm:flex ${RESIZE_EDGE[corner] === 'left' ? 'left-0' : 'right-0'}`}
+                className={`group absolute top-0 hidden h-full w-2 cursor-col-resize items-center justify-center hover:bg-[var(--cvl-purple-soft)] sm:flex ${RESIZE_EDGE[corner] === 'left' ? 'left-0' : 'right-0'}`}
             >
-                <GripVertical className="h-4 w-4 text-transparent transition-colors group-hover:text-[var(--cv-text-muted)]" />
+                <GripVertical className="h-4 w-4 text-transparent transition-colors group-hover:text-[color:var(--cvl-muted)]" />
             </div>
-            <div className="flex items-center justify-end gap-1 border-b border-gray-200 px-2 py-1.5 dark:border-gray-800">
+            <div className="flex items-center justify-end gap-1 border-b px-2 py-1.5" style={{ borderColor: 'var(--cvl-line)' }}>
                 <button
                     type="button"
                     onClick={() => setMode('mini')}
                     title="Minimize — keep the conversation in view"
-                    className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
+                    className="cvl-btn-ghost rounded-md p-1.5"
                 >
                     <Minus className="h-3.5 w-3.5" />
                 </button>
@@ -291,7 +330,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                     // to a pill and the conversation out of sight.
                     onClick={() => navigate('/agent')}
                     title="Open full screen"
-                    className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
+                    className="cvl-btn-ghost rounded-md p-1.5"
                 >
                     <Maximize2 className="h-3.5 w-3.5" />
                 </button>
@@ -299,7 +338,7 @@ export const AgentDrawer: React.FC<{ path: string }> = ({ path }) => {
                     type="button"
                     onClick={closeWithHint}
                     title="Close"
-                    className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10"
+                    className="cvl-btn-ghost rounded-md p-1.5"
                 >
                     <X className="h-3.5 w-3.5" />
                 </button>

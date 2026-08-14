@@ -8,7 +8,7 @@
 
 </div>
 
-![CareerVivid company interview preparation page showing company-specific interview loops and a mock-interview action](docs/screenshots/company-quest-landing.png)
+![The CareerVivid home page: a whiteboard drawing a URL-shortener design, a live voice waveform, a scored design report, and a ride-dispatch diagram, scattered around the wordmark](docs/screenshots/landing.png)
 
 ## Try it without an account
 
@@ -67,10 +67,11 @@ score it moves are all visible at once.
 
 ### Find the next role
 
-The dashboard turns a selected resume, target role, readiness, interview
-activity, and next action into a job-search operating plan.
+The dashboard opens on the three things the product is for — continue a quest,
+your resume, your last round — each showing where you actually left off and
+offering one action. Readiness, numbers, and next steps sit below them.
 
-![CareerVivid dashboard showing today's next step, target role readiness, resume match, and recent interview sessions](docs/screenshots/app-dashboard.png)
+![CareerVivid dashboard leading with continue-a-quest, your-resume and your-last-round panels, above target-role readiness and workspace numbers](docs/screenshots/app-dashboard.png)
 
 Job recommendations stay tied to the selected target resume. Each role makes
 the evidence, gaps, work arrangement, salary information, and direct action

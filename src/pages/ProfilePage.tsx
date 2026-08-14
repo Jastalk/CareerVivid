@@ -10,6 +10,23 @@ import { httpsCallable } from 'firebase/functions';
 import EmailPracticeSettings from '../components/EmailPracticeSettings';
 import { navigate } from '../utils/navigation';
 import { getEmailDisplayName, resolveUserDisplayName } from '../utils/userDisplayName';
+import '../components/Landing/live/liveLanding.css';
+
+/** The label above a field, and the label above a section. Same face, same weight. */
+const LABEL = 'cvl-mono text-[11px] uppercase tracking-[0.18em]';
+
+/**
+ * The quietest label tier. `on="inset"` steps it up one: `.cvl-panel-inset` is
+ * --cvl-paper-2, a shade darker than the --cvl-paper that --cvl-faint is rated
+ * against, and this is the smallest, most tightly tracked text on the page.
+ */
+const Eyebrow: React.FC<{ children: React.ReactNode; on?: 'panel' | 'inset' }> = ({ children, on = 'panel' }) => (
+    <p className={LABEL} style={{ color: on === 'inset' ? 'var(--cvl-muted)' : 'var(--cvl-faint)' }}>{children}</p>
+);
+
+const FIELD = 'cvl-field w-full px-3.5 py-2.5 text-[14px]';
+const CTA = 'cvl-cta inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13.5px] font-semibold transition disabled:opacity-60';
+const BTN = 'cvl-btn inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13.5px] font-semibold disabled:opacity-60';
 
 const ProfilePage: React.FC = () => {
     const { currentUser, userProfile, updateUserProfile, logOut, isPremium } = useAuth();
@@ -158,204 +175,334 @@ const ProfilePage: React.FC = () => {
         }
     };
 
-    const DeleteConfirmationModal = () => (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 transition-opacity">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl transform transition-all">
-                <h3 className="text-lg font-bold mb-4 text-red-600 dark:text-red-400">{t('profile.delete_modal_title')}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    {t('profile.delete_modal_desc')}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                    {t('profile.delete_modal_confirm')} <strong className="font-mono text-red-500">DELETE</strong>
-                </p>
-                <input
-                    type="text"
-                    value={deleteConfirmText}
-                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-4 bg-white dark:bg-gray-700"
-                />
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                    {t('profile.delete_modal_password')}
-                </p>
-                <input
-                    type="password"
-                    value={deletePassword}
-                    onChange={(e) => setDeletePassword(e.target.value)}
-                    placeholder={t('profile.current_password')}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md mb-4 bg-white dark:bg-gray-700"
-                />
-                {deleteError && <p className="text-red-500 text-sm mb-4">{deleteError}</p>}
-                <div className="flex justify-end gap-3">
-                    <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 font-semibold text-sm">{t('common.cancel')}</button>
-                    <button
-                        onClick={handleDeleteAccount}
-                        disabled={deleteConfirmText !== 'DELETE' || deleteLoading || !deletePassword}
-                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-semibold text-sm disabled:bg-red-300 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        {deleteLoading && <Loader2 size={16} className="animate-spin" />}
-                        {deleteLoading ? t('profile.deleting') : t('profile.delete_btn')}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
+    const planLabel = isPremium
+        ? userProfile?.plan === 'pro' ? 'Pro'
+            : userProfile?.plan === 'max' || userProfile?.plan === 'pro_max' ? 'Max'
+                : userProfile?.plan === 'enterprise' ? 'Enterprise'
+                    : t('profile.plan_premium')
+        : t('profile.plan_free');
+
+    const isPasswordAccount = currentUser?.providerData[0]?.providerId === 'password';
 
     return (
-        <div className="bg-[#f8f9fa] dark:bg-[#0a0c10] min-h-screen">
-            {isDeleteModalOpen && <DeleteConfirmationModal />}
-            <header className="bg-white dark:bg-[#161b22] border-b border-gray-200/60 dark:border-gray-800 sticky top-0 z-30">
-                <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-                    <button onClick={() => navigate('/dashboard')} title="Back to Dashboard" className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <ArrowLeft size={24} />
+        <div className="cvl min-h-screen">
+            {/* The modal is written inline rather than as a nested component: a
+                component declared inside the render is a new type on every
+                keystroke, which remounted these inputs and dropped focus. */}
+            {isDeleteModalOpen && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center px-4 backdrop-blur-sm"
+                    style={{ background: 'color-mix(in srgb, var(--cvl-desk) 82%, transparent)' }}
+                >
+                    <div className="cvl-panel w-full max-w-md p-6" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+                        <div className="flex items-start gap-3">
+                            <span
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                                style={{ background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                            >
+                                <Trash2 size={18} aria-hidden="true" />
+                            </span>
+                            <div className="min-w-0">
+                                <h2 id="delete-account-title" className="text-[17px] font-semibold tracking-tight" style={{ color: 'var(--cvl-danger)' }}>
+                                    {t('profile.delete_modal_title')}
+                                </h2>
+                                <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                                    {t('profile.delete_modal_desc')}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 space-y-4">
+                            <div>
+                                <label htmlFor="delete-confirm" className={LABEL} style={{ color: 'var(--cvl-faint)' }}>
+                                    {t('profile.delete_modal_confirm')} <span className="cvl-mono font-bold" style={{ color: 'var(--cvl-danger)' }}>DELETE</span>
+                                </label>
+                                <input
+                                    id="delete-confirm"
+                                    type="text"
+                                    autoComplete="off"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className={`${FIELD} cvl-mono mt-1.5`}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="delete-password" className={LABEL} style={{ color: 'var(--cvl-faint)' }}>
+                                    {t('profile.delete_modal_password')}
+                                </label>
+                                <input
+                                    id="delete-password"
+                                    type="password"
+                                    value={deletePassword}
+                                    onChange={(e) => setDeletePassword(e.target.value)}
+                                    placeholder={t('profile.current_password')}
+                                    className={`${FIELD} mt-1.5`}
+                                />
+                            </div>
+                            {deleteError && (
+                                <p className="text-[13px] font-semibold" style={{ color: 'var(--cvl-danger)' }} role="alert">{deleteError}</p>
+                            )}
+                        </div>
+
+                        <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+                            <button type="button" onClick={() => setIsDeleteModalOpen(false)} className={BTN}>
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteAccount}
+                                disabled={deleteConfirmText !== 'DELETE' || deleteLoading || !deletePassword}
+                                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13.5px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+                                style={{ background: 'var(--cvl-danger)', color: 'var(--cvl-desk)' }}
+                            >
+                                {deleteLoading && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+                                {deleteLoading ? t('profile.deleting') : t('profile.delete_btn')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <header
+                className="sticky top-0 z-30 border-b backdrop-blur"
+                style={{ borderColor: 'var(--cvl-line)', background: 'color-mix(in srgb, var(--cvl-paper) 88%, transparent)' }}
+            >
+                <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-4 sm:px-6 lg:px-8">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/dashboard')}
+                        title="Back to Dashboard"
+                        className="cvl-btn-ghost -ml-2 flex h-10 w-10 items-center justify-center"
+                    >
+                        <ArrowLeft size={20} aria-hidden="true" />
+                        <span className="sr-only">Back to Dashboard</span>
                     </button>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{t('profile.title')}</h1>
+                    <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('profile.title')}</h1>
                 </div>
             </header>
-            <main className="py-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-                    {/* Account Info Section */}
-                    <div className="bg-white dark:bg-[#161b22] p-6 lg:p-8 rounded-2xl border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow duration-300">
-                        <div className="flex items-center mb-4">
-                            <UserIcon className="text-primary-500 h-6 w-6 mr-3" />
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('profile.account_info')}</h2>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            <strong>{t('profile.email')}:</strong> {currentUser?.email}
-                        </p>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Display Name
-                            </label>
-                            {isEditingName ? (
-                                <div className="flex items-center gap-2 max-w-sm">
-                                    <input
-                                        type="text"
-                                        value={displayName}
-                                        onChange={(e) => setDisplayName(e.target.value)}
-                                        className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-[#0a0c10] focus:ring-2 focus:ring-primary-500/50 transition-colors"
-                                    />
-                                    <button
-                                        onClick={handleUpdateName}
-                                        disabled={nameLoading}
-                                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium disabled:opacity-50 flex items-center gap-2 transition-colors"
-                                    >
-                                        {nameLoading && <Loader2 size={14} className="animate-spin" />}
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={() => setIsEditingName(false)}
-                                        className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-3">
-                                    <p className="text-gray-500 dark:text-gray-400 font-medium">@{resolvedDisplayName}</p>
-                                    <button
-                                        onClick={() => setIsEditingName(true)}
-                                        className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                                    >
-                                        Edit
-                                    </button>
-                                </div>
-                            )}
-                            {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
-                            {nameSuccess && <p className="text-green-500 text-sm mt-1">{nameSuccess}</p>}
-                        </div>
-
-                        {currentUser?.providerData[0]?.providerId === 'google.com' && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
-                                {t('profile.google_signin_note')}
-                            </p>
-                        )}
+            <main className="mx-auto max-w-4xl space-y-5 px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+                {/* Account */}
+                <section className="cvl-panel p-5 sm:p-6" aria-labelledby="account-heading">
+                    <div className="flex items-center gap-2.5">
+                        <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                        >
+                            <UserIcon size={16} aria-hidden="true" />
+                        </span>
+                        <h2 id="account-heading" className="text-[17px] font-semibold tracking-tight">{t('profile.account_info')}</h2>
                     </div>
 
-                    {/* Email Preferences Section */}
-                    <EmailPracticeSettings />
-
-                    {/* Change Password Section */}
-                    {currentUser?.providerData[0]?.providerId === 'password' && (
-                        <div className="bg-white dark:bg-[#161b22] p-6 lg:p-8 rounded-2xl border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow duration-300">
-                            <div className="flex items-center mb-4">
-                                <KeyRound className="text-primary-500 h-6 w-6 mr-3" />
-                                <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('profile.change_password')}</h2>
-                            </div>
-                            <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-                                <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} placeholder={t('profile.current_password')} required className="w-full px-4 py-2.5 border border-gray-200/60 dark:border-gray-800 rounded-xl bg-gray-50 dark:bg-[#0a0c10] focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-colors" />
-                                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder={t('profile.new_password')} required className="w-full px-4 py-2.5 border border-gray-200/60 dark:border-gray-800 rounded-xl bg-gray-50 dark:bg-[#0a0c10] focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-colors" />
-                                <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder={t('profile.confirm_password')} required className="w-full px-4 py-2.5 border border-gray-200/60 dark:border-gray-800 rounded-xl bg-gray-50 dark:bg-[#0a0c10] focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-colors" />
-                                {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-                                {passwordSuccess && <p className="text-green-500 text-sm">{passwordSuccess}</p>}
-                                <button type="submit" disabled={passwordLoading} className="bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-primary-700 flex items-center gap-2 disabled:bg-primary-300">
-                                    {passwordLoading && <Loader2 size={16} className="animate-spin" />}
-                                    {t('profile.update_password')}
-                                </button>
-                            </form>
+                    <dl className="mt-5 space-y-5">
+                        <div>
+                            <dt className={LABEL} style={{ color: 'var(--cvl-faint)' }}>{t('profile.email')}</dt>
+                            <dd className="mt-1.5 break-all text-[14px]">{currentUser?.email}</dd>
                         </div>
+
+                        <div>
+                            <dt className={LABEL} style={{ color: 'var(--cvl-faint)' }}>Display name</dt>
+                            <dd className="mt-1.5">
+                                {isEditingName ? (
+                                    <div className="flex max-w-sm flex-col gap-2 sm:flex-row sm:items-center">
+                                        <input
+                                            type="text"
+                                            aria-label="Display name"
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
+                                            className={`${FIELD} sm:flex-1`}
+                                        />
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={handleUpdateName} disabled={nameLoading} className={CTA}>
+                                                {nameLoading && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+                                                Save
+                                            </button>
+                                            <button type="button" onClick={() => setIsEditingName(false)} className={BTN}>
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <span className="text-[14px] font-medium">@{resolvedDisplayName}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditingName(true)}
+                                            className="text-[13px] font-semibold transition hover:opacity-80"
+                                            style={{ color: 'var(--cvl-purple)' }}
+                                        >
+                                            Edit
+                                        </button>
+                                    </div>
+                                )}
+                                {nameError && <p className="mt-1.5 text-[13px] font-semibold" style={{ color: 'var(--cvl-danger)' }} role="alert">{nameError}</p>}
+                                {nameSuccess && <p className="mt-1.5 text-[13px] font-semibold" style={{ color: 'var(--cvl-green)' }} role="status">{nameSuccess}</p>}
+                            </dd>
+                        </div>
+                    </dl>
+
+                    {currentUser?.providerData[0]?.providerId === 'google.com' && (
+                        <p className="mt-5 border-t pt-4 text-[13px] leading-relaxed" style={{ borderColor: 'var(--cvl-line)', color: 'var(--cvl-muted)' }}>
+                            {t('profile.google_signin_note')}
+                        </p>
                     )}
+                </section>
 
-                    {/* Manage Subscription Section */}
-                    <div className="bg-white dark:bg-[#161b22] p-6 lg:p-8 rounded-2xl border border-gray-200/60 dark:border-gray-800 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow duration-300">
-                        <div className="flex items-center mb-4">
-                            <CreditCard className="text-primary-500 h-6 w-6 mr-3" />
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('profile.payment_subscription')}</h2>
+                {/* Email preferences — owns its own surface. */}
+                <EmailPracticeSettings />
+
+                {/* Password */}
+                {isPasswordAccount && (
+                    <section className="cvl-panel p-5 sm:p-6" aria-labelledby="password-heading">
+                        <div className="flex items-center gap-2.5">
+                            <span
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                            >
+                                <KeyRound size={16} aria-hidden="true" />
+                            </span>
+                            <h2 id="password-heading" className="text-[17px] font-semibold tracking-tight">{t('profile.change_password')}</h2>
                         </div>
-                        <div className="mb-4">
-                            <p className="text-gray-600 dark:text-gray-300">
-                                <strong>{t('profile.current_plan')}:</strong> <span className="font-semibold text-primary-600 dark:text-primary-400">
-                                    {isPremium ? (
-                                        userProfile?.plan === 'pro' ? 'Pro' :
-                                            userProfile?.plan === 'max' || userProfile?.plan === 'pro_max' ? 'Max' :
-                                                userProfile?.plan === 'enterprise' ? 'Enterprise' :
-                                                    t('profile.plan_premium')
-                                    ) : t('profile.plan_free')}
-                                </span>
+                        <form onSubmit={handleChangePassword} className="mt-5 max-w-md space-y-4">
+                            <div>
+                                <label htmlFor="current-password" className={LABEL} style={{ color: 'var(--cvl-faint)' }}>
+                                    {t('profile.current_password')}
+                                </label>
+                                <input
+                                    id="current-password"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    value={currentPassword}
+                                    onChange={e => setCurrentPassword(e.target.value)}
+                                    required
+                                    className={`${FIELD} mt-1.5`}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="new-password" className={LABEL} style={{ color: 'var(--cvl-faint)' }}>
+                                    {t('profile.new_password')}
+                                </label>
+                                <input
+                                    id="new-password"
+                                    type="password"
+                                    autoComplete="new-password"
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    required
+                                    className={`${FIELD} mt-1.5`}
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="confirm-password" className={LABEL} style={{ color: 'var(--cvl-faint)' }}>
+                                    {t('profile.confirm_password')}
+                                </label>
+                                <input
+                                    id="confirm-password"
+                                    type="password"
+                                    autoComplete="new-password"
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    required
+                                    className={`${FIELD} mt-1.5`}
+                                />
+                            </div>
+                            {passwordError && <p className="text-[13px] font-semibold" style={{ color: 'var(--cvl-danger)' }} role="alert">{passwordError}</p>}
+                            {passwordSuccess && <p className="text-[13px] font-semibold" style={{ color: 'var(--cvl-green)' }} role="status">{passwordSuccess}</p>}
+                            <button type="submit" disabled={passwordLoading} className={CTA}>
+                                {passwordLoading && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+                                {t('profile.update_password')}
+                            </button>
+                        </form>
+                    </section>
+                )}
+
+                {/* Subscription */}
+                <section className="cvl-panel p-5 sm:p-6" aria-labelledby="subscription-heading">
+                    <div className="flex items-center gap-2.5">
+                        <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style={{ background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)' }}
+                        >
+                            <CreditCard size={16} aria-hidden="true" />
+                        </span>
+                        <h2 id="subscription-heading" className="text-[17px] font-semibold tracking-tight">{t('profile.payment_subscription')}</h2>
+                    </div>
+
+                    <div className="cvl-panel-inset mt-5 flex flex-wrap items-center justify-between gap-3 px-4 py-3.5">
+                        <div className="min-w-0">
+                            <Eyebrow on="inset">{t('profile.current_plan')}</Eyebrow>
+                            <p className="mt-1 text-[18px] font-semibold tracking-tight" style={{ color: 'var(--cvl-purple)' }}>
+                                {planLabel}
                             </p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('profile.beta_note')}</p>
                         </div>
-                        {portalError && <p className="text-red-500 text-sm mb-4">{portalError}</p>}
+                        <span
+                            className="cvl-mono rounded-md px-2 py-1 text-[11px] font-bold"
+                            style={{
+                                background: isPremium ? 'var(--cvl-green-soft)' : 'var(--cvl-paper)',
+                                color: isPremium ? 'var(--cvl-green)' : 'var(--cvl-muted)',
+                            }}
+                        >
+                            {isPremium ? 'active' : 'free tier'}
+                        </span>
+                    </div>
+
+                    <p className="mt-3 text-[13px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>{t('profile.beta_note')}</p>
+
+                    {portalError && <p className="mt-3 text-[13px] font-semibold" style={{ color: 'var(--cvl-danger)' }} role="alert">{portalError}</p>}
+
+                    <div className="relative mt-5 inline-block">
                         <a
                             href="/subscription"
                             onClick={() => {
                                 localStorage.setItem('upgrade_guide_step', '4'); // Mark as done
                                 setShowUpgradeGuide(false);
                             }}
-                            className="relative inline-block bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors"
+                            className={CTA}
                         >
                             {t('profile.manage_subscription')}
-                            {/* Animated Arrow Logic - Step 3 - Pointing Left from Right Side */}
-                            {!isPremium && showUpgradeGuide && (
-                                <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 flex items-center gap-2 animate-bounce-horizontal">
-                                    <svg className="w-8 h-8 text-orange-500 transform rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                    </svg>
-                                    <span className="text-orange-500 font-bold text-sm whitespace-nowrap hidden sm:block">Upgrade Here</span>
-                                </div>
-                            )}
                         </a>
+                        {/* Animated Arrow Logic - Step 3 - Pointing Left from Right Side */}
+                        {!isPremium && showUpgradeGuide && (
+                            <div className="animate-bounce-horizontal pointer-events-none absolute left-full top-1/2 ml-4 flex -translate-y-1/2 items-center gap-2">
+                                <svg className="h-7 w-7 rotate-180" style={{ color: 'var(--cvl-amber)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                                <span className="hidden whitespace-nowrap text-[13px] font-semibold sm:block" style={{ color: 'var(--cvl-amber)' }}>Upgrade Here</span>
+                            </div>
+                        )}
                     </div>
+                </section>
 
-                    {/* Danger Zone Section */}
-                    <div className="bg-white dark:bg-[#161b22] p-6 lg:p-8 rounded-2xl border border-red-200 dark:border-red-900/40 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-shadow duration-300 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-bl-full pointer-events-none"></div>
-                        <div className="flex items-center mb-4">
-                            <Trash2 className="text-red-500 h-6 w-6 mr-3" />
-                            <h2 className="text-2xl font-bold text-red-600 dark:text-red-400">{t('profile.danger_zone')}</h2>
-                        </div>
-                        <p className="text-gray-600 dark:text-gray-300 mb-4">
-                            {t('profile.delete_account_desc')}
-                        </p>
-                        <button
-                            onClick={() => setIsDeleteModalOpen(true)}
-                            className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700"
+                {/* Delete account */}
+                <section
+                    className="cvl-panel p-5 sm:p-6"
+                    style={{ borderColor: 'var(--cvl-danger)' }}
+                    aria-labelledby="danger-heading"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style={{ background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
                         >
-                            {t('profile.delete_account')}
-                        </button>
+                            <Trash2 size={16} aria-hidden="true" />
+                        </span>
+                        <h2 id="danger-heading" className="text-[17px] font-semibold tracking-tight" style={{ color: 'var(--cvl-danger)' }}>
+                            {t('profile.danger_zone')}
+                        </h2>
                     </div>
-
-                </div>
+                    <p className="mt-3 max-w-2xl text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                        {t('profile.delete_account_desc')}
+                    </p>
+                    <button
+                        type="button"
+                        onClick={() => setIsDeleteModalOpen(true)}
+                        className="mt-5 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-[13.5px] font-semibold transition hover:opacity-85"
+                        style={{ borderColor: 'var(--cvl-danger)', background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                    >
+                        <Trash2 size={15} aria-hidden="true" />
+                        {t('profile.delete_account')}
+                    </button>
+                </section>
             </main>
         </div>
     );

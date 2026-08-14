@@ -36,7 +36,6 @@ import {
     setStoredLanguagePreference,
     stripLanguagePrefix,
 } from '../../utils/languagePreference';
-import AIUsageProgressBar from '../AIUsageProgressBar';
 import XpStatusCard from '../Gamification/XpStatusCard';
 import { getPlanDisplayName } from '../../config/subscriptionCatalog';
 import { useSidebarStore } from '../../store/useSidebarStore';
@@ -50,6 +49,44 @@ import { usePracticeHistory } from '../../hooks/useJobHistory';
 import { useMyCommunityPosts } from '../../hooks/useMyCommunityPosts';
 import SidebarDocumentList from './SidebarDocumentList';
 import { getPreferredUserAvatar } from '../../utils/avatarFallback';
+import '../Landing/live/liveLanding.css';
+
+/*
+ * The rail is the one surface every signed-in page renders inside, so it uses
+ * the same token set as the pages themselves — desk ground, paper panels, one
+ * purple. It deliberately skips the window chrome the dashboard cards wear:
+ * traffic lights above a navigation list would be decoration on the one thing
+ * a user looks at forty times a week.
+ *
+ * Quiet text here is --cvl-muted rather than --cvl-faint. The rail is grounded
+ * on --cvl-desk, which is a shade darker than --cvl-paper in light mode, and
+ * --cvl-faint is only measured against paper.
+ */
+
+/**
+ * The XP strip and the credit meter are the only two things in the rail that
+ * paint a filled bar, and they have to read as the same kind of measure.
+ * Remapping the product-wide `--cv-*` variables on XpStatusCard's wrapper pulls
+ * what it takes from them onto the rail's palette without reaching into a
+ * component five other pages also render.
+ *
+ * It is a partial fix, and worth naming as one. Of the two variants used here,
+ * only `strip` reads any of these names (`--cv-surface-warm-card-strong`, for
+ * its hover). `collapsed` is built entirely from raw hex, `bg-white`, and
+ * `dark:` variants (XpStatusCard.tsx:37-38) — none of which this wrapper can
+ * reach — and `strip`'s streak flame is `text-[#d97706]` / `fill-amber-400/60`
+ * for the same reason. Putting those on tokens means editing XpStatusCard,
+ * which is outside this file's remit.
+ */
+const XP_STRIP_TOKENS = {
+    '--cv-text-heading': 'var(--cvl-ink)',
+    '--cv-text-muted': 'var(--cvl-muted)',
+    '--cv-action-primary': 'var(--cvl-purple)',
+    '--cv-action-solid': 'var(--cvl-purple)',
+    '--cv-purple-500': 'var(--cvl-purple)',
+    '--cv-surface-muted': 'var(--cvl-paper-2)',
+    '--cv-surface-warm-card-strong': 'var(--cvl-paper-2)',
+} as React.CSSProperties;
 
 const generateDefaultNodes = (t: any): SidebarNode[] => {
     return [];
@@ -407,16 +444,50 @@ const Sidebar: React.FC = () => {
             : currentPath === path || currentPath.startsWith(`${path}/`)
     );
 
+    /** The active row is the only place in the rail that carries the accent. */
+    const rowTone = (isActive: boolean) => (
+        isActive
+            ? { background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }
+            : undefined
+    );
+
+    const creditsUsed = aiUsage?.count || 0;
+    const creditsLimit = aiUsage?.limit || 10;
+    const creditsPercent = creditsLimit > 0 ? Math.min((creditsUsed / creditsLimit) * 100, 100) : 0;
+    const creditsLeft = Math.max(creditsLimit - creditsUsed, 0);
+    // Running out is a warning, not a delete. Amber until it is actually gone.
+    const creditsTone = creditsLeft === 0
+        ? 'var(--cvl-danger)'
+        : creditsPercent >= 70 ? 'var(--cvl-amber)' : 'var(--cvl-purple)';
+    /*
+     * Both of these states came from the AIUsageProgressBar this meter replaced,
+     * and they are the reason the meter is worth having at all: the nudge is the
+     * conversion path for the users about to run out, and "limit reached" is the
+     * one month where the number needs to look different from every other month.
+     * Same thresholds as the component's — see AIUsageProgressBar.tsx:91.
+     */
+    const creditsRunningLow = !isPremium && creditsLeft > 0 && creditsLeft <= Math.min(creditsLimit * 0.3, 20);
+    const creditsExhausted = creditsLeft === 0;
+
     if (!currentUser) return null;
 
     return (
-        <aside 
-            style={{ width: `${activeSidebarWidth}px` }}
+        <aside
+            style={{
+                width: `${activeSidebarWidth}px`,
+                background: 'var(--cvl-desk)',
+                color: 'var(--cvl-ink)',
+                borderRight: '1px solid var(--cvl-line)',
+                boxShadow: '4px 0 24px -20px var(--cvl-shadow)',
+            }}
             data-sidebar-mode={sidebarMode}
-            className="fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto overscroll-contain border-r border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] text-[var(--cv-text-heading)] shadow-[4px_0_24px_rgba(16,24,40,0.04)] transition-[width] duration-200 ease-in-out [scrollbar-width:thin] md:flex"
+            className="cvl fixed inset-y-0 left-0 z-30 hidden flex-col overflow-y-auto overscroll-contain transition-[width] duration-200 ease-in-out [scrollbar-width:thin] md:flex"
         >
             {/* Header / Logo */}
-            <div className={`relative flex h-16 shrink-0 items-center border-b border-[var(--cv-border-subtle)] sm:h-20 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}>
+            <div
+                className={`relative flex h-16 shrink-0 items-center border-b sm:h-20 ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`}
+                style={{ borderColor: 'var(--cvl-line)' }}
+            >
                 <a
                     href="/dashboard"
                     onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}
@@ -424,11 +495,11 @@ const Sidebar: React.FC = () => {
                     aria-label="CareerVivid Dashboard"
                 >
                     <Logo className="h-8 w-auto shrink-0" />
-                    <span className="truncate font-heading text-sm font-extrabold tracking-tight text-[var(--cv-text-heading)]">CareerVivid</span>
+                    <span className="truncate font-heading text-sm font-semibold tracking-tight">CareerVivid</span>
                 </a>
                 <button
                     onClick={toggleSidebarMode}
-                    className="rounded-xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] p-1.5 text-[var(--cv-text-muted)] shadow-sm transition-colors hover:border-[var(--cv-action-border)] hover:text-[var(--cv-action-primary)]"
+                    className="cvl-btn-ghost flex h-11 w-11 shrink-0 items-center justify-center rounded-lg transition-colors"
                     title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
@@ -455,19 +526,20 @@ const Sidebar: React.FC = () => {
                                 onClick={() => handleLinkClick(path)}
                                 title={label}
                                 aria-label={label}
-                                className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border transition-all ${isActive ? 'border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-soft-text)] shadow-sm' : 'border-transparent text-[var(--cv-text-muted)] hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
+                                style={rowTone(isActive)}
+                                className="cvl-btn-ghost relative flex h-11 w-11 items-center justify-center rounded-lg"
                             >
                                 <Icon size={18} />
                             </button>
                         );
                     })}
-                    <div className="my-1 h-px w-7 bg-[var(--cv-border-subtle)]" />
+                    <div className="my-1 h-px w-7" style={{ background: 'var(--cvl-line)' }} />
                     <button
                         type="button"
                         onClick={() => setIsFilesOpen(true)}
                         title="Files"
                         aria-label="Open Files"
-                        className="flex h-11 w-11 items-center justify-center rounded-2xl border border-transparent text-[var(--cv-text-muted)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
+                        className="cvl-btn-ghost flex h-11 w-11 items-center justify-center rounded-lg"
                     >
                         <FolderOpen size={18} />
                     </button>
@@ -475,7 +547,12 @@ const Sidebar: React.FC = () => {
                 ) : (
                     <div className="flex min-h-0 flex-1 flex-col">
                         <div className="shrink-0">
-                            <span className="cv-design-eyebrow mb-2 block px-1">Workspace</span>
+                            <span
+                                className="cvl-mono mb-2 block px-1 text-[11px] uppercase tracking-[0.18em]"
+                                style={{ color: 'var(--cvl-muted)' }}
+                            >
+                                Workspace
+                            </span>
                             <div className="space-y-0.5">
                                 {primaryLinks.map(({ label, path, icon: Icon }) => {
                                     const isActive = isActivePath(path);
@@ -484,15 +561,14 @@ const Sidebar: React.FC = () => {
                                             key={path}
                                             onClick={() => handleLinkClick(path)}
                                             /*
-                                              * Idle rows use the same ink as a card's row title
-                                              * (`--cv-text-heading-product`) rather than muted grey.
-                                              * These are destinations, not captions — the dashboard's
-                                              * session list sets them in near-black, and the rail
-                                              * reading two shades lighter made the primary navigation
-                                              * look like secondary text. The active row still stands
-                                              * out on its tinted pill, border and shadow.
+                                              * Resting rows sit in --cvl-muted and come up to
+                                              * --cvl-ink on hover; only the row you are on takes
+                                              * the purple. One accent in the rail means the active
+                                              * page is legible at a glance instead of competing
+                                              * with six near-black labels.
                                               */
-                                            className={`cv-nav-row flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left text-sm font-bold transition-all ${isActive ? 'border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-soft-text)] shadow-sm' : 'border-transparent text-[var(--cv-text-heading-product)] hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
+                                            style={rowTone(isActive)}
+                                            className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-semibold"
                                         >
                                             <Icon size={16} className="shrink-0" />
                                             <span className="min-w-0 truncate">{label}</span>
@@ -502,16 +578,16 @@ const Sidebar: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 border-t border-[var(--cv-border-subtle)] pt-3">
+                        <div className="mt-4 border-t pt-3" style={{ borderColor: 'var(--cvl-line)' }}>
                             <button
                                 type="button"
                                 onClick={() => setIsFilesOpen(true)}
                                 aria-label="Open Files"
-                                className="cv-nav-row flex w-full items-center gap-2.5 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-bold text-[var(--cv-text-heading-product)] transition-all hover:border-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-muted)] hover:text-[var(--cv-text-heading)]"
+                                className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-semibold"
                             >
                                 <FolderOpen size={16} className="shrink-0" />
                                 <span>Files</span>
-                                <span className="ml-auto text-[11px] font-semibold tabular-nums text-[var(--cv-text-muted)]">{activeDocuments.length}</span>
+                                <span className="cvl-mono ml-auto text-[11px] tabular-nums">{activeDocuments.length}</span>
                             </button>
                         </div>
                     </div>
@@ -519,12 +595,23 @@ const Sidebar: React.FC = () => {
             </nav>
 
             {/* Utility Section */}
-            <div className={`relative mt-auto shrink-0 border-t border-[var(--cv-border-subtle)] ${isCollapsed ? 'px-2 py-3' : 'px-3 py-2.5'}`}>
+            <div
+                className={`relative mt-auto shrink-0 border-t ${isCollapsed ? 'px-2 py-3' : 'px-3 py-2.5'}`}
+                style={{ borderColor: 'var(--cvl-line)' }}
+            >
                 {isCollapsed ? (
                     <div className="flex flex-col items-center gap-2">
-                        <XpStatusCard variant="collapsed" onClick={() => navigate('/interview-studio')} />
+                        <div style={XP_STRIP_TOKENS}>
+                            <XpStatusCard variant="collapsed" onClick={() => navigate('/interview-studio')} />
+                        </div>
                         <div className="group relative h-11 w-11 shrink-0">
-                            <span className="pointer-events-none flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[10px] font-extrabold uppercase text-[var(--cv-text-muted)] shadow-sm transition group-hover:border-[var(--cv-action-border)] group-hover:text-[var(--cv-action-primary)] group-focus-within:ring-2 group-focus-within:ring-[var(--cv-action-border)]">
+                            {/*
+                              * The <select> underneath is `opacity-0`, so its own
+                              * :focus-visible outline paints nothing. The visible span
+                              * has to carry the focus state for it, or tabbing here
+                              * changes nothing anywhere on screen.
+                              */}
+                            <span className="cvl-btn cvl-mono pointer-events-none flex h-11 w-11 items-center justify-center rounded-lg text-[10px] font-bold uppercase group-focus-within:ring-2 group-focus-within:ring-[var(--cvl-purple)]">
                                 {currentLanguageCode.toUpperCase()}
                             </span>
                             <select
@@ -546,7 +633,7 @@ const Sidebar: React.FC = () => {
                             onClick={() => navigate('/profile')}
                             title="Profile"
                             aria-label="Profile"
-                            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] shadow-sm transition hover:border-[var(--cv-action-border)]"
+                            className="cvl-btn flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg"
                         >
                             <img src={currentUserAvatar} alt="" className="h-8 w-8 rounded-full object-cover" />
                         </button>
@@ -555,7 +642,9 @@ const Sidebar: React.FC = () => {
                             onClick={logOut}
                             title="Sign out"
                             aria-label="Sign out"
-                            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-transparent text-slate-400 transition hover:border-red-100 hover:bg-red-50 hover:text-red-600 dark:hover:border-red-950 dark:hover:bg-red-950/20 dark:hover:text-red-300"
+                            /* The one control here you cannot undo, so it keeps the danger ink. */
+                            style={{ color: 'var(--cvl-danger)' }}
+                            className="cvl-btn-ghost flex h-11 w-11 items-center justify-center rounded-lg"
                         >
                             <LogOut size={18} />
                         </button>
@@ -567,12 +656,54 @@ const Sidebar: React.FC = () => {
                   * of something do I have left" — stacking them as two bordered
                   * cards spent twice the height to say one kind of thing.
                   */}
-                <XpStatusCard variant="strip" onClick={() => navigate('/interview-studio')} />
+                <div style={XP_STRIP_TOKENS}>
+                    <XpStatusCard variant="strip" onClick={() => navigate('/interview-studio')} />
+                </div>
 
                 {aiUsage && (
-                    <button type="button" onClick={() => navigate('/subscription')} className="mt-1.5 w-full rounded-xl px-2 py-1.5 text-left transition hover:bg-[var(--cv-surface-warm-card-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cv-border-focus)]" aria-label="View credits and subscription">
-                        <span className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-[var(--cv-text-muted)]"><CreditCard size={12} /> Credits</span>
-                        <AIUsageProgressBar used={aiUsage.count || 0} limit={aiUsage.limit || 10} isPremium={isPremium} variant="minimal" planLabel={getPlanDisplayName(userProfile?.plan)} />
+                    <button
+                        type="button"
+                        onClick={() => navigate('/subscription')}
+                        className="cvl-btn-ghost mt-1.5 w-full rounded-lg px-2 py-1.5 text-left"
+                        aria-label="View credits and subscription"
+                    >
+                        <span className="flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-1.5 text-[11px] font-semibold">
+                                <CreditCard size={12} /> Credits
+                            </span>
+                            <span className="cvl-mono text-[11px] tabular-nums">{creditsUsed}/{creditsLimit}</span>
+                        </span>
+                        {/* Same bar, same track, same purple as the level meter above it. */}
+                        <span className="mt-1 block h-1 overflow-hidden rounded-full" style={{ background: 'var(--cvl-paper-2)' }}>
+                            <span
+                                className="block h-full rounded-full transition-[width] duration-500"
+                                style={{ width: `${Math.max(creditsPercent, 2)}%`, background: creditsTone }}
+                            />
+                        </span>
+                        <span className="mt-1 flex items-center justify-between gap-2">
+                            <span
+                                className="cvl-mono truncate text-[10px]"
+                                style={{ color: creditsExhausted ? 'var(--cvl-danger)' : 'var(--cvl-muted)' }}
+                            >
+                                {creditsExhausted
+                                    ? 'Limit reached'
+                                    : `${getPlanDisplayName(userProfile?.plan)} · ${creditsLeft} left`}
+                            </span>
+                            {/*
+                              * A span, not a button. The whole row is already the
+                              * button and it already goes to /subscription — which is
+                              * where the old nested Upgrade button ended up too, by
+                              * letting its click bubble out to this same row.
+                              */}
+                            {creditsRunningLow && (
+                                <span
+                                    className="cvl-mono shrink-0 rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em]"
+                                    style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                >
+                                    Upgrade
+                                </span>
+                            )}
+                        </span>
                     </button>
                 )}
                 </>
@@ -581,17 +712,18 @@ const Sidebar: React.FC = () => {
 
             {/* User card — also the entry point for everything account-related. */}
             {!isCollapsed && (
-            <div ref={accountMenuRef} className="relative shrink-0 border-t border-[var(--cv-border-subtle)] p-2.5">
+            <div ref={accountMenuRef} className="relative shrink-0 border-t p-2.5" style={{ borderColor: 'var(--cvl-line)' }}>
                 {isAccountMenuOpen && (
                     <div
                         role="menu"
                         aria-label="Account"
-                        className="absolute bottom-full left-2.5 right-2.5 z-20 mb-1.5 overflow-hidden rounded-xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] p-1 shadow-[var(--cv-shadow-modal)]"
+                        className="cvl-panel absolute bottom-full left-2.5 right-2.5 z-20 mb-1.5 overflow-hidden p-1"
+                        style={{ boxShadow: '0 2px 4px var(--cvl-shadow), 0 22px 44px -24px var(--cvl-shadow)' }}
                     >
                         <button
                             role="menuitem"
                             onClick={() => { setIsAccountMenuOpen(false); navigate('/profile'); }}
-                            className="cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-left text-xs font-semibold text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]"
+                            className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-left text-xs font-semibold"
                         >
                             <UserRound size={15} /><span className="truncate">Profile &amp; settings</span>
                         </button>
@@ -601,20 +733,23 @@ const Sidebar: React.FC = () => {
                                 key={path}
                                 role="menuitem"
                                 onClick={() => { setIsAccountMenuOpen(false); navigate(path); }}
-                                className={`cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-left text-xs font-semibold transition-colors ${isActivePath(path) ? 'bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-heading)]' : 'text-[var(--cv-text-muted)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-text-heading)]'}`}
+                                style={rowTone(isActivePath(path))}
+                                className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-left text-xs font-semibold"
                             >
                                 <Icon size={15} /><span className="truncate">{label}</span>
                             </button>
                         ))}
 
-                        <div className="mx-1.5 my-1 border-t border-[var(--cv-border-subtle)]" />
+                        <div className="mx-1.5 my-1 border-t" style={{ borderColor: 'var(--cvl-line)' }} />
 
                         <div className="flex items-center justify-between gap-3 px-2.5 py-1.5">
-                            <label htmlFor="sidebar-language-select" className="shrink-0 text-xs font-semibold text-[var(--cv-text-muted)]">
+                            <label htmlFor="sidebar-language-select" className="shrink-0 text-xs font-semibold" style={{ color: 'var(--cvl-muted)' }}>
                                 {t('resume_form.language', 'Language')}
                             </label>
-                            <div className="group relative h-7 w-[96px] shrink-0">
-                                <span className="pointer-events-none flex h-full w-full items-center justify-end rounded-lg border border-transparent px-2 text-right text-[11px] font-bold text-[var(--cv-text-heading)] transition group-hover:border-[var(--cv-border-subtle)] group-hover:bg-[var(--cv-surface-warm-card-strong)] group-focus-within:border-[var(--cv-action-border)] group-focus-within:bg-[var(--cv-surface-warm-card-strong)]">
+                            <div className="group relative h-8 w-[96px] shrink-0">
+                                {/* Same as the collapsed picker: the select is invisible,
+                                    so the focus state has to live on this span. */}
+                                <span className="cvl-field pointer-events-none flex h-full w-full items-center justify-end px-2 text-right text-[11px] font-semibold group-focus-within:ring-2 group-focus-within:ring-[var(--cvl-purple)]">
                                     <span className="truncate">{currentLanguageLabel}</span>
                                 </span>
                                 <select
@@ -632,25 +767,29 @@ const Sidebar: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-between px-2.5 py-1.5">
-                            <span className="text-xs font-semibold text-[var(--cv-text-muted)]">Theme</span>
-                            <div className="flex items-center gap-0.5 rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card)] p-0.5">
+                            <span className="text-xs font-semibold" style={{ color: 'var(--cvl-muted)' }}>Theme</span>
+                            <div
+                                className="flex items-center gap-0.5 rounded-lg border p-0.5"
+                                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+                            >
                                 {themeOptions.map(opt => (
                                     <button key={opt.value} onClick={() => setTheme(opt.value)} title={opt.label} aria-label={opt.label} aria-pressed={theme === opt.value}
-                                        className={`rounded-md p-1.5 transition-all ${theme === opt.value ? 'bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-action-primary)] shadow-sm' : 'text-[var(--cv-text-muted)] hover:text-[var(--cv-text-heading)]'}`}>
+                                        style={theme === opt.value ? { background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' } : undefined}
+                                        className="cvl-btn-ghost rounded-md p-1.5">
                                         {opt.icon}
                                     </button>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="mx-1.5 my-1 border-t border-[var(--cv-border-subtle)]" />
+                        <div className="mx-1.5 my-1 border-t" style={{ borderColor: 'var(--cvl-line)' }} />
 
                         {currentUser ? (
-                            <button role="menuitem" onClick={logOut} className="cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-xs font-semibold text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-danger-soft)] hover:text-[var(--cv-danger-text)]">
+                            <button role="menuitem" onClick={logOut} style={{ color: 'var(--cvl-danger)' }} className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-xs font-semibold">
                                 <LogOut size={15} /><span>Sign out</span>
                             </button>
                         ) : (
-                            <button role="menuitem" onClick={() => navigate('/signin')} className="cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-xs font-bold text-[var(--cv-action-primary)] transition-colors hover:bg-[var(--cv-action-soft-bg)]">
+                            <button role="menuitem" onClick={() => navigate('/signin')} style={{ color: 'var(--cvl-purple)' }} className="cvl-btn-ghost cv-nav-row flex w-full items-center gap-2 rounded-lg px-2.5 text-xs font-semibold">
                                 <LogIn size={15} /><span>Sign in / Sign up</span>
                             </button>
                         )}
@@ -662,34 +801,54 @@ const Sidebar: React.FC = () => {
                     onClick={() => setIsAccountMenuOpen((open) => !open)}
                     aria-haspopup="menu"
                     aria-expanded={isAccountMenuOpen}
-                    className="cv-design-card group flex w-full items-center gap-3 px-3 py-2 text-left transition-all duration-300 hover:border-[var(--cv-action-border)]"
+                    className="cvl-btn group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left"
                 >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--cv-action-soft-bg)]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full" style={{ background: 'var(--cvl-purple-soft)' }}>
                         <img src={currentUserAvatar} alt="" className="h-full w-full object-cover" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-[var(--cv-text-heading)]">
+                        <p className="truncate text-sm font-semibold">
                             {currentUser.displayName || 'My Profile'}
                         </p>
-                        <p className="truncate text-[11px] font-medium text-[var(--cv-text-muted)]">
+                        <p className="truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                             {currentUser.email}
                         </p>
                     </div>
-                    <ChevronUp size={15} className={`shrink-0 text-[var(--cv-text-muted)] transition-transform ${isAccountMenuOpen ? '' : 'rotate-180'}`} />
+                    <ChevronUp size={15} className={`shrink-0 transition-transform ${isAccountMenuOpen ? '' : 'rotate-180'}`} style={{ color: 'var(--cvl-muted)' }} />
                 </button>
             </div>
             )}
 
             {isFilesOpen && createPortal(
-                <div className="fixed inset-0 z-[70] flex justify-end bg-slate-950/20 p-3 sm:p-5" role="dialog" aria-modal="true" aria-label="Files">
+                <div
+                    /*
+                     * The drawer is portalled to <body>, outside the rail, so it has to
+                     * carry `cvl` itself or none of the tokens below resolve. The desk
+                     * ground and its dot grid come with that class and are painted over
+                     * here — a scrim, not a surface.
+                     *
+                     * --cvl-shadow is the scrim, because it is the only token that is
+                     * dark in both themes. Every other one flips, and a scrim mixed from
+                     * --cvl-ink came out near-white over the dark page: it washed the
+                     * page out instead of pushing it back.
+                     */
+                    className="cvl fixed inset-0 z-[70] flex justify-end p-3 sm:p-5"
+                    style={{ background: 'var(--cvl-shadow)', backgroundImage: 'none' }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Files"
+                >
                     <button type="button" className="absolute inset-0 cursor-default" aria-label="Close Files" onClick={() => setIsFilesOpen(false)} />
-                    <section className="relative flex h-full w-full max-w-md flex-col overflow-hidden rounded-2xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface)] shadow-[var(--cv-shadow-modal)]">
-                        <header className="flex items-center justify-between border-b border-[var(--cv-border-subtle)] px-5 py-4">
+                    <section
+                        className="cvl-panel relative flex h-full w-full max-w-md flex-col overflow-hidden"
+                        style={{ boxShadow: '0 2px 4px var(--cvl-shadow), 0 30px 60px -30px var(--cvl-shadow)' }}
+                    >
+                        <header className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: 'var(--cvl-line)' }}>
                             <div>
-                                <h2 className="cv-design-title text-base">Files</h2>
-                                <p className="mt-0.5 text-xs font-medium text-[var(--cv-text-muted)]">Your resumes, portfolios, whiteboards, and practice sessions.</p>
+                                <h2 className="text-base font-semibold tracking-tight">Files</h2>
+                                <p className="mt-0.5 text-xs" style={{ color: 'var(--cvl-muted)' }}>Your resumes, portfolios, whiteboards, and practice sessions.</p>
                             </div>
-                            <button type="button" onClick={() => setIsFilesOpen(false)} className="rounded-lg border border-[var(--cv-border-subtle)] px-2.5 py-1.5 text-xs font-bold text-[var(--cv-text-muted)] transition hover:border-[var(--cv-action-soft-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]">Close</button>
+                            <button type="button" onClick={() => setIsFilesOpen(false)} className="cvl-btn rounded-lg px-2.5 py-1.5 text-xs font-semibold">Close</button>
                         </header>
                         <div className="min-h-0 flex-1 p-3">
                             <SidebarDocumentList
@@ -751,9 +910,13 @@ const Sidebar: React.FC = () => {
             {/* Drag handle for resizing */}
             <div
                 onMouseDown={startResizing}
-                className={`group absolute bottom-0 right-0 top-0 z-50 w-1.5 transition-colors ${isCollapsed ? 'pointer-events-none opacity-0' : 'cursor-col-resize hover:bg-[var(--cv-action-soft-bg)] active:bg-[var(--cv-action-border)]'}`}
+                className={`group absolute bottom-0 right-0 top-0 z-50 w-1.5 ${isCollapsed ? 'pointer-events-none opacity-0' : 'cursor-col-resize'}`}
             >
-                <div className="absolute right-0 top-1/2 h-10 w-0.5 -translate-y-1/2 rounded-full bg-[var(--cv-border-subtle)] opacity-0 transition-colors group-active:opacity-100 group-hover:bg-[var(--cv-action-solid)] group-hover:opacity-100" />
+                {/* The grip only appears on hover, so it tints rather than fills. */}
+                <div
+                    className="absolute right-0 top-1/2 h-10 w-0.5 -translate-y-1/2 rounded-full opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100"
+                    style={{ background: 'var(--cvl-purple)' }}
+                />
             </div>
 
         </aside>

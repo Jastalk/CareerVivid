@@ -27,6 +27,7 @@ import {
     GUIDE_CATEGORIES,
     loadLocalInterviewGuide,
 } from '../lib/localInterviewGuides';
+import '../components/Landing/live/liveLanding.css';
 
 // Lazy load modal
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
@@ -132,6 +133,13 @@ const getResumableDraft = (entry: PracticeHistoryEntry): InterviewSessionDraft |
 
 const getResumeQuestionLabel = (draft: InterviewSessionDraft) =>
     `Q${Math.min(draft.questionIndex + 1, draft.questions.length)}/${draft.questions.length}`;
+
+/** The quietest label on the page. Same face and rhythm as the dashboard's. */
+const Eyebrow: React.FC<{ children: React.ReactNode; id?: string }> = ({ children, id }) => (
+    <p id={id} className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>
+        {children}
+    </p>
+);
 
 interface InterviewStudioProps {
     jobId?: string;
@@ -573,20 +581,23 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
     const renderContent = () => {
         if (selectedIndustry) {
             return (
-                <section className="cv-design-card p-4 sm:p-5">
-                    <button onClick={() => setSelectedIndustry(null)} className="mb-4 flex items-center gap-2 text-sm font-semibold text-[var(--cv-text-muted)] hover:text-[var(--cv-text-heading)]">
-                        <ChevronLeft size={16} /> {t('interview_studio.back_to_industries')}
+                <section className="cvl-panel p-4 sm:p-5">
+                    <button
+                        onClick={() => setSelectedIndustry(null)}
+                        className="cvl-btn-ghost -ml-1.5 mb-3 inline-flex min-h-8 items-center gap-1.5 px-1.5 text-[13px] font-semibold"
+                    >
+                        <ChevronLeft size={15} aria-hidden="true" /> {t('interview_studio.back_to_industries')}
                     </button>
-                    <h2 className="cv-design-title mb-4 text-base">{t('interview_studio.select_role', { industry: selectedIndustry.name })}</h2>
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 @[1080px]/interview-page:grid-cols-1">
+                    <h2 className="text-[15px] font-semibold tracking-tight">{t('interview_studio.select_role', { industry: selectedIndustry.name })}</h2>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 @[1080px]/interview-page:grid-cols-1">
                         {selectedIndustry.roles.map(role => (
                             <button
                                 key={role.name}
                                 onClick={() => handleRoleSelect(role.name)}
-                                className="cv-design-card-hover group flex min-h-[54px] items-center justify-between gap-3 rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] p-3 text-left transition-all hover:-translate-y-0.5"
+                                className="cvl-panel-inset cvl-panel-lift flex min-h-[52px] items-center justify-between gap-3 p-3 text-left"
                             >
-                                <h3 className="text-sm font-semibold text-[var(--cv-text-heading)]">{role.name}</h3>
-                                <ArrowRight size={16} className="text-[var(--cv-text-muted)] transition-colors group-hover:text-[var(--cv-action-primary)]" />
+                                <h3 className="text-[13.5px] font-semibold">{role.name}</h3>
+                                <ArrowRight size={15} style={{ color: 'var(--cvl-muted)' }} aria-hidden="true" />
                             </button>
                         ))}
                     </div>
@@ -595,22 +606,25 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         }
 
         return (
-            <section className="cv-design-card p-4 sm:p-5">
-                <div className="mb-4 flex items-center gap-2">
-                    <span className="cv-design-icon-well flex h-8 w-8 items-center justify-center rounded-lg">
-                        <Swords size={15} />
+            <section className="cvl-panel p-4 sm:p-5">
+                <div className="flex items-center gap-2.5">
+                    <span
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                        style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                    >
+                        <Swords size={15} aria-hidden="true" />
                     </span>
-                    <h2 className="cv-design-title text-base">{t('interview_studio.select_career')}</h2>
+                    <h2 className="text-[15px] font-semibold tracking-tight">{t('interview_studio.select_career')}</h2>
                 </div>
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 @[1080px]/interview-page:grid-cols-1">
+                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 @[1080px]/interview-page:grid-cols-1">
                     {CAREER_PATHS.map(industry => (
                         <button
                             key={industry.name}
                             onClick={() => setSelectedIndustry(industry)}
-                            className="cv-design-card-hover group flex min-h-[54px] items-center justify-between gap-3 rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] p-3 text-left transition-all hover:-translate-y-0.5"
+                            className="cvl-panel-inset cvl-panel-lift flex min-h-[52px] items-center justify-between gap-3 p-3 text-left"
                         >
-                            <h3 className="text-sm font-semibold text-[var(--cv-text-heading)]">{industry.name}</h3>
-                            <ArrowRight size={16} className="text-[var(--cv-text-muted)] transition-colors group-hover:text-[var(--cv-action-primary)]" />
+                            <h3 className="text-[13.5px] font-semibold">{industry.name}</h3>
+                            <ArrowRight size={15} style={{ color: 'var(--cvl-muted)' }} aria-hidden="true" />
                         </button>
                     ))}
                 </div>
@@ -618,29 +632,24 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         );
     };
 
-    const GUIDE_AVATAR_TONES = [
-        'bg-[#f3f2ff] text-[#4a4392] ring-[#dfdcff]',
-        'bg-[#eef0ff] text-[#5b5599] ring-[#dfe2ff]',
-        'bg-[#f7f1ff] text-[#7c5fd6] ring-[#eadfff]',
-        'bg-[#f5f7ff] text-[#5c62d6] ring-[#e0e5ff]',
-    ];
-
-    const getGuideAvatarTone = (company: string) => {
-        let hash = 0;
-        for (let i = 0; i < company.length; i++) hash = (hash * 31 + company.charCodeAt(i)) | 0;
-        return GUIDE_AVATAR_TONES[Math.abs(hash) % GUIDE_AVATAR_TONES.length];
-    };
-
+    /*
+     * Three bands, three tokens. Red is the only hard signal the palette has, so
+     * the hardest band borrows it — nothing here is destructive, it just reads
+     * as "expect a fight".
+     */
     const getDifficultyBadge = (difficulty: number | null) => {
         if (!difficulty) return null;
         const tone = difficulty >= 8
-            ? 'bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900'
+            ? { background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }
             : difficulty >= 6.5
-                ? 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900'
-                : 'bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900';
+                ? { background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }
+                : { background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)' };
         return (
-            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ring-1 ${tone}`}>
-                <BarChart3 size={11} />
+            <span
+                className="cvl-mono inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
+                style={tone}
+            >
+                <BarChart3 size={11} aria-hidden="true" />
                 {difficulty}/10
             </span>
         );
@@ -655,33 +664,39 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
     };
 
     const renderCompanyGuideCards = () => (
-        <section className="cv-design-card @container/guides overflow-hidden">
+        <section className="cvl-panel @container/guides overflow-hidden" aria-labelledby="company-guides-heading">
             {/* Header */}
-            <div className="border-b border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] p-4 sm:p-5">
+            <div className="border-b p-4 sm:p-5" style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}>
                 <div className="flex flex-col gap-3 @[720px]/guides:flex-row @[720px]/guides:items-center @[720px]/guides:justify-between">
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                            <span className="cv-design-icon-well flex h-8 w-8 items-center justify-center rounded-lg">
-                                <Building2 size={16} />
-                            </span>
-                            <h2 className="cv-design-title text-lg">
-                                Know exactly what to expect
-                            </h2>
-                        </div>
-                        <p className="cv-design-body mt-1.5 text-sm">
-                            Interview stages, key topics, and realistic practice questions our frontier AI generates from thousands of real interview reviews on{' '}
-                            <a href="https://www.techinterview.org/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:opacity-80">techinterview.org</a>.
-                        </p>
+                    <div className="flex min-w-0 items-center gap-2.5">
+                        <span
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                            style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                        >
+                            <Building2 size={16} aria-hidden="true" />
+                        </span>
+                        <h2 id="company-guides-heading" className="text-[15px] font-semibold tracking-tight">
+                            Company guides
+                        </h2>
                     </div>
-                    <div className="flex shrink-0 items-center divide-x divide-[var(--cv-border-subtle)] rounded-xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] shadow-sm backdrop-blur">
+                    <div
+                        className="flex shrink-0 items-stretch overflow-hidden rounded-xl border"
+                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}
+                    >
                         {[
                             { value: INTERVIEW_GUIDE_TOTALS.companies, label: 'companies' },
                             { value: INTERVIEW_GUIDE_TOTALS.questQuestions, label: 'questions' },
                             { value: INTERVIEW_GUIDE_TOTALS.stages, label: 'stages' },
-                        ].map((stat) => (
-                            <div key={stat.label} className="px-4 py-2 text-center first:pl-4 last:pr-4">
-                                <p className="text-sm font-bold tabular-nums text-[var(--cv-text-heading)]">{stat.value.toLocaleString()}</p>
-                                <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--cv-text-muted)]">{stat.label}</p>
+                        ].map((stat, index) => (
+                            <div
+                                key={stat.label}
+                                className="flex-1 px-4 py-2 text-center"
+                                style={index > 0 ? { borderLeft: '1px solid var(--cvl-line)' } : undefined}
+                            >
+                                <p className="text-sm font-bold tabular-nums">{stat.value.toLocaleString()}</p>
+                                <p className="cvl-mono mt-0.5 text-[10px] uppercase tracking-[0.14em]" style={{ color: 'var(--cvl-muted)' }}>
+                                    {stat.label}
+                                </p>
                             </div>
                         ))}
                     </div>
@@ -689,8 +704,10 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
 
                 {/* Search + category filters */}
                 <div className="mt-4 flex flex-col gap-2.5">
-                    <div className="group/search flex min-h-[52px] items-center gap-3 rounded-2xl border border-[var(--cv-input-border)] bg-[var(--cv-input-bg)] px-4 transition-all duration-200 hover:border-[var(--cv-action-border)] focus-within:border-[var(--cv-action-border)] focus-within:bg-[var(--cv-surface-warm-card-strong)] focus-within:shadow-[0_1px_2px_rgba(55,38,18,0.05),0_4px_14px_rgba(55,38,18,0.08)]">
-                        <Search size={17} strokeWidth={2.25} className="shrink-0 text-[var(--cv-text-muted)] transition-colors group-focus-within/search:text-[var(--cv-action-primary)]" />
+                    {/* Paper, not paper-2: the header band is already paper-2, and a
+                        field the same shade as the thing behind it stops looking typeable. */}
+                    <div className="cvl-field flex min-h-[52px] items-center gap-3 px-4" style={{ background: 'var(--cvl-paper)' }}>
+                        <Search size={17} strokeWidth={2.25} className="shrink-0" style={{ color: 'var(--cvl-muted)' }} aria-hidden="true" />
                         <input
                             ref={guideSearchRef}
                             type="search"
@@ -705,19 +722,23 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                             }}
                             placeholder="Search Google, Stripe, OpenAI, system design..."
                             aria-label="Search company interview guides"
-                            className="min-w-0 flex-1 border-0 bg-transparent p-0 py-3 text-sm font-medium text-[var(--cv-text-heading)] outline-none ring-0 placeholder:text-[var(--cv-text-muted)] focus:border-0 focus:outline-none focus:ring-0 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+                            className="min-w-0 flex-1 border-0 bg-transparent p-0 py-3 text-sm font-medium focus:ring-0 [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden"
+                            style={{ color: 'var(--cvl-ink)' }}
                         />
                         {guideSearch ? (
                             <button
                                 type="button"
                                 onClick={() => { setGuideSearch(''); setGuideLimit(12); guideSearchRef.current?.focus(); }}
                                 aria-label="Clear search"
-                                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--cv-text-muted)] transition-colors hover:bg-[var(--cv-surface-warm-muted)] hover:text-[var(--cv-text-heading)]"
+                                className="cvl-btn-ghost flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
                             >
-                                <X size={14} strokeWidth={2.5} />
+                                <X size={14} strokeWidth={2.5} aria-hidden="true" />
                             </button>
                         ) : (
-                            <kbd className="hidden shrink-0 items-center rounded-md border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] px-1.5 py-0.5 font-sans text-[11px] font-semibold text-[var(--cv-text-muted)] shadow-[0_1px_0_rgba(55,38,18,0.06)] @[480px]/guides:inline-flex">
+                            <kbd
+                                className="hidden shrink-0 items-center rounded-md border px-1.5 py-0.5 font-sans text-[11px] font-semibold @[480px]/guides:inline-flex"
+                                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-muted)' }}
+                            >
                                 /
                             </kbd>
                         )}
@@ -731,10 +752,7 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                     type="button"
                                     onClick={() => { setGuideCategory(category.id); setGuideLimit(12); }}
                                     aria-pressed={isActive}
-                                    className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${isActive
-                                        ? 'bg-[var(--cv-action-solid)] text-white shadow-sm'
-                                        : 'border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-body)] hover:border-[var(--cv-action-border)] hover:bg-[var(--cv-action-soft-bg)] hover:text-[var(--cv-action-primary)]'
-                                        }`}
+                                    className={`${isActive ? 'cvl-cta' : 'cvl-btn'} min-h-8 rounded-full px-3 py-1.5 text-xs font-semibold transition`}
                                 >
                                     {category.label}
                                 </button>
@@ -750,19 +768,24 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                     {visibleGuideSummaries.map((guide) => {
                         const isStarting = selectedGuideSlug === guide.slug && isLoading;
                         const topicChips = guide.topics.slice(0, 2).map((topic) => formatGuideTopicChip(topic));
+                        /*
+                         * Inset, not panel: these cards sit inside the guides section,
+                         * which is already paper. Paper on paper leaves only the 1px
+                         * border to say where a card starts.
+                         */
                         return (
                             <article
                                 key={guide.slug}
-                                className="cv-design-card cv-design-card-hover group flex flex-col p-4 transition-all hover:-translate-y-0.5"
+                                className="cvl-panel-inset cvl-panel-lift flex flex-col p-4"
                             >
                                 <div className="flex items-center gap-3">
                                     <CompanyLogo company={guide.company} slug={guide.slug} size={40} />
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between gap-2">
-                                            <h3 className="truncate text-sm font-bold text-[var(--cv-text-heading)]">{guide.company}</h3>
+                                            <h3 className="truncate text-sm font-semibold">{guide.company}</h3>
                                             {getDifficultyBadge(guide.difficulty)}
                                         </div>
-                                        <p className="mt-0.5 truncate text-xs font-medium text-[var(--cv-text-muted)]">
+                                        <p className="cvl-mono mt-0.5 truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                                             {formatGuideMeta(guide)}
                                         </p>
                                     </div>
@@ -773,7 +796,8 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                         {topicChips.map((topic) => (
                                             <span
                                                 key={topic}
-                                                className="max-w-full truncate rounded-md bg-[var(--cv-surface-warm-muted)] px-2 py-1 text-[11px] font-medium text-[var(--cv-text-body)] group-hover:bg-[var(--cv-action-soft-bg)] group-hover:text-[var(--cv-action-primary)]"
+                                                className="max-w-full truncate rounded-md px-2 py-1 text-[11px] font-medium"
+                                                style={{ background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
                                             >
                                                 {topic}
                                             </span>
@@ -785,9 +809,9 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                     <button
                                         type="button"
                                         onClick={() => navigate(`/quest/${guide.slug}`)}
-                                        className="cv-design-button-primary inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-xs"
+                                        className="cvl-cta inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition"
                                     >
-                                        <Swords size={14} />
+                                        <Swords size={14} aria-hidden="true" />
                                         Start quest
                                     </button>
                                     <button
@@ -796,19 +820,21 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                         disabled={isLoading}
                                         title="Single mock interview (no quest)"
                                         aria-label={`Single mock interview for ${guide.company}`}
-                                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-muted)] transition-colors hover:border-[var(--cv-action-border)] hover:text-[var(--cv-action-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="cvl-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg disabled:cursor-not-allowed disabled:opacity-60"
+                                        style={{ color: 'var(--cvl-muted)' }}
                                     >
-                                        {isStarting ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                                        {isStarting ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} aria-hidden="true" />}
                                     </button>
                                     <a
                                         href={`https://www.techinterview.org/companies/${guide.slug}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-card-strong)] text-[var(--cv-text-muted)] transition-colors hover:border-[var(--cv-action-border)] hover:text-[var(--cv-text-heading)]"
+                                        className="cvl-btn inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                                        style={{ color: 'var(--cvl-muted)' }}
                                         aria-label={`Open ${guide.company} source guide`}
                                         title="View source guide"
                                     >
-                                        <ExternalLink size={14} />
+                                        <ExternalLink size={14} aria-hidden="true" />
                                     </a>
                                 </div>
                             </article>
@@ -817,10 +843,10 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                 </div>
 
                 {visibleGuideSummaries.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] py-10 text-center">
-                        <ListChecks className="mx-auto text-[var(--cv-text-muted)]" size={22} />
-                        <p className="mt-2 text-sm font-semibold text-[var(--cv-text-heading)]">No matching company guides</p>
-                        <p className="mt-1 text-xs text-[var(--cv-text-muted)]">Try a company name, interview topic, or system design keyword.</p>
+                    <div className="rounded-xl border border-dashed py-10 text-center" style={{ borderColor: 'var(--cvl-line)' }}>
+                        <ListChecks className="mx-auto" size={22} style={{ color: 'var(--cvl-muted)' }} aria-hidden="true" />
+                        <p className="mt-2 text-sm font-semibold">No matching company guides</p>
+                        <p className="mt-1 text-xs" style={{ color: 'var(--cvl-muted)' }}>Try a company name, interview topic, or system design keyword.</p>
                     </div>
                 )}
 
@@ -829,10 +855,10 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                         <button
                             type="button"
                             onClick={() => setGuideLimit((prev) => prev + 12)}
-                            className="cv-design-button-secondary inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs"
+                            className="cvl-btn inline-flex min-h-9 items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold"
                         >
                             Show more companies
-                            <span className="text-[var(--cv-text-muted)]">({guideMatchTotal - visibleGuideSummaries.length} more)</span>
+                            <span style={{ color: 'var(--cvl-muted)' }}>({guideMatchTotal - visibleGuideSummaries.length} more)</span>
                         </button>
                     </div>
                 )}
@@ -842,14 +868,14 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
 
     if ((isLoading || isSyncingTransit) && !isInterviewModalOpen) {
         return (
-            <div className="cv-design-page cv-design-grid flex min-h-screen flex-col items-center justify-center p-4">
+            <div className="cvl flex min-h-screen flex-col items-center justify-center p-4">
                 <div className="text-center">
-                    <Loader2 className="mx-auto h-16 w-16 animate-spin text-[var(--cv-action-primary)]" />
-                    <h1 className="cv-design-title mt-6 text-2xl">
+                    <Loader2 className="mx-auto h-14 w-14 animate-spin" style={{ color: 'var(--cvl-purple)' }} aria-hidden="true" />
+                    <h1 className="mt-6 text-2xl font-semibold tracking-tight">
                         {isSyncingTransit ? "Synchronizing Job Details..." : t('interview_studio.preparing')}
                     </h1>
-                    <div className="h-6 mt-2">
-                        <p key={loadingMessageIndex} className="cv-design-body animate-fade-in">
+                    <div className="mt-2 h-6">
+                        <p key={loadingMessageIndex} className="cvl-mono animate-fade-in text-[12px]" style={{ color: 'var(--cvl-muted)' }}>
                             {isSyncingTransit ? "Preparing your AI mock interview room..." : t(`interview_studio.loading_${loadingMessageIndex + 1}`)}
                         </p>
                     </div>
@@ -862,22 +888,48 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         <AppLayout>
             {authGate && <AuthGateModal {...authGate} onClose={() => setAuthGate(null)} />}
             <CreditLimitModal />
-            <div className="cv-design-page cv-design-grid relative min-h-screen pb-16 text-left">
+            <div className="cvl relative min-h-screen pb-16 text-left">
                 <div id="start-session" className="@container/interview-page mx-auto max-w-screen-2xl px-4 py-6 text-left sm:px-6 lg:px-8 lg:py-8">
+                    <header className="mb-6 max-w-2xl">
+                        <Eyebrow>interview studio</Eyebrow>
+                        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Know exactly what to expect</h1>
+                        <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                            Interview stages, key topics, and realistic practice questions our frontier AI generates from thousands of real interview reviews on{' '}
+                            <a
+                                href="https://www.techinterview.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-semibold underline underline-offset-2"
+                                style={{ color: 'var(--cvl-purple)' }}
+                            >
+                                techinterview.org
+                            </a>.
+                        </p>
+                    </header>
                     <div className="grid grid-cols-1 items-start gap-5 @[1080px]/interview-page:grid-cols-[minmax(0,1fr)_360px]">
                         <main className="space-y-4">
-                            {error && <p className="text-red-500 bg-red-100 dark:bg-red-900/20 dark:text-red-400 p-3 rounded-lg">{error}</p>}
+                            {error && (
+                                <p
+                                    className="rounded-xl border p-3 text-[13px]"
+                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-danger-soft)', color: 'var(--cvl-danger)' }}
+                                >
+                                    {error}
+                                </p>
+                            )}
                             {renderCompanyGuideCards()}
                         </main>
                         <aside className="space-y-4 @[1080px]/interview-page:sticky @[1080px]/interview-page:top-6">
-                            <section className="cv-design-card p-4">
+                            <section className="cvl-panel p-4" aria-labelledby="recent-sessions-heading">
                                 <div className="mb-4 flex items-center justify-between gap-4">
                                     <div>
-                                        <h2 className="cv-design-title text-base">Recent sessions</h2>
-                                        <p className="cv-design-body mt-0.5 text-xs">{practiceHistory.length} saved</p>
+                                        <h2 id="recent-sessions-heading" className="text-[15px] font-semibold tracking-tight">Recent sessions</h2>
+                                        <p className="cvl-mono mt-0.5 text-[11px]" style={{ color: 'var(--cvl-muted)' }}>{practiceHistory.length} saved</p>
                                     </div>
-                                    <span className="cv-design-icon-well flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
-                                        <Mic size={16} />
+                                    <span
+                                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                        style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                    >
+                                        <Mic size={16} aria-hidden="true" />
                                     </span>
                                 </div>
 
@@ -891,26 +943,32 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                                 return (
                                                     <article
                                                         key={entry.id}
-                                                        className="cv-design-card cv-design-card-hover flex min-h-[124px] flex-col rounded-lg p-3 transition-colors"
+                                                        className="cvl-panel-inset flex min-h-[124px] flex-col p-3"
                                                     >
                                                         <div className="flex items-start justify-between gap-3">
                                                             <div className="min-w-0">
-                                                                <h3 className="truncate text-sm font-bold text-[var(--cv-text-heading)]">
+                                                                <h3 className="truncate text-[13.5px] font-semibold">
                                                                     {entry.job.title}
                                                                 </h3>
-                                                                <p className="mt-0.5 truncate text-xs text-[var(--cv-text-muted)]">
+                                                                <p className="mt-0.5 truncate text-xs" style={{ color: 'var(--cvl-muted)' }}>
                                                                     {entry.job.company || 'Custom Practice'}
                                                                 </p>
                                                             </div>
                                                             {(practiceCount > 0 || resumableDraft) && (
                                                                 <div className="flex shrink-0 flex-col items-end gap-1">
                                                                     {practiceCount > 0 && (
-                                                                        <span className="rounded-full border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-2 py-0.5 text-[11px] font-bold text-[var(--cv-action-primary)]">
+                                                                        <span
+                                                                            className="cvl-mono rounded-full px-2 py-0.5 text-[11px] font-bold"
+                                                                            style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                                                        >
                                                                             {practiceCount}
                                                                         </span>
                                                                     )}
                                                                     {resumableDraft && (
-                                                                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200">
+                                                                        <span
+                                                                            className="cvl-mono rounded-full px-2 py-0.5 text-[11px] font-bold"
+                                                                            style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                                                        >
                                                                             {getResumeQuestionLabel(resumableDraft)}
                                                                         </span>
                                                                     )}
@@ -920,13 +978,16 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                                         <div className="mt-2 flex h-5 min-w-0 items-center gap-1.5 text-xs">
                                                             {resumableDraft && (
                                                                 <>
-                                                                    <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 font-bold text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/25 dark:text-amber-200 dark:ring-amber-900/50">
+                                                                    <span
+                                                                        className="shrink-0 rounded-full px-2 py-0.5 font-semibold"
+                                                                        style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                                                    >
                                                                         Saved draft
                                                                     </span>
-                                                                    <span className="text-[var(--cv-border-subtle)]">·</span>
+                                                                    <span style={{ color: 'var(--cvl-line)' }}>·</span>
                                                                 </>
                                                             )}
-                                                            <span className="truncate text-[var(--cv-text-muted)]">
+                                                            <span className="truncate" style={{ color: 'var(--cvl-muted)' }}>
                                                                 Last activity: {formatSessionDate(entry.timestamp)}
                                                             </span>
                                                         </div>
@@ -935,44 +996,45 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                                                                 type="button"
                                                                 onClick={() => handleDeleteClick(entry.id)}
                                                                 aria-label={`Delete ${entry.job.title}`}
-                                                                className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--cv-text-muted)] hover:bg-[var(--cv-danger-soft)] hover:text-[var(--cv-danger-text)]"
+                                                                className="cvl-btn-ghost inline-flex h-8 w-8 shrink-0 items-center justify-center"
                                                             >
-                                                                <Trash2 size={15} />
+                                                                <Trash2 size={15} aria-hidden="true" />
                                                             </button>
                                                             {resumableDraft && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleResumeSessionDirect(entry)}
                                                                     aria-label="Resume session"
-                                                                    className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-amber-100 px-2.5 text-xs font-semibold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900/60 dark:hover:bg-amber-950/70"
+                                                                    className="cvl-cta inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold transition"
                                                                 >
-                                                                    <Clock size={14} /> Resume
+                                                                    <Clock size={14} aria-hidden="true" /> Resume
                                                                 </button>
                                                             )}
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handlePracticeAgainDirect(entry)}
                                                                 aria-label={resumableDraft ? 'Start over' : 'Practice Again'}
-                                                                className={`${resumableDraft ? 'w-8 justify-center px-0' : 'px-2.5'} inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md bg-[var(--cv-surface-warm-card-strong)] text-xs font-semibold text-[var(--cv-text-body)] shadow-sm ring-1 ring-[var(--cv-border-subtle)] hover:bg-[var(--cv-surface-warm-muted)]`}
+                                                                className={`${resumableDraft ? 'w-8 justify-center px-0' : 'px-2.5'} cvl-btn inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md text-xs font-semibold`}
                                                             >
-                                                                <Sparkles size={14} />
+                                                                <Sparkles size={14} aria-hidden="true" />
                                                                 {!resumableDraft && 'Practice Again'}
                                                             </button>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setSelectedJobForReport(entry)}
                                                                 disabled={!entry.interviewHistory || entry.interviewHistory.length === 0}
-                                                                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-2.5 text-xs font-semibold text-[var(--cv-action-primary)] hover:bg-[var(--cv-action-soft-bg-strong)] disabled:cursor-not-allowed disabled:opacity-50"
+                                                                className="cvl-btn inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                                                                style={{ color: 'var(--cvl-purple)' }}
                                                             >
-                                                                <BarChart3 size={14} /> Report
+                                                                <BarChart3 size={14} aria-hidden="true" /> Report
                                                             </button>
                                                         </div>
                                                     </article>
                                                 );
                                             })
                                         ) : (
-                                            <div className="rounded-lg border border-dashed border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] py-8 text-center">
-                                                <p className="text-sm text-[var(--cv-text-muted)]">No interview sessions found.</p>
+                                            <div className="rounded-lg border border-dashed py-8 text-center" style={{ borderColor: 'var(--cvl-line)' }}>
+                                                <p className="text-[13px]" style={{ color: 'var(--cvl-muted)' }}>No interview sessions found.</p>
                                             </div>
                                         )
                                     }
@@ -985,7 +1047,14 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
             </div>
 
             {/* Modals */}
-            <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" /></div>}>
+            {/*
+              * Literal white, not a token: these fallbacks render as siblings of the
+              * .cvl wrapper, and every cvl token is declared on .cvl — so the var
+              * would resolve to nothing here and the spinner would inherit the app's
+              * dark ink on a black scrim. The scrim is a fixed black overlay in both
+              * themes, so white is the correct answer regardless.
+              */}
+            <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.5)' }}><Loader2 className="animate-spin" style={{ color: '#ffffff' }} /></div>}>
                 {selectedJobForReport && <InterviewReportModal jobHistoryEntry={selectedJobForReport} onClose={() => setSelectedJobForReport(null)} />}
             </Suspense>
 
@@ -998,7 +1067,8 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                 onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
             />
 
-            <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"><Loader2 className="animate-spin text-white" /></div>}>
+            {/* White for the same reason as the fallback above. */}
+            <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.5)' }}><Loader2 className="animate-spin" style={{ color: '#ffffff' }} /></div>}>
                 {isInterviewModalOpen && interviewState && (
                     <AIInterviewAgentModal
                         jobId={interviewState.jobId}

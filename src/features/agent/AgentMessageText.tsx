@@ -5,10 +5,16 @@ import {
     type AgentTechnicalContext,
 } from './technicalTermEmphasis';
 import type { WorkspaceSnapshot } from './workspaceSnapshot';
+import '../../components/Landing/live/liveLanding.css';
 
+/*
+ * The token set already carries its own dark values, so the highlight no longer
+ * needs a parallel `dark:` chip — one declaration reads correctly in both
+ * themes instead of two that can drift apart.
+ */
 const KEY_TERM_CLASS =
-    'box-decoration-clone rounded-md border border-[#dfe2ff] bg-[#f3f2ff] px-1 py-0.5 ' +
-    'font-semibold text-[#4a4392] dark:border-[#3f3b70] dark:bg-[#252347] dark:text-[#bbb8ff]';
+    'box-decoration-clone rounded-md border border-[color:var(--cvl-line)] bg-[var(--cvl-purple-soft)] ' +
+    'px-1 py-0.5 font-semibold text-[color:var(--cvl-purple-ink)]';
 
 interface AgentMessageTextProps {
     text: string;

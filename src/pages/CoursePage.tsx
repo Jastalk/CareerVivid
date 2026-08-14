@@ -5,7 +5,6 @@ import {
     BookOpen,
     CheckCircle2,
     ChevronDown,
-    Clock3,
     ExternalLink,
     GraduationCap,
     Loader2,
@@ -47,11 +46,17 @@ import {
     getLearningSourceById,
 } from '../lib/courseCurriculum';
 import { getLearningSeoKey, getLearningSeoPage } from '../lib/learningSeo';
+import '../components/Landing/live/liveLanding.css';
 
-const STATE_ICON_WELL: Record<CourseModuleWithState['state'], string> = {
-    completed: 'bg-[var(--cv-success-50)] text-[var(--cv-success-600)] border border-[var(--cv-success-600)]/30',
-    available: 'cv-design-icon-well',
-    locked: 'bg-[var(--cv-surface-warm-muted,transparent)] text-[var(--cv-text-muted)] border border-[var(--cv-border-warm)]',
+/**
+ * The numbered well at the head of a step row. It is the primary state cue,
+ * so each state gets its own ground AND its own glyph — colour alone would
+ * leave the three states indistinguishable to anyone who cannot see it.
+ */
+const stateWell = (state: CourseModuleWithState['state']): React.CSSProperties => {
+    if (state === 'completed') return { background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)', borderColor: 'var(--cvl-green)' };
+    if (state === 'locked') return { background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)', borderColor: 'var(--cvl-line)' };
+    return { background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)', borderColor: 'var(--cvl-line)' };
 };
 
 /**
@@ -207,8 +212,8 @@ const CoursePage: React.FC = () => {
                 schemaData={seoPage.schemaData}
             />
             {authGate && <AuthGateModal {...authGate} onClose={() => setAuthGate(null)} />}
-            {/* Same warm background as every other page — the catalog no longer swaps design systems. */}
-            <div className="cv-design-page cv-design-grid relative min-h-screen pb-16 text-left">
+            {/* Same desk as the dashboard — the catalog no longer swaps design systems. */}
+            <div className="cvl relative min-h-screen pb-16 text-left">
                 <div className="@container/course-page mx-auto max-w-screen-2xl px-4 py-6 text-left sm:px-6 lg:px-8 lg:py-8">
                     {!selectedCourseId ? (
                         <LearningCatalog
@@ -249,23 +254,26 @@ const CoursePage: React.FC = () => {
                             {/* Back Button */}
                             <button
                                 onClick={() => navigate('/learning')}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--cv-text-muted)] hover:text-[var(--cv-text-heading)] transition-colors"
+                                className="cvl-btn-ghost -ml-2 inline-flex items-center gap-1.5 px-2 py-1.5 text-[12px] font-semibold"
                             >
-                                <ArrowLeft size={14} /> {t('courses.back_to_courses', 'Back to courses')}
+                                <ArrowLeft size={14} aria-hidden="true" /> {t('courses.back_to_courses', 'Back to courses')}
                             </button>
 
                             <div className="grid grid-cols-1 items-start gap-5 @[1080px]/course-page:grid-cols-[minmax(0,1fr)_340px]">
                                 <main className="space-y-4">
                                     {/* Hero */}
-                                    <section className="cv-design-card p-4 sm:p-6">
+                                    <section className="cvl-panel p-4 sm:p-6">
                                         <div className="flex flex-wrap items-start justify-between gap-4">
                                             <div className="min-w-0">
-                                                <div className="cv-design-eyebrow mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-2.5 py-1 text-xs">
-                                                    <GraduationCap size={14} />
+                                                <div
+                                                    className="cvl-mono mb-3 inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.14em]"
+                                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                                >
+                                                    <GraduationCap size={14} aria-hidden="true" />
                                                     <span>AI-agent curriculum</span>
                                                 </div>
-                                                <h1 className="cv-design-title text-2xl sm:text-3xl">Build real AI agents, step by step</h1>
-                                                <p className="cv-design-body mt-1.5 max-w-2xl text-sm">
+                                                <h1 className="text-2xl font-semibold leading-snug tracking-tight sm:text-3xl">Build real AI agents, step by step</h1>
+                                                <p className="mt-2 max-w-2xl text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                                     10 steps from LLM foundations to a shipped portfolio project. Each step mixes readings, videos, animated playgrounds, quizzes, and a code lab — curated from Microsoft, OpenAI, Anthropic, Google, and Hugging Face's open courses.
                                                 </p>
                                             </div>
@@ -273,23 +281,24 @@ const CoursePage: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => openCourse(currentLab.id)}
-                                                    className="cv-design-button-primary inline-flex h-10 shrink-0 items-center gap-2 rounded-lg px-4 text-sm"
+                                                    className="cvl-cta inline-flex h-10 shrink-0 items-center gap-2 rounded-xl px-4 text-[14px] font-semibold transition"
                                                 >
-                                                    <Play size={15} />
+                                                    <Play size={15} aria-hidden="true" />
                                                     {completedCount > 0 ? 'Continue' : 'Start'} step {currentModule?.order}
-                                                    <ArrowRight size={15} />
+                                                    <ArrowRight size={15} aria-hidden="true" />
                                                 </button>
                                             )}
                                         </div>
                                     </section>
 
                                     {/* The learning path — one row per step */}
-                                    <section className="cv-design-card overflow-hidden">
+                                    <section className="cvl-panel overflow-hidden">
                                         <ol>
                                             {modules.map((module, idx) => {
                                                 const isExpanded = expandedId === module.id;
                                                 const isLast = idx === modules.length - 1;
                                                 const isCompleting = completingId === module.id;
+                                                const isLocked = module.state === 'locked';
                                                 const lab = labByModuleOrder.get(module.order);
                                                 const lessonCount = lab ? getCourseExerciseCount(lab) : 0;
                                                 const isCurrent = module.id === currentModule?.id;
@@ -302,35 +311,74 @@ const CoursePage: React.FC = () => {
                                                     ? 'Review'
                                                     : doneLessons > 0 ? 'Continue' : 'Start';
                                                 return (
-                                                    <li key={module.id} className={!isLast ? 'border-b border-[var(--cv-border-warm)]' : ''}>
+                                                    <li
+                                                        key={module.id}
+                                                        className={!isLast ? 'border-b' : ''}
+                                                        style={!isLast ? { borderColor: 'var(--cvl-line)' } : undefined}
+                                                    >
+                                                        {/*
+                                                          * The row is the click target, so it has to answer the
+                                                          * pointer. A row that is already the current step keeps
+                                                          * its purple ground — it is highlighted for a different
+                                                          * reason — and a row whose button is disabled gets
+                                                          * nothing, because nothing will happen.
+                                                          */}
                                                         <div
-                                                            className={`flex w-full items-center gap-3 p-4 text-left transition-colors sm:p-5 ${module.state !== 'locked' ? 'hover:bg-[var(--cv-surface-warm-muted,rgba(0,0,0,0.02))]' : 'opacity-60'} ${isCurrent ? 'bg-[var(--cv-action-soft-bg,rgba(99,91,213,0.04))]' : ''}`}
+                                                            className={`flex w-full items-center gap-3 p-4 text-left transition-colors sm:p-5 ${
+                                                                isCurrent || (isLocked && currentUser)
+                                                                    ? ''
+                                                                    : 'hover:bg-[var(--cvl-paper-2)]'
+                                                            }`}
+                                                            style={isCurrent ? { background: 'var(--cvl-purple-soft)' } : undefined}
                                                         >
                                                             <button
                                                                 type="button"
                                                                 onClick={() => toggleExpand(module)}
                                                                 // Locked rows stay clickable for guests so the tap opens
                                                                 // the sign-in gate instead of dying silently.
-                                                                disabled={module.state === 'locked' && Boolean(currentUser)}
+                                                                disabled={isLocked && Boolean(currentUser)}
                                                                 aria-expanded={isExpanded}
                                                                 className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:cursor-not-allowed"
                                                             >
-                                                                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${STATE_ICON_WELL[module.state]}`}>
-                                                                    {module.state === 'completed' ? <CheckCircle2 size={17} /> : module.state === 'locked' ? <Lock size={14} /> : module.order}
+                                                                <span
+                                                                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[13px] font-bold"
+                                                                    style={stateWell(module.state)}
+                                                                >
+                                                                    {module.state === 'completed'
+                                                                        ? <CheckCircle2 size={17} aria-hidden="true" />
+                                                                        : isLocked
+                                                                            ? <Lock size={14} aria-hidden="true" />
+                                                                            : module.order}
                                                                 </span>
                                                                 <div className="min-w-0 flex-1">
                                                                     <div className="flex flex-wrap items-center gap-2">
-                                                                        <h2 className="cv-design-title text-base sm:text-lg">{module.title}</h2>
+                                                                        <h2 className="text-[15px] font-semibold leading-snug tracking-tight sm:text-[17px]">{module.title}</h2>
                                                                         {isCurrent && (
-                                                                            <span className="rounded-full bg-[var(--cv-action-solid)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
+                                                                            <span
+                                                                                className="cvl-mono rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]"
+                                                                                style={{ background: 'var(--cvl-paper)', color: 'var(--cvl-purple)' }}
+                                                                            >
                                                                                 Up next
                                                                             </span>
                                                                         )}
+                                                                        {/* The lock glyph carries the state visually; this
+                                                                            names it, so it survives for a screen reader
+                                                                            and for anyone who reads the row in a hurry. */}
+                                                                        {isLocked && (
+                                                                            <span
+                                                                                className="cvl-mono inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]"
+                                                                                style={{ background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
+                                                                            >
+                                                                                <Lock size={10} aria-hidden="true" /> Locked
+                                                                            </span>
+                                                                        )}
                                                                     </div>
-                                                                    <p className="cv-design-body mt-0.5 truncate text-xs sm:text-sm">{module.objective}</p>
-                                                                    {lab && module.state !== 'locked' && (
+                                                                    <p className="mt-0.5 truncate text-[12.5px] leading-relaxed sm:text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                                                                        {module.objective}
+                                                                    </p>
+                                                                    {lab && !isLocked && (
                                                                         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                                                                            <p className="flex items-center gap-x-2 text-[11px] font-bold text-[var(--cv-text-muted)]">
+                                                                            <p className="cvl-mono flex items-center gap-x-2 text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                                                                                 <span className="uppercase">{lab.difficulty}</span>
                                                                                 <span aria-hidden>·</span>
                                                                                 <span>{doneLessons} / {lessonCount} lessons</span>
@@ -341,35 +389,39 @@ const CoursePage: React.FC = () => {
                                                                                     </>
                                                                                 )}
                                                                             </p>
-                                                                            <span className="h-1.5 w-24 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
+                                                                            <span
+                                                                                className="h-2 w-24 overflow-hidden rounded-full border"
+                                                                                style={{ background: 'var(--cvl-paper-2)', borderColor: 'var(--cvl-line)' }}
+                                                                            >
                                                                                 <span
-                                                                                    className={`block h-full rounded-full transition-[width] duration-500 ${lessonPct >= 100 ? 'bg-[var(--cv-success-600)]' : 'bg-[var(--cv-action-solid)]'}`}
-                                                                                    style={{ width: `${Math.max(lessonPct, doneLessons > 0 ? 6 : 0)}%` }}
+                                                                                    className="block h-full rounded-full transition-[width] duration-500"
+                                                                                    style={{
+                                                                                        width: `${Math.max(lessonPct, doneLessons > 0 ? 6 : 0)}%`,
+                                                                                        background: lessonPct >= 100 ? 'var(--cvl-green)' : 'var(--cvl-purple)',
+                                                                                    }}
                                                                                 />
                                                                             </span>
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                             </button>
-                                                            {lab && module.state !== 'locked' && (
+                                                            {lab && !isLocked && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => openCourse(lab.id)}
-                                                                    className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition-colors ${isCurrent
-                                                                        ? 'cv-design-button-primary'
-                                                                        : 'border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-primary)] hover:border-[var(--cv-action-primary)]'}`}
+                                                                    className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[12px] font-semibold transition ${isCurrent ? 'cvl-cta' : 'cvl-btn'}`}
                                                                 >
-                                                                    <Play size={13} />
+                                                                    <Play size={13} aria-hidden="true" />
                                                                     {actionLabel}
                                                                 </button>
                                                             )}
-                                                            {module.state !== 'locked' && (
+                                                            {!isLocked && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => toggleExpand(module)}
                                                                     aria-expanded={isExpanded}
                                                                     aria-label={isExpanded ? 'Hide details' : 'Show details'}
-                                                                    className="shrink-0 p-1 text-[var(--cv-text-muted)] transition-colors hover:text-[var(--cv-text-heading)]"
+                                                                    className="cvl-btn-ghost shrink-0 p-1.5"
                                                                 >
                                                                     <ChevronDown
                                                                         size={18}
@@ -380,15 +432,18 @@ const CoursePage: React.FC = () => {
                                                         </div>
 
                                                         {isExpanded && (
-                                                            <div className="space-y-4 border-t border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-muted,transparent)] px-4 pb-5 pt-4 sm:px-5">
+                                                            <div
+                                                                className="space-y-4 border-t px-4 pb-5 pt-4 sm:px-5"
+                                                                style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' }}
+                                                            >
                                                                 <div>
-                                                                    <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-[var(--cv-text-eyebrow)]">
-                                                                        <Sparkles size={12} /> What you'll learn
+                                                                    <p className="cvl-mono mb-2 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-muted)' }}>
+                                                                        <Sparkles size={12} aria-hidden="true" /> What you'll learn
                                                                     </p>
                                                                     <ul className="space-y-1.5">
                                                                         {module.topics.map((topic) => (
-                                                                            <li key={topic} className="cv-design-body flex items-start gap-2 text-xs sm:text-sm">
-                                                                                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--cv-action-solid)]" />
+                                                                            <li key={topic} className="flex items-start gap-2 text-[12.5px] leading-relaxed sm:text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>
+                                                                                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full" style={{ background: 'var(--cvl-purple)' }} />
                                                                                 {topic}
                                                                             </li>
                                                                         ))}
@@ -396,32 +451,38 @@ const CoursePage: React.FC = () => {
                                                                 </div>
 
                                                                 {module.exercise && (
-                                                                    <div className="flex items-start gap-2.5 rounded-lg border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] p-3">
-                                                                        <span className="cv-design-icon-well mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md">
-                                                                            <BookOpen size={12} />
+                                                                    <div className="cvl-panel flex items-start gap-2.5 p-3">
+                                                                        <span
+                                                                            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+                                                                            style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                                                                        >
+                                                                            <BookOpen size={12} aria-hidden="true" />
                                                                         </span>
                                                                         <div className="min-w-0">
-                                                                            <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--cv-text-muted)]">Exercise</p>
-                                                                            <p className="cv-design-body mt-0.5 text-xs sm:text-sm">{module.exercise}</p>
+                                                                            <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>Exercise</p>
+                                                                            <p className="mt-0.5 text-[12.5px] leading-relaxed sm:text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>{module.exercise}</p>
                                                                         </div>
                                                                     </div>
                                                                 )}
 
                                                                 {module.project && (
-                                                                    <div className="flex items-start gap-2.5 rounded-lg border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] p-3">
-                                                                        <span className="cv-design-icon-well mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md">
-                                                                            <Target size={12} />
+                                                                    <div className="cvl-panel flex items-start gap-2.5 p-3">
+                                                                        <span
+                                                                            className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
+                                                                            style={{ background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)' }}
+                                                                        >
+                                                                            <Target size={12} aria-hidden="true" />
                                                                         </span>
                                                                         <div className="min-w-0">
-                                                                            <p className="text-[11px] font-bold uppercase tracking-wide text-[var(--cv-text-muted)]">Project</p>
-                                                                            <p className="cv-design-body mt-0.5 text-xs sm:text-sm">{module.project}</p>
+                                                                            <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>Project</p>
+                                                                            <p className="mt-0.5 text-[12.5px] leading-relaxed sm:text-[13.5px]" style={{ color: 'var(--cvl-muted)' }}>{module.project}</p>
                                                                         </div>
                                                                     </div>
                                                                 )}
 
                                                                 {module.sourceIds.length > 0 && (
                                                                     <div className="flex flex-wrap items-center gap-1.5">
-                                                                        <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--cv-text-muted)]">Sources</span>
+                                                                        <span className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-muted)' }}>Sources</span>
                                                                         {module.sourceIds.map((sourceId) => {
                                                                             const source = getLearningSourceById(sourceId);
                                                                             if (!source) return null;
@@ -431,13 +492,17 @@ const CoursePage: React.FC = () => {
                                                                                     href={source.repoUrl}
                                                                                     target="_blank"
                                                                                     rel="noopener noreferrer"
-                                                                                    className="inline-flex items-center gap-1 rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong)] px-2 py-0.5 text-[11px] font-medium text-[var(--cv-text-body)] transition-colors hover:border-[var(--cv-action-border)] hover:text-[var(--cv-action-primary)]"
+                                                                                    className="cvl-btn inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
                                                                                 >
                                                                                     {source.title}
-                                                                                    <ExternalLink size={10} />
+                                                                                    <ExternalLink size={10} aria-hidden="true" />
                                                                                 </a>
                                                                             ) : (
-                                                                                <span key={sourceId} className="rounded-full border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card-strong)] px-2 py-0.5 text-[11px] font-medium text-[var(--cv-text-body)]">
+                                                                                <span
+                                                                                    key={sourceId}
+                                                                                    className="rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                                                                                    style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-muted)' }}
+                                                                                >
                                                                                     {source.title}
                                                                                 </span>
                                                                             );
@@ -450,28 +515,35 @@ const CoursePage: React.FC = () => {
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => openCourse(lab.id)}
-                                                                            className="cv-design-button-primary inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-xs"
+                                                                            className="cvl-cta inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[12px] font-semibold transition"
                                                                         >
-                                                                            <Play size={13} /> {actionLabel} lessons
-                                                                            <ArrowRight size={13} />
+                                                                            <Play size={13} aria-hidden="true" /> {actionLabel} lessons
+                                                                            <ArrowRight size={13} aria-hidden="true" />
                                                                         </button>
                                                                     )}
                                                                     {module.state === 'completed' ? (
-                                                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--cv-success-600)]">
-                                                                            <CheckCircle2 size={14} /> Module complete
+                                                                        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'var(--cvl-green)' }}>
+                                                                            <CheckCircle2 size={14} aria-hidden="true" /> Module complete
                                                                         </span>
                                                                     ) : currentUser ? (
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleComplete(module.id)}
                                                                             disabled={isCompleting}
-                                                                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] px-4 text-xs font-bold text-[var(--cv-text-body)] transition-colors hover:border-[var(--cv-action-border)] disabled:cursor-not-allowed"
+                                                                            aria-busy={isCompleting}
+                                                                            className="cvl-btn inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[12px] font-semibold disabled:cursor-not-allowed"
                                                                         >
-                                                                            {isCompleting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                                                                            Mark complete
+                                                                            {/*
+                                                                              * The label changes, not just the icon. A reader
+                                                                              * with reduced motion gets a still spinner, which
+                                                                              * beside an unchanged label is indistinguishable
+                                                                              * from the idle button.
+                                                                              */}
+                                                                            {isCompleting ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} aria-hidden="true" />}
+                                                                            {isCompleting ? 'Saving…' : 'Mark complete'}
                                                                         </button>
                                                                     ) : (
-                                                                        <p className="cv-design-body text-xs">Sign in to track your progress through this module.</p>
+                                                                        <p className="text-[12px]" style={{ color: 'var(--cvl-muted)' }}>Sign in to track your progress through this module.</p>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -487,52 +559,61 @@ const CoursePage: React.FC = () => {
                                     {currentUser ? (
                                         <>
                                             {/* Level */}
-                                            <section className="cv-design-card p-4">
+                                            <section className="cvl-panel p-4">
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div>
-                                                        <p className="cv-design-title text-base">Level {isLoadingLevel ? '—' : levelInfo.level}</p>
-                                                        <p className="cv-design-body mt-0.5 text-xs">
+                                                        <p className="text-[15px] font-semibold tracking-tight">Level {isLoadingLevel ? '—' : levelInfo.level}</p>
+                                                        <p className="cvl-mono mt-1 text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                                                             {isLoadingLevel ? 'Loading…' : `${levelInfo.currentLevelXp} / ${levelInfo.nextLevelXp} XP to level ${levelInfo.level + 1}`}
                                                         </p>
                                                     </div>
-                                                    <span className="cv-design-icon-well flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
-                                                        <Zap size={16} />
+                                                    <span
+                                                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                                                        style={{ background: 'var(--cvl-amber-soft)', color: 'var(--cvl-amber)' }}
+                                                    >
+                                                        <Zap size={16} aria-hidden="true" />
                                                     </span>
                                                 </div>
-                                                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
+                                                <div
+                                                    className="mt-3 h-2 overflow-hidden rounded-full border"
+                                                    style={{ background: 'var(--cvl-paper-2)', borderColor: 'var(--cvl-line)' }}
+                                                >
                                                     <div
-                                                        className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
-                                                        style={{ width: `${Math.max((isLoadingLevel ? 0 : levelInfo.progress) * 100, 2)}%` }}
+                                                        className="h-full rounded-full transition-[width] duration-500"
+                                                        style={{ width: `${Math.max((isLoadingLevel ? 0 : levelInfo.progress) * 100, 2)}%`, background: 'var(--cvl-purple)' }}
                                                     />
                                                 </div>
                                             </section>
 
                                             {/* Course progress */}
-                                            <section className="cv-design-card p-4">
-                                                <h2 className="cv-design-title text-base">Course progress</h2>
-                                                <p className="cv-design-body mt-0.5 text-xs">
+                                            <section className="cvl-panel p-4">
+                                                <h2 className="text-[15px] font-semibold tracking-tight">Course progress</h2>
+                                                <p className="cvl-mono mt-1 text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                                                     {isLoadingCourse ? 'Loading…' : `${completedCount} / ${totalCount} modules completed`}
                                                 </p>
-                                                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--cv-border-warm)]">
+                                                <div
+                                                    className="mt-3 h-2 overflow-hidden rounded-full border"
+                                                    style={{ background: 'var(--cvl-paper-2)', borderColor: 'var(--cvl-line)' }}
+                                                >
                                                     <div
-                                                        className="h-full rounded-full bg-[var(--cv-action-solid)] transition-[width] duration-500"
-                                                        style={{ width: `${Math.max(progressPct, completedCount > 0 ? 4 : 0)}%` }}
+                                                        className="h-full rounded-full transition-[width] duration-500"
+                                                        style={{ width: `${Math.max(progressPct, completedCount > 0 ? 4 : 0)}%`, background: 'var(--cvl-purple)' }}
                                                     />
                                                 </div>
                                                 {courseComplete && (
-                                                    <p className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[var(--cv-success-600)]">
-                                                        <Rocket size={14} /> Curriculum complete — nice work!
+                                                    <p className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: 'var(--cvl-green)' }}>
+                                                        <Rocket size={14} aria-hidden="true" /> Curriculum complete — nice work!
                                                     </p>
                                                 )}
                                             </section>
 
                                             {/* Course badges: one per completed module */}
-                                            <section className="cv-design-card p-4">
+                                            <section className="cvl-panel p-4">
                                                 <div className="flex items-center justify-between gap-3">
-                                                    <h2 className="cv-design-title text-base">Course badges</h2>
-                                                    <span className="cv-design-body text-xs">{completedCount} / {totalCount}</span>
+                                                    <h2 className="text-[15px] font-semibold tracking-tight">Course badges</h2>
+                                                    <span className="cvl-mono text-[11px]" style={{ color: 'var(--cvl-muted)' }}>{completedCount} / {totalCount}</span>
                                                 </div>
-                                                <p className="cv-design-body mt-0.5 text-xs">Complete a module to earn its badge — collect 'em all.</p>
+                                                <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>Complete a module to earn its badge — collect 'em all.</p>
                                                 <div className="mt-3 grid grid-cols-5 gap-2">
                                                     {modules.map((module) => {
                                                         const earned = module.state === 'completed';
@@ -540,12 +621,12 @@ const CoursePage: React.FC = () => {
                                                             <div
                                                                 key={module.id}
                                                                 title={module.title}
-                                                                className={`flex aspect-square items-center justify-center rounded-lg border text-xs font-extrabold transition-colors ${earned
-                                                                    ? 'border-[var(--cv-success-600)]/40 bg-[var(--cv-success-50)] text-[var(--cv-success-600)]'
-                                                                    : 'border-[var(--cv-border-warm)] bg-[var(--cv-surface-warm-card)] text-[var(--cv-text-muted)]'
-                                                                    }`}
+                                                                className="flex aspect-square items-center justify-center rounded-lg border text-[12px] font-bold transition-colors"
+                                                                style={earned
+                                                                    ? { borderColor: 'var(--cvl-green)', background: 'var(--cvl-green-soft)', color: 'var(--cvl-green)' }
+                                                                    : { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)', color: 'var(--cvl-muted)' }}
                                                             >
-                                                                {earned ? <CheckCircle2 size={16} /> : module.order}
+                                                                {earned ? <CheckCircle2 size={16} aria-hidden="true" /> : module.order}
                                                             </div>
                                                         );
                                                     })}
@@ -553,9 +634,9 @@ const CoursePage: React.FC = () => {
                                             </section>
                                         </>
                                     ) : (
-                                        <section className="cv-design-card p-4">
-                                            <h2 className="cv-design-title text-base">Your progress</h2>
-                                            <p className="cv-design-body mt-1.5 text-xs">Sign in to save your module completions, earn XP, and unlock the next chapter automatically.</p>
+                                        <section className="cvl-panel p-4">
+                                            <h2 className="text-[15px] font-semibold tracking-tight">Your progress</h2>
+                                            <p className="mt-1.5 text-[12.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>Sign in to save your module completions, earn XP, and unlock the next chapter automatically.</p>
                                         </section>
                                     )}
                                 </aside>

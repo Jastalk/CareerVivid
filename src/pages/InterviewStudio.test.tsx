@@ -234,6 +234,16 @@ describe('InterviewStudio setup workspace', () => {
     expect(screen.getByText('821')).toBeInTheDocument();
 
     /*
+     * One page, one <h1>. The guides used to carry the page's only large
+     * heading inside their own card; the header above the grid owns it now,
+     * and the guides card is a section under it.
+     */
+    const headings = screen.getAllByRole('heading', { level: 1 });
+    expect(headings).toHaveLength(1);
+    expect(headings[0]).toHaveTextContent('Know exactly what to expect');
+    expect(screen.getByRole('heading', { level: 2, name: 'Company guides' })).toBeInTheDocument();
+
+    /*
      * The card that used to sit above the guides is gone: interviews start
      * from a company quest or a career path now, so the box that asked people
      * to describe one themselves — and the Mode, Difficulty and Duration

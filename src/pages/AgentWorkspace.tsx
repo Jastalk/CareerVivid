@@ -8,9 +8,11 @@
 
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Sparkles } from 'lucide-react';
 import { getPathFromUrl } from '../utils/navigation';
 import { CareerAgentPanel } from '../features/agent/CareerAgentPanel';
 import { useAuth } from '../contexts/AuthContext';
+import '../components/Landing/live/liveLanding.css';
 
 export const AgentWorkspace: React.FC = () => {
     const { currentUser } = useAuth();
@@ -22,23 +24,37 @@ export const AgentWorkspace: React.FC = () => {
     // composer with nothing above it to account for. `dvh` also keeps the
     // composer clear of the URL bar on mobile.
     return (
-        <div className="flex h-[100dvh] flex-col bg-white dark:bg-gray-950">
+        <div className="cvl flex h-[100dvh] flex-col">
             <Helmet>
                 <title>Career Agent | CareerVivid</title>
                 <meta name="robots" content="noindex" />
             </Helmet>
 
             {!currentUser ? (
-                <div className="flex flex-1 items-center justify-center px-6 text-center">
-                    <div>
-                        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Career Agent</h1>
-                        <p className="mt-2 max-w-sm text-sm text-gray-600 dark:text-gray-400">
-                            Sign in to let the agent build your resume, set up your job tracker, and plan
-                            what to learn next.
+                <div className="flex flex-1 items-center justify-center px-5 py-10">
+                    <div className="cvl-panel w-full max-w-sm p-6">
+                        <span
+                            className="flex h-9 w-9 items-center justify-center rounded-xl"
+                            style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                        >
+                            <Sparkles size={17} aria-hidden="true" />
+                        </span>
+                        <p
+                            className="cvl-mono mt-4 text-[11px] uppercase tracking-[0.18em]"
+                            style={{ color: 'var(--cvl-faint)' }}
+                        >
+                            career agent
+                        </p>
+                        <h1 className="mt-2 text-xl font-semibold leading-snug tracking-tight">
+                            Sign in to start
+                        </h1>
+                        <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                            The agent builds your resume, sets up your job tracker, and plans what to
+                            learn next. It needs your account to do any of it.
                         </p>
                         <a
                             href="/login"
-                            className="mt-4 inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white dark:bg-white dark:text-gray-900"
+                            className="cvl-cta mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 py-2.5 text-[14px] font-semibold transition"
                         >
                             Sign in
                         </a>

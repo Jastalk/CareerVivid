@@ -14,7 +14,7 @@ describe('AgentMessageText', () => {
         const gpu = screen.getByText('GPU inference worker nodes');
         expect(gpu.tagName).toBe('MARK');
         expect(gpu).toHaveAttribute('title', 'Key solution concept');
-        expect(gpu).toHaveClass('bg-[#f3f2ff]', 'text-[#4a4392]');
+        expect(gpu).toHaveClass('bg-[var(--cvl-purple-soft)]', 'text-[color:var(--cvl-purple-ink)]');
         expect(screen.getByText('response streaming').tagName).toBe('MARK');
     });
 

@@ -10,12 +10,24 @@
 import React from 'react';
 import { Check, X, AlertCircle, FileText, Briefcase, User, Mic } from 'lucide-react';
 import type { Proposal } from './useCareerAgent';
+import '../../components/Landing/live/liveLanding.css';
 
 const ENTITY_ICON = {
     resume: FileText,
     job: Briefcase,
     profile: User,
     session: Mic,
+} as const;
+
+/**
+ * Awaiting a decision reads as amber; a failed write is the one destructive
+ * state and gets the danger token rather than a second shade of warning.
+ */
+const OUTCOME_TONE = {
+    approved: { borderColor: 'var(--cvl-green)', background: 'var(--cvl-green-soft)' },
+    rejected: { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper-2)' },
+    failed: { borderColor: 'var(--cvl-danger)', background: 'var(--cvl-danger-soft)' },
+    pending: { borderColor: 'var(--cvl-amber)', background: 'var(--cvl-amber-soft)' },
 } as const;
 
 interface Props {
@@ -36,23 +48,18 @@ export const ProposedChanges: React.FC<Props> = ({ proposal, onResolve, disabled
         onResolve(proposal.id, approve);
     };
 
+    const tone = OUTCOME_TONE[(proposal.outcome ?? 'pending') as keyof typeof OUTCOME_TONE] ?? OUTCOME_TONE.pending;
+
     return (
         <div
-            className={`mt-3 rounded-xl border text-sm transition-colors ${
-                proposal.outcome === 'approved'
-                    ? 'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40'
-                    : proposal.outcome === 'rejected'
-                      ? 'border-gray-200 bg-gray-50 opacity-70 dark:border-gray-800 dark:bg-gray-900/40'
-                      : proposal.outcome === 'failed'
-                        ? 'border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/40'
-                        : 'border-amber-300 bg-amber-50/60 dark:border-amber-700 dark:bg-amber-950/30'
-            }`}
+            className={`mt-3 rounded-xl border text-[13.5px] transition-colors ${proposal.outcome === 'rejected' ? 'opacity-70' : ''}`}
+            style={tone}
         >
-            <div className="flex items-start gap-2.5 border-b border-black/5 px-3.5 py-2.5 dark:border-white/10">
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-gray-500 dark:text-gray-400" />
+            <div className="flex items-start gap-2.5 border-b px-3.5 py-2.5" style={{ borderColor: 'var(--cvl-line)' }}>
+                <Icon className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'var(--cvl-muted)' }} />
                 <div className="min-w-0 flex-1">
-                    <p className="font-medium text-gray-900 dark:text-gray-100">{proposal.summary}</p>
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="font-semibold">{proposal.summary}</p>
+                    <p className="cvl-mono mt-0.5 text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
                         {proposal.diff.kind === 'batch' ? 'Batch change' : proposal.diff.kind === 'create' ? 'Creates new' : 'Updates existing'}
                         {' · '}
                         {proposal.tool}
@@ -64,12 +71,12 @@ export const ProposedChanges: React.FC<Props> = ({ proposal, onResolve, disabled
                 <dl className="space-y-1.5">
                     {proposal.diff.changes.map((c, i) => (
                         <div key={i} className="grid grid-cols-[7rem_1fr] gap-2">
-                            <dt className="truncate text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <dt className="cvl-mono truncate text-[11px] uppercase tracking-[0.14em]" style={{ color: 'var(--cvl-muted)' }}>
                                 {c.label}
                             </dt>
-                            <dd className="min-w-0 text-gray-800 dark:text-gray-200">
+                            <dd className="min-w-0">
                                 {c.before !== undefined && (
-                                    <span className="mr-1.5 text-gray-400 line-through dark:text-gray-500">{c.before}</span>
+                                    <span className="mr-1.5 line-through" style={{ color: 'var(--cvl-muted)' }}>{c.before}</span>
                                 )}
                                 <span className="break-words">{c.after}</span>
                             </dd>
@@ -78,9 +85,9 @@ export const ProposedChanges: React.FC<Props> = ({ proposal, onResolve, disabled
                 </dl>
 
                 {proposal.diff.items && (
-                    <ul className="mt-2.5 max-h-44 space-y-1 overflow-y-auto rounded-lg bg-white/70 p-2 text-xs dark:bg-black/20">
+                    <ul className="cvl-panel-inset mt-2.5 max-h-44 space-y-1 overflow-y-auto p-2 text-[12px]">
                         {proposal.diff.items.map((item, i) => (
-                            <li key={i} className="truncate text-gray-700 dark:text-gray-300">
+                            <li key={i} className="truncate" style={{ color: 'var(--cvl-muted)' }}>
                                 · {item}
                             </li>
                         ))}
@@ -89,19 +96,19 @@ export const ProposedChanges: React.FC<Props> = ({ proposal, onResolve, disabled
             </div>
 
             {proposal.outcome === 'failed' && proposal.error && (
-                <p className="flex items-start gap-1.5 px-3.5 pb-2.5 text-xs text-red-700 dark:text-red-300">
+                <p className="flex items-start gap-1.5 px-3.5 pb-2.5 text-[12px]" style={{ color: 'var(--cvl-danger)' }}>
                     <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     {proposal.error}
                 </p>
             )}
 
             {!resolved ? (
-                <div className="flex gap-2 border-t border-black/5 px-3.5 py-2.5 dark:border-white/10">
+                <div className="flex gap-2 border-t px-3.5 py-2.5" style={{ borderColor: 'var(--cvl-line)' }}>
                     <button
                         type="button"
                         disabled={disabled || submitting}
                         onClick={() => fire(true)}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200"
+                        className="cvl-cta inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold transition disabled:opacity-50"
                     >
                         <Check className="h-3.5 w-3.5" />
                         Approve
@@ -110,14 +117,17 @@ export const ProposedChanges: React.FC<Props> = ({ proposal, onResolve, disabled
                         type="button"
                         disabled={disabled || submitting}
                         onClick={() => fire(false)}
-                        className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-white/10"
+                        className="cvl-btn-ghost inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-semibold disabled:opacity-50"
                     >
                         <X className="h-3.5 w-3.5" />
                         Discard
                     </button>
                 </div>
             ) : (
-                <p className="border-t border-black/5 px-3.5 py-2 text-xs font-medium text-gray-600 dark:border-white/10 dark:text-gray-400">
+                <p
+                    className="border-t px-3.5 py-2 text-[12px] font-semibold"
+                    style={{ borderColor: 'var(--cvl-line)', color: 'var(--cvl-muted)' }}
+                >
                     {proposal.outcome === 'approved' ? '✓ Applied' : proposal.outcome === 'rejected' ? 'Discarded' : 'Failed'}
                 </p>
             )}
