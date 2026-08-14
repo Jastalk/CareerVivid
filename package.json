@@ -21,7 +21,9 @@
     "verify:interview-guides": "node scripts/generate-interview-guide-summaries.mjs --check",
     "test:autofill": "vitest run src/autofill/__tests__",
     "sync:shared": "node scripts/sync-shared.mjs",
-    "lint:strict": "eslint src functions/src --ext .ts,.tsx --max-warnings 0"
+    "lint:strict": "eslint src functions/src --ext .ts,.tsx --max-warnings 0",
+    "predeploy": "node scripts/check-deploy-ready.mjs",
+    "deploy": "npm run predeploy && npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@blocknote/core": "^0.47.0",

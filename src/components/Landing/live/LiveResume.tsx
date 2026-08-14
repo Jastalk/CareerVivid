@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
-import { useCountUp, usePrefersReducedMotion, useTypedText } from './liveHooks';
+import { Globe, Sparkles } from 'lucide-react';
+import { useCountUp, useCycle, usePrefersReducedMotion, useTypedText } from './liveHooks';
 
 /*
  * Real output, not written copy. The weak bullet was put to the Career Agent
@@ -16,6 +16,35 @@ const MATCHED = ['architected', 'high-concurrency', 'checkout flow', 'latency re
 const SCORE_BEFORE = 25;
 const SCORE_AFTER = 85;
 
+/*
+ * The second half of the demo: the same finished bullet, carried into another
+ * language. The editor offers 103 of them (SUPPORTED_TRANSLATE_LANGUAGES in
+ * src/constants.ts) and duplicates rather than overwrites, so the English one
+ * survives — which is why the panel keeps saying the original stays put.
+ *
+ * Unlike the rewrite and the scores above, these renderings were not produced
+ * by the agent; they stand in for a feature that is real rather than quoting a
+ * specific run of it.
+ */
+const TRANSLATIONS = [
+    { code: 'EN', label: 'English', text: AFTER },
+    {
+        code: 'ES',
+        label: 'Español',
+        text: 'Diseñé y optimicé el flujo de pago de alta concurrencia, reduciendo la latencia un 40 % y aumentando el rendimiento de transacciones exitosas para una plataforma de pagos global.',
+    },
+    {
+        code: 'JA',
+        label: '日本語',
+        text: '高同時実行の決済フローを設計・最適化し、レイテンシを 40% 削減、グローバル決済基盤における取引成功スループットを向上させました。',
+    },
+    {
+        code: 'DE',
+        label: 'Deutsch',
+        text: 'Den hochparallelen Checkout-Flow konzipiert und optimiert: Latenz um 40 % gesenkt und den Durchsatz erfolgreicher Transaktionen für eine globale Zahlungsplattform gesteigert.',
+    },
+];
+
 /**
  * The resume editor, mid-rewrite. A weak bullet is struck out and the stronger
  * one types itself in while the match score climbs — the actual loop the editor
@@ -28,6 +57,11 @@ const LiveResume: React.FC<{ playing: boolean }> = ({ playing }) => {
     const done = typed.length === AFTER.length;
     const score = useCountUp(SCORE_BEFORE, SCORE_AFTER, done, 1300);
     const delta = SCORE_AFTER - SCORE_BEFORE;
+    // Only once the score has landed — the rewrite has to finish being the
+    // point before the translation can be a bonus on top of it.
+    const [translating, setTranslating] = useState(false);
+    const [lang] = useCycle(TRANSLATIONS.length, translating, 2800);
+    const current = TRANSLATIONS[translating ? lang : 0];
 
     useEffect(() => {
         if (!playing) { setRewriting(false); return undefined; }
@@ -36,6 +70,12 @@ const LiveResume: React.FC<{ playing: boolean }> = ({ playing }) => {
         const timer = window.setTimeout(() => setRewriting(true), 900);
         return () => window.clearTimeout(timer);
     }, [playing, reduced]);
+
+    useEffect(() => {
+        if (!done || reduced) { setTranslating(false); return undefined; }
+        const timer = window.setTimeout(() => setTranslating(true), 2200);
+        return () => window.clearTimeout(timer);
+    }, [done, reduced]);
 
     return (
         <div className="grid sm:grid-cols-[minmax(0,1fr)_150px]">
@@ -63,12 +103,21 @@ const LiveResume: React.FC<{ playing: boolean }> = ({ playing }) => {
                         className="mt-2 rounded-md px-2 py-1.5 text-[12.5px] font-medium leading-relaxed"
                         style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-ink)' }}
                     >
-                        {typed}
+                        {done ? current.text : typed}
                         {!done && <span className="cvl-caret" />}
                     </p>
                 )}
 
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                {translating && current.code !== 'EN' && (
+                    <p
+                        className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10.5px] font-semibold"
+                        style={{ background: 'var(--cvl-purple-soft)', color: 'var(--cvl-purple)' }}
+                    >
+                        <Globe size={11} /> translated to {current.label} · 103 languages · English kept
+                    </p>
+                )}
+
+                <div className="mt-3 flex flex-wrap gap-1.5" hidden={translating && current.code !== 'EN'}>
                     {MATCHED.map((word, index) => (
                         <span
                             key={word}

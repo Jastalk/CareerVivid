@@ -126,8 +126,8 @@ const DeskHero: React.FC = () => {
 
                 <p className="mx-auto mt-4 max-w-lg text-[16px] leading-relaxed sm:text-[18px]" style={{ color: 'var(--cvl-muted)' }}>
                     A coach that sits with you — writing the resume so you get your evening back,
-                    then working through the hard problem until you can say it out loud. Understand
-                    it, explain it well, and the offer follows.
+                    then working through the hardest problem until you can say it out loud. Understand
+                    it, explain it well, and the offer follows naturally.
                 </p>
 
                 {/* A prompt box that types itself, then hands you the button. */}
