@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CAREER_PATHS, Industry } from '../data/careers';
-import { ArrowRight, Mic, Loader2, ChevronLeft, Clock, SlidersHorizontal, Sparkles, Trash2, BarChart3, Building2, Search, ListChecks, ExternalLink, Swords, X } from 'lucide-react';
+import { ArrowRight, Mic, Loader2, ChevronLeft, Clock, Sparkles, Trash2, BarChart3, Building2, Search, ListChecks, ExternalLink, Swords, X } from 'lucide-react';
 import { navigate } from '../utils/navigation';
 import { generateInterviewQuestions } from '../services/geminiService';
 import { usePracticeHistory } from '../hooks/useJobHistory';
@@ -71,16 +71,6 @@ const loadingMessages = [
     "Just a moment...",
 ];
 
-const placeholderPrompts = [
-    'A behavioral interview for a product manager role',
-    'A technical interview for a front-end developer position',
-    'First-round screening call for a marketing associate',
-    'Final-round interview for a senior data scientist',
-    'Case study interview for a management consultant',
-    'A mock interview focused on leadership skills',
-    'Systems design interview for a backend engineer role',
-];
-
 const normalizeCompanyLookupKey = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
 
 const slugifyQuestCompany = (value: string) =>
@@ -131,9 +121,6 @@ type InterviewMode = 'Behavioral' | 'Technical' | 'Mixed' | 'Screening';
 type InterviewDifficulty = 'Entry' | 'Standard' | 'Senior';
 type InterviewDuration = '5 min' | '15 min' | '30 min';
 
-const interviewModes: InterviewMode[] = ['Behavioral', 'Technical', 'Mixed', 'Screening'];
-const interviewDifficulties: InterviewDifficulty[] = ['Entry', 'Standard', 'Senior'];
-const interviewDurations: InterviewDuration[] = ['5 min', '15 min', '30 min'];
 
 const getResumableDraft = (entry: PracticeHistoryEntry): InterviewSessionDraft | null => {
     const draft = entry.activeInterviewDraft;
@@ -153,15 +140,19 @@ interface InterviewStudioProps {
 const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
     const { currentUser } = useAuth();
     const { t } = useTranslation();
-    const [prompt, setPrompt] = useState('');
-    const [interviewMode, setInterviewMode] = useState<InterviewMode>('Behavioral');
-    const [interviewDifficulty, setInterviewDifficulty] = useState<InterviewDifficulty>('Standard');
-    const [interviewDuration, setInterviewDuration] = useState<InterviewDuration>('15 min');
+    /*
+     * Fixed, not chosen. The free-text starter that owned these pickers is
+     * gone — interviews now begin from a company quest or a career path — but
+     * both of those still shape their generated questions with these, so the
+     * values stay rather than the controls.
+     */
+    const interviewMode: InterviewMode = 'Behavioral';
+    const interviewDifficulty: InterviewDifficulty = 'Standard';
+    const interviewDuration: InterviewDuration = '15 min';
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [authGate, setAuthGate] = useState<Pick<AuthGateModalProps, 'title' | 'message' | 'variant'> | null>(null);
     const [selectedIndustry, setSelectedIndustry] = useState<Industry | null>(null);
-    const [placeholder, setPlaceholder] = useState('');
     const [guideSearch, setGuideSearch] = useState('');
     const [guideCategory, setGuideCategory] = useState('all');
     const [guideLimit, setGuideLimit] = useState(12);
@@ -228,54 +219,6 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         }
         return () => clearInterval(interval);
     }, [isLoading, isInterviewModalOpen]);
-
-    // Typing effect for the placeholder
-    useEffect(() => {
-        let isMounted = true;
-        let promptIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-        let timeoutId: number;
-
-        const typingSpeed = 100;
-        const deletingSpeed = 50;
-        const pauseDurations = [2000, 4000, 8000];
-        let pauseIndex = 0;
-
-        const type = () => {
-            if (!isMounted) return;
-
-            const currentPrompt = placeholderPrompts[promptIndex];
-
-            if (isDeleting) {
-                setPlaceholder(currentPrompt.substring(0, charIndex - 1));
-                charIndex--;
-            } else {
-                setPlaceholder(currentPrompt.substring(0, charIndex + 1));
-                charIndex++;
-            }
-
-            if (!isDeleting && charIndex === currentPrompt.length) {
-                isDeleting = true;
-                const pause = pauseDurations[pauseIndex % pauseDurations.length];
-                pauseIndex = (pauseIndex + 1) % pauseDurations.length;
-                timeoutId = window.setTimeout(type, pause);
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                promptIndex = (promptIndex + 1) % placeholderPrompts.length;
-                timeoutId = window.setTimeout(type, 500);
-            } else {
-                timeoutId = window.setTimeout(type, isDeleting ? deletingSpeed : typingSpeed);
-            }
-        };
-
-        timeoutId = window.setTimeout(type, 1500);
-
-        return () => {
-            isMounted = false;
-            clearTimeout(timeoutId);
-        };
-    }, []);
 
     useEffect(() => {
         const syncTransitPractice = async () => {
@@ -530,11 +473,6 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         startSavedInterview();
     }, [decodedJobId, handledDeepLinkJobId, isInterviewModalOpen, isLoadingHistory, practiceHistory, resumes]);
 
-    const handlePromptSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        handleStartInterview(prompt);
-    };
-
     const { guides: visibleGuideSummaries, total: guideMatchTotal } = filterInterviewGuideSummaries({
         query: guideSearch,
         categoryId: guideCategory,
@@ -630,37 +568,6 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
         const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
         return date.toLocaleDateString();
     };
-
-    const renderSegmentedControl = <T extends string,>(
-        label: string,
-        options: T[],
-        value: T,
-        onChange: (option: T) => void,
-        icon: React.ReactNode
-    ) => (
-        <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[var(--cv-text-body)]">
-                {icon}
-                <span>{label}</span>
-            </div>
-            <div className={`grid ${options.length === 4 ? 'grid-cols-2' : 'grid-cols-3'} gap-1 rounded-xl border border-[var(--cv-border-subtle)] bg-[var(--cv-surface-warm-muted)] p-1`}>
-                {options.map(option => (
-                    <button
-                        key={option}
-                        type="button"
-                        onClick={() => onChange(option)}
-                        className={`min-h-[34px] rounded-lg px-2 text-xs font-semibold leading-tight transition-colors ${value === option
-                            ? 'border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] text-[var(--cv-action-primary)] shadow-sm'
-                            : 'border border-transparent text-[var(--cv-text-body)] hover:border-[var(--cv-action-border)] hover:bg-[var(--cv-surface-warm-card-strong)] hover:text-[var(--cv-action-primary)]'
-                            }`}
-                        aria-pressed={value === option}
-                    >
-                        {option}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
 
 
     const renderContent = () => {
@@ -959,49 +866,6 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
                 <div id="start-session" className="@container/interview-page mx-auto max-w-screen-2xl px-4 py-6 text-left sm:px-6 lg:px-8 lg:py-8">
                     <div className="grid grid-cols-1 items-start gap-5 @[1080px]/interview-page:grid-cols-[minmax(0,1fr)_360px]">
                         <main className="space-y-4">
-                            <section className="@container/setup cv-design-card p-4 sm:p-5 @[720px]/setup:p-6">
-                                <div className="flex flex-col gap-5">
-                                    <div>
-                                        <div className="cv-design-eyebrow mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--cv-action-border)] bg-[var(--cv-action-soft-bg)] px-2.5 py-1 text-xs">
-                                            <Mic size={14} />
-                                            <span>Interview workspace</span>
-                                        </div>
-                                        <h1 className="cv-design-title text-2xl @[560px]/setup:text-3xl">{t('interview_studio.title')}</h1>
-                                        <p className="cv-design-body mt-1.5 max-w-2xl text-sm">{t('interview_studio.subtitle')}</p>
-                                    </div>
-
-                                    <form onSubmit={handlePromptSubmit} className="space-y-4">
-                                        <div>
-                                            <label htmlFor="interview-prompt" className="mb-2 block text-xs font-semibold text-[var(--cv-text-body)]">
-                                                {t('interview_studio.start_title')}
-                                            </label>
-                                            <div className="flex flex-col gap-3 @[560px]/setup:flex-row">
-                                                <input
-                                                    id="interview-prompt"
-                                                    type="text"
-                                                    value={prompt}
-                                                    onChange={(e) => setPrompt(e.target.value)}
-                                                    placeholder={placeholder}
-                                                    className="cv-design-input min-h-[52px] w-full flex-grow rounded-2xl px-4 text-sm font-medium transition-shadow placeholder:text-[var(--cv-text-muted)]"
-                                                />
-                                                <button
-                                                    type="submit"
-                                                    className="cv-design-button-secondary min-h-[52px] flex-shrink-0 rounded-2xl px-5 text-sm disabled:cursor-not-allowed disabled:opacity-55"
-                                                    disabled={!prompt.trim() || isLoading}
-                                                >
-                                                    {t('interview_studio.start_btn')} <ArrowRight size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 @[560px]/setup:grid-cols-3 gap-4">
-                                            {renderSegmentedControl('Mode', interviewModes, interviewMode, (option) => setInterviewMode(option), <Sparkles size={16} className="text-[var(--cv-action-primary)]" />)}
-                                            {renderSegmentedControl('Difficulty', interviewDifficulties, interviewDifficulty, (option) => setInterviewDifficulty(option), <SlidersHorizontal size={16} className="text-[var(--cv-action-primary)]" />)}
-                                            {renderSegmentedControl('Duration', interviewDurations, interviewDuration, (option) => setInterviewDuration(option), <Clock size={16} className="text-[var(--cv-action-primary)]" />)}
-                                        </div>
-                                    </form>
-                                </div>
-                            </section>
                             {error && <p className="text-red-500 bg-red-100 dark:bg-red-900/20 dark:text-red-400 p-3 rounded-lg">{error}</p>}
                             {renderCompanyGuideCards()}
                         </main>

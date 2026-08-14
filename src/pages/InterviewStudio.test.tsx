@@ -226,42 +226,45 @@ describe('InterviewStudio setup workspace', () => {
     mockCheckCredit.mockReturnValue(true);
   });
 
-  it('renders setup-first defaults and keeps start disabled until a prompt exists', () => {
+  it('opens on the company guides, with no free-text starter above them', () => {
     render(<InterviewStudio />);
 
-    expect(screen.getByText('Technical Interview Simulator')).toBeInTheDocument();
     expect(screen.getByText('301')).toBeInTheDocument();
     expect(screen.getByText('22,611')).toBeInTheDocument();
     expect(screen.getByText('821')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Behavioral' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Standard' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: '15 min' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /start interview/i })).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText('Start your mock interview'), {
-      target: { value: 'Practice for a platform engineer role' },
-    });
-
-    expect(screen.getByRole('button', { name: /start interview/i })).toBeEnabled();
+    /*
+     * The card that used to sit above the guides is gone: interviews start
+     * from a company quest or a career path now, so the box that asked people
+     * to describe one themselves — and the Mode, Difficulty and Duration
+     * pickers that configured it — went with it.
+     */
+    expect(screen.queryByText('Technical Interview Simulator')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Start your mock interview')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start interview/i })).not.toBeInTheDocument();
+    for (const removed of ['Behavioral', 'Technical', 'Mixed', 'Screening', 'Entry', 'Standard', 'Senior', '5 min', '15 min', '30 min']) {
+      expect(screen.queryByRole('button', { name: removed }), removed).not.toBeInTheDocument();
+    }
   });
 
-  it('passes selected local setup options into question generation', async () => {
+  /*
+   * The pickers are gone but the values they set are not — the generated
+   * questions are still shaped by a mode, a difficulty and a duration, now
+   * fixed. This drives a path that survived, so removing the UI cannot quietly
+   * take the setup out of the prompt with it.
+   */
+  it('still shapes generated questions with the interview setup', async () => {
+    mockPracticeHistory.push(sampleEntry);
     render(<InterviewStudio />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Technical' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Senior' }));
-    fireEvent.click(screen.getByRole('button', { name: '30 min' }));
-    fireEvent.change(screen.getByLabelText('Start your mock interview'), {
-      target: { value: 'Backend systems interview' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: /start interview/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Practice Again' }));
 
     await waitFor(() => expect(mockGenerateInterviewQuestions).toHaveBeenCalled());
     const prompt = mockGenerateInterviewQuestions.mock.calls[0][1];
-    expect(prompt).toContain('- Mode: Technical');
-    expect(prompt).toContain('- Difficulty: Senior');
-    expect(prompt).toContain('- Target duration: 30 min');
-    expect(prompt).toContain('Backend systems interview');
+    expect(prompt).toContain('- Mode: Behavioral');
+    expect(prompt).toContain('- Difficulty: Standard');
+    expect(prompt).toContain('- Target duration: 15 min');
+    expect(prompt).toContain('Deploy models with customers.');
   });
 
   it('renders recent sessions, opens reports, and confirms deletion', async () => {
