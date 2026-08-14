@@ -1,0 +1,228 @@
+/*
+ * The live landing page paints its own surface.
+ *
+ * index.css repaints `bg-white` and `bg-[#fffaf1]` under `html.dark`, so a page
+ * built out of Tailwind arbitrary hexes ends up fighting that sweep. This file
+ * owns a private token set instead, and declares its own dark values, so the
+ * page reads correctly in both themes without touching the global rules.
+ */
+
+.cvl {
+    --cvl-desk: #f2efe8;
+    --cvl-desk-dot: #d9d2c5;
+    --cvl-paper: #fffdf8;
+    --cvl-paper-2: #faf6ee;
+    --cvl-ink: #1b1712;
+    --cvl-muted: #6d6153;
+    --cvl-faint: #9b9080;
+    --cvl-line: #e3dbcd;
+    --cvl-chrome: #ece6da;
+    --cvl-purple: #625bd5;
+    --cvl-purple-ink: #4b44b8;
+    --cvl-purple-soft: #f0efff;
+    --cvl-amber: #b4791b;
+    --cvl-amber-soft: #fdf3df;
+    --cvl-green: #15803d;
+    --cvl-green-soft: #e9f7ee;
+    --cvl-shadow: rgba(64, 50, 30, 0.16);
+
+    background-color: var(--cvl-desk);
+    color: var(--cvl-ink);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    /* The desk. A dot grid, like graph paper under everything. */
+    background-image: radial-gradient(circle at 1px 1px, var(--cvl-desk-dot) 1px, transparent 0);
+    background-size: 26px 26px;
+}
+
+html.dark .cvl {
+    --cvl-desk: #131110;
+    --cvl-desk-dot: #2b2620;
+    --cvl-paper: #1d1a16;
+    --cvl-paper-2: #232019;
+    --cvl-ink: #f7f2e9;
+    --cvl-muted: #b0a596;
+    --cvl-faint: #8b8172;
+    --cvl-line: #332d25;
+    --cvl-chrome: #262119;
+    --cvl-purple: #9a95ec;
+    --cvl-purple-ink: #b6b2f3;
+    --cvl-purple-soft: #23213a;
+    --cvl-amber: #e0ac52;
+    --cvl-amber-soft: #2c2415;
+    --cvl-green: #6ee7a0;
+    --cvl-green-soft: #15271c;
+    --cvl-shadow: rgba(0, 0, 0, 0.5);
+}
+
+.cvl-mono {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+/* ---------- window chrome ---------- */
+
+.cvl-win {
+    background: var(--cvl-paper);
+    border: 1px solid var(--cvl-line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px var(--cvl-shadow), 0 14px 34px -20px var(--cvl-shadow);
+    transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 260ms ease, border-color 200ms ease;
+}
+
+.cvl-win-lift:hover {
+    transform: translateY(-4px);
+    border-color: var(--cvl-purple);
+    box-shadow: 0 2px 4px var(--cvl-shadow), 0 26px 50px -22px var(--cvl-shadow);
+}
+
+.cvl-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    background: linear-gradient(180deg, var(--cvl-chrome), var(--cvl-paper-2));
+    border-bottom: 1px solid var(--cvl-line);
+}
+
+.cvl-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex: none;
+}
+
+.cvl-dot-r { background: #ff5f56; }
+.cvl-dot-y { background: #ffbd2e; }
+.cvl-dot-g { background: #27c93f; }
+
+/* ---------- desk clutter ---------- */
+
+.cvl-sticky {
+    background: var(--cvl-amber-soft);
+    border: 1px solid var(--cvl-line);
+    box-shadow: 0 8px 20px -14px var(--cvl-shadow);
+}
+
+/* Everything on the desk drifts a little, on its own clock. */
+@keyframes cvl-float {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--cvl-tilt, 0deg)); }
+    50% { transform: translate3d(0, -9px, 0) rotate(calc(var(--cvl-tilt, 0deg) + 0.6deg)); }
+}
+
+.cvl-float {
+    animation: cvl-float var(--cvl-float-dur, 9s) ease-in-out infinite;
+    animation-delay: var(--cvl-float-delay, 0s);
+    transform: rotate(var(--cvl-tilt, 0deg));
+}
+
+/* ---------- the self-drawing whiteboard ---------- */
+
+@keyframes cvl-draw {
+    to { stroke-dashoffset: 0; }
+}
+
+.cvl-stroke {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: cvl-draw var(--cvl-draw-dur, 900ms) cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: var(--cvl-draw-delay, 0ms);
+}
+
+@keyframes cvl-fade-up {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+.cvl-fade {
+    opacity: 0;
+    animation: cvl-fade-up 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: var(--cvl-draw-delay, 0ms);
+}
+
+/* ---------- voice ---------- */
+
+@keyframes cvl-wave {
+    0%, 100% { transform: scaleY(0.24); }
+    50% { transform: scaleY(1); }
+}
+
+.cvl-wave-bar {
+    transform-origin: center;
+    animation: cvl-wave var(--cvl-wave-dur, 900ms) ease-in-out infinite;
+    animation-delay: var(--cvl-wave-delay, 0ms);
+}
+
+/* ---------- misc ---------- */
+
+@keyframes cvl-blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+.cvl-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    vertical-align: -0.14em;
+    background: var(--cvl-purple);
+    animation: cvl-blink 1.05s steps(1) infinite;
+}
+
+@keyframes cvl-pulse-ring {
+    0% { transform: scale(0.85); opacity: 0.7; }
+    70%, 100% { transform: scale(2.1); opacity: 0; }
+}
+
+.cvl-live-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: currentColor;
+    animation: cvl-pulse-ring 1.9s ease-out infinite;
+}
+
+@keyframes cvl-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.cvl-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: cvl-marquee var(--cvl-marquee-dur, 42s) linear infinite;
+}
+
+.cvl-marquee:hover .cvl-marquee-track {
+    animation-play-state: paused;
+}
+
+/* Focus has to stay visible on a page this busy. */
+.cvl :focus-visible {
+    outline: 2px solid var(--cvl-purple);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+
+/*
+ * One switch stills the whole page. Everything above is decorative — the page
+ * reads identically without a single frame of motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .cvl *,
+    .cvl *::before,
+    .cvl *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        animation-delay: 0ms !important;
+        transition-duration: 1ms !important;
+    }
+
+    .cvl .cvl-stroke {
+        stroke-dashoffset: 0;
+    }
+
+    .cvl .cvl-fade {
+        opacity: 1;
+    }
+}

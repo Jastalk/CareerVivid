@@ -1,0 +1,293 @@
+import React from 'react';
+import { Helmet } from 'react-helmet-async';
+import { ArrowRight, Check, ChevronDown } from 'lucide-react';
+import '../components/Landing/live/liveLanding.css';
+import DeskHero, { MenuBar } from '../components/Landing/live/DeskHero';
+import DeskWindow from '../components/Landing/live/DeskWindow';
+import QuestTape from '../components/Landing/live/QuestTape';
+import LiveResume from '../components/Landing/live/LiveResume';
+import LiveVoice from '../components/Landing/live/LiveVoice';
+import { useHasBeenSeen } from '../components/Landing/live/liveHooks';
+import { INTERVIEW_GUIDE_TOTALS } from '../data/interviewGuideSummaries.generated';
+import { getCourseCatalogTotals } from '../lib/interactiveCourses';
+
+const COMPANY_COUNT = INTERVIEW_GUIDE_TOTALS.companies;
+const { courses: COURSE_COUNT, lessons: LESSON_COUNT } = getCourseCatalogTotals();
+
+const SEO_TITLE = 'CareerVivid — practise the interview before it happens';
+const SEO_DESCRIPTION = `Draw system design on a whiteboard that grades you, run a voice interview that pushes back, and rewrite your resume against the job. ${COMPANY_COUNT} company interview loops, ${COURSE_COUNT} courses, ${LESSON_COUNT} lessons.`;
+
+/** Left copy, right live demo — the shape both feature sections share. */
+const FeatureRow: React.FC<{
+    id: string;
+    eyebrow: string;
+    title: string;
+    copy: string;
+    points: string[];
+    href: string;
+    cta: string;
+    filename: string;
+    accent: 'purple' | 'amber' | 'green';
+    flip?: boolean;
+    render: (playing: boolean) => React.ReactNode;
+}> = ({ id, eyebrow, title, copy, points, href, cta, filename, accent, flip, render }) => {
+    const [ref, seen] = useHasBeenSeen<HTMLDivElement>();
+    return (
+        <section ref={ref} id={id} className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20">
+            <div className={`grid items-center gap-8 lg:grid-cols-2 ${flip ? '' : ''}`}>
+                <div className={flip ? 'lg:order-2' : ''}>
+                    <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>
+                        {eyebrow}
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+                    <p className="mt-4 text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>{copy}</p>
+                    <ul className="mt-5 space-y-2.5">
+                        {points.map((point) => (
+                            <li key={point} className="flex items-start gap-2.5 text-[14px]">
+                                <Check size={15} className="mt-[3px] shrink-0" style={{ color: 'var(--cvl-green)' }} />
+                                <span>{point}</span>
+                            </li>
+                        ))}
+                    </ul>
+                    <a
+                        href={href}
+                        className="mt-7 inline-flex items-center gap-1.5 rounded-xl px-5 py-3 text-[14px] font-semibold text-white transition hover:opacity-90"
+                        style={{ background: 'var(--cvl-purple)' }}
+                    >
+                        {cta} <ArrowRight size={15} />
+                    </a>
+                </div>
+                <div className={flip ? 'lg:order-1' : ''}>
+                    <DeskWindow filename={filename} accent={accent}>
+                        {render(seen)}
+                    </DeskWindow>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const NUMBERS = [
+    { value: String(COMPANY_COUNT), label: 'company interview loops' },
+    { value: String(COURSE_COUNT), label: 'interactive courses' },
+    { value: String(LESSON_COUNT), label: 'hands-on lessons' },
+    { value: '$0', label: 'to start — no card' },
+];
+
+const PLANS = [
+    {
+        name: 'free',
+        price: '$0',
+        note: 'free forever, no card needed',
+        blurb: 'see whether it helps.',
+        points: ['Every quest page, readable', 'Resume starter flow', 'Job tracker'],
+        href: '/signup',
+        cta: 'start free',
+        featured: false,
+    },
+    {
+        name: 'pro',
+        price: 'AI credits',
+        note: 'pay for the AI you actually run',
+        blurb: 'for an active search.',
+        points: ['AI resume tailoring', 'Graded voice + design rounds', 'Chrome capture and autofill'],
+        href: '/pricing',
+        cta: 'see pro',
+        featured: true,
+    },
+    {
+        name: 'teams',
+        price: 'Custom',
+        note: 'billed per cohort',
+        blurb: 'for schools and career centres.',
+        points: ['Student dashboards', 'Credit allocation', 'Progress tracking'],
+        href: '/contact',
+        cta: 'talk to us',
+        featured: false,
+    },
+];
+
+const FAQS = [
+    {
+        q: 'what actually happens in a quest?',
+        a: 'You get a company\'s real loop — recruiter screen, live coding with tests that run, a whiteboard system-design round, and behavioural questions. A voice AI interviews you, and each round ends in a scored report you can reopen later.',
+    },
+    {
+        q: 'is the system design round really graded?',
+        a: 'Yes. You draw on a whiteboard, the coach asks about the parts you skipped, and the submitted diagram is scored on coverage, trade-offs, and clarity. Every past report reopens the exact design you submitted for it.',
+    },
+    {
+        q: 'do i need to pay to look around?',
+        a: `No. Every quest page and course outline is free to browse without an account. A free account saves progress and XP; AI credits cover the rounds that call a model. The Coding Interview Patterns course and the AI Foundations module are free outright.`,
+    },
+    {
+        q: 'how does the resume editor use the job description?',
+        a: 'Paste the posting and the editor rewrites your bullets against it — surfacing the evidence that matches, aligning the wording, and scoring the result before you apply. You keep a separate tailored version per application.',
+    },
+    {
+        q: 'where do the jobs come from?',
+        a: 'Straight from 160+ companies\' official career boards — Greenhouse, Lever, and Ashby — refreshed every six hours. Every apply link is checked before it shows up, so expired postings drop out on their own.',
+    },
+];
+
+const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
+    <details className="group border-b" style={{ borderColor: 'var(--cvl-line)' }}>
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-[15px] font-semibold">
+            {q}
+            <ChevronDown size={16} className="shrink-0 transition group-open:rotate-180" style={{ color: 'var(--cvl-faint)' }} />
+        </summary>
+        <p className="pb-4 text-[14px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>{a}</p>
+    </details>
+);
+
+const LiveLandingPage: React.FC = () => (
+    <div className="cvl min-h-screen">
+        <Helmet titleTemplate="%s">
+            <title>{SEO_TITLE}</title>
+            <meta name="description" content={SEO_DESCRIPTION} />
+            {/* A prototype route — it must not compete with / in search. */}
+            <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
+
+        <MenuBar />
+
+        <main>
+            <DeskHero />
+            <QuestTape />
+
+            <FeatureRow
+                id="resume"
+                eyebrow="resume editor"
+                title="Your resume, rewritten against the job you want."
+                copy="Paste the posting. Weak bullets get struck out and replaced with the version that carries evidence — and the match score moves while you watch."
+                points={[
+                    'Rewrites keep your facts and fix your phrasing',
+                    'Scored against the specific posting, not a generic template',
+                    'ATS-safe export, one tailored version per application',
+                ]}
+                href="/newresume"
+                cta="Open the resume editor"
+                filename="resume-rewrite.mov"
+                accent="green"
+                render={(playing) => <LiveResume playing={playing} />}
+            />
+
+            <FeatureRow
+                id="studio"
+                eyebrow="interview studio"
+                title="Talk it through. It talks back."
+                copy="A live voice interviewer asks the follow-up you were hoping to avoid, then scores the answer on clarity, depth, and signal."
+                points={[
+                    'Realtime voice, not a chat box pretending to be one',
+                    `Questions pulled from ${COMPANY_COUNT} verified company guides`,
+                    'A scored report at the end of every round',
+                ]}
+                href="/interview-studio"
+                cta="Open the studio"
+                filename="voice-round.mov"
+                accent="amber"
+                flip
+                render={(playing) => <LiveVoice playing={playing} />}
+            />
+
+            <section className="border-y py-12" style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}>
+                <div className="mx-auto grid max-w-4xl grid-cols-2 gap-6 px-4 sm:grid-cols-4">
+                    {NUMBERS.map((item) => (
+                        <div key={item.label} className="text-center">
+                            <p className="text-3xl font-bold tracking-tight sm:text-4xl">{item.value}</p>
+                            <p className="mt-1 text-[12px] leading-snug" style={{ color: 'var(--cvl-faint)' }}>{item.label}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <section id="pricing" className="mx-auto max-w-5xl px-4 py-20 sm:px-6">
+                <div className="mb-10 text-center">
+                    <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>
+                        pricing
+                    </p>
+                    <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">start free, pay for the AI you run.</h2>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                    {PLANS.map((plan) => (
+                        <article
+                            key={plan.name}
+                            className="cvl-win flex flex-col p-6"
+                            style={plan.featured
+                                ? { borderColor: 'var(--cvl-purple)', background: 'var(--cvl-purple-soft)' }
+                                : undefined}
+                        >
+                            {plan.featured && (
+                                <span
+                                    className="cvl-mono mb-3 self-start rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white"
+                                    style={{ background: 'var(--cvl-purple)' }}
+                                >
+                                    popular
+                                </span>
+                            )}
+                            <h3 className="text-xl font-semibold">{plan.name}</h3>
+                            <p className="mt-1 text-[13px]" style={{ color: 'var(--cvl-muted)' }}>{plan.blurb}</p>
+                            <p className="mt-5 text-3xl font-bold tracking-tight">{plan.price}</p>
+                            <p className="mt-1 text-[11.5px]" style={{ color: 'var(--cvl-faint)' }}>{plan.note}</p>
+                            <ul className="mt-5 flex-1 space-y-2.5">
+                                {plan.points.map((point) => (
+                                    <li key={point} className="flex items-start gap-2 text-[13.5px]">
+                                        <Check size={14} className="mt-[3px] shrink-0" style={{ color: 'var(--cvl-green)' }} />
+                                        <span>{point}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <a
+                                href={plan.href}
+                                className="mt-6 inline-flex items-center justify-center gap-1.5 rounded-xl border px-4 py-3 text-[14px] font-semibold transition hover:opacity-90"
+                                style={plan.featured
+                                    ? { background: 'var(--cvl-purple)', borderColor: 'var(--cvl-purple)', color: '#fff' }
+                                    : { borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)', color: 'var(--cvl-ink)' }}
+                            >
+                                {plan.cta}
+                            </a>
+                        </article>
+                    ))}
+                </div>
+            </section>
+
+            <section className="mx-auto max-w-2xl px-4 pb-20 sm:px-6">
+                <h2 className="mb-4 text-2xl font-semibold tracking-tight">frequently asked questions</h2>
+                {FAQS.map((faq) => <FaqItem key={faq.q} q={faq.q} a={faq.a} />)}
+            </section>
+
+            <section className="px-4 pb-24 text-center">
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+                    the interview is on thursday.
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-[15px]" style={{ color: 'var(--cvl-muted)' }}>
+                    Do the round now, while it still costs nothing to get it wrong.
+                </p>
+                <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+                    <a
+                        href="/signup"
+                        className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-semibold text-white transition hover:opacity-90"
+                        style={{ background: 'var(--cvl-purple)' }}
+                    >
+                        Start free <ArrowRight size={16} />
+                    </a>
+                    <a
+                        href="/interview-studio"
+                        className="inline-flex items-center gap-2 rounded-xl border px-6 py-3.5 text-[15px] font-semibold transition hover:opacity-90"
+                        style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}
+                    >
+                        Browse the quests
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <footer className="border-t py-8 text-center" style={{ borderColor: 'var(--cvl-line)' }}>
+            <p className="cvl-mono text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
+                careervivid · prototype landing · <a href="/" className="underline">compare with the live page</a>
+            </p>
+        </footer>
+    </div>
+);
+
+export default LiveLandingPage;

@@ -47,6 +47,7 @@ const OnboardingPage = React.lazy(() => import('./pages/OnboardingPage'));
 const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const OpenRevenuePage = React.lazy(() => import('./pages/OpenRevenuePage'));
 const TechLandingPage = React.lazy(() => import('./pages/TechLandingPage'));
+const LiveLandingPage = React.lazy(() => import('./pages/LiveLandingPage'));
 const DemoPage = React.lazy(() => import('./pages/DemoPage'));
 const PricingPage = React.lazy(() => import('./pages/PricingPage'));
 const ResumeBuilderPage = React.lazy(() => import('./pages/ResumeBuilderPage'));
@@ -830,6 +831,7 @@ const AppContent: React.FC = () => {
       content = <BlogPostPage postId={id} />;
     }
     else if (path === '/tech-preview') { content = <TechLandingPage />; }
+    else if (path === '/live-preview') { content = <LiveLandingPage />; }
     else if (path === '/partners') { content = <PartnerLandingPage />; }
     else if (path === '/partners/academic') { content = <AcademicPartnerPage />; }
     else if (path === '/partners/business') { content = <BusinessPartnerPage />; }
