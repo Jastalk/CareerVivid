@@ -385,8 +385,8 @@ const Sidebar: React.FC = () => {
         { label: 'Career Agent', path: '/agent', icon: Bot },
         { label: 'Job tracker', path: '/job-tracker', icon: Briefcase },
         { label: 'Interview practice', path: '/interview-studio', icon: Mic },
+        { label: 'Resume editor', path: '/newresume', icon: Sparkles },
         { label: 'Learning', path: '/learning', icon: GraduationCap },
-        { label: 'Resume', path: '/newresume', icon: Sparkles },
     ];
 
     /*
