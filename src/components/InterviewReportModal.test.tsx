@@ -146,6 +146,35 @@ describe('InterviewReportModal', () => {
     expect(screen.queryByRole('button', { name: /open this design/i })).not.toBeInTheDocument();
   });
 
+  /*
+   * The agent's report card names one specific session. Opening the modal on
+   * the newest instead would answer a question nobody asked — and that card is
+   * often shown precisely because an older attempt is the interesting one.
+   */
+  it('opens on the session it was asked for, not the newest', () => {
+    render(
+      <InterviewReportModal
+        jobHistoryEntry={jobHistoryEntry}
+        onClose={vi.fn()}
+        initialAnalysisId="analysis-2"
+      />,
+    );
+
+    expect((screen.getByLabelText('Session') as HTMLSelectElement).value).toBe('analysis-2');
+  });
+
+  it('falls back to the newest when the named session is gone', () => {
+    render(
+      <InterviewReportModal
+        jobHistoryEntry={jobHistoryEntry}
+        onClose={vi.fn()}
+        initialAnalysisId="deleted-long-ago"
+      />,
+    );
+
+    expect((screen.getByLabelText('Session') as HTMLSelectElement).value).toBe('analysis-1');
+  });
+
   it('opens feedback from the inline rate action and closes on Escape', () => {
     const onClose = vi.fn();
     render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={onClose} />);

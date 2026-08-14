@@ -35,11 +35,19 @@ interface InterviewReportModalProps {
      * session in the list and does nothing on most of them.
      */
     canImprove?: (analysis: InterviewAnalysis) => boolean;
+    /**
+     * Which session to show first. Defaults to the newest.
+     *
+     * Set when something outside the modal already knows which report the user
+     * asked for — the agent's report card names one, and opening it on a
+     * different session would answer a question nobody asked.
+     */
+    initialAnalysisId?: string;
     onNextProblem?: () => void;
     remainingProblems?: number;
 }
 
-const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove, improveLabel, canImprove, onNextProblem, remainingProblems }) => {
+const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryEntry, onClose, isGuestMode = false, onImprove, improveLabel, canImprove, initialAnalysisId, onNextProblem, remainingProblems }) => {
     const { currentUser } = useAuth();
     const [activeTab, setActiveTab] = useState<ReportTab>('feedback');
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -49,7 +57,11 @@ const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryE
         return [...jobHistoryEntry.interviewHistory].sort((a, b) => b.timestamp - a.timestamp);
     }, [jobHistoryEntry.interviewHistory]);
 
-    const [currentAnalysis, setCurrentAnalysis] = useState<InterviewAnalysis | null>(sortedHistory[0] || null);
+    const [currentAnalysis, setCurrentAnalysis] = useState<InterviewAnalysis | null>(
+        (initialAnalysisId ? sortedHistory.find((a) => a.id === initialAnalysisId) : undefined)
+        ?? sortedHistory[0]
+        ?? null,
+    );
     const {
         isDownloading,
         isExportingDocument,

@@ -11,6 +11,7 @@ import React from 'react';
 import React2 from 'react';
 import { ArrowRight, ArrowUpRight, Building2, Check, ClipboardCheck, Layers, Sparkles, Wrench, X } from 'lucide-react';
 import { applyCodeEdit, canApplyCodeEdits } from './codeEditBus';
+import { openAgentReport } from './reportViewer';
 import { navigate } from '../../utils/navigation';
 import type { AgentCard } from './useCareerAgent';
 
@@ -310,9 +311,29 @@ const InterviewReport: React.FC<{ card: AgentCard }> = ({ card }) => {
                 </div>
             )}
 
+            {/*
+              * The card names its own report — shapeReport puts `sessionId` and
+              * `analysisId` on it — so this opens that one over the current
+              * page. It used to navigate to /interview-studio no matter which
+              * report the card described, which dropped the user on the
+              * practice catalog and discarded the page they were on.
+              *
+              * The catalog stays as the fallback for a card without an id,
+              * which is the one case where there is nothing specific to open.
+              */}
             <button
                 type="button"
-                onClick={() => navigate('/interview-studio')}
+                onClick={() => {
+                    const sessionId = typeof card.sessionId === 'string' ? card.sessionId : '';
+                    if (!sessionId) {
+                        navigate('/interview-studio');
+                        return;
+                    }
+                    openAgentReport({
+                        sessionId,
+                        analysisId: typeof card.analysisId === 'string' && card.analysisId ? card.analysisId : undefined,
+                    });
+                }}
                 className="flex w-full items-center justify-center gap-1.5 border-t border-[var(--cv-border-subtle)] px-3.5 py-2.5 text-xs font-semibold text-[var(--cv-action-primary)] transition-colors hover:bg-[var(--cv-action-soft-bg)]"
             >
                 <Layers className="h-3.5 w-3.5" />

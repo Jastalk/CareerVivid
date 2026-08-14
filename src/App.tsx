@@ -27,6 +27,7 @@ const WhiteboardsPage = React.lazy(() => import('./pages/WhiteboardsPage'));
 const WhiteboardEditor = React.lazy(() => import('./pages/WhiteboardEditor'));
 const AgentWorkspace = React.lazy(() => import('./pages/AgentWorkspace'));
 const AgentDrawer = React.lazy(() => import('./features/agent/AgentDrawer'));
+const AgentReportViewer = React.lazy(() => import('./features/agent/AgentReportViewer'));
 import { AgentSessionProvider } from './features/agent/AgentSessionContext';
 const GenerationHub = React.lazy(() => import('./pages/GenerationHub')); // Protected
 const InterviewStudio = lazyWithPreload(() => import('./pages/InterviewStudio')); // Protected
@@ -914,6 +915,10 @@ const AppContent: React.FC = () => {
               <RouteSuspense routeKey={path}>
                 {content}
                 {showChatbot && <AgentDrawer path={path} />}
+                {/* Mounted beside the drawer, not inside it: the drawer remounts
+                    per route, and a report opened from a card has to outlive
+                    that. It renders nothing until a card asks for one. */}
+                {showChatbot && <AgentReportViewer />}
               </RouteSuspense>
             </AgentSessionProvider>
           </div>
