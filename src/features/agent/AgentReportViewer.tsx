@@ -96,10 +96,12 @@ const AgentReportViewer: React.FC = () => {
                     initialAnalysisId={request.analysisId}
                     onClose={closeAgentReport}
                     /*
-                     * Only the quest page can mount the whiteboard, so this
-                     * closes and hands off rather than opening it here. The
-                     * button is offered on exactly the reports that route
-                     * resolves for, which is why the check is shared with it.
+                     * The modal reopens designs on its own now, so this passes
+                     * a handler only to close itself afterwards. Every other
+                     * caller is inside the route switch and unmounts when the
+                     * navigation lands; this one is mounted at the app root and
+                     * would otherwise stay open over the whiteboard it just
+                     * opened.
                      */
                     canImprove={(analysis: InterviewAnalysis) => canReopenSubmittedDesign(entry, analysis)}
                     onImprove={(analysis: InterviewAnalysis) => {

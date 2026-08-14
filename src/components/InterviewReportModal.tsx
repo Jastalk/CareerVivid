@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import { InterviewAnalysis, PracticeHistoryEntry } from '../types';
 import FeedbackModal from './FeedbackModal';
 import { useAuth } from '../contexts/AuthContext';
+import { canReopenSubmittedDesign, reopenSubmittedDesign } from '../lib/reopenSubmittedDesign';
 import {
     CoachingDashboard,
     ReportActions,
@@ -62,6 +63,31 @@ const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryE
         ?? sortedHistory[0]
         ?? null,
     );
+    /*
+     * Reopening the work behind a report is the modal's own behaviour, not
+     * something each screen opts into.
+     *
+     * It was opt-in, and every screen that forgot silently dropped it: the
+     * button showed up in the report you got right after submitting and
+     * nowhere else, so opening the same report from Interview Studio, the
+     * dashboard, or the agent's report card left the footer with nothing but
+     * "Rate this report" — while the diagram sat on the analysis the whole
+     * time. Five render sites, five chances to forget.
+     *
+     * A caller that passes `onImprove` still wins outright; the battles restore
+     * their own canvas and the quest page opens the whiteboard without leaving
+     * the page, both of which beat routing. Everyone else gets the routing
+     * fallback for free, including screens added later.
+     */
+    const callerOwnsImprove = Boolean(onImprove);
+    const handleImprove = onImprove
+        ?? ((analysis: InterviewAnalysis) => { reopenSubmittedDesign(jobHistoryEntry, analysis); });
+    const allowImprove = canImprove
+        ?? (callerOwnsImprove
+            ? () => true
+            : (analysis: InterviewAnalysis) => canReopenSubmittedDesign(jobHistoryEntry, analysis));
+    const improveText = improveLabel ?? (callerOwnsImprove ? 'Improve my solution' : 'Open this design');
+
     const {
         isDownloading,
         isExportingDocument,
@@ -160,10 +186,10 @@ const InterviewReportModal: React.FC<InterviewReportModalProps> = ({ jobHistoryE
                                 onExportGoogleDocs={handleGoogleDocsExport}
                                 onDownloadDocx={handleDownloadDocx}
                                 onRateReport={() => setIsFeedbackModalOpen(true)}
-                                onImprove={onImprove && currentAnalysis && (!canImprove || canImprove(currentAnalysis))
-                                    ? () => onImprove(currentAnalysis)
+                                onImprove={currentAnalysis && allowImprove(currentAnalysis)
+                                    ? () => handleImprove(currentAnalysis)
                                     : undefined}
-                                improveLabel={improveLabel}
+                                improveLabel={improveText}
                                 onNextProblem={onNextProblem}
                                 remainingProblems={remainingProblems}
                             />

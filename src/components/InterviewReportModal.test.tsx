@@ -175,6 +175,46 @@ describe('InterviewReportModal', () => {
     expect((screen.getByLabelText('Session') as HTMLSelectElement).value).toBe('analysis-1');
   });
 
+  /*
+   * The regression the user hit twice: the button existed only on the report
+   * shown right after submitting, because each screen had to opt in and most
+   * did not. It is the modal's default now, so a screen cannot forget it.
+   */
+  describe('reopening the work behind a report, with no props from the caller', () => {
+    const withDesign = (company: string) => ({
+      ...jobHistoryEntry,
+      job: { ...jobHistoryEntry.job, company },
+      interviewHistory: [{
+        ...jobHistoryEntry.interviewHistory![0],
+        questArtifact: { type: 'system_design', challengeId: 'encrypted-messenger', elementsJson: '[]' },
+      }],
+    }) as PracticeHistoryEntry;
+
+    it('offers the design when the report has one', () => {
+      render(<InterviewReportModal jobHistoryEntry={withDesign('Google')} onClose={vi.fn()} />);
+      expect(screen.getAllByRole('button', { name: /open this design/i })[0]).toBeInTheDocument();
+    });
+
+    it('offers nothing when the report has no design behind it', () => {
+      render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={vi.fn()} />);
+      expect(screen.queryByRole('button', { name: /open this design/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /improve my solution/i })).not.toBeInTheDocument();
+    });
+
+    it('offers nothing when no quest exists to reopen it in', () => {
+      render(<InterviewReportModal jobHistoryEntry={withDesign('A Company With No Guide')} onClose={vi.fn()} />);
+      expect(screen.queryByRole('button', { name: /open this design/i })).not.toBeInTheDocument();
+    });
+
+    /* A caller with a better answer than routing still wins. */
+    it('lets a caller override it', () => {
+      const onImprove = vi.fn();
+      render(<InterviewReportModal jobHistoryEntry={withDesign('Google')} onClose={vi.fn()} onImprove={onImprove} />);
+      fireEvent.click(screen.getAllByRole('button', { name: /improve my solution/i })[0]);
+      expect(onImprove).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('opens feedback from the inline rate action and closes on Escape', () => {
     const onClose = vi.fn();
     render(<InterviewReportModal jobHistoryEntry={jobHistoryEntry} onClose={onClose} />);

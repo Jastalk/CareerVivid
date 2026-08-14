@@ -35,7 +35,6 @@ import DashboardOverview from '../components/Dashboard/DashboardOverview';
 
 // Lazy load modal
 const InterviewReportModal = React.lazy(() => import('../components/InterviewReportModal'));
-import { canReopenSubmittedDesign, reopenSubmittedDesign } from '../lib/reopenSubmittedDesign';
 
 const mobileWorkflowActions = [
     { label: 'Start', icon: Sparkles, path: '/onboarding', className: 'bg-amber-50 text-amber-800 border-amber-100 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-900/50' },
@@ -366,15 +365,10 @@ const Dashboard: React.FC = () => {
                 <ConfirmationModal isOpen={confirmModal.isOpen} title={confirmModal.title} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onCancel={closeConfirmModal} confirmText={confirmModal.confirmText} />
                 {selectedJobForReport && (
                     <Suspense fallback={<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center text-white">Loading Report...</div>}>
-                        <InterviewReportModal
-                            jobHistoryEntry={selectedJobForReport}
-                            onClose={() => setSelectedJobForReport(null)}
-                            canImprove={(analysis) => canReopenSubmittedDesign(selectedJobForReport, analysis)}
-                            onImprove={(analysis) => {
-                                if (reopenSubmittedDesign(selectedJobForReport, analysis)) setSelectedJobForReport(null);
-                            }}
-                            improveLabel="Open this design"
-                        />
+                        {/* Reopening a submitted design is the modal's own
+                            default now; this page navigates away when it fires,
+                            which unmounts the modal with it. */}
+                        <InterviewReportModal jobHistoryEntry={selectedJobForReport} onClose={() => setSelectedJobForReport(null)} />
                     </Suspense>
                 )}
                 {selectedJobApplication && (
