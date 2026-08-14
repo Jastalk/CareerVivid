@@ -23,7 +23,9 @@
     "sync:shared": "node scripts/sync-shared.mjs",
     "lint:strict": "eslint src functions/src --ext .ts,.tsx --max-warnings 0",
     "predeploy": "node scripts/check-deploy-ready.mjs",
-    "deploy": "npm run predeploy && npm run build && firebase deploy --only hosting"
+    "deploy": "npm run predeploy && npm run prune-assets && npm run build && firebase deploy --only hosting && npm run verify-deploy",
+    "prune-assets": "node scripts/prune-assets.mjs",
+    "verify-deploy": "node scripts/verify-deploy.mjs"
   },
   "dependencies": {
     "@blocknote/core": "^0.47.0",

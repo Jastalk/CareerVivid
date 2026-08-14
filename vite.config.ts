@@ -109,6 +109,20 @@ export default defineConfig({
       'process.env.IS_PREACT': JSON.stringify('true')
     },
     build: {
+      /*
+       * Keep the previous deploys' chunks in dist.
+       *
+       * Firebase Hosting serves exactly what is uploaded and deletes the rest,
+       * and chunk names carry a content hash. So the moment a deploy lands,
+       * every already-open tab is holding an index.html whose chunks no longer
+       * exist — it asks for one, gets the SPA catch-all's index.html back, and
+       * the browser refuses it as the wrong MIME type.
+       *
+       * Not emptying the directory means the old chunks ship alongside the new
+       * ones and those tabs keep working. `npm run prune-assets` drops the ones
+       * no recent build references, so dist cannot grow without limit.
+       */
+      emptyOutDir: false,
       rollupOptions: {
         output: {
           chunkFileNames: `assets/[name]-[hash].js`,
