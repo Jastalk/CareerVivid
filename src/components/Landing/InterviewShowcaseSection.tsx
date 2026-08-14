@@ -47,10 +47,10 @@ const InterviewShowcaseSection: React.FC = () => (
                         <Swords size={13} /> Company interview quests
                     </p>
                     <h2 id="interview-heading" className="mt-4 text-3xl font-semibold tracking-tight text-[#211b16] dark:text-[#f4f1e9] sm:text-4xl">
-                        Practice the exact loop — {ALL_GUIDES.length} companies.
+                        Practice the exact loop with your AI companion — {ALL_GUIDES.length} companies.
                     </h2>
                     <p className="mt-2 max-w-2xl text-base font-medium text-[#665a4a] dark:text-[#aaa39a]">
-                        Recruiter screen, live coding with real test execution, system design on a whiteboard, behavioral rounds — Vivid interviews you and delivers a comprehensive performance report after every attempt.
+                        Select a company prompt, sketch your architecture on the whiteboard alongside a friendly system design coach, and complete live voice rounds with an instant performance report on what to focus on next.
                     </p>
                 </div>
                 <a

@@ -1060,10 +1060,10 @@ export const FinalCTA = () => (
                 <LocalizedCopy path="landing.public.final_cta.eyebrow" fallback="Ready when your next application is" />
             </p>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight sm:text-6xl">
-                <LocalizedCopy path="landing.public.final_cta.title" fallback="Create one workspace for the whole search." />
+                <LocalizedCopy path="landing.public.final_cta.title" fallback="Understand the problem. Present yourself with confidence." />
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg font-medium leading-8 text-[#e7d4b9]">
-                <LocalizedCopy path="landing.public.final_cta.copy" fallback="Build the resume, save the role, prepare the interview, and keep the next action visible." />
+                <LocalizedCopy path="landing.public.final_cta.copy" fallback="CareerVivid is your all-in-one career companion — saving you hours on resume preparation and guiding you through coding, system design, and mock interviews so your next job automatically unlocks." />
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <button onClick={() => navigate('/signup')} className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#fffaf1] px-6 py-4 font-semibold text-[#211b16]">

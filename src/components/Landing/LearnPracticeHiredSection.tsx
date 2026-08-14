@@ -13,34 +13,34 @@ const PILLARS = [
         step: '01',
         icon: GraduationCap,
         title: 'Learn by doing',
-        tagline: 'Interactive AI courses — not tutorials',
+        tagline: 'Master coding & system design with an AI companion',
         description:
-            'Ten courses from LLM foundations to a shipped portfolio project. Watch a model predict tokens, overflow a context window, defend against prompt injection — every concept is a playground you touch, not a video you watch.',
-        stats: ['10 courses', '60+ hands-on lessons', '11 interactive playgrounds'],
+            'Explore 12 interactive courses from LLM foundations to system design architectures. CareerVivid becomes your best companion when you solve complex coding or system design problems, accelerating your understanding every step of the way.',
+        stats: ['12 courses', '203 hands-on lessons', '100% free learning'],
         href: '/learning',
-        cta: 'Browse courses',
+        cta: 'Browse free courses',
     },
     {
         step: '02',
         icon: Swords,
-        title: 'Know exactly what to expect',
-        tagline: `The real interview loop for ${INTERVIEW_GUIDE_TOTALS.companies} companies — run by a voice AI`,
+        title: 'Experience the complete interview loop',
+        tagline: `Voice AI & interactive whiteboard mock rounds for ${INTERVIEW_GUIDE_TOTALS.companies} companies`,
         description:
-            'Choose a company and step through its actual interview process — recruiter screen, live coding with real test execution, system design on a whiteboard, and behavioral rounds. A voice AI interviews and scores each attempt, so nothing catches you off guard.',
-        stats: [`${INTERVIEW_GUIDE_TOTALS.companies} company guides`, 'Voice AI interviewer', 'Coding + whiteboard rounds'],
+            'Select a company prompt, sketch your architecture on the whiteboard, and talk through solutions out loud. CareerVivid’s voice interviewer reviews your background, asks natural follow-up questions, and gives a comprehensive report on what to focus on next.',
+        stats: [`${INTERVIEW_GUIDE_TOTALS.companies} company guides`, 'Live Voice AI interviewer', 'Whiteboard & code feedback'],
         href: '/interview-studio',
         cta: 'Start a mock interview',
     },
     {
         step: '03',
         icon: Briefcase,
-        title: 'Land the job',
-        tagline: 'A feed of verified, apply-ready roles',
+        title: 'Tailored resumes in seconds',
+        tagline: 'Authentic rewrites, 100+ languages, ATS-safe exports',
         description:
-            'Live jobs pulled straight from company career boards, every apply link validated before you see it. Save a role and your resume tailoring, prep notes, and application tracking are already wired up.',
-        stats: ['160+ companies live', 'Links validated every 6h', 'One-click into your tracker'],
-        href: '/jobs/recommend',
-        cta: 'See live jobs',
+            'Skip hours of manual prompting in ChatGPT or Claude. CareerVivid tailors your resume directly against the target job posting, refines phrasing while keeping 100% of your real facts, and exports to PDF, Word (DOCX), or Google Docs instantly.',
+        stats: ['100+ languages supported', 'ATS-safe PDF & DOCX export', 'Phrasing refined, facts preserved'],
+        href: '/newresume',
+        cta: 'Build resume free',
     },
 ];
 
@@ -52,11 +52,11 @@ const LearnPracticeHiredSection: React.FC = () => (
                     <Sparkles size={13} /> The whole journey
                 </p>
                 <h2 id="journey-heading" className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-[#211b16] dark:text-[#f4f1e9] sm:text-4xl">
-                    Most tools help you apply.
-                    <br className="hidden sm:block" /> CareerVivid makes you the candidate they call back.
+                    Skip the resume stress.
+                    <br className="hidden sm:block" /> Focus on what gets you hired.
                 </h2>
                 <p className="mt-4 text-base font-medium leading-7 text-[#665a4a] dark:text-[#aaa39a]">
-                    Skills first, interview reps second, applications last — the order that actually gets people hired.
+                    CareerVivid saves you hours on application prep and sits beside you as your personal companion for coding, system design, and mock interviews. When you understand the problem and present yourself with confidence, your next job automatically unlocks.
                 </p>
             </div>
 
