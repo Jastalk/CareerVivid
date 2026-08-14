@@ -6,6 +6,7 @@ import {
   buildSystemDesignBrief,
   getStageFallbackQuestions,
   getStageQuestionPool,
+  getSystemDesignPatternById,
   getSystemDesignPool,
   isStageCleared,
   selectNextSystemDesignChallenge,
@@ -268,5 +269,53 @@ describe('isStageCleared', () => {
 
   it('handles missing scores', () => {
     expect(isStageCleared(undefined, stage)).toBe(false);
+  });
+});
+
+/*
+ * Resolving a stored challengeId back to a challenge has been wrong twice, in
+ * opposite directions, and both times the symptom was a button that vanished
+ * from reports it should have appeared on.
+ *
+ * Neither source is complete on its own. Anything mapping a challengeId to a
+ * challenge has to consult both, so this states why in a form that fails if
+ * either assumption stops holding.
+ */
+describe('a stored challengeId can come from either source', () => {
+  const guide = makeGuide({
+    company: 'Wayfarer',
+    systemDesignTopics: ['Design a URL shortener at scale with analytics'],
+  });
+
+  it('makes guide prompts the canon does not contain', () => {
+    const fromGuide = getSystemDesignPool(guide).find((p) => p.id.startsWith('guide-'));
+
+    expect(fromGuide, 'a guide with topics should produce a guide-derived prompt').toBeDefined();
+    // The reason a canon-only lookup hid the button on real submissions.
+    expect(getSystemDesignPatternById(fromGuide!.id)).toBeUndefined();
+    expect(SYSTEM_DESIGN_PATTERNS.some((p) => p.id === fromGuide!.id)).toBe(false);
+  });
+
+  it('leaves canon prompts out of a guide pool, which is capped', () => {
+    const pool = getSystemDesignPool(guide);
+    const missing = SYSTEM_DESIGN_PATTERNS.filter((p) => !pool.some((c) => c.id === p.id));
+
+    // The mirror case: a pool-only lookup hides the button on canon prompts
+    // the picker can still start.
+    expect(missing.length).toBeGreaterThan(0);
+    expect(getSystemDesignPatternById(missing[0].id)).toBeDefined();
+  });
+
+  it('resolves both when the two are consulted together', () => {
+    const pool = getSystemDesignPool(guide);
+    const findChallengeById = (id: string) =>
+      getSystemDesignPatternById(id) ?? pool.find((candidate) => candidate.id === id);
+
+    const fromGuide = pool.find((p) => p.id.startsWith('guide-'))!;
+    const fromCanon = SYSTEM_DESIGN_PATTERNS.find((p) => !pool.some((c) => c.id === p.id))!;
+
+    expect(findChallengeById(fromGuide.id)).toBeDefined();
+    expect(findChallengeById(fromCanon.id)).toBeDefined();
+    expect(findChallengeById('not-a-real-prompt')).toBeUndefined();
   });
 });

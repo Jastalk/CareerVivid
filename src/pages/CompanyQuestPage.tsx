@@ -540,8 +540,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         const challenge = stageId === 'coding' && challengeId
             ? getCodingChallengeById(challengeId) ?? codingPool.find((candidate) => candidate.id === challengeId)
             : stageId === 'system_design' && challengeId
-                ? getSystemDesignPatternById(challengeId)
-                    ?? systemDesignPool.find((candidate) => candidate.id === challengeId)
+                ? findChallengeById(challengeId)
                 : undefined;
         if (challengeId && !challenge) {
             setError('This practice question is no longer available. Ask the Career Agent to refresh the question list.');
@@ -596,20 +595,39 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     ]);
 
     /**
+     * Turn a stored challenge id back into the challenge.
+     *
+     * Neither source alone is enough, and picking one has now been wrong in
+     * both directions:
+     *
+     *   - The canon (SYSTEM_DESIGN_PATTERNS) is missing every guide-derived
+     *     prompt. Those are built per company from `systemDesignTopics` with
+     *     ids like `guide-url-shortener-0`, so Google's own "URL shortener"
+     *     prompt is not in it.
+     *   - The pool is capped at COMPANY_SYSTEM_DESIGN_POOL_SIZE, so it is
+     *     missing canon prompts the picker can still start — this quest's
+     *     history has encrypted-messenger designs its five-prompt rotation
+     *     does not include.
+     *
+     * So: both, in one place. Three callers needed this lookup and two of them
+     * had it wrong; a single function is the only version that cannot drift.
+     */
+    const findChallengeById = (challengeId: string | undefined) => (
+        challengeId
+            ? getSystemDesignPatternById(challengeId)
+                ?? systemDesignPool.find((candidate) => candidate.id === challengeId)
+            : undefined
+    );
+
+    /**
      * Whether a saved report still has a design behind it that can be opened.
      *
      * A quest's history mixes stages, and only whiteboard rounds carry a
-     * diagram. The prompt is looked up across every pattern rather than this
-     * guide's pool: the pool is the rotation, capped at
-     * COMPANY_SYSTEM_DESIGN_POOL_SIZE, while the picker can start any prompt in
-     * the canon. Gating on the pool hid the button on real submissions — the
-     * Google quest's own history has three encrypted-messenger designs that its
-     * five-prompt rotation does not include.
+     * diagram.
      */
     const canReopenDesign = (analysis: InterviewAnalysis): boolean => {
         const artifact = analysis.questArtifact;
-        return artifact?.type === 'system_design'
-            && Boolean(getSystemDesignPatternById(artifact.challengeId));
+        return artifact?.type === 'system_design' && Boolean(findChallengeById(artifact.challengeId));
     };
 
     /**
@@ -624,7 +642,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         const artifact = analysis.questArtifact;
         if (artifact?.type !== 'system_design') return;
         const stage = stages.find((candidate) => candidate.id === 'system_design');
-        const challenge = getSystemDesignPatternById(artifact.challengeId);
+        const challenge = findChallengeById(artifact.challengeId);
         if (!stage || !challenge) return;
         setSelectedReportEntry(null);
         void handleStartStage(stage, challenge, artifact);
