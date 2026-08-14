@@ -120,7 +120,7 @@ const Chip: React.FC<{ icon?: React.ReactNode; children: React.ReactNode }> = ({
 const LockedScore: React.FC<{ signedIn: boolean }> = ({ signedIn }) => (
     <button
         type="button"
-        onClick={() => navigate(signedIn ? '/newresume' : '/signup')}
+        onClick={() => navigate(signedIn ? '/newresume' : '/edit/new')}
         // .cvl-btn already carries the border, the paper fill and the hover that
         // pulls the border to purple; only the dash is this control's own — and
         // it has to be inline, because .cvl-btn sets the `border` shorthand and

@@ -170,7 +170,7 @@ const LiveLandingPage: React.FC = () => (
                     'Export as PDF, DOCX, or straight to Google Docs',
                     '103 languages, and your original stays exactly where it was',
                 ]}
-                href="/newresume"
+                href="/edit/new"
                 cta="Open the resume editor"
                 filename="resume-rewrite.mov"
                 accent="green"

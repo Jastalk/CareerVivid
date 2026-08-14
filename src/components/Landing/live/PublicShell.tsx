@@ -2,11 +2,24 @@ import React from 'react';
 import { Battery, Wifi } from 'lucide-react';
 import './liveLanding.css';
 import { useClock } from './liveHooks';
+import { useAuth } from '../../../contexts/AuthContext';
 
-const NAV = [
+/*
+ * The editor has two doors and the right one depends on who is knocking.
+ *
+ * /newresume is behind ProtectedRoute and opens the signed-in workspace with
+ * every saved resume in it. /edit/new is the guest door: a blank draft in local
+ * storage, no account. Pointing everyone at one of them is wrong in both
+ * directions — a guest sent to /newresume hits a sign-in wall, and a signed-in
+ * user sent to /edit/new starts a throwaway draft beside the resumes they
+ * already have.
+ */
+export const resumeHref = (signedIn: boolean): string => (signedIn ? '/newresume' : '/edit/new');
+
+const navFor = (signedIn: boolean) => [
     { href: '/jobs', label: 'jobs' },
     { href: '/interview-studio', label: 'quests' },
-    { href: '/newresume', label: 'resume' },
+    { href: resumeHref(signedIn), label: 'resume' },
     { href: '/learning', label: 'learning' },
     { href: '/pricing', label: 'pricing' },
 ];
@@ -20,7 +33,9 @@ const NAV = [
  */
 export const MenuBar: React.FC<{ anchors?: { href: string; label: string }[] }> = ({ anchors }) => {
     const time = useClock();
-    const links = anchors ?? NAV;
+    const { currentUser } = useAuth();
+    const signedIn = Boolean(currentUser);
+    const links = anchors ?? navFor(signedIn);
     return (
         <header
             className="sticky top-0 z-40 border-b backdrop-blur-md"
@@ -37,14 +52,26 @@ export const MenuBar: React.FC<{ anchors?: { href: string; label: string }[] }> 
                     <Wifi size={13} className="hidden sm:block" />
                     <Battery size={14} className="hidden sm:block" />
                     <span className="cvl-mono text-[12px] tabular-nums">{time}</span>
-                    <a href="/signin" className="hidden transition hover:opacity-70 sm:block">sign in</a>
-                    <a
-                        href="/signup"
-                        className="font-semibold transition hover:opacity-70"
-                        style={{ color: 'var(--cvl-purple)' }}
-                    >
-                        start free
-                    </a>
+                    {signedIn ? (
+                        <a
+                            href="/dashboard"
+                            className="font-semibold transition hover:opacity-70"
+                            style={{ color: 'var(--cvl-purple)' }}
+                        >
+                            dashboard
+                        </a>
+                    ) : (
+                        <>
+                            <a href="/signin" className="hidden transition hover:opacity-70 sm:block">sign in</a>
+                            <a
+                                href="/signup"
+                                className="font-semibold transition hover:opacity-70"
+                                style={{ color: 'var(--cvl-purple)' }}
+                            >
+                                start free
+                            </a>
+                        </>
+                    )}
                 </div>
             </div>
         </header>
@@ -58,9 +85,9 @@ export const MenuBar: React.FC<{ anchors?: { href: string; label: string }[] }> 
  * anywhere a visitor or a crawler could get to — on a product that takes
  * payment on /pricing, that is a legal problem before it is an SEO one.
  */
-const FOOTER_LINKS = [
+const footerLinksFor = (signedIn: boolean) => [
     { href: '/interview-studio', label: 'Interview studio' },
-    { href: '/newresume', label: 'Resume editor' },
+    { href: resumeHref(signedIn), label: 'Resume editor' },
     { href: '/learning', label: 'Learning' },
     { href: '/pricing', label: 'Pricing' },
     { href: '/contact', label: 'Contact' },
@@ -77,11 +104,13 @@ const FOOTER_LINKS = [
  * sitting on the copyright line and part of the link row. The pages' own pb-16
  * sits above the footer and does not help.
  */
-export const PublicFooter: React.FC = () => (
+export const PublicFooter: React.FC = () => {
+    const { currentUser } = useAuth();
+    return (
     <footer className="border-t pt-9 pb-24" style={{ borderColor: 'var(--cvl-line)' }}>
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-center">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px]" style={{ color: 'var(--cvl-muted)' }}>
-                {FOOTER_LINKS.map((link) => (
+                {footerLinksFor(Boolean(currentUser)).map((link) => (
                     <a key={link.href} href={link.href} className="transition hover:opacity-70">{link.label}</a>
                 ))}
             </nav>
@@ -90,7 +119,8 @@ export const PublicFooter: React.FC = () => (
             </p>
         </div>
     </footer>
-);
+    );
+};
 
 /**
  * The desk, with one window on it. Sign-in and sign-up put their existing forms

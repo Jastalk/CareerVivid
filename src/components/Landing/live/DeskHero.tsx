@@ -149,7 +149,7 @@ const DeskHero: React.FC = () => {
 
                 <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px]">
                     <a
-                        href="/newresume"
+                        href="/edit/new"
                         className="inline-flex items-center gap-1.5 font-semibold transition hover:opacity-70"
                         style={{ color: 'var(--cvl-ink)' }}
                     >
