@@ -37,7 +37,10 @@ const head = run('git rev-parse HEAD');
 const remote = run('git rev-parse origin/main');
 const behind = Number(run('git rev-list --count HEAD..origin/main'));
 const ahead = Number(run('git rev-list --count origin/main..HEAD'));
-const dirty = run('git status --porcelain -- "*.ts" "*.tsx" "*.css" "*.json" "*.html"');
+// Only what actually ships. An untracked PDF or scratch note in docs/ has no
+// bearing on the built site, and blocking on it trains people to pass
+// --allow-dirty by reflex, which defeats the check that matters.
+const dirty = run('git status --porcelain -- src functions firebase.json package.json');
 
 if (head !== remote) {
     const detail = [];
