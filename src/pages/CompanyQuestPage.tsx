@@ -552,12 +552,21 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
 
         /*
          * A named analysis reopens its own diagram. Without this the whiteboard
-         * would open on the stage's most recent submission, so arriving from an
-         * older report showed the wrong work — the same mismatch that made
+         * opens on the stage's most recent submission, so arriving from an
+         * older report shows the wrong work — the same mismatch that made
          * "Improve" reopen a stale design.
+         *
+         * Searched across the whole practice history rather than the stage's
+         * entry. handleStartStage calls addJob every time the whiteboard opens,
+         * so one stage accumulates many documents all titled
+         * "<Company> quest — System design", and practiceEntriesByStageId
+         * resolves to exactly one of them. Looking only there missed analyses
+         * living in any of the others and fell through to the fallback, which
+         * is why two reports with different diagrams opened the same one.
          */
         const namedArtifact = stageId === 'system_design' && requestedAnalysisId
-            ? (practiceEntriesByStageId.get(stageId)?.interviewHistory ?? [])
+            ? practiceHistory
+                .flatMap((entry) => entry.interviewHistory ?? [])
                 .find((analysis) => analysis.id === requestedAnalysisId)?.questArtifact
             : undefined;
 
@@ -574,6 +583,10 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         guide,
         isLoadingPracticeHistory,
         navigationRequest.revision,
+        // Both feed which diagram gets restored, so a stale closure here means
+        // reopening the right report and getting the wrong drawing.
+        practiceHistory,
+        requestedAnalysisId,
         requestedCodingChallenge,
         requestedQuestStage,
         requestedSystemDesignChallenge,
