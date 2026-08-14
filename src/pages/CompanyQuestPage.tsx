@@ -211,6 +211,13 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         const querySystemDesignChallenge = params.get('systemDesignChallenge');
         return {
             stageId,
+            /*
+             * Which saved submission to restore, not just which prompt. A
+             * report opened away from this page — from the agent's report card
+             * or the dashboard — routes here to reach the whiteboard, and a
+             * prompt practised three times has three diagrams behind it.
+             */
+            analysisId: params.get('analysis'),
             codingChallengeId: queryCodingChallenge
                 ?? (stageId === 'coding' ? saved?.challengeId ?? null : null),
             systemDesignChallengeId: querySystemDesignChallenge
@@ -220,6 +227,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
     }, [navigationRequest.search, slug, workspaceOwner]);
     const requestedQuestStage = requestedWorkspace?.stageId ?? null;
     const requestedSystemDesignChallenge = requestedWorkspace?.systemDesignChallengeId ?? null;
+    const requestedAnalysisId = requestedWorkspace?.analysisId ?? null;
     const requestedCodingChallenge = requestedWorkspace?.codingChallengeId ?? null;
     const restoredFromSavedWorkspace = requestedWorkspace?.restoredFromSavedWorkspace ?? false;
 
@@ -519,7 +527,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                     : null;
         const challengeId = stageId === 'coding' ? requestedCodingChallenge : requestedSystemDesignChallenge;
         const requestKey = stageId
-            ? `navigation:${navigationRequest.revision}:stage:${stageId}:challenge:${challengeId ?? 'next'}`
+            ? `navigation:${navigationRequest.revision}:stage:${stageId}:challenge:${challengeId ?? 'next'}:analysis:${requestedAnalysisId ?? 'latest'}`
             : null;
         if (!guide || isLoadingPracticeHistory || !stageId || !requestKey || requestedPracticeRef.current === requestKey) return;
         const stage = stages.find((candidate) => candidate.id === stageId);
@@ -541,7 +549,23 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         }
 
         requestedPracticeRef.current = requestKey;
-        void handleStartStage(stage, challenge);
+
+        /*
+         * A named analysis reopens its own diagram. Without this the whiteboard
+         * would open on the stage's most recent submission, so arriving from an
+         * older report showed the wrong work — the same mismatch that made
+         * "Improve" reopen a stale design.
+         */
+        const namedArtifact = stageId === 'system_design' && requestedAnalysisId
+            ? (practiceEntriesByStageId.get(stageId)?.interviewHistory ?? [])
+                .find((analysis) => analysis.id === requestedAnalysisId)?.questArtifact
+            : undefined;
+
+        void handleStartStage(
+            stage,
+            challenge,
+            namedArtifact?.type === 'system_design' ? namedArtifact : undefined,
+        );
     // The query and generated pools are stable for a mounted route; the ref
     // prevents duplicate modal launches after re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps

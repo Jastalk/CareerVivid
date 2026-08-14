@@ -17,7 +17,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { PracticeHistoryEntry } from '../../types';
+import { InterviewAnalysis, PracticeHistoryEntry } from '../../types';
+import { canReopenSubmittedDesign, reopenSubmittedDesign } from '../../lib/reopenSubmittedDesign';
 import {
     closeAgentReport,
     getAgentReportRequest,
@@ -94,6 +95,17 @@ const AgentReportViewer: React.FC = () => {
                     jobHistoryEntry={entry}
                     initialAnalysisId={request.analysisId}
                     onClose={closeAgentReport}
+                    /*
+                     * Only the quest page can mount the whiteboard, so this
+                     * closes and hands off rather than opening it here. The
+                     * button is offered on exactly the reports that route
+                     * resolves for, which is why the check is shared with it.
+                     */
+                    canImprove={(analysis: InterviewAnalysis) => canReopenSubmittedDesign(entry, analysis)}
+                    onImprove={(analysis: InterviewAnalysis) => {
+                        if (reopenSubmittedDesign(entry, analysis)) closeAgentReport();
+                    }}
+                    improveLabel="Open this design"
                 />
             </div>
         </Suspense>
