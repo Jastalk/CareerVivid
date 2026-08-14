@@ -5,6 +5,7 @@ import { ResumeData } from '../../../types';
 import ThemeToggle from '../../../components/ThemeToggle';
 import { SUPPORTED_TRANSLATE_LANGUAGES } from '../../../constants';
 import { navigate } from '../../../utils/navigation';
+import type { GuestGatedFeature } from '../../../hooks/useEditor';
 
 const CoverLetterManagerModal = React.lazy(() => import('./CoverLetterManagerModal'));
 const TailorResumeModal = React.lazy(() => import('./TailorResumeModal'));
@@ -14,6 +15,10 @@ interface EditorHeaderProps {
     currentUser: any;
     isShared: boolean;
     isGuestMode: boolean;
+    /** Signed-out visitor editing a local draft (not the shared-link editor). */
+    isGuestDraft?: boolean;
+    /** Ask the visitor to sign in, naming the feature that needs an account. */
+    onRequireSignIn?: (feature: GuestGatedFeature) => void;
     isTranslating: boolean;
     isExporting: boolean;
     hasAnnotations: boolean;
@@ -45,7 +50,7 @@ type CoverLetterSeed = {
 } | null;
 
 const EditorHeader: React.FC<EditorHeaderProps> = ({
-    resume, currentUser, isShared, isGuestMode, isTranslating,
+    resume, currentUser, isShared, isGuestMode, isGuestDraft = false, onRequireSignIn, isTranslating,
     isExporting, hasAnnotations, hasViewedFeedback, commentsCount, showAnnotationOverlay,
     theme, showGuideArrow, onResumeChange, onExport, onTranslate,
     onToggleFeedback, onShare, onToggleTheme, setViewMode, onDismissGuideArrow,
@@ -122,26 +127,44 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
     const translateMenuRef = useRef<HTMLDivElement>(null);
     const mobileMoreMenuRef = useRef<HTMLDivElement>(null);
 
+    /**
+     * What each export actually produces, for whoever is asking.
+     *
+     * A signed-out visitor cannot reach the text-based renderer (it needs a
+     * bearer token), so their PDF is a picture of the page — a real download,
+     * but not one an applicant tracking system can read. Saying "matches the
+     * preview exactly" there would be technically true and practically a lie,
+     * so the guest copy names the trade-off and what signing in changes.
+     */
     const exportActions = [
         {
             id: 'pdf',
             title: 'Export as PDF',
-            description: 'Recommended. Matches the resume preview exactly.',
+            description: isGuestDraft
+                ? t('editor.guest.export_pdf_desc')
+                : 'Recommended. Selectable text, ATS-readable, matches the preview exactly.',
             icon: FileText,
+            requiresAccount: false,
             action: () => onExport('pdf')
         },
         {
             id: 'google-docs',
             title: 'Export to Google Docs',
-            description: 'Creates an editable Google Doc in your Drive.',
+            description: isGuestDraft
+                ? t('editor.guest.export_gdocs_desc')
+                : 'Creates an editable Google Doc in your Drive.',
             icon: FileText,
+            requiresAccount: true,
             action: () => onExportToGoogleDocs?.('google-docs')
         },
         {
             id: 'docx',
             title: 'Export as .DOCX',
-            description: 'Best for editing in Word or uploading to Google Docs.',
+            description: isGuestDraft
+                ? t('editor.guest.export_docx_desc')
+                : 'Best for editing in Word or uploading to Google Docs.',
             icon: FileType,
+            requiresAccount: true,
             action: () => onExportToGoogleDocs?.('docx')
         }
     ];
@@ -197,7 +220,11 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
             <div className="grid h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 sm:px-6 md:flex md:justify-between">
                 <div className="flex min-w-0 items-center gap-2">
                     {!isShared && (
-                        <button onClick={() => navigate('/dashboard')} title="Back to Dashboard" className="rounded-full p-2 text-slate-500 transition-colors hover:bg-[#f3eee6] hover:text-slate-900 dark:text-gray-400 dark:hover:bg-gray-850 dark:hover:text-white">
+                        <button
+                            onClick={() => navigate(isGuestDraft ? '/' : '/dashboard')}
+                            title={isGuestDraft ? t('editor.guest.back_home') : 'Back to Dashboard'}
+                            className="rounded-full p-2 text-slate-500 transition-colors hover:bg-[#f3eee6] hover:text-slate-900 dark:text-gray-400 dark:hover:bg-gray-850 dark:hover:text-white"
+                        >
                             <ArrowLeft size={20} />
                         </button>
                     )}
@@ -215,6 +242,15 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                             onChange={e => onResumeChange({ title: e.target.value })}
                             className="-ml-2 w-full min-w-0 max-w-[calc(100vw-120px)] truncate rounded-md bg-transparent px-2 py-1 text-base font-black text-slate-900 outline-none transition-all focus:bg-white focus:ring-1 focus:ring-primary-500 dark:text-white dark:focus:bg-gray-900 sm:max-w-[360px]"
                         />
+                    )}
+                    {/* Where the draft lives is not a detail the visitor can guess. */}
+                    {isGuestDraft && (
+                        <span
+                            className="hidden shrink-0 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 sm:inline-block"
+                            title={t('editor.guest.saved_in_browser_hint')}
+                        >
+                            {t('editor.guest.saved_in_browser')}
+                        </span>
                     )}
                 </div>
                 <div className="flex items-center gap-2 z-10">
@@ -335,7 +371,14 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                                                     <Icon size={20} />
                                                 </span>
                                                 <div className="min-w-0">
-                                                    <p className="text-base font-bold text-[#18083d] dark:text-white">{action.title}</p>
+                                                    <p className="flex flex-wrap items-center gap-2 text-base font-bold text-[#18083d] dark:text-white">
+                                                        {action.title}
+                                                        {isGuestDraft && action.requiresAccount && (
+                                                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-slate-600 dark:bg-gray-700 dark:text-gray-300">
+                                                                {t('editor.guest.sign_in')}
+                                                            </span>
+                                                        )}
+                                                    </p>
                                                     <p className="mt-1 text-sm leading-5 text-slate-500 dark:text-gray-400">{action.description}</p>
                                                 </div>
                                             </button>
@@ -352,6 +395,10 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                         <div className="relative" ref={translateMenuRef}>
                             <button
                                 onClick={() => {
+                                    if (isGuestDraft) {
+                                        onRequireSignIn?.('translation');
+                                        return;
+                                    }
                                     if (isTranslateMenuOpen) {
                                         closeTranslateMenu();
                                     } else {
@@ -388,7 +435,13 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                     {/* NEW: COVER LETTER BUTTON */}
                     {!isShared && (
                         <button
-                            onClick={() => setIsCoverLetterModalOpen(true)}
+                            onClick={() => {
+                                if (isGuestDraft) {
+                                    onRequireSignIn?.('cover_letter');
+                                    return;
+                                }
+                                setIsCoverLetterModalOpen(true);
+                            }}
                             className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-white hover:text-slate-950 dark:text-gray-300 dark:hover:bg-gray-800"
                         >
                             <Sparkles size={16} className="text-purple-500" />
@@ -399,7 +452,13 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                     {/* NEW: AI TAILOR BUTTON */}
                     {!isShared && (
                         <button
-                            onClick={() => setIsTailorModalOpen(true)}
+                            onClick={() => {
+                                if (isGuestDraft) {
+                                    onRequireSignIn?.('tailor');
+                                    return;
+                                }
+                                setIsTailorModalOpen(true);
+                            }}
                             className="flex items-center gap-2 rounded-full border border-primary-200 bg-white px-3 py-2 text-sm font-bold text-primary-700 transition-colors hover:bg-primary-50 dark:border-primary-800 dark:bg-primary-900/10 dark:text-primary-300 dark:hover:bg-primary-900/30"
                         >
                             <Wand2 size={16} />
@@ -408,9 +467,9 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
                     )}
 
                     {/* Feedback and sharing stay separate so candidates can review comments without losing the share action. */}
-                    {!isShared && !isGuestMode && (
+                    {!isShared && (
                         <div className="flex items-center gap-1">
-                            {(hasAnnotations || commentsCount > 0) && (
+                            {!isGuestMode && (hasAnnotations || commentsCount > 0) && (
                                 <button
                                     onClick={onToggleFeedback}
                                     className={`relative flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition-colors ${showAnnotationOverlay

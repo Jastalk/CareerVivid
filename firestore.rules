@@ -172,23 +172,115 @@ service cloud.firestore {
         allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
         allow create, update: if request.auth != null && (request.auth.uid == userId || isAdmin());
 
+        /*
+         * Reviewer feedback on a shared resume.
+         *
+         * `create, update` used to be one rule: any signed-in user, on any
+         * publicly-shared resume, could write ANY document in this collection —
+         * including one they did not author. So a reviewer could silently
+         * rewrite someone else's comment, or blank every comment on a stranger's
+         * resume, and the edit would still be attributed to the original author.
+         *
+         * Leaving feedback is a real feature and stays open to any signed-in
+         * viewer of a shared resume. What is now separated out is *editing*:
+         * create and update are distinct rules, and update/delete are limited to
+         * the comment's author (plus the resume owner and admins, who moderate
+         * their own page).
+         *
+         * Authorship is the `userId` field the client already stamps (see
+         * src/services/commentService.ts addComment), read via
+         * `.get('userId', '')` so a legacy comment written without one fails the
+         * check instead of raising a rule-evaluation error — closed, not open.
+         */
         match /comments/{commentId} {
           allow read: if request.auth != null && (request.auth.uid == userId || isAdmin() || isBusinessPartner())
                       || get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true;
-          allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
-          allow create, update: if request.auth != null && (
+
+          // Unchanged audience, one added condition: a non-owner must stamp the
+          // comment with their OWN uid. Without it a reviewer could post under
+          // someone else's name, and there would be no author for the update
+          // and delete rules below to check against.
+          allow create: if request.auth != null && (
             request.auth.uid == userId || isAdmin() ||
-            get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              request.resource.data.get('userId', '') == request.auth.uid
+            )
+          );
+
+          // Authors may edit their own comment, and may not reassign it to
+          // someone else on the way through.
+          //
+          // The share check is repeated here on purpose. Without it, revoking a
+          // share would take away a reviewer's READ access (the rule above) and
+          // leave their WRITE access intact: they could keep putting arbitrary
+          // content into a resume that is no longer shared with anyone. Losing
+          // the share has to end every non-owner write, not just new ones.
+          allow update: if request.auth != null && (
+            request.auth.uid == userId || isAdmin() ||
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              resource.data.get('userId', '') == request.auth.uid &&
+              request.resource.data.get('userId', '') == resource.data.get('userId', '')
+            )
+          );
+
+          // Was owner/admin only. Authors can now retract their own comment —
+          // the natural other half of being able to edit it, and gated on the
+          // same live share for the same reason.
+          allow delete: if request.auth != null && (
+            request.auth.uid == userId || isAdmin() ||
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              resource.data.get('userId', '') == request.auth.uid
+            )
           );
         }
 
+        /*
+         * Drawn markup on a shared resume. Same hole as comments above: `create,
+         * update` let any signed-in user overwrite any annotation on any shared
+         * resume.
+         *
+         * Annotations differ from comments in one way that matters here: the
+         * client (src/services/annotationService.ts uploadAnnotation) records
+         * only an author *name*, no uid, and has no edit or delete path at all.
+         * So requiring a uid stamp on create would break the feature outright.
+         * Instead create keeps its existing audience while refusing a FORGED
+         * stamp, and update/delete require a stamp that matches — which means
+         * existing uid-less annotations are editable by the resume owner and
+         * admins only. That is the fail-closed direction, and it takes nothing
+         * away that the app can currently do.
+         */
         match /annotations/{annotationId} {
           allow read: if request.auth != null && (request.auth.uid == userId || isAdmin() || isBusinessPartner())
                       || get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true;
-          allow delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
-          allow create, update: if request.auth != null && (
+
+          allow create: if request.auth != null && (
             request.auth.uid == userId || isAdmin() ||
-            get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              request.resource.data.get('userId', request.auth.uid) == request.auth.uid
+            )
+          );
+
+          // Same live-share requirement as comments: a revoked reviewer keeps
+          // no write channel into a resume that is no longer shared.
+          allow update: if request.auth != null && (
+            request.auth.uid == userId || isAdmin() ||
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              resource.data.get('userId', '') == request.auth.uid &&
+              request.resource.data.get('userId', '') == resource.data.get('userId', '')
+            )
+          );
+
+          allow delete: if request.auth != null && (
+            request.auth.uid == userId || isAdmin() ||
+            (
+              get(/databases/$(database)/documents/users/$(userId)/resumes/$(resumeId)).data.shareConfig.enabled == true &&
+              resource.data.get('userId', '') == request.auth.uid
+            )
           );
         }
       }
@@ -303,27 +395,116 @@ service cloud.firestore {
     // ---------------------------------------------------------
     // 🌐 PUBLIC PORTFOLIOS (Public Read, Owner/Admin Write)
     // ---------------------------------------------------------
+    /*
+     * `create, update` as one rule checked only request.resource.data.userId —
+     * the uid on the doc being WRITTEN — and never resource.data.userId, the uid
+     * on the doc that is already there. Since the document id is public (it is
+     * in the shared URL), any signed-in user could write their own uid into a
+     * body addressed at someone else's document and overwrite it wholesale:
+     * defacing or destroying a stranger's published portfolio, resume or theme.
+     *
+     * Split in two. Create still proves you are claiming the document for
+     * yourself; update additionally requires that you already own the document
+     * you are replacing, and that the write does not hand it to someone else.
+     *
+     * `.get('userId', '')` rather than a bare field read: a stored document that
+     * somehow has no userId has no provable owner.
+     *
+     * Two things follow from the document id being public, and both are handled
+     * by proving ownership of the PRIVATE portfolio of the same id rather than
+     * by trusting the body:
+     *
+     *  - Create has to name a portfolio you actually own. Without that, anyone
+     *    could claim a free id — and since unpublishing deletes the document
+     *    (SharePortfolioModal deleteDoc), the id of any portfolio that has ever
+     *    been published is both known and claimable. With `allow update` now
+     *    requiring the stored userId to match, a squat would be permanent: the
+     *    real owner could neither overwrite nor delete their own URL.
+     *
+     *  - Update has to survive a document the admin SDK created without a
+     *    userId. functions/src/portfolioApi.ts writes this collection with
+     *    set(..., {merge:true}) from applyPortfolioPatch, updatePortfolioProjects
+     *    and updatePortfolioHero, and a merge-set CREATES the document when it
+     *    is absent — so an agent edit on a never-published portfolio can leave a
+     *    public mirror with no owner stamp. Matching on the private portfolio
+     *    lets the owner publish over it; matching on `userId` alone would lock
+     *    them out of their own id forever.
+     */
+    function ownsPrivatePortfolio(portfolioId) {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)/portfolios/$(portfolioId));
+    }
+
     match /public_portfolios/{portfolioId} {
       allow read: if true;
-      allow create, update: if isAdmin() || (request.auth != null && request.resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (
+        request.auth != null &&
+        request.resource.data.userId == request.auth.uid &&
+        ownsPrivatePortfolio(portfolioId)
+      );
+      allow update: if isAdmin() || (
+        request.auth != null &&
+        request.resource.data.get('userId', '') == request.auth.uid &&
+        (
+          resource.data.get('userId', '') == request.auth.uid ||
+          (resource.data.get('userId', '') == '' && ownsPrivatePortfolio(portfolioId))
+        )
+      );
+      allow delete: if isAdmin() || (
+        request.auth != null &&
+        (
+          resource.data.get('userId', '') == request.auth.uid ||
+          (resource.data.get('userId', '') == '' && ownsPrivatePortfolio(portfolioId))
+        )
+      );
     }
 
     // ---------------------------------------------------------
     // 📄 PUBLIC RESUMES (Public Read, Owner/Admin Write)
     // ---------------------------------------------------------
+    // Same overwrite hole as public_portfolios above, same split, and the same
+    // id-squatting fix: the id is public, so claiming one has to mean proving
+    // you own the private resume it mirrors. Nothing writes this collection from
+    // the client today, which is the only reason the squat was never reachable.
+    function ownsPrivateResume(resumeId) {
+      return request.auth != null &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)/resumes/$(resumeId));
+    }
+
     match /public_resumes/{resumeId} {
       allow read: if true;
-      allow create, update: if isAdmin() || (request.auth != null && request.resource.data.userId == request.auth.uid);
-      allow delete: if isAdmin() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow create: if isAdmin() || (
+        request.auth != null &&
+        request.resource.data.userId == request.auth.uid &&
+        ownsPrivateResume(resumeId)
+      );
+      allow update: if isAdmin() || (
+        request.auth != null &&
+        request.resource.data.get('userId', '') == request.auth.uid &&
+        (
+          resource.data.get('userId', '') == request.auth.uid ||
+          (resource.data.get('userId', '') == '' && ownsPrivateResume(resumeId))
+        )
+      );
+      allow delete: if isAdmin() || (
+        request.auth != null &&
+        (
+          resource.data.get('userId', '') == request.auth.uid ||
+          (resource.data.get('userId', '') == '' && ownsPrivateResume(resumeId))
+        )
+      );
     }
 
     // ---------------------------------------------------------
     // 🎨 USER THEMES (Public Read, Owner Write)
     // ---------------------------------------------------------
+    // Same overwrite hole as public_portfolios above, same split.
     match /user_themes/{themeId} {
       allow read: if true;
-      allow create, update: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null &&
+        resource.data.get('userId', '') == request.auth.uid &&
+        request.resource.data.get('userId', '') == resource.data.get('userId', '');
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 

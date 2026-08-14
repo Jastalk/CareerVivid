@@ -1,6 +1,7 @@
 
 import React, { ComponentType, LazyExoticComponent, Suspense } from 'react';
 import { ResumeData, TemplateId, DEFAULT_FORMATTING_SETTINGS } from '../types';
+import { sanitizeCustomCss } from '../utils/sanitizeCustomCss';
 
 
 interface ResumePreviewProps {
@@ -67,6 +68,18 @@ const getLazyResumeTemplate = (template: TemplateId) => {
   return LazyTemplate;
 };
 
+/*
+ * `customCss` is written by the AI Code Customizer on the owner's behalf, and
+ * it lands in `#preview-id { ...customCss... }`. A public resume page renders
+ * this very component for third-party viewers (PublicResumePage, and the
+ * community feed), so a resume owner who can get an unbalanced `}` into that
+ * string stops styling their resume and starts styling the page around it.
+ *
+ * The guard lives in src/utils/sanitizeCustomCss.ts because the portfolio
+ * preview injects the same kind of AI-written string into the same kind of
+ * scoping block, and two copies of a sanitizer is one copy that gets fixed.
+ */
+
 const escapeCssIdentifier = (value: string) => {
   if (typeof window !== 'undefined' && window.CSS?.escape) {
     return window.CSS.escape(value);
@@ -98,6 +111,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = React.memo(({ resume, templa
 
   const previewId = previewIdOverride || `resume-preview-${resume.id || 'default'}`;
   const previewSelector = `#${escapeCssIdentifier(previewId)}`;
+  const safeCustomCss = React.useMemo(() => sanitizeCustomCss(resume.customCss).css, [resume.customCss]);
   const formattingCss = `
     ${previewSelector} .cv-format-surface {
       font-size: calc(16px * var(--body-scale, 1));
@@ -178,8 +192,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = React.memo(({ resume, templa
     >
       {/* Scoped custom CSS injection — AI Code Customizer writes here */}
       <style>{formattingCss}</style>
-      {resume.customCss && (
-        <style>{`#${previewId} { ${resume.customCss} }`}</style>
+      {safeCustomCss && (
+        <style>{`${previewSelector} { ${safeCustomCss} }`}</style>
       )}
       <div className="cv-format-surface">
         <Suspense fallback={<div className="min-h-[297mm] bg-white" aria-label="Loading resume template" />}>

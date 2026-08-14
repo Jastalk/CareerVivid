@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe, GitBranch, Code } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import { readableAccent } from '../../utils/templateInk';
 
 export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
@@ -63,7 +64,7 @@ export const TechnicalTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
           </div>
           {websites.map((site, index) => (
             <div key={site.id} className="flex items-center justify-end">
-              <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              <a href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:underline">
                   <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
               </a>
               <Globe size={12} className="ml-2 flex-shrink-0 transform translate-y-px" />

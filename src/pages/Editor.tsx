@@ -80,14 +80,17 @@ const Editor: React.FC<EditorProps> = (props) => {
         setIsConfirmModalOpen,
         showCelebration,
         isGuestMode,
+        isGuestDraft,
         isResumeLoading,
+        isPreparingResume,
         isTemplateLoading,
         alertState,
         setAlertState,
         isFeedbackModalOpen,
         setIsFeedbackModalOpen,
-        isSignupPromptOpen,
-        setIsSignupPromptOpen,
+        signupPrompt,
+        closeSignupPrompt,
+        promptSignInFor,
         isUpgradeModalOpen,
         setIsUpgradeModalOpen,
         isExporting,
@@ -105,6 +108,7 @@ const Editor: React.FC<EditorProps> = (props) => {
         showAnnotationOverlay,
         isShareModalOpen,
         setIsShareModalOpen,
+        handleShare,
         comments,
         toastMessage,
         setToastMessage,
@@ -182,8 +186,23 @@ const Editor: React.FC<EditorProps> = (props) => {
         }
     }, [setSidebarMode]);
 
+    /**
+     * Guests get told why the panel will not open, instead of a dead toggle.
+     *
+     * The panel itself is not rendered for an unsaved draft (see below), so
+     * without this the button would swallow the click and look broken.
+     */
+    const handleRightPanelToggle = useCallback((open: boolean) => {
+        if (isGuestDraft) {
+            if (open) promptSignInFor('score_panel');
+            return;
+        }
+        setIsRightPanelOpen(open);
+    }, [isGuestDraft, promptSignInFor]);
+
     // Auto-open right side panel when a job matching report is generated or loaded
     useEffect(() => {
+        if (isGuestDraft) return;
         if (optimizationJob && !isConstrainedEditorWidth()) {
             setIsRightPanelOpen(true);
         }
@@ -336,7 +355,11 @@ const Editor: React.FC<EditorProps> = (props) => {
     }, [currentUser?.uid]);
 
     if (!resume && (!isShared && !isGuestMode)) {
-        if (isResumeLoading) {
+        // isPreparingResume: a signed-in visitor arrived on /edit/new and their
+        // real document is being created (or their guest draft is being
+        // migrated onto their account). There is nothing missing — it is not
+        // there yet — so this must not read as "not found".
+        if (isResumeLoading || isPreparingResume) {
             return <div className="flex justify-center items-center h-screen dark:text-white">{t('editor.loading_resume')}</div>;
         }
 
@@ -377,9 +400,11 @@ const Editor: React.FC<EditorProps> = (props) => {
 
                 <EditorHeader
                     resume={resume}
-                    currentUser={currentUser!}
+                    currentUser={currentUser}
                     isShared={isShared}
                     isGuestMode={isGuestMode}
+                    isGuestDraft={isGuestDraft}
+                    onRequireSignIn={promptSignInFor}
                     isTranslating={isTranslating}
                     isExporting={isExporting}
                     hasAnnotations={hasAnnotations}
@@ -392,7 +417,7 @@ const Editor: React.FC<EditorProps> = (props) => {
                     onExport={handleExport}
                     onTranslate={handleTranslateResume}
                     onToggleFeedback={toggleFeedbackOverlay}
-                    onShare={() => setIsShareModalOpen(true)}
+                    onShare={handleShare}
                     onToggleTheme={toggleTheme}
                     setViewMode={setViewMode}
                     onDismissGuideArrow={() => setShowGuideArrow(false)}
@@ -407,7 +432,7 @@ const Editor: React.FC<EditorProps> = (props) => {
                 <div className="relative flex h-[calc(100dvh-64px)] flex-grow overflow-hidden">
                     <EditorSidebar
                         resume={resume}
-                        currentUser={currentUser!}
+                        currentUser={currentUser}
                         activeTab={activeTab}
                         activeTemplate={activeTemplate}
                         templates={TEMPLATES}
@@ -415,8 +440,10 @@ const Editor: React.FC<EditorProps> = (props) => {
                         sidebarMode={sidebarMode}
                         isDesktop={isDesktop}
                         isGuestMode={isGuestMode}
+                        isGuestDraft={isGuestDraft}
                         isShared={isShared}
                         isTemplateLoading={isTemplateLoading}
+                        onRequireSignIn={promptSignInFor}
                         tempPhoto={tempPhoto}
                         sampleResume={sampleResumeForPreview}
                         viewMode={viewMode}
@@ -442,19 +469,27 @@ const Editor: React.FC<EditorProps> = (props) => {
                         onFocusField={handleFocusField}
                         onDoubleClick={() => { setViewMode('preview'); }}
                         isAnyDropdownOpen={isAnyDropdownOpen}
-                        isRightPanelOpen={isRightPanelOpen}
-                        setIsRightPanelOpen={setIsRightPanelOpen}
+                        isRightPanelOpen={isGuestDraft ? false : isRightPanelOpen}
+                        setIsRightPanelOpen={handleRightPanelToggle}
                         onReviewModeChange={handleReviewModeChange}
                     />
 
-                    <RightSidePanel
-                        resume={resumeForPreview}
-                        currentUserUid={currentUser?.uid || ''}
-                        onUpdate={handleResumeChange}
-                        optimizationJob={optimizationJob}
-                        isOpen={isRightPanelOpen}
-                        onClose={() => setIsRightPanelOpen(false)}
-                    />
+                    {/*
+                      * The score and job-match panel calls Cloud Functions that look
+                      * the resume up under the caller's uid, so it has nothing to read
+                      * for an unsaved local draft. Rather than render it and let every
+                      * button fail, guests get the sign-in prompt from the toggle.
+                      */}
+                    {!isGuestDraft && (
+                        <RightSidePanel
+                            resume={resumeForPreview}
+                            currentUserUid={currentUser?.uid || ''}
+                            onUpdate={handleResumeChange}
+                            optimizationJob={optimizationJob}
+                            isOpen={isRightPanelOpen}
+                            onClose={() => setIsRightPanelOpen(false)}
+                        />
+                    )}
                 </div>
 
                 <EditorTour
@@ -479,11 +514,11 @@ const Editor: React.FC<EditorProps> = (props) => {
                     confirmText={t('dashboard.create_new')}
                 />
                 <ConfirmationModal
-                    isOpen={isSignupPromptOpen}
-                    title={t('editor.signup_prompt_title')}
-                    message={t('editor.signup_prompt_msg')}
+                    isOpen={signupPrompt.isOpen}
+                    title={signupPrompt.title || t('editor.signup_prompt_title')}
+                    message={signupPrompt.message || t('editor.signup_prompt_msg')}
                     onConfirm={() => navigate('/signup')}
-                    onCancel={() => setIsSignupPromptOpen(false)}
+                    onCancel={closeSignupPrompt}
                     confirmText={t('auth.sign_up_free')}
                 />
                 <ConfirmationModal

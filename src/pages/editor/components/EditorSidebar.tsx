@@ -1,11 +1,13 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, Edit3, Sliders } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight, Sparkles, Edit3, Sliders, Lock } from 'lucide-react';
 import { ResumeData, TemplateInfo } from '../../../types';
 import ResumeForm from '../../../components/ResumeForm';
 import CommentsPanel from '../../../components/CommentsPanel';
 import TemplateSelector from './TemplateSelector';
 import DesignControls from './DesignControls';
 import { AIReviewPanel } from './AIReviewPanel';
+import type { GuestGatedFeature } from '../../../hooks/useEditor';
 
 interface EditorSidebarProps {
     resume: ResumeData;
@@ -17,6 +19,8 @@ interface EditorSidebarProps {
     sidebarMode: 'standard' | 'expanded' | 'closed';
     isDesktop: boolean;
     isGuestMode: boolean;
+    /** Signed-out visitor editing a local draft (not the shared-link editor). */
+    isGuestDraft?: boolean;
     isShared: boolean;
     isTemplateLoading: boolean;
     tempPhoto: string | null;
@@ -31,15 +35,52 @@ interface EditorSidebarProps {
     onDesignChange: (updates: Partial<ResumeData>) => void;
     onResizeSidebar: (direction: 'left' | 'right') => void;
     onCloseComments: () => void;
+    /** Ask the visitor to sign in, naming the feature that needs an account. */
+    onRequireSignIn?: (feature: GuestGatedFeature) => void;
 }
+
+/**
+ * Stands in for a panel whose backend needs a signed-in owner.
+ *
+ * The AI review and the comments thread both resolve the resume from the
+ * caller's uid, so on an unsaved local draft there is nothing for them to read.
+ * Showing the reason beats rendering a panel whose every button errors out.
+ */
+const SignInToUsePanel: React.FC<{ title: string; body: string; onSignIn?: () => void }> = ({ title, body, onSignIn }) => {
+    const { t } = useTranslation();
+
+    return (
+        // bg-[#fbf8f3]/80 rather than bg-white/70: index.css lists bg-white/70
+        // among the light surfaces it repaints text on under html.dark, matching
+        // on the class attribute regardless of the dark: override that actually
+        // paints this panel dark. Any text-gray-* child added here later would
+        // come out dark brown on a near-black panel.
+        <div className="mx-auto max-w-sm rounded-2xl border border-[#e6ddd0] bg-[#fbf8f3]/80 p-6 text-center dark:border-gray-800 dark:bg-gray-900/60">
+            <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[#f3eee6] text-slate-500 dark:bg-gray-800 dark:text-gray-400">
+                <Lock size={20} />
+            </span>
+            <h4 className="text-base font-bold text-slate-900 dark:text-white">{title}</h4>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-gray-400">{body}</p>
+            <button
+                type="button"
+                onClick={onSignIn}
+                className="mt-4 rounded-full bg-[#22143f] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#341f5f] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            >
+                {t('editor.guest.sign_in_free')}
+            </button>
+        </div>
+    );
+};
 
 const EditorSidebar: React.FC<EditorSidebarProps> = ({
     resume, currentUser, activeTab, activeTemplate, templates,
-    sidebarWidth, sidebarMode, isDesktop, isGuestMode, isShared, isTemplateLoading,
+    sidebarWidth, sidebarMode, isDesktop, isGuestMode, isGuestDraft = false, isShared, isTemplateLoading,
     tempPhoto, sampleResume, viewMode,
     setActiveTab, setTempPhoto,
-    onResumeChange, onTemplateSelect, onDesignChange, onResizeSidebar, onCloseComments
+    onResumeChange, onTemplateSelect, onDesignChange, onResizeSidebar, onCloseComments,
+    onRequireSignIn
 }) => {
+    const { t } = useTranslation();
 
     return (
         <>
@@ -84,11 +125,19 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                     <div data-editor-sidebar-scroll data-tour="editor-fields" className="custom-scrollbar flex-grow overflow-y-auto p-4">
                         {activeTab === 'score' && (
                             <div className="h-full animate-fade-in">
-                                <AIReviewPanel
-                                    resume={resume}
-                                    currentUserUid={currentUser?.uid || ''}
-                                    onUpdate={onResumeChange}
-                                />
+                                {currentUser?.uid && !isGuestDraft ? (
+                                    <AIReviewPanel
+                                        resume={resume}
+                                        currentUserUid={currentUser.uid}
+                                        onUpdate={onResumeChange}
+                                    />
+                                ) : (
+                                    <SignInToUsePanel
+                                        title={t('editor.guest.review_panel_title')}
+                                        body={t('editor.guest.review_panel_body')}
+                                        onSignIn={() => onRequireSignIn?.('ai_review')}
+                                    />
+                                )}
                             </div>
                         )}
 
@@ -99,7 +148,6 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
                                     onChange={onResumeChange}
                                     tempPhoto={tempPhoto}
                                     setTempPhoto={setTempPhoto}
-                                    isReadOnly={isGuestMode && !isShared}
                                 />
                             </div>
                         )}
@@ -136,13 +184,21 @@ const EditorSidebar: React.FC<EditorSidebarProps> = ({
 
                         {activeTab === 'comments' && (
                             <div className="h-full flex flex-col animate-slide-in-right">
-                                <CommentsPanel
-                                    isOpen={true}
-                                    onClose={onCloseComments}
-                                    resumeId={resume.id!}
-                                    ownerId={currentUser.uid}
-                                    currentUser={currentUser}
-                                />
+                                {currentUser?.uid && resume.id && !isGuestDraft ? (
+                                    <CommentsPanel
+                                        isOpen={true}
+                                        onClose={onCloseComments}
+                                        resumeId={resume.id}
+                                        ownerId={currentUser.uid}
+                                        currentUser={currentUser}
+                                    />
+                                ) : (
+                                    <SignInToUsePanel
+                                        title={t('editor.guest.feedback_panel_title')}
+                                        body={t('editor.guest.feedback_panel_body')}
+                                        onSignIn={() => onRequireSignIn?.('feedback')}
+                                    />
+                                )}
                             </div>
                         )}
                     </div>

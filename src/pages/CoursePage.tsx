@@ -203,7 +203,7 @@ const CoursePage: React.FC = () => {
     };
 
     return (
-        <AppLayout>
+        <AppLayout publicWhenSignedOut>
             <SEOHelper
                 title={seoPage.title}
                 description={seoPage.description}

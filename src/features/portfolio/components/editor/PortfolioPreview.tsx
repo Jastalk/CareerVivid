@@ -3,6 +3,7 @@ import { Smartphone, Monitor, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 import IntroOverlay from '../intro/IntroOverlay';
 import { PortfolioData } from '../../types/portfolio';
 import { TEMPLATES } from '../../templates';
+import { sanitizeCustomCss } from '../../../../utils/sanitizeCustomCss';
 
 interface PortfolioPreviewProps {
     portfolioData: PortfolioData | null;
@@ -152,6 +153,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({
                         const isDark = theme.darkMode;
                         const isExplicitlyLight = theme.backgroundColor?.toLowerCase() === '#ffffff' || theme.backgroundColor?.toLowerCase() === '#fff';
                         const wrapperBg = (isDark && isExplicitlyLight) ? '#0f1117' : (theme.backgroundColor || (isDark ? '#0f1117' : '#ffffff'));
+                        const safeCustomCss = sanitizeCustomCss(theme.customCss).css;
 
                         return (
                             <div
@@ -159,9 +161,16 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({
                                 className="min-h-full transition-colors duration-500"
                                 style={{ backgroundColor: wrapperBg }}
                             >
-                                {/* Scoped custom CSS injection — AI Style tab writes here */}
-                                {theme.customCss && (
-                                    <style>{`#portfolio-preview-${portfolioData.id || 'draft'} { ${theme.customCss} }`}</style>
+                                {/*
+                                  * Scoped custom CSS injection — the AI Style tab writes here
+                                  * (portfolio-ai.ts tells the model it may emit theme.customCss),
+                                  * and a published portfolio is rendered to the public, so this
+                                  * goes through the same sanitizer as the resume preview: a
+                                  * stray `}` here would restyle the page around the portfolio,
+                                  * and a `url(https://…)` would beacon every visitor.
+                                  */}
+                                {safeCustomCss && (
+                                    <style>{`#portfolio-preview-${portfolioData.id || 'draft'} { ${safeCustomCss} }`}</style>
                                 )}
                                 <CurrentTemplate
                                     data={portfolioData}

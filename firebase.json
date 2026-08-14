@@ -11,9 +11,27 @@
       "**/node_modules/**"
     ],
     "redirects": [
+      // /resume-builder was a marketing page in front of the editor. The editor
+      // now opens without an account at /edit/new, so the page in front of it
+      // was a step that only cost a click, and it is gone.
+      //
+      // This has to be a redirect rather than a deletion: /resume-builder is in
+      // Google's index, is linked from the README and from off-site posts, and
+      // carried the highest priority in the sitemap. A 404 spends every one of
+      // those links.
+      {
+        "source": "/resume-builder",
+        "destination": "/edit/new",
+        "type": 301
+      },
+      // Points at /edit/new directly, NOT at /resume-builder. Chaining one 301
+      // into another URL that itself 301s is worse than a single hop and far
+      // worse if the middle hop ever 404s, because a permanent redirect is
+      // cached by browsers and intermediaries indefinitely — a mistake here is
+      // not fixable by shipping a correction.
       {
         "source": "/resume-templates",
-        "destination": "/resume-builder",
+        "destination": "/edit/new",
         "type": 301
       },
       {
@@ -109,6 +127,45 @@
           {
             "key": "Cross-Origin-Opener-Policy",
             "value": "same-origin-allow-popups"
+          },
+          // Content Security Policy, in REPORT-ONLY mode.
+          //
+          // There was no CSP of any kind before this. Report-Only is the
+          // deliberate starting point: the browser evaluates the policy and
+          // logs every violation to the console (and to SecurityPolicyViolation
+          // events) but blocks nothing, so a rule that turns out to be too
+          // tight costs a console warning instead of a blank page for every
+          // signed-in user. A policy written from a source grep and shipped
+          // enforcing is a policy written from a guess.
+          //
+          // TO ENFORCE, three things have to change:
+          //
+          //  1. Collect real violations first. Watch the console on the routes
+          //     that load the most third-party code — the editor, the live
+          //     voice interview, Google sign-in, Stripe checkout return — for
+          //     long enough to see them, and widen the directives that fire.
+          //     Nothing below is confirmed against production traffic yet.
+          //
+          //  2. Remove 'unsafe-inline' from script-src, which is the directive
+          //     doing almost none of the work while it is there. That means
+          //     the inline JSON-LD and the inline font-loading onload= in
+          //     index.html need a per-response nonce or a hash, which Hosting
+          //     cannot add to a static file — index.html would have to be
+          //     served through a function, or those inline blocks moved into
+          //     bundled modules. Until then, enforcing buys very little.
+          //     ('unsafe-inline' in style-src is a separate, lesser problem:
+          //     Tailwind and the resume templates set inline styles.)
+          //
+          //  3. Rename the header to Content-Security-Policy. Keep this
+          //     Report-Only entry alongside it afterwards, one step tighter
+          //     than the enforced one, so the next tightening is measured the
+          //     same way rather than shipped blind.
+          //
+          // Violations currently report only to the browser console; add a
+          // report-to endpoint if these need to be aggregated centrally.
+          {
+            "key": "Content-Security-Policy-Report-Only",
+            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob: https://*.googleapis.com wss://*.googleapis.com https://*.google.com https://*.cloudfunctions.net https://*.run.app https://*.algolia.net https://*.algolianet.com https://api.careervivid.app; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com"
           }
         ]
       },
@@ -214,8 +271,14 @@
         "function": "renderSeoContent",
         "region": "us-west1"
       },
+      // The crawler entry for the resume builder moved here with the page it
+      // describes. Removing the /resume-builder rewrite is part of the same
+      // change on purpose: leaving it would have served Googlebot a 200 with a
+      // full SEO page at a URL where every human got a 301 — the definition of
+      // cloaking, and the version of this change that gets the site penalised
+      // rather than just reorganised.
       {
-        "source": "/resume-builder",
+        "source": "/edit/new",
         "function": "renderSeoContent",
         "region": "us-west1"
       },

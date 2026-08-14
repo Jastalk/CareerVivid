@@ -140,12 +140,29 @@ export const useDashboard = () => {
         const importGuestData = async () => {
             const guestResumeJSON = localStorage.getItem('guestResume');
             if (guestResumeJSON) {
+                /*
+                 * Claim the key BEFORE the await, not after.
+                 *
+                 * useGuestDataMigration reads the same key on sign-in and
+                 * claims it the same way. Removing it after `await
+                 * saveAIGeneratedResume` left a window — the whole duration of
+                 * that write — in which the other reader still saw the draft
+                 * and saved its own copy, giving the account two identical
+                 * resumes, which on the free plan is the one-resume limit blown
+                 * by the import itself. Whoever removes the key first wins; the
+                 * loser sees nothing and does nothing.
+                 */
+                localStorage.removeItem('guestResume');
                 try {
                     const guestResume = JSON.parse(guestResumeJSON);
                     await saveAIGeneratedResume(guestResume);
-                    localStorage.removeItem('guestResume');
                     trackDemoConversion('convertedResumeUsers');
-                } catch (e) { console.error(e); }
+                } catch (e) {
+                    console.error(e);
+                    // A failed import must not be the same thing as a deleted
+                    // resume.
+                    try { localStorage.setItem('guestResume', guestResumeJSON); } catch { /* storage full */ }
+                }
             }
             const guestInterviewJSON = localStorage.getItem('guestInterview');
             if (guestInterviewJSON) {

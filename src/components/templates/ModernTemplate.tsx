@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import IconDisplay from '../IconDisplay';
 import { readableAccent } from '../../utils/templateInk';
 
@@ -76,7 +77,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             <InlineEdit value={`${personalDetails.city}${personalDetails.country ? `, ${personalDetails.country}` : ''}`} fieldId="personalDetails.city" onFocus={onFocus} placeholder="City, Country" />
           </div>
           {websites.map((site, index) => (
-            <a key={site.id || `website-${index}`} href={site.url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 flex items-center gap-1">
+            <a key={site.id || `website-${index}`} href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 flex items-center gap-1">
               <IconDisplay iconName={site.icon || 'globe'} size={12} />
               <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
               {site.showUrl && <span className="text-gray-600 ml-1">{site.url}</span>}

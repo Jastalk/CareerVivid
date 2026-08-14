@@ -1,6 +1,5 @@
 import React from 'react';
-import Footer from '../components/Footer';
-import { MenuBar } from '../components/Landing/live/PublicShell';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import '../components/Landing/live/liveLanding.css';
 
 /**
@@ -148,7 +147,7 @@ const PrivacyPolicyPage: React.FC = () => {
                 </div>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };

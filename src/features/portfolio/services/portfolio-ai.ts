@@ -25,7 +25,7 @@ RULES:
    - "Tilt buttons" -> { tilt: true }
    - "Spin avatar on hover" -> { spinAvatar: true }
 8. If the user changes FONTS, set 'theme.fontFamily' (e.g., 'Inter', 'Playfair Display', 'Fira Code').
-8. If the user asks for CUSTOM STYLING, you can provide 'theme.customCss' or 'style' props on buttons.
+9. If the user asks for CUSTOM STYLING, you can provide 'theme.customCss' or 'style' props on buttons. 'theme.customCss' is injected into a public page, so it must be declarations only, with balanced braces, no @import, and no url()/image-set() pointing at http/https — anything that would fetch a file over the network is stripped before it renders.
 `;
 
 export async function refinePortfolio(

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Footer from '../components/Footer';
-import { MenuBar } from '../components/Landing/live/PublicShell';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import '../components/Landing/live/liveLanding.css';
 import { Send, Loader2, CheckCircle, CreditCard, Activity, ChevronDown, AlertTriangle } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -349,7 +348,7 @@ const ContactPage: React.FC = () => {
                 </div>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };

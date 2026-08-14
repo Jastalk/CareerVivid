@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 
 export const MonochromeTemplate: React.FC<TemplateProps> = ({ resume, titleFont, bodyFont, onFocus }) => {
   const { personalDetails, professionalSummary, employmentHistory, education, skills, websites } = resume;
@@ -106,7 +107,7 @@ export const MonochromeTemplate: React.FC<TemplateProps> = ({ resume, titleFont,
               <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" className="block" />
               <InlineEdit value={personalDetails.address} fieldId="personalDetails.address" onFocus={onFocus} placeholder="Address" className="block" />
               {websites.map((site, index) => (
-                <a key={site.id} href={site.url} className="block hover:underline">
+                <a key={site.id} href={safeUrl(site.url)} className="block hover:underline">
                     <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                 </a>
               ))}

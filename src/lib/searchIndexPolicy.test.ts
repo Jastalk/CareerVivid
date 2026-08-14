@@ -27,7 +27,7 @@ describe("search indexing policy", () => {
             "/interview-studio",
             "/blog",
             "/jobs",
-            "/resume-builder",
+            "/edit/new",
             "/contact",
             "/product",
             "/community/guidelines",

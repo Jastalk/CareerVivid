@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import { readableBorder } from '../../utils/templateInk';
 
 export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
@@ -33,7 +34,7 @@ export const SlateTemplate: React.FC<TemplateProps> = ({ resume, themeColor, tit
             {websites.map((site, index) => (
               <div key={site.id} className="flex items-center">
                   <Globe size={16} className="mr-3 flex-shrink-0 transform translate-y-px" />
-                  <a href={site.url} className="hover:text-slate-300 break-all">
+                  <a href={safeUrl(site.url)} className="hover:text-slate-300 break-all">
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               </div>

@@ -4,6 +4,7 @@ import './liveLanding.css';
 import { useClock } from './liveHooks';
 
 const NAV = [
+    { href: '/jobs', label: 'jobs' },
     { href: '/interview-studio', label: 'quests' },
     { href: '/newresume', label: 'resume' },
     { href: '/learning', label: 'learning' },
@@ -50,6 +51,13 @@ export const MenuBar: React.FC<{ anchors?: { href: string; label: string }[] }> 
     );
 };
 
+/*
+ * Terms and Policy are here because this footer is the only place a public
+ * page links to them. The old site-wide Footer carried both; when the public
+ * pages moved onto this one, /terms and /policy stopped being reachable from
+ * anywhere a visitor or a crawler could get to — on a product that takes
+ * payment on /pricing, that is a legal problem before it is an SEO one.
+ */
 const FOOTER_LINKS = [
     { href: '/interview-studio', label: 'Interview studio' },
     { href: '/newresume', label: 'Resume editor' },
@@ -57,10 +65,20 @@ const FOOTER_LINKS = [
     { href: '/pricing', label: 'Pricing' },
     { href: '/contact', label: 'Contact' },
     { href: '/privacy', label: 'Privacy' },
+    { href: '/terms', label: 'Terms' },
+    { href: '/policy', label: 'Policy' },
 ];
 
+/*
+ * pb-24 rather than a symmetric py-9: the Career Agent launcher is
+ * `position: fixed` in a bottom corner at 288px wide, and App.tsx mounts it on
+ * every authenticated route with no path filter, so a signed-in visitor
+ * scrolled to the bottom of /pricing on a narrow viewport had the launcher
+ * sitting on the copyright line and part of the link row. The pages' own pb-16
+ * sits above the footer and does not help.
+ */
 export const PublicFooter: React.FC = () => (
-    <footer className="border-t py-9" style={{ borderColor: 'var(--cvl-line)' }}>
+    <footer className="border-t pt-9 pb-24" style={{ borderColor: 'var(--cvl-line)' }}>
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-center">
             <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px]" style={{ color: 'var(--cvl-muted)' }}>
                 {FOOTER_LINKS.map((link) => (

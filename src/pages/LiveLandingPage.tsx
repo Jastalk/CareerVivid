@@ -1,10 +1,9 @@
 import React from 'react';
 import { ArrowRight, Check, ChevronDown } from 'lucide-react';
-import Footer from '../components/Footer';
 import LandingSeo from '../components/Landing/LandingSeo';
 import '../components/Landing/live/liveLanding.css';
 import DeskHero from '../components/Landing/live/DeskHero';
-import { MenuBar } from '../components/Landing/live/PublicShell';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import DeskWindow from '../components/Landing/live/DeskWindow';
 import QuestTape from '../components/Landing/live/QuestTape';
 import LiveResume from '../components/Landing/live/LiveResume';
@@ -287,7 +286,7 @@ const LiveLandingPage: React.FC = () => (
             </section>
         </main>
 
-        <Footer />
+        <PublicFooter />
     </div>
 );
 

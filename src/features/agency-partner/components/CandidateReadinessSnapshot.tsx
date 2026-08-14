@@ -9,28 +9,15 @@ interface CandidateReadinessSnapshotProps {
   notes: RecruiterNote[];
 }
 
-const CandidateReadinessSnapshot: React.FC<CandidateReadinessSnapshotProps> = ({
-  session,
-  events,
-  notes,
-}) => {
-  const printableRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = () => {
-    if (!printableRef.current) return;
-    const printContents = printableRef.current.innerHTML;
-    const printWindow = window.open('', '_blank', 'width=850,height=800');
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Readiness Snapshot - ${session.candidateName}</title>
-          <style>
+/**
+ * Stylesheet for the printed snapshot. It is a constant on purpose: nothing a
+ * candidate typed is ever interpolated into it.
+ */
+const PRINT_STYLES = `
             @media print {
               body { background: #ffffff !important; }
             }
-            body { 
+            body {
               font-family: 'Inter', system-ui, -apple-system, sans-serif; 
               padding: 40px; 
               color: #211b16; 
@@ -151,14 +138,83 @@ const CandidateReadinessSnapshot: React.FC<CandidateReadinessSnapshotProps> = ({
               font-size: 11px;
               color: #6b6358;
             }
-          </style>
-        </head>
-        <body>${printContents}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+`;
+
+/**
+ * Prints `node` through a hidden same-page iframe.
+ *
+ * This used to open `window.open('', '_blank')` and `document.write` a
+ * template string into it. That window is an about:blank child, so it inherits
+ * careervivid.app's origin — and the template interpolated the candidate's own
+ * name into `<title>`, which meant a candidate could name themselves
+ * `</title><script>…` and run script, as careervivid.app, in the recruiter's
+ * browser the moment the recruiter hit Print.
+ *
+ * Nothing here is ever serialised back into HTML: the title and the stylesheet
+ * go in as text nodes, and the snapshot body is imported as live DOM. There is
+ * no parser left for candidate-controlled text to reach.
+ *
+ * Exported so the pilot summary printer shares this one implementation rather
+ * than growing a second copy that has to be re-hardened separately.
+ */
+export const printNodeContents = (node: HTMLElement, documentTitle: string, styles: string) => {
+  const frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;border:0;opacity:0;';
+  document.body.appendChild(frame);
+
+  const frameDocument = frame.contentDocument;
+  const frameWindow = frame.contentWindow;
+  if (!frameDocument || !frameWindow) {
+    frame.remove();
+    return;
+  }
+
+  const titleElement = frameDocument.createElement('title');
+  titleElement.textContent = documentTitle;
+  frameDocument.head.appendChild(titleElement);
+
+  const styleElement = frameDocument.createElement('style');
+  styleElement.textContent = styles;
+  frameDocument.head.appendChild(styleElement);
+
+  Array.from(node.childNodes).forEach((child) => {
+    frameDocument.body.appendChild(frameDocument.importNode(child, true));
+  });
+
+  let removed = false;
+  const removeFrame = () => {
+    if (removed) return;
+    removed = true;
+    frame.remove();
+  };
+
+  frameWindow.addEventListener('afterprint', () => window.setTimeout(removeFrame, 0), {
+    once: true,
+  });
+  // Safari does not fire afterprint on a frame, so sweep the frame up anyway.
+  window.setTimeout(removeFrame, 60000);
+
+  frameWindow.focus();
+  if (typeof frameWindow.print === 'function') {
+    frameWindow.print();
+  }
+};
+
+const CandidateReadinessSnapshot: React.FC<CandidateReadinessSnapshotProps> = ({
+  session,
+  events,
+  notes,
+}) => {
+  const printableRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!printableRef.current) return;
+    printNodeContents(
+      printableRef.current,
+      `Readiness Snapshot - ${session.candidateName}`,
+      PRINT_STYLES,
+    );
   };
 
   // Filter key events for clean printing

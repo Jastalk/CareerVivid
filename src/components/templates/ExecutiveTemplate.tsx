@@ -3,6 +3,7 @@ import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import { Mail, Phone, MapPin, Linkedin, Globe } from 'lucide-react';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import { inkOn, readableAccent, readableBorder } from '../../utils/templateInk';
 
 export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
@@ -117,7 +118,7 @@ export const ExecutiveTemplate: React.FC<TemplateProps> = ({ resume, themeColor,
                 {websites.map((site, index) => (
                   <div key={site.id} className="flex items-center">
                     <Globe size={14} className="mr-3 flex-shrink-0 transform translate-y-px" />
-                    <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <a href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:underline">
                         <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                     </a>
                   </div>

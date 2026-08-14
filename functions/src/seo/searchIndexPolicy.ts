@@ -69,7 +69,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
      * weighted position on a word nobody searches yet. The first real word was
      * "Courses", the least-prioritised product.
      *
-     * The homepage also no longer has to carry everything. /resume-builder,
+     * The homepage also no longer has to carry everything. /edit/new,
      * /interview-studio and /jobs each own their query now, so this names the
      * category and lets the children take the specifics.
      *
@@ -87,7 +87,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         priority: "1.0",
         includeInSitemap: true,
         links: [
-            { href: "/resume-builder", label: "Build a resume free" },
+            { href: "/edit/new", label: "Build a resume free" },
             { href: "/interview-studio", label: "Practice company interviews" },
             { href: "/jobs", label: "Browse open jobs" },
         ],
@@ -224,7 +224,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         ],
         links: [
             { href: "/learning", label: "Browse interview courses" },
-            { href: "/resume-builder", label: "Build a resume for these roles" },
+            { href: "/edit/new", label: "Build a resume for these roles" },
             { href: "/jobs", label: "Find roles to practise for" },
         ],
     },
@@ -286,12 +286,37 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
             },
         ],
         links: [
-            { href: "/resume-builder", label: "Build a resume free" },
+            { href: "/edit/new", label: "Build a resume free" },
             { href: "/interview-studio", label: "Practice interviews at 301 companies" },
         ],
     },
+    /*
+     * The highest-priority commercial page on the site — tied with the
+     * homepage at 1.0, because "resume builder" is the query with the most
+     * volume and the most intent in this category.
+     *
+     * It used to live at /resume-builder, a marketing page whose only job was
+     * to describe the editor and then send you to it. The editor now opens
+     * without an account at /edit/new, so the page in front of it was a step
+     * that cost a click and answered nothing the editor does not answer by
+     * being visible.
+     *
+     * This copy MOVED rather than being deleted, which is the whole point.
+     * Deleting the /resume-builder entry would have retired the site's
+     * best-ranking commercial page and left the query with nowhere to land;
+     * /resume-builder now 301s here (firebase.json) so the ranking follows the
+     * redirect to a URL that serves the same answer.
+     *
+     * The destination has to stay reachable signed-out for this to be honest,
+     * and that precondition is now checked rather than stated: src/App.tsx
+     * routes /edit/new above the /edit/ branch and renders it unwrapped, and
+     * src/lib/routerIndexGuard.test.ts reads that routing chain and fails if any
+     * path in this file is handled by a ProtectedRoute. An indexed page that
+     * answers a crawler with marketing copy and a person with a login form is
+     * cloaking, and it is the exact bug /job-market was removed for.
+     */
     {
-        path: "/resume-builder",
+        path: "/edit/new",
         title: "Free AI Resume Builder | CareerVivid",
         description: "Build a resume free with 36 professional templates, AI drafting from your experience, ATS-aware scoring, and unlimited PDF downloads. No credit card required.",
         heading: "Build a resume that gets read",
@@ -427,7 +452,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
             },
         ],
         links: [
-            { href: "/resume-builder", label: "Build a resume to unlock match scores" },
+            { href: "/edit/new", label: "Build a resume to unlock match scores" },
             { href: "/interview-studio", label: "Practice for these interviews" },
         ],
     },
@@ -494,7 +519,7 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
             },
         ],
         links: [
-            { href: "/resume-builder", label: "Build a resume" },
+            { href: "/edit/new", label: "Build a resume" },
             { href: "/interview-studio", label: "Practice interviews" },
             { href: "/jobs", label: "Browse open jobs" },
             { href: "/learning", label: "Explore learning paths" },

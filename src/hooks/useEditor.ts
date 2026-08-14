@@ -11,7 +11,7 @@ import { playNotificationSound } from '../utils/notificationSound';
 import { getLatestAnnotation, AnnotationObject, subscribeToAnnotations } from '../services/annotationService';
 import { subscribeToComments, Comment } from '../services/commentService';
 import { TEMPLATES } from '../templates';
-import { createNewResume } from '../constants';
+import { createNewResume, createBlankResume } from '../constants';
 import { auth, functions } from '../firebase';
 import { resolveChunkFieldId } from '../utils/resumeTextChunks';
 import { STRIPE_PRICE_IDS } from '../config/stripePrices';
@@ -27,6 +27,54 @@ interface UseEditorProps {
     initialViewMode?: 'edit' | 'preview';
     initialActiveTab?: 'content' | 'template' | 'design' | 'comments' | 'score';
 }
+
+/**
+ * The two editor routes that never touch Firestore.
+ *
+ * `/edit/new` starts a signed-out visitor on a blank draft; `/edit/guest` is
+ * where that draft lives afterwards, and where the demo generator drops its
+ * result. Neither one resolves a document by id, so a guest can never open
+ * somebody else's resume.
+ */
+/**
+ * The features that need a saved resume, as ids rather than display names, so
+ * the prompt they raise can be translated like everything else.
+ */
+export type GuestGatedFeature =
+    | 'sharing'
+    | 'translation'
+    | 'cover_letter'
+    | 'tailor'
+    | 'ai_review'
+    | 'feedback'
+    | 'score_panel';
+
+export const GUEST_RESUME_STORAGE_KEY = 'guestResume';
+const GUEST_ROUTE_IDS = ['guest', 'new'];
+const isGuestRouteId = (id?: string) => Boolean(id && GUEST_ROUTE_IDS.includes(id));
+
+const readGuestDraft = (): ResumeData | null => {
+    try {
+        const stored = localStorage.getItem(GUEST_RESUME_STORAGE_KEY);
+        if (!stored) return null;
+        const parsed = JSON.parse(stored);
+        return parsed && typeof parsed === 'object' ? (parsed as ResumeData) : null;
+    } catch (e) {
+        console.warn('Could not read the guest draft; starting a fresh one.', e);
+        return null;
+    }
+};
+
+const writeGuestDraft = (draft: ResumeData) => {
+    try {
+        localStorage.setItem(GUEST_RESUME_STORAGE_KEY, JSON.stringify(draft));
+    } catch (e) {
+        if (e instanceof Error && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+            console.warn('Storage quota exceeded, clearing guestResume to free up space.');
+            localStorage.removeItem(GUEST_RESUME_STORAGE_KEY);
+        }
+    }
+};
 
 const waitForNextPaint = () =>
     new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -70,8 +118,8 @@ export const useEditor = ({
     initialActiveTab = 'content'
 }: UseEditorProps) => {
     // Hooks & Context
-    const { getResumeById, updateResume, isLoading: isResumeLoading } = useResumes();
-    const { currentUser, userProfile, isPremium } = useAuth();
+    const { getResumeById, updateResume, addBlankResume, isLoading: isResumeLoading } = useResumes();
+    const { currentUser, userProfile, isPremium, loading: isAuthLoading } = useAuth();
     const { theme, toggleTheme } = useTheme();
     const { t } = useTranslation();
 
@@ -90,11 +138,34 @@ export const useEditor = ({
     // Modals & UI States
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
-    const [isGuestMode, setIsGuestMode] = useState(false);
+    /*
+     * Seeded from the route so the first paint of /edit/new or /edit/guest is
+     * the editor, not the "resume not found for this account" screen.
+     *
+     * The route alone decides the FIRST paint, not the mode: the load effect
+     * below turns this off the moment auth resolves to a signed-in user, and
+     * `isGuestDraft` (which is what actually gates saving and every feature
+     * wall) requires `!currentUser` on top of it. Deriving guest mode from the
+     * URL alone sent a signed-in user's keystrokes to localStorage instead of
+     * Firestore and showed them "sign in free" while they were signed in.
+     */
+    const [isGuestMode, setIsGuestMode] = useState(() => isGuestRouteId(resumeId) && !isShared);
     const [isTemplateLoading, setIsTemplateLoading] = useState(false);
+    /*
+     * A signed-in visitor on /edit/new has no document yet: we are either
+     * creating one or waiting for useGuestDataMigration to save their draft and
+     * navigate to it. Without this the editor would show "Resume not found for
+     * this account" for the half second in between, which is both wrong and
+     * alarming.
+     */
+    const [isPreparingResume, setIsPreparingResume] = useState(false);
     const [alertState, setAlertState] = useState({ isOpen: false, title: '', message: '' });
     const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
-    const [isSignupPromptOpen, setIsSignupPromptOpen] = useState(false);
+    const [signupPrompt, setSignupPrompt] = useState<{ isOpen: boolean; title: string; message: string }>({
+        isOpen: false,
+        title: '',
+        message: '',
+    });
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
     const [isBuyingPdfCredit, setIsBuyingPdfCredit] = useState(false);
@@ -126,6 +197,9 @@ export const useEditor = ({
     const [hasViewedFeedback, setHasViewedFeedback] = useState(false);
     const [lastFeedbackTimestamp, setLastFeedbackTimestamp] = useState<number>(0);
     const isInitialLoadRef = useRef(true);
+    const guestDraftLoadedRef = useRef<string | null>(null);
+    /** The uid we have already created a real document for, so we do it once. */
+    const adoptedGuestRouteRef = useRef<string | null>(null);
 
     // Onboarding
     const [showGuideArrow, setShowGuideArrow] = useState(false);
@@ -201,20 +275,16 @@ export const useEditor = ({
 
             if (isShared && onSharedUpdate) {
                 onSharedUpdate(updatedData);
-            } else if (isGuestMode) {
-                try {
-                localStorage.setItem('guestResume', JSON.stringify(newResumeState));
-            } catch (e) {
-                if (e instanceof Error && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-                    console.warn("Storage quota exceeded, clearing guestResume to free up space.");
-                    localStorage.removeItem('guestResume');
-                }
-            }
-            } else {
+            } else if (isGuestMode && !currentUser) {
+                // The browser is the only place this draft exists. A signed-in
+                // user never takes this branch, even on /edit/new — their
+                // keystrokes have an account to go to.
+                writeGuestDraft(newResumeState);
+            } else if (!isGuestMode) {
                 updateResume(resume.id, updatedData);
             }
         }
-    }, [resume, updateResume, isGuestMode, isShared, onSharedUpdate]);
+    }, [resume, updateResume, isGuestMode, isShared, onSharedUpdate, currentUser]);
 
     const handleDesignChange = (updatedData: Partial<ResumeData>) => handleResumeChange(updatedData);
 
@@ -267,17 +337,77 @@ export const useEditor = ({
         setTimeout(() => setIsTemplateLoading(false), 400);
     };
 
-    const handleGuestAction = (actionType: 'download') => {
-        if (isGuestMode && !isShared) {
-            setIsSignupPromptOpen(true);
+    const closeSignupPrompt = useCallback(() => {
+        setSignupPrompt({ isOpen: false, title: '', message: '' });
+    }, []);
+
+    /**
+     * Ask the visitor to sign in, and say what for.
+     *
+     * The old gate showed one generic wall for every blocked action, which read
+     * as "we want your email" rather than "this genuinely cannot run without an
+     * account". Callers pass the real reason instead.
+     */
+    const promptSignIn = useCallback((title?: string, message?: string) => {
+        setSignupPrompt({
+            isOpen: true,
+            title: title || t('editor.signup_prompt_title'),
+            message: message || t('editor.signup_prompt_msg'),
+        });
+    }, [t]);
+
+    /*
+     * A local-only draft: no account to save it to, and no document id for any
+     * Cloud Function to read. Signed in is signed in even on /edit/new, so the
+     * auth check belongs here rather than only in the effect that sets the mode
+     * — this value gates every save path and every feature wall.
+     */
+    const isGuestDraft = isGuestMode && !isShared && !currentUser;
+
+    /** Returns true (and prompts) when the action needs a signed-in account. */
+    const requireAccount = useCallback((title?: string, message?: string) => {
+        if (isGuestDraft) {
+            promptSignIn(title, message);
             return true;
         }
         return false;
-    };
+    }, [isGuestDraft, promptSignIn]);
+
+    /**
+     * Prompt for a feature whose Cloud Function resolves the resume from the
+     * caller's uid — it has no document to read for an unsaved local draft.
+     *
+     * Takes a feature *id*, not a display name. The previous version built
+     * `Sign in to use ${featureName}` out of an English literal passed in by
+     * the caller, which is untranslatable by construction — and this is the
+     * handler behind sharing, translation, AI Tailor, the cover letter, AI
+     * Review and feedback, on routes that are served with a language prefix
+     * (/es/edit/guest). The id picks the translated name out of the same
+     * bundle as the sentence around it.
+     */
+    const promptSignInFor = useCallback((feature: GuestGatedFeature) => {
+        promptSignIn(
+            t('editor.guest.gate_title', { feature: t(`editor.guest.feature_${feature}`) }),
+            t('editor.guest.gate_msg'),
+        );
+    }, [promptSignIn, t]);
+
+    const requireAccountFor = useCallback((feature: GuestGatedFeature) => {
+        if (isGuestDraft) {
+            promptSignInFor(feature);
+            return true;
+        }
+        return false;
+    }, [isGuestDraft, promptSignInFor]);
+
+    const handleShare = useCallback(() => {
+        if (requireAccountFor('sharing')) return;
+        setIsShareModalOpen(true);
+    }, [requireAccountFor]);
 
     const handleBuyOneTimePdfCredit = useCallback(async () => {
         if (!currentUser) {
-            setIsSignupPromptOpen(true);
+            promptSignIn();
             return;
         }
 
@@ -323,19 +453,29 @@ export const useEditor = ({
         } finally {
             setIsBuyingPdfCredit(false);
         }
-    }, [currentUser, resume]);
+    }, [currentUser, resume, promptSignIn]);
 
     const handleExport = async (optionId: string) => {
-        if (handleGuestAction('download')) return;
         if (!resume) return;
+        // PDF is the one export a guest can genuinely complete in the browser.
+        if (optionId !== 'pdf' && requireAccount()) return;
 
         setIsExporting(true);
         const formatName = optionId;
         setExportProgress(t('editor.generating', { format: formatName }));
 
+        // A signed-out visitor's PDF is rasterised in the browser (see the
+        // html2canvas branch below), so it costs us nothing to render — charging
+        // for it would be a paywall in front of an image.
+        //
+        // `!currentUser` is load-bearing, not belt-and-braces: a signed-in user
+        // sitting on /edit/guest still satisfies `canUseBackend`, so without it
+        // they would take the paid puppeteer renderer for free.
+        const isGuestPdf = isGuestDraft && !currentUser && optionId === 'pdf';
+
         try {
             const canUseDownloadCredit = !isShared && downloadCredits > 0;
-            if (optionId === 'pdf' && !isPremium && !canUseDownloadCredit) {
+            if (optionId === 'pdf' && !isPremium && !canUseDownloadCredit && !isGuestPdf) {
                 setIsExporting(false);
                 setIsUpgradeModalOpen(true);
                 return;
@@ -382,6 +522,12 @@ export const useEditor = ({
                     const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
                     pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
                     pdf.save(`${resume.title}.pdf`);
+                    if (isGuestPdf) {
+                        // Say what they actually got. This path pastes a picture of
+                        // the resume into a PDF: no selectable text, so no applicant
+                        // tracking system can read a word of it.
+                        setToastMessage(t('editor.guest.pdf_image_toast'));
+                    }
                 } else {
                     const dataUrl = canvas.toDataURL('image/png');
                     const link = document.createElement('a');
@@ -405,6 +551,9 @@ export const useEditor = ({
 
     const handleTranslateResume = async (targetLanguageCode: string) => {
         if (!resume) return;
+        // Translation duplicates the stored document into a second resume, so
+        // there has to be a stored document first.
+        if (requireAccountFor('translation')) return;
         setIsTranslating(true);
         try {
             const newResumeId = await duplicateAndTranslateResume(resume.id!, targetLanguageCode);
@@ -490,8 +639,14 @@ export const useEditor = ({
     };
 
     const handleGoogleDocsExport = async (format: 'google-docs' | 'docx' = 'google-docs') => {
-        if (handleGuestAction('download')) return;
         if (!resume) return;
+        // Both of these build the file inside the user's own Google Drive
+        // (functions/src/googleDocs.ts needs a Drive OAuth access token), so
+        // there is no signed-out version of them to offer.
+        if (requireAccount(
+            t('editor.guest.docs_title'),
+            format === 'docx' ? t('editor.guest.docs_msg_docx') : t('editor.guest.docs_msg_gdoc'),
+        )) return;
 
         const exportUser = await getExportUser();
 
@@ -609,22 +764,36 @@ export const useEditor = ({
     };
 
     const toggleFeedbackOverlay = () => {
-        setShowAnnotationOverlay(!showAnnotationOverlay);
-        if (!showAnnotationOverlay) {
-            if (activeTab !== 'comments') setPreviousTab(activeTab as 'content' | 'template' | 'design');
-            setSidebarMode('standard');
-            setActiveTab('comments');
-            setHasViewedFeedback(true);
-            const storageKey = `feedback_viewed_${currentUser!.uid}_${resume!.id}`;
-            const currentTimestamp = Date.now();
-            setLastFeedbackTimestamp(currentTimestamp);
-            try {
-                localStorage.setItem(storageKey, JSON.stringify({ viewed: true, timestamp: currentTimestamp }));
-            } catch (e) {
-                // Ignore storage errors for view tracking
-            }
-        } else {
+        // Closing never needs an account — do it before any guard, or a guest who
+        // somehow opened the overlay could not shut it again.
+        if (showAnnotationOverlay) {
+            setShowAnnotationOverlay(false);
             setActiveTab(previousTab);
+            return;
+        }
+
+        // Comments and annotations are stored under the owner's uid alongside the
+        // saved resume; an unsaved local draft has neither.
+        if (!currentUser || !resume?.id || isGuestDraft) {
+            promptSignIn(
+                t('editor.guest.feedback_title'),
+                t('editor.guest.feedback_msg'),
+            );
+            return;
+        }
+
+        setShowAnnotationOverlay(true);
+        if (activeTab !== 'comments') setPreviousTab(activeTab as 'content' | 'template' | 'design');
+        setSidebarMode('standard');
+        setActiveTab('comments');
+        setHasViewedFeedback(true);
+        const storageKey = `feedback_viewed_${currentUser.uid}_${resume.id}`;
+        const currentTimestamp = Date.now();
+        setLastFeedbackTimestamp(currentTimestamp);
+        try {
+            localStorage.setItem(storageKey, JSON.stringify({ viewed: true, timestamp: currentTimestamp }));
+        } catch (e) {
+            // Ignore storage errors for view tracking
         }
     };
 
@@ -714,16 +883,85 @@ export const useEditor = ({
             setIsGuestMode(false);
             return;
         }
-        if (resumeId === 'guest') {
+        if (isGuestRouteId(resumeId)) {
+            // Until auth resolves we do not know which of the two branches below
+            // applies, and guessing wrong writes a signed-in user's work into
+            // localStorage.
+            if (isAuthLoading) return;
+
+            /*
+             * Signed in on a guest route: give them a real document.
+             *
+             * /edit/new is a public URL — it is where /resume-builder and
+             * /resume-templates 301 to, and it is in the sitemap — so signed-in
+             * people land on it too, from a bookmark, a marketing link or the
+             * back button. Left in guest mode they would type into localStorage
+             * while every button told them to sign in.
+             */
+            if (currentUser) {
+                setIsGuestMode(false);
+                // A draft left over from before they signed in belongs to
+                // useGuestDataMigration, which saves it and navigates to the
+                // saved copy. Creating a document here as well would give them
+                // two of the same resume.
+                setIsPreparingResume(true);
+                if (readGuestDraft()) return;
+                if (isResumeLoading) return;
+                if (adoptedGuestRouteRef.current === currentUser.uid) return;
+                adoptedGuestRouteRef.current = currentUser.uid;
+
+                void (async () => {
+                    // Navigates to /edit/{id} on success, and alerts without
+                    // navigating when the account is at its resume limit — in
+                    // which case the dashboard is the only place left to go.
+                    await addBlankResume();
+                    if (typeof window !== 'undefined' && /\/edit\/(guest|new)(\/|$)/.test(window.location.pathname)) {
+                        navigate('/dashboard');
+                    }
+                    setIsPreparingResume(false);
+                })();
+                return;
+            }
+
             setIsGuestMode(true);
-            const guestResumeJson = localStorage.getItem('guestResume');
-            if (guestResumeJson) {
-                const guestResume = JSON.parse(guestResumeJson);
-                setResume(guestResume);
-                setActiveTemplate(TEMPLATES.find(t => t.id === guestResume.templateId) || TEMPLATES[0]);
-                setViewMode('preview');
-            } else {
-                navigate('/demo');
+
+            // Load the draft once per route. This effect also re-runs when the
+            // resume subscription settles, and re-reading localStorage then
+            // would throw away whatever the guest has typed since.
+            if (guestDraftLoadedRef.current === resumeId) return;
+            guestDraftLoadedRef.current = resumeId ?? null;
+
+            /*
+             * No id, no Firestore read: the draft is whatever this browser has,
+             * and a blank one if it has nothing. `/edit/new` used to be the only
+             * way in and bounced empty-handed visitors to /demo; now it starts
+             * them writing instead.
+             *
+             * The blank one is NOT written to localStorage. It used to be, and
+             * an untouched blank draft is indistinguishable from real work to
+             * useGuestDataMigration, so someone who opened the editor, typed
+             * nothing and signed up a week later got an empty "Untitled Resume"
+             * imported into their account — which on the free tier is the one
+             * resume slot they had. The first real edit persists it
+             * (handleResumeChange), and nothing before that is worth keeping.
+             */
+            let draft = readGuestDraft();
+            if (!draft) {
+                draft = { ...createBlankResume(), id: 'guest' };
+            }
+
+            setResume(draft);
+            setActiveTemplate(TEMPLATES.find(t => t.id === draft!.templateId) || TEMPLATES[0]);
+
+            // Park the tab on /edit/guest so a reload reopens the same draft
+            // rather than asking for another new one. replaceState keeps the
+            // editor mounted; navigate() would tear it down mid-edit.
+            if (resumeId === 'new' && typeof window !== 'undefined') {
+                // Keep any language prefix; only the /edit/new segment changes.
+                const guestPath = window.location.pathname.replace(/\/edit\/new(?=\/|$)/, '/edit/guest');
+                if (guestPath !== window.location.pathname) {
+                    window.history.replaceState(null, '', `${guestPath}${window.location.search}${window.location.hash}`);
+                }
             }
             return;
         }
@@ -735,7 +973,7 @@ export const useEditor = ({
                 setActiveTemplate(TEMPLATES.find(t => t.id === loadedResume.templateId) || TEMPLATES[0]);
             }
         }
-    }, [resumeId, getResumeById, isResumeLoading, isShared, initialData]);
+    }, [resumeId, getResumeById, isResumeLoading, isShared, initialData, currentUser, isAuthLoading, addBlankResume]);
 
     useEffect(() => { setTempPhoto(null); }, [resumeId]);
 
@@ -818,14 +1056,18 @@ export const useEditor = ({
         setIsConfirmModalOpen,
         showCelebration,
         isGuestMode,
+        isGuestDraft,
         isResumeLoading,
+        isPreparingResume,
         isTemplateLoading,
         alertState,
         setAlertState,
         isFeedbackModalOpen,
         setIsFeedbackModalOpen,
-        isSignupPromptOpen,
-        setIsSignupPromptOpen,
+        signupPrompt,
+        closeSignupPrompt,
+        promptSignIn,
+        promptSignInFor,
         isUpgradeModalOpen,
         setIsUpgradeModalOpen,
         isExporting,
@@ -843,6 +1085,7 @@ export const useEditor = ({
         showAnnotationOverlay,
         isShareModalOpen,
         setIsShareModalOpen,
+        handleShare,
         comments,
         toastMessage,
         setToastMessage,

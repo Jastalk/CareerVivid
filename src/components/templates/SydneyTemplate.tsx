@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import IconDisplay from '../IconDisplay';
 import { inkOn, readableAccent, readableBorder } from '../../utils/templateInk';
 
@@ -43,7 +44,7 @@ export const SydneyTemplate: React.FC<TemplateProps> = ({ resume, themeColor, ti
             {websites.map((site, index) => (
               <div key={site.id} className="flex items-center">
                   <IconDisplay iconName={site.icon || 'globe'} size={16} className="mr-3 flex-shrink-0 transform translate-y-px" />
-                  <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary-400 break-all" style={{color: readableAccent(themeColor, '#1f2937')}}>
+                  <a href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-400 break-all" style={{color: readableAccent(themeColor, '#1f2937')}}>
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               </div>

@@ -4,7 +4,7 @@
 
 ### One practical workspace for the job search, interview practice, and skill building.
 
-[Open the product](https://careervivid.app) · [Build a resume](https://careervivid.app/resume-builder) · [Practice interviews](https://careervivid.app/interview-studio) · [Browse open jobs](https://careervivid.app/jobs) · [Browse courses](https://careervivid.app/learning) · [Read the competition guide](COMPETITION.md)
+[Open the product](https://careervivid.app) · [Build a resume](https://careervivid.app/edit/new) · [Practice interviews](https://careervivid.app/interview-studio) · [Browse open jobs](https://careervivid.app/jobs) · [Browse courses](https://careervivid.app/learning) · [Read the competition guide](COMPETITION.md)
 
 </div>
 
@@ -16,7 +16,7 @@ Three surfaces are public, so you can see the real product before signing up:
 
 | | |
 | --- | --- |
-| [careervivid.app/resume-builder](https://careervivid.app/resume-builder) | The builder and all 36 templates |
+| [careervivid.app/edit/new](https://careervivid.app/edit/new) | The builder and all 36 templates, no account needed |
 | [careervivid.app/jobs](https://careervivid.app/jobs) | Verified, still-open job listings |
 | [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | Interview questions for 301 companies |
 

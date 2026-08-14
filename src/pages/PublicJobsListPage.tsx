@@ -14,6 +14,11 @@
  *
  * Pagination is real URLs (/jobs, /jobs/2, …) rather than a state variable,
  * so a page of results can be linked, shared, and crawled.
+ *
+ * The surface is the public desk: MenuBar, window chrome on each listing, and
+ * --cvl-* tokens throughout. Every job is a little window on the desk, which is
+ * also why the title bar carries the employer rather than the role — you scan a
+ * grid of these by company first.
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -21,10 +26,11 @@ import { Helmet } from 'react-helmet-async';
 import {
     Briefcase, MapPin, ExternalLink, Lock, Building2, Clock, AlertCircle, Loader2,
 } from 'lucide-react';
-import PublicHeader from '../components/PublicHeader';
-import Footer from '../components/Footer';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
+import '../components/Landing/live/liveLanding.css';
 import { navigate } from '../utils/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { toSafeExternalUrl } from '../utils/safeUrl';
 
 const FEED_URL = 'https://us-west1-jastalk-firebase.cloudfunctions.net/publicJobFeed';
 
@@ -84,8 +90,21 @@ export function pageWindow(current: number, total: number): Array<number | 'gap'
     return out;
 }
 
+/** The employer, as the filename in a window's title bar. */
+const cardFilename = (company: string): string => {
+    const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `${slug || 'listing'}.job`;
+};
+
 const Chip: React.FC<{ icon?: React.ReactNode; children: React.ReactNode }> = ({ icon, children }) => (
-    <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--cv-surface-warm-muted)] px-2.5 py-1 text-xs font-semibold text-[var(--cv-text-muted)]">
+    <span
+        className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[12px] font-medium"
+        style={{
+            background: 'var(--cvl-paper-2)',
+            borderColor: 'var(--cvl-line)',
+            color: 'var(--cvl-muted)',
+        }}
+    >
         {icon}
         {children}
     </span>
@@ -102,86 +121,133 @@ const LockedScore: React.FC<{ signedIn: boolean }> = ({ signedIn }) => (
     <button
         type="button"
         onClick={() => navigate(signedIn ? '/newresume' : '/signup')}
-        className="group flex w-full items-center justify-between gap-3 rounded-xl border border-dashed border-[var(--cv-border-warm)] px-3 py-2.5 text-left transition-colors hover:border-[var(--cv-action-primary)] hover:bg-[var(--cv-action-soft-bg)]"
+        // .cvl-btn already carries the border, the paper fill and the hover that
+        // pulls the border to purple; only the dash is this control's own — and
+        // it has to be inline, because .cvl-btn sets the `border` shorthand and
+        // would reset a `border-dashed` utility back to solid.
+        className="cvl-btn group flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left"
+        style={{ borderStyle: 'dashed', color: 'var(--cvl-muted)' }}
     >
         <span className="flex items-center gap-2">
-            <Lock className="h-3.5 w-3.5 shrink-0 text-[var(--cv-text-muted)]" />
-            <span className="text-xs font-semibold text-[var(--cv-text-muted)]">
+            <Lock size={13} className="shrink-0" />
+            <span className="text-[12.5px] font-medium">
                 {signedIn ? 'Add a resume to see your match' : 'See how well you match'}
             </span>
         </span>
-        <span className="shrink-0 text-xs font-black text-[var(--cv-action-primary)] group-hover:underline">
+        <span
+            className="shrink-0 text-[12.5px] font-semibold group-hover:underline"
+            style={{ color: 'var(--cvl-purple)' }}
+        >
             {signedIn ? 'Build one' : 'Free account'}
         </span>
     </button>
 );
 
 const JobCard: React.FC<{ job: PublicJob; signedIn: boolean }> = ({ job, signedIn }) => (
-    <article className="cv-design-card cv-design-card-hover flex flex-col gap-3 p-5">
-        <header className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--cv-surface-warm-muted)]">
-                <Building2 className="h-5 w-5 text-[var(--cv-text-muted)]" />
-            </div>
-            <div className="min-w-0 flex-1">
-                <h2 className="truncate text-base font-black leading-snug text-[var(--cv-text-heading)]">
+    <article className="cvl-win cvl-win-lift flex flex-col">
+        <div className="cvl-bar">
+            <span className="cvl-dot cvl-dot-r" />
+            <span className="cvl-dot cvl-dot-y" />
+            <span className="cvl-dot cvl-dot-g" />
+            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-muted)' }}>
+                {cardFilename(job.company)}
+            </span>
+        </div>
+
+        <div className="flex flex-1 flex-col gap-3 p-5">
+            <header className="min-w-0">
+                <h2 className="truncate text-[15px] font-semibold leading-snug tracking-tight">
                     {job.title}
                 </h2>
                 {job.company && (
-                    <p className="truncate text-sm font-semibold text-[var(--cv-text-muted)]">{job.company}</p>
+                    <p
+                        className="mt-1 flex items-center gap-1.5 truncate text-[13px]"
+                        style={{ color: 'var(--cvl-muted)' }}
+                    >
+                        <Building2 size={12} className="shrink-0" />
+                        <span className="truncate">{job.company}</span>
+                    </p>
+                )}
+            </header>
+
+            <div className="flex flex-wrap gap-1.5">
+                {job.location && <Chip icon={<MapPin size={12} />}>{job.location}</Chip>}
+                {job.workModel && <Chip>{job.workModel}</Chip>}
+                {job.jobType && <Chip icon={<Briefcase size={12} />}>{job.jobType}</Chip>}
+                {job.seniority && <Chip>{job.seniority}</Chip>}
+            </div>
+
+            {job.description && (
+                <p className="line-clamp-3 text-[13.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
+                    {job.description}
+                </p>
+            )}
+
+            {job.salary && (
+                <p className="cvl-mono text-[13px] font-semibold" style={{ color: 'var(--cvl-green)' }}>
+                    {job.salary}
+                </p>
+            )}
+
+            <LockedScore signedIn={signedIn} />
+
+            <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+                {job.postedAt ? (
+                    <span
+                        className="cvl-mono inline-flex items-center gap-1.5 text-[11.5px]"
+                        style={{ color: 'var(--cvl-faint)' }}
+                    >
+                        <Clock size={12} />
+                        {job.postedAt}
+                    </span>
+                ) : <span />}
+                {/*
+                  * applyUrl comes from a scraped third-party feed, so it is not
+                  * ours and it is not validated upstream. This is the only
+                  * UNAUTHENTICATED page in the app that puts a third-party
+                  * string in an href, and neither attribute below helps:
+                  * browsers ignore target="_blank" for `javascript:` and run it
+                  * in the current document, and rel has no bearing on scheme.
+                  * toSafeExternalUrl rather than safeUrl because an apply link
+                  * is always a web page — http/https only, no mailto, no
+                  * relative path. A feed row that fails it renders as plain
+                  * text rather than a live link.
+                  */}
+                {toSafeExternalUrl(job.applyUrl) ? (
+                    <a
+                        href={toSafeExternalUrl(job.applyUrl) as string}
+                        target="_blank"
+                        // noopener because these are third-party ATS pages; noreferrer
+                        // keeps the employer from seeing which listing page sent them.
+                        rel="noopener noreferrer nofollow"
+                        className="cvl-cta inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold transition"
+                    >
+                        View job
+                        <ExternalLink size={13} />
+                    </a>
+                ) : (
+                    <span className="cvl-mono text-[11.5px]" style={{ color: 'var(--cvl-faint)' }}>
+                        No apply link
+                    </span>
                 )}
             </div>
-        </header>
-
-        <div className="flex flex-wrap gap-1.5">
-            {job.location && <Chip icon={<MapPin className="h-3 w-3" />}>{job.location}</Chip>}
-            {job.workModel && <Chip>{job.workModel}</Chip>}
-            {job.jobType && <Chip icon={<Briefcase className="h-3 w-3" />}>{job.jobType}</Chip>}
-            {job.seniority && <Chip>{job.seniority}</Chip>}
-        </div>
-
-        {job.description && (
-            <p className="line-clamp-3 text-sm leading-relaxed text-[var(--cv-text-body)]">{job.description}</p>
-        )}
-
-        {job.salary && (
-            <p className="text-sm font-bold text-[var(--cv-text-heading)]">{job.salary}</p>
-        )}
-
-        <LockedScore signedIn={signedIn} />
-
-        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
-            {job.postedAt ? (
-                <span className="inline-flex items-center gap-1.5 text-xs text-[var(--cv-text-muted)]">
-                    <Clock className="h-3 w-3" />
-                    {job.postedAt}
-                </span>
-            ) : <span />}
-            <a
-                href={job.applyUrl}
-                target="_blank"
-                // noopener because these are third-party ATS pages; noreferrer
-                // keeps the employer from seeing which listing page sent them.
-                rel="noopener noreferrer nofollow"
-                className="cv-design-button-primary inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-black"
-            >
-                View job
-                <ExternalLink className="h-3.5 w-3.5" />
-            </a>
         </div>
     </article>
 );
 
 const CardSkeleton: React.FC = () => (
-    <div className="cv-design-card animate-pulse space-y-3 p-5">
-        <div className="flex gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-[var(--cv-border-warm)]" />
-            <div className="flex-1 space-y-2 pt-1">
-                <div className="h-4 w-3/4 rounded bg-[var(--cv-border-warm)]" />
-                <div className="h-3 w-1/2 rounded bg-[var(--cv-border-warm)]" />
-            </div>
+    <div className="cvl-win">
+        <div className="cvl-bar">
+            <span className="cvl-dot cvl-dot-r" />
+            <span className="cvl-dot cvl-dot-y" />
+            <span className="cvl-dot cvl-dot-g" />
         </div>
-        <div className="h-16 rounded-xl bg-[var(--cv-surface-warm-muted)]" />
-        <div className="h-10 rounded-xl bg-[var(--cv-surface-warm-muted)]" />
+        <div className="animate-pulse space-y-3 p-5">
+            <div className="h-4 w-3/4 rounded" style={{ background: 'var(--cvl-line)' }} />
+            <div className="h-3 w-1/2 rounded" style={{ background: 'var(--cvl-line)' }} />
+            <div className="h-16 rounded-xl" style={{ background: 'var(--cvl-paper-2)' }} />
+            <div className="h-10 rounded-xl" style={{ background: 'var(--cvl-paper-2)' }} />
+        </div>
     </div>
 );
 
@@ -232,7 +298,7 @@ const PublicJobsListPage: React.FC = () => {
     const canonical = `https://careervivid.app${pathForPage(page)}`;
 
     return (
-        <div className="min-h-screen bg-[var(--cv-bg-public)]">
+        <div className="cvl min-h-screen">
             <Helmet>
                 {/* A single expression: Helmet rejects a <title> with more than one child. */}
                 <title>{page > 1 ? `Open Jobs — Page ${page}` : 'Browse Open Jobs'}</title>
@@ -248,23 +314,34 @@ const PublicJobsListPage: React.FC = () => {
                 {page < totalPages && <link rel="next" href={`https://careervivid.app${pathForPage(page + 1)}`} />}
             </Helmet>
 
-            <PublicHeader variant="editorial" />
+            <MenuBar />
 
-            <main className="pt-24">
-                <section className="mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 lg:px-8">
-                    <h1 className="text-3xl font-black leading-tight text-[var(--cv-text-heading)] sm:text-4xl">
+            <main className="mx-auto w-full max-w-[1400px] px-4 pb-16 pt-10 sm:px-6 sm:pt-14 lg:px-8">
+                <header className="max-w-2xl">
+                    <p className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-faint)' }}>
+                        open roles
+                    </p>
+                    <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
                         Open jobs, checked before you click
                     </h1>
-                    <p className="mt-3 max-w-2xl text-base leading-relaxed text-[var(--cv-text-body)]">
+                    <p className="mt-4 text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                         Every listing here was fetched from a company&rsquo;s own careers page and re-checked
                         before being shown, so the roles you open are still open. Browsing needs no account.
                     </p>
-                </section>
+                </header>
 
-                <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+                <section className="mt-9">
                     {error && (
-                        <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
-                            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                        <div
+                            role="alert"
+                            className="mb-6 flex items-start gap-2.5 rounded-xl border px-4 py-3 text-[13.5px] font-medium"
+                            style={{
+                                borderColor: 'color-mix(in srgb, var(--cvl-danger) 45%, transparent)',
+                                background: 'var(--cvl-danger-soft)',
+                                color: 'var(--cvl-danger)',
+                            }}
+                        >
+                            <AlertCircle size={15} className="mt-0.5 shrink-0" />
                             {error}
                         </div>
                     )}
@@ -278,7 +355,7 @@ const PublicJobsListPage: React.FC = () => {
                     </div>
 
                     {!loading && !error && jobs.length === 0 && (
-                        <p className="py-16 text-center text-[var(--cv-text-muted)]">
+                        <p className="py-16 text-center text-[14px]" style={{ color: 'var(--cvl-muted)' }}>
                             No open roles on this page right now. Try page one.
                         </p>
                     )}
@@ -289,14 +366,14 @@ const PublicJobsListPage: React.FC = () => {
                                 type="button"
                                 onClick={() => goToPage(page - 1)}
                                 disabled={page <= 1 || loading}
-                                className="rounded-xl border border-[var(--cv-border-warm)] px-3.5 py-2 text-sm font-bold text-[var(--cv-text-body)] transition-colors hover:bg-[var(--cv-surface-warm-muted)] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="cvl-btn rounded-lg px-3.5 py-2 text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Previous
                             </button>
 
                             {pageWindow(page, totalPages).map((entry, i) =>
                                 entry === 'gap' ? (
-                                    <span key={`gap-${i}`} className="px-1 text-[var(--cv-text-muted)]">…</span>
+                                    <span key={`gap-${i}`} className="px-1" style={{ color: 'var(--cvl-faint)' }}>…</span>
                                 ) : (
                                     <a
                                         key={entry}
@@ -305,10 +382,18 @@ const PublicJobsListPage: React.FC = () => {
                                         href={pathForPage(entry)}
                                         onClick={(e) => { e.preventDefault(); goToPage(entry); }}
                                         aria-current={entry === page ? 'page' : undefined}
-                                        className={`min-w-[2.5rem] rounded-xl px-3 py-2 text-center text-sm font-bold transition-colors ${
-                                            entry === page
-                                                ? 'cv-design-button-primary'
-                                                : 'border border-[var(--cv-border-warm)] text-[var(--cv-text-body)] hover:bg-[var(--cv-surface-warm-muted)]'
+                                        /*
+                                         * inline-flex because this is an <a>:
+                                         * .cvl-cta and .cvl-btn set colour only,
+                                         * and on an inline box min-width does
+                                         * not apply at all while padding paints
+                                         * without growing the line box — the
+                                         * current page would render narrower
+                                         * than its siblings with its fill
+                                         * bleeding over the rows around it.
+                                         */
+                                        className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-lg px-3 py-2 text-center text-[13px] font-semibold ${
+                                            entry === page ? 'cvl-cta' : 'cvl-btn'
                                         }`}
                                     >
                                         {entry}
@@ -320,17 +405,17 @@ const PublicJobsListPage: React.FC = () => {
                                 type="button"
                                 onClick={() => goToPage(page + 1)}
                                 disabled={page >= totalPages || loading}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--cv-border-warm)] px-3.5 py-2 text-sm font-bold text-[var(--cv-text-body)] transition-colors hover:bg-[var(--cv-surface-warm-muted)] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="cvl-btn inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 Next
-                                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                {loading && <Loader2 size={13} className="animate-spin" />}
                             </button>
                         </nav>
                     )}
                 </section>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };

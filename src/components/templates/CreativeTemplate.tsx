@@ -1,6 +1,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import IconDisplay from '../IconDisplay';
 import { inkOn, readableAccent } from '../../utils/templateInk';
 
@@ -71,7 +72,7 @@ export const CreativeTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
             {websites.map((site, index) => (
               <div key={site.id} className="flex items-center">
                   <IconDisplay iconName={site.icon || 'globe'} size={14} className="mr-3 flex-shrink-0 transform translate-y-px" />
-                  <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary-300 break-all">
+                  <a href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:text-primary-300 break-all">
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               </div>

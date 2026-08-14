@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import { readableAccent } from '../../utils/templateInk';
 
 export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
@@ -53,7 +54,7 @@ export const MinimalistTemplate: React.FC<TemplateProps> = ({ resume, themeColor
         {websites.map((site, index) => (
           <React.Fragment key={site.id}>
             <span className="mx-2">|</span>
-            <a href={site.url} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900" style={{color: readableAccent(themeColor)}}>
+            <a href={safeUrl(site.url)} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900" style={{color: readableAccent(themeColor)}}>
                 <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
             </a>
           </React.Fragment>

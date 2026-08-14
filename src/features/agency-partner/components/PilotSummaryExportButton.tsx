@@ -3,11 +3,23 @@ import { Download, Printer } from 'lucide-react';
 import type { AgencyBranchProfile, AgencyPrepSession } from '../types';
 import { buildExportFilename, buildSessionsCsv } from '../services/pilotExportService';
 import { formatMinutesSaved, summarizeTimeSaved } from '../utils/timeSaved';
+import { printNodeContents } from './CandidateReadinessSnapshot';
 
 interface PilotSummaryExportButtonProps {
   branch: AgencyBranchProfile | null;
   sessions: AgencyPrepSession[];
 }
+
+/** Constant stylesheet for the printed summary — no branch or candidate text in it. */
+const PRINT_STYLES = `
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 32px; color: #211b16; background: #fffaf1; }
+            h1 { font-size: 22px; margin: 0 0 4px 0; }
+            h2 { font-size: 14px; margin: 24px 0 8px; color: #8b5a16; text-transform: uppercase; letter-spacing: 0.06em; }
+            table { border-collapse: collapse; width: 100%; font-size: 13px; }
+            th, td { border-bottom: 1px solid #e4d3bc; padding: 8px 12px; text-align: left; }
+            th { background: #fdf5e8; }
+            .hero { display: inline-block; padding: 14px 18px; border: 1px solid #e4d3bc; border-radius: 12px; background: #fdf5e8; }
+`;
 
 const PilotSummaryExportButton: React.FC<PilotSummaryExportButtonProps> = ({ branch, sessions }) => {
   const [isPreparing, setIsPreparing] = useState(false);
@@ -29,31 +41,16 @@ const PilotSummaryExportButton: React.FC<PilotSummaryExportButtonProps> = ({ bra
     }
   };
 
+  // Prints through a hidden iframe built with DOM calls. The old version
+  // document.write'd the branch name into a same-origin about:blank window,
+  // which let a branch name close the <title> and run script on our origin.
   const handlePrint = () => {
     if (!printableRef.current) return;
-    const printContents = printableRef.current.innerHTML;
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${branch?.branchName || 'CareerVivid'} pilot summary</title>
-          <style>
-            body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 32px; color: #211b16; background: #fffaf1; }
-            h1 { font-size: 22px; margin: 0 0 4px 0; }
-            h2 { font-size: 14px; margin: 24px 0 8px; color: #8b5a16; text-transform: uppercase; letter-spacing: 0.06em; }
-            table { border-collapse: collapse; width: 100%; font-size: 13px; }
-            th, td { border-bottom: 1px solid #e4d3bc; padding: 8px 12px; text-align: left; }
-            th { background: #fdf5e8; }
-            .hero { display: inline-block; padding: 14px 18px; border: 1px solid #e4d3bc; border-radius: 12px; background: #fdf5e8; }
-          </style>
-        </head>
-        <body>${printContents}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    printNodeContents(
+      printableRef.current,
+      `${branch?.branchName || 'CareerVivid'} pilot summary`,
+      PRINT_STYLES,
+    );
   };
 
   const timeSaved = summarizeTimeSaved(sessions);

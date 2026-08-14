@@ -885,7 +885,7 @@ const InterviewStudio: React.FC<InterviewStudioProps> = ({ jobId }) => {
     }
 
     return (
-        <AppLayout>
+        <AppLayout publicWhenSignedOut>
             {authGate && <AuthGateModal {...authGate} onClose={() => setAuthGate(null)} />}
             <CreditLimitModal />
             <div className="cvl relative min-h-screen pb-16 text-left">

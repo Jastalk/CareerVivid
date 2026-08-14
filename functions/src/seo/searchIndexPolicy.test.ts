@@ -27,8 +27,15 @@ const wordsOn = (page: SearchPageDefinition): number => {
     return text.split(/\s+/).filter(Boolean).length;
 };
 
-/** The pages that have to answer a commercial query, not just exist. */
-const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/resume-builder', '/jobs'];
+/**
+ * The pages that have to answer a commercial query, not just exist.
+ *
+ * /edit/new is here in place of /resume-builder. The marketing page in front of
+ * the editor is gone and the editor itself is the destination now, but the
+ * query it has to answer — "resume builder", the highest-intent one in this
+ * category — did not go anywhere, so the bar it has to clear did not either.
+ */
+const MONEY_PAGES = ['/pricing', '/interview-studio', '/product', '/edit/new', '/jobs'];
 
 const page = (path: string): SearchPageDefinition => {
     const found = getSearchPage(path);
@@ -91,12 +98,70 @@ describe('crawler-facing content', () => {
 });
 
 /*
+ * /resume-builder was a marketing page in front of an editor that now opens
+ * without an account, so it was a click that bought nothing and it is gone.
+ * firebase.json 301s it — and /resume-templates, which used to point AT it — to
+ * /edit/new.
+ *
+ * The failure mode this guards is not the redirect itself but what gets left
+ * behind: a crawler entry still advertising a URL that 301s, or an internal
+ * link still pointing through the redirect. Both are cheap to reintroduce by
+ * copying an older link, and neither breaks anything visibly.
+ */
+describe('the retired /resume-builder path', () => {
+    const RETIRED = '/resume-builder';
+
+    it('is no longer served to crawlers', () => {
+        expect(getSearchPage(RETIRED)).toBeUndefined();
+    });
+
+    it('is not linked from any page, so no internal link goes through a redirect', () => {
+        for (const p of SEARCH_PAGES) {
+            for (const link of p.links ?? []) {
+                expect(link.href, `${p.path} -> ${link.href}`).not.toBe(RETIRED);
+            }
+            for (const section of p.sections ?? []) {
+                for (const link of section.links ?? []) {
+                    expect(link.href, `${p.path} -> ${link.href}`).not.toBe(RETIRED);
+                }
+            }
+        }
+    });
+
+    /*
+     * The point of moving the copy rather than deleting it. This was the
+     * joint-highest priority in the sitemap; if the destination is not carrying
+     * that weight, the redirect is pointing at a page that cannot hold the
+     * ranking it inherits.
+     */
+    it('hands its priority to the editor it redirects to', () => {
+        const destination = getSearchPage('/edit/new');
+        expect(destination?.priority).toBe('1.0');
+        expect(destination?.includeInSitemap).toBe(true);
+        expect(destination?.indexable).not.toBe(false);
+    });
+
+    it('still says "resume builder", which is the query it has to keep', () => {
+        expect(getSearchPage('/edit/new')?.title).toMatch(/resume builder/i);
+    });
+});
+
+/*
  * /job-market is a ProtectedRoute. It sat in the sitemap carrying Google's
  * "Explore the job market" sitelink, so every searcher who clicked it hit a
  * login wall — a click spent for nothing, and the kind of page Google learns
  * to stop showing.
  */
 describe('nothing behind a login wall is advertised to search engines', () => {
+    /*
+     * A hand-maintained deny-list, and it cannot be the real guard: nobody adds
+     * a path here that they did not already know was gated, which is how
+     * /edit/new was advertised at priority 1.0 while ProtectedRoute sent every
+     * human who clicked it to /signin. The guard derived from the router lives
+     * in src/lib/routerIndexGuard.test.ts — it reads the routing chain in
+     * App.tsx and needs no list. This list stays as a regression pin for the
+     * pages that have already been caught.
+     */
     const GATED = ['/job-market', '/jobmarket', '/dashboard', '/newresume', '/jobs/recommend', '/job-tracker'];
 
     it.each(GATED)('%s is not in SEARCH_PAGES', (path) => {

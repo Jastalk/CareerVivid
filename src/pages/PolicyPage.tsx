@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import Footer from '../components/Footer';
-import { MenuBar } from '../components/Landing/live/PublicShell';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import '../components/Landing/live/liveLanding.css';
 
 /**
@@ -344,7 +343,7 @@ const PolicyPage: React.FC = () => {
                 </div>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };

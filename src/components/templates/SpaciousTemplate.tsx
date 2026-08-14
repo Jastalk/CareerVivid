@@ -2,6 +2,7 @@
 import React from 'react';
 import { ResumeData, TemplateProps } from '../../types';
 import InlineEdit from '../InlineEdit';
+import { safeUrl } from '../../utils/safeUrl';
 import { readableAccent } from '../../utils/templateInk';
 
 export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, titleFont, bodyFont, onFocus }) => {
@@ -53,7 +54,7 @@ export const SpaciousTemplate: React.FC<TemplateProps> = ({ resume, themeColor, 
               <InlineEdit value={personalDetails.phone} fieldId="personalDetails.phone" onFocus={onFocus} placeholder="Phone" className="block" />
               <InlineEdit value={personalDetails.address} fieldId="personalDetails.address" onFocus={onFocus} placeholder="Address" className="block" />
               {websites.map((site, index) => (
-                  <a key={site.id} href={site.url} className="block hover:underline" style={{color: readableAccent(themeColor)}}>
+                  <a key={site.id} href={safeUrl(site.url)} className="block hover:underline" style={{color: readableAccent(themeColor)}}>
                       <InlineEdit value={site.label} fieldId={`websites[${index}].label`} onFocus={onFocus} isLink />
                   </a>
               ))}

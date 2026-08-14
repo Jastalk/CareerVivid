@@ -7,6 +7,7 @@ import {
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '@/firebase';
 import { ResumeData } from '@/types';
+import { describeCustomCssRejection, sanitizeCustomCss } from '@/utils/sanitizeCustomCss';
 
 interface AICodeCustomizerModalProps {
     isOpen: boolean;
@@ -40,6 +41,20 @@ const AICodeCustomizerModal: React.FC<AICodeCustomizerModalProps> = ({
 
     const currentCss = resume.customCss || '';
     const isDark = theme === 'dark';
+
+    /*
+     * What the preview will actually do with this.
+     *
+     * The preview sanitizes before injecting, and the model is not told to
+     * avoid `url()` — so "generated fine, applied fine, nothing changed on the
+     * page" was a normal outcome with nothing on screen to explain it. Whatever
+     * the sanitizer would drop is named here, before Apply, rather than
+     * disappearing silently afterwards.
+     */
+    const cssNotice = React.useMemo(
+        () => describeCustomCssRejection(sanitizeCustomCss(generatedCss)),
+        [generatedCss],
+    );
 
     useEffect(() => {
         if (!isOpen) {
@@ -219,6 +234,13 @@ const AICodeCustomizerModal: React.FC<AICodeCustomizerModalProps> = ({
                     {errorMessage && (
                         <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3">
                             {errorMessage}
+                        </div>
+                    )}
+
+                    {/* What the preview will drop, and why */}
+                    {cssNotice && (
+                        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                            {cssNotice}
                         </div>
                     )}
 

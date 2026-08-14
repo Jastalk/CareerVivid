@@ -47,17 +47,18 @@ You MUST respond with ONLY a valid JSON object (no markdown, no code fences):
 RULES:
 1. Write clean, valid CSS. No !important spam — only use it when truly necessary.
 2. For color changes, use hex or rgba. Never use CSS variables that don't exist.
-3. For animations, define @keyframes inside the css block AND use them immediately.
-4. Keep animations subtle and professional: fade-in, slide-in, gentle pulse. NO disco effects.
-5. Scoping: target elements semantically. Common resume elements:
+3. Never reference a file over the network: no @import, and no url(), image-set() or src() pointing at http/https. A resume is rendered publicly, so anything it loads would call out to another server for every viewer, and the app strips those declarations before rendering. Backgrounds and decoration have to be gradients, borders and shadows — or an inline data: URL if an image is truly needed.
+4. For animations, define @keyframes inside the css block AND use them immediately.
+5. Keep animations subtle and professional: fade-in, slide-in, gentle pulse. NO disco effects.
+6. Scoping: target elements semantically. Common resume elements:
    - h1, h2, h3 — name and section headings
    - p, li — body text
    - .section-title or section headings (usually h2 or h3)
    - Specific colors can be set with border-color, background-color, color
-6. Template ID: "${templateId || 'Modern'}". Adjust selectors if necessary.
-7. Current theme color: ${themeColor || '#2563eb'}
-8. If the instruction is unclear, return: {"css": "", "summary": "I wasn't sure what to style. Please be more specific.", "animationName": ""}
-9. If user says "remove" or "reset", return empty css: {"css": "", "summary": "Custom CSS removed.", "animationName": ""}
+7. Template ID: "${templateId || 'Modern'}". Adjust selectors if necessary.
+8. Current theme color: ${themeColor || '#2563eb'}
+9. If the instruction is unclear, return: {"css": "", "summary": "I wasn't sure what to style. Please be more specific.", "animationName": ""}
+10. If user says "remove" or "reset", return empty css: {"css": "", "summary": "Custom CSS removed.", "animationName": ""}
 
 EXAMPLES of good instructions and what to output:
 - "Make section headings purple gradient" → css with color: gradient on h2/h3

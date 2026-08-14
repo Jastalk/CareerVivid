@@ -11,8 +11,7 @@ import {
     Users,
     Zap,
 } from 'lucide-react';
-import Footer from '../components/Footer';
-import { MenuBar } from '../components/Landing/live/PublicShell';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import { useAuth } from '../contexts/AuthContext';
 import { functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -392,7 +391,7 @@ const PricingPage: React.FC = () => {
                 </section>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };

@@ -50,7 +50,6 @@ const TechLandingPage = React.lazy(() => import('./pages/TechLandingPage'));
 const LiveLandingPage = React.lazy(() => import('./pages/LiveLandingPage'));
 const DemoPage = React.lazy(() => import('./pages/DemoPage'));
 const PricingPage = React.lazy(() => import('./pages/PricingPage'));
-const ResumeBuilderPage = React.lazy(() => import('./pages/ResumeBuilderPage'));
 const AdminLoginPage = React.lazy(() => import('./pages/admin/AdminLoginPage'));
 const AdminDashboardPage = React.lazy(() => import('./pages/admin/AdminPage'));
 const StrategyDashboard = React.lazy(() => import('./pages/admin/StrategyDashboard'));
@@ -125,6 +124,7 @@ const DndWorkspaceProvider = React.lazy(() => import('./components/DndWorkspaceP
 
 // Navigation utility
 import { navigate, getPathFromUrl } from './utils/navigation';
+import { buildLocalizedPath, getLanguageFromPathname } from './utils/languagePreference';
 import { isCourseFreeForGuests, isLessonFreeForGuests } from './config/accessPolicy';
 import { locateExercise } from './lib/interactiveCourses';
 
@@ -144,6 +144,35 @@ const LoadingFallback = () => (
 const AuthRedirect = ({ target }: { target: string }) => {
   useEffect(() => {
     navigate(target);
+  }, [target]);
+  return <LoadingFallback />;
+};
+
+/**
+ * A route that has been retired in favour of another one.
+ *
+ * This replaces the history entry instead of pushing one, which AuthRedirect
+ * cannot do: navigate() calls pushState, so Back would land on the retired
+ * path, be redirected forward again, and trap the button on a URL that no
+ * longer exists. A redirect should leave no trace to go back to.
+ */
+const RetiredRoute = ({ target }: { target: string }) => {
+  useEffect(() => {
+    /*
+     * Carry everything the Hosting 301 would have carried.
+     *
+     * Firebase preserves the query string across a redirect, so dropping it
+     * here would lose the campaign attribution on any arrival that routes
+     * client-side instead. The language prefix matters more: Hosting's
+     * `source: "/resume-builder"` does not match `/zh/resume-builder`, so this
+     * branch is the ONLY handler for a localized retired URL, and replacing the
+     * path outright would drop a Chinese visitor onto the English route.
+     */
+    const language = getLanguageFromPathname(window.location.pathname) || 'en';
+    const localizedTarget = buildLocalizedPath(target, language);
+    const { search, hash } = window.location;
+    window.history.replaceState(null, '', `${localizedTarget}${search}${hash}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   }, [target]);
   return <LoadingFallback />;
 };
@@ -697,6 +726,26 @@ const AppContent: React.FC = () => {
     else if (path.startsWith('/edit/guest')) {
       content = <Editor resumeId="guest" />;
     }
+    /*
+     * /edit/new is public, and has to be.
+     *
+     * It is the destination of the /resume-builder and /resume-templates 301s
+     * (firebase.json), it is in the sitemap at priority 1.0, and
+     * functions/src/seo/searchIndexPolicy.ts serves a full marketing page for it
+     * to crawlers. If this fell through to the /edit/ branch below it would be
+     * wrapped in ProtectedRoute, and every one of those visitors would be sent
+     * to /signin?redirect=%2Fedit%2Fnew — a crawler reading a 200-word page and
+     * a person reading a login form at the same URL, which is cloaking, on the
+     * site's highest-value commercial query.
+     *
+     * It has to come before the `/edit/` prefix branch, and there is a test
+     * (functions/src/seo/searchIndexPolicy.test.ts) asserting that nothing in
+     * the sitemap sits behind ProtectedRoute, so moving it back down fails CI
+     * rather than shipping quietly.
+     */
+    else if (path === '/edit/new' || path.startsWith('/edit/new/')) {
+      content = <Editor resumeId="new" />;
+    }
     else if (path === '/agent') {
       content = <AgentWorkspace />;
     }
@@ -812,7 +861,14 @@ const AppContent: React.FC = () => {
 
     // Pages that are definitely public
     else if (path === '/pricing') { content = <PricingPage />; }
-    else if (path === '/resume-builder') { content = <ResumeBuilderPage />; }
+    // /resume-builder was a marketing page in front of the editor. The editor
+    // opens without an account now, so it was a click that answered nothing.
+    //
+    // firebase.json 301s this path, which covers every real navigation. This
+    // entry exists for the ones Hosting never sees: an in-app link or a
+    // history entry from a session loaded before the deploy, both of which
+    // route client-side and would otherwise fall through to the 404 branch.
+    else if (path === '/resume-builder') { content = <RetiredRoute target="/edit/new" />; }
     else if (path === '/open') { content = <OpenRevenuePage />; }
     else if (path === '/demo') { content = <DemoPage />; }
     else if (path === '/contact') { content = <ContactPage />; }
