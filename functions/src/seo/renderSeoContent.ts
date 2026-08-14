@@ -33,10 +33,28 @@ const db = admin.firestore();
 // container pays for it. Instance recycling is what picks up a new deploy.
 const INDEX_FETCH_TIMEOUT_MS = 5_000;
 
+/*
+ * The cache has to expire.
+ *
+ * Caching per instance with no TTL reintroduces the exact bug the comment above
+ * describes, just delayed: a warm container keeps serving the index.html it
+ * fetched on its first request, and a container can stay warm for hours. Every
+ * deploy deletes the hashed chunks that shell names, so from the moment a
+ * deploy lands until that instance happens to recycle, every route rewritten
+ * here serves HTML whose scripts 404 — the browser gets the catch-all's
+ * index.html back instead and refuses it as the wrong MIME type. The page is
+ * blank and no reload fixes it, because nothing is wrong with the browser.
+ *
+ * A minute is short enough that a deploy self-heals before anyone files a bug,
+ * and long enough that this is one extra fetch per instance per minute.
+ */
+const INDEX_CACHE_TTL_MS = 60_000;
+
 let cachedIndexHtml: string | null = null;
+let cachedIndexAt = 0;
 
 async function getIndexHtml(): Promise<string> {
-    if (cachedIndexHtml) return cachedIndexHtml;
+    if (cachedIndexHtml && Date.now() - cachedIndexAt < INDEX_CACHE_TTL_MS) return cachedIndexHtml;
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), INDEX_FETCH_TIMEOUT_MS);
@@ -47,7 +65,13 @@ async function getIndexHtml(): Promise<string> {
         });
         if (!response.ok) throw new Error(`Failed to fetch index.html: ${response.status}`);
         cachedIndexHtml = await response.text();
+        cachedIndexAt = Date.now();
         return cachedIndexHtml;
+    } catch (error) {
+        // A stale shell still boots the previous build for anyone whose chunks
+        // survive; no shell at all is a hard 500. Prefer the stale one.
+        if (cachedIndexHtml) return cachedIndexHtml;
+        throw error;
     } finally {
         clearTimeout(timer);
     }

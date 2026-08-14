@@ -57,6 +57,27 @@ for (const asset of assets) {
 if (!failures.length) pass(`all ${assets.length} resolve as real javascript/css`);
 
 /*
+ * The same check, but on a route the SEO function serves.
+ *
+ * / is served by Hosting's catch-all straight from dist, so it is always
+ * self-consistent and proves nothing about the rest of the site. Routes
+ * rewritten to renderSeoContent get their shell from that function's cache,
+ * which can be older than the deploy — and then every script it names is gone.
+ * This is the check that would have caught a blank /signin.
+ */
+console.log('\nassets referenced by a function-served route');
+const fnRoute = await get('/signin');
+const fnAssets = [...new Set([...fnRoute.body.matchAll(/\/assets\/[A-Za-z0-9._-]+\.(?:js|css)/g)].map((m) => m[0]))];
+let fnBroken = 0;
+for (const asset of fnAssets) {
+    const res = await fetch(`${SITE}${asset}`);
+    if (!res.ok || (res.headers.get('content-type') || '').includes('html')) fnBroken += 1;
+}
+if (fnBroken) {
+    fail(`/signin names ${fnBroken} script(s) that no longer exist — the SEO function is serving a shell older than this deploy. The page will be blank and no reload will fix it.`);
+} else pass(`all ${fnAssets.length} resolve — the function's shell matches this build`);
+
+/*
  * 2. Routes answer, and answer as themselves.
  *
  * Checked as a crawler, not as a browser. For a browser every route is the same
