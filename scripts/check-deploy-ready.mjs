@@ -27,6 +27,26 @@ try {
     die(['Not a git checkout, so there is no way to tell what this would ship.']);
 }
 
+/*
+ * A linked worktree has its own HEAD and its own dist/, so `firebase deploy`
+ * run from one ships that worktree's build — which is how the live site got
+ * replaced by a five-commit-old landing page once already. In a worktree the
+ * git dir sits under <main>/.git/worktrees/<name>; in the main checkout the two
+ * paths are the same.
+ */
+const gitDir = run('git rev-parse --absolute-git-dir');
+const commonDir = run('git rev-parse --path-format=absolute --git-common-dir');
+if (gitDir !== commonDir) {
+    const main = commonDir.replace(/\/\.git$/, '');
+    die([
+        `This is a linked worktree (${branch}), not the deploy checkout.`,
+        'It has its own HEAD and its own dist/, so deploying from here ships',
+        'whatever this worktree happens to be building — not what is on main.',
+        '',
+        `Deploy from:  cd ${main} && npm run deploy`,
+    ]);
+}
+
 try {
     run('git fetch origin main --quiet');
 } catch {
