@@ -562,13 +562,17 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
      * Whether a saved report still has a design behind it that can be opened.
      *
      * A quest's history mixes stages, and only whiteboard rounds carry a
-     * diagram. The challenge also has to still exist in this guide's pool — a
-     * report for a prompt that has since been retired has nothing to open.
+     * diagram. The prompt is looked up across every pattern rather than this
+     * guide's pool: the pool is the rotation, capped at
+     * COMPANY_SYSTEM_DESIGN_POOL_SIZE, while the picker can start any prompt in
+     * the canon. Gating on the pool hid the button on real submissions — the
+     * Google quest's own history has three encrypted-messenger designs that its
+     * five-prompt rotation does not include.
      */
     const canReopenDesign = (analysis: InterviewAnalysis): boolean => {
         const artifact = analysis.questArtifact;
         return artifact?.type === 'system_design'
-            && systemDesignPool.some((candidate) => candidate.id === artifact.challengeId);
+            && Boolean(getSystemDesignPatternById(artifact.challengeId));
     };
 
     /**
@@ -583,7 +587,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
         const artifact = analysis.questArtifact;
         if (artifact?.type !== 'system_design') return;
         const stage = stages.find((candidate) => candidate.id === 'system_design');
-        const challenge = systemDesignPool.find((candidate) => candidate.id === artifact.challengeId);
+        const challenge = getSystemDesignPatternById(artifact.challengeId);
         if (!stage || !challenge) return;
         setSelectedReportEntry(null);
         void handleStartStage(stage, challenge, artifact);
