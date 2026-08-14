@@ -11,8 +11,8 @@ import {
     Users,
     Zap,
 } from 'lucide-react';
-import PublicHeader from '../components/PublicHeader';
 import Footer from '../components/Footer';
+import { MenuBar } from '../components/Landing/live/PublicShell';
 import { useAuth } from '../contexts/AuthContext';
 import { functions } from '../firebase';
 import { httpsCallable } from 'firebase/functions';
@@ -62,14 +62,14 @@ const planToneClasses = {
         card: 'border-[#ccd4df] bg-[#fbfcff]',
         chip: 'border-[#dbe4f3] bg-white text-[#43566f]',
         icon: 'bg-[#eef2f7] text-[#43566f]',
-        button: 'bg-[#211b16] text-white shadow-[0_14px_34px_rgba(33,27,22,0.15)] hover:bg-[#3a2b20]',
+        button: 'cvl-cta',
         check: 'text-[#43566f]',
     },
     amber: {
         card: 'border-[#ead7b9] bg-[#fffaf1]',
         chip: 'border-[#ead7b9] bg-[#fff7e8] text-[#9a651f]',
         icon: 'bg-[#fff4cc] text-[#9a651f]',
-        button: 'bg-[#211b16] text-white shadow-[0_14px_34px_rgba(33,27,22,0.15)] hover:bg-[#3a2b20]',
+        button: 'cvl-cta',
         check: 'text-[#9a651f]',
     },
 } as const;
@@ -209,7 +209,7 @@ const PricingPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f7f1e7] text-[#211b16] selection:bg-[#d7b27a]/40 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
+        <div className="cvl min-h-screen">
             <Helmet>
                 {/* The app shell appends "| CareerVivid" via titleTemplate. */}
                 <title>Pricing</title>
@@ -220,9 +220,9 @@ const PricingPage: React.FC = () => {
                 <link rel="canonical" href="https://careervivid.app/pricing" />
             </Helmet>
 
-            <PublicHeader variant="editorial" />
+            <MenuBar />
 
-            <main className="relative overflow-hidden pt-24">
+            <main className="relative overflow-hidden pt-14">
                 <div
                     className="pointer-events-none absolute inset-0 opacity-60 dark:opacity-20"
                     style={{
@@ -248,7 +248,7 @@ const PricingPage: React.FC = () => {
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <button
                                 onClick={() => handleChoosePlan(plans[0])}
-                                className="inline-flex items-center justify-center gap-3 rounded-xl bg-[#211b16] px-6 py-4 text-sm font-black text-white shadow-xl shadow-[#8b5a16]/10 transition hover:-translate-y-0.5 hover:bg-[#3a2b20] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)] dark:hover:bg-white"
+                                className="cvl-cta inline-flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-black transition hover:-translate-y-0.5"
                             >
                                 Start for free <ArrowRight size={18} />
                             </button>
@@ -310,7 +310,7 @@ const PricingPage: React.FC = () => {
                                         className={`relative flex min-h-[520px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[#37332d] dark:bg-[#262522]`}
                                     >
                                         {plan.featured && (
-                                            <div className="absolute right-5 top-5 rounded-full bg-[#211b16] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-white dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]">
+                                            <div className="cvl-cta absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em]">
                                                 Popular
                                             </div>
                                         )}

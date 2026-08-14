@@ -226,3 +226,19 @@ html.dark .cvl {
         opacity: 1;
     }
 }
+
+/*
+ * The one button on the site. Pages that predate the token set reach for this
+ * class instead of repeating the purple, so a change here reaches all of them.
+ */
+.cvl .cvl-cta,
+.cvl-cta {
+    background: var(--cvl-purple, #625bd5);
+    color: #fff;
+    box-shadow: 0 14px 34px -18px rgba(98, 91, 213, 0.7);
+}
+
+.cvl .cvl-cta:hover,
+.cvl-cta:hover {
+    background: var(--cvl-purple-ink, #4b44b8);
+}

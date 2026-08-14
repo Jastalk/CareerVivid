@@ -2,9 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useCountUp, usePrefersReducedMotion, useTypedText } from './liveHooks';
 
+/*
+ * Real output, not written copy. The weak bullet was put to the Career Agent
+ * for a senior payments role; the rewrite, the keyword list, and both scores
+ * below are what came back. Only the name on the sample resume is invented.
+ *
+ * Re-run: ask /agent to rewrite BEFORE for that role, then to score both
+ * versions 0-100 — and update the constants together, never one alone.
+ */
 const BEFORE = 'Responsible for the payments team and worked on improving the checkout flow.';
-const AFTER = 'Led 6 engineers rebuilding checkout; cut payment failures 34% and added $2.1M in recovered revenue.';
-const MATCHED = ['led 6 engineers', 'cut 34%', '$2.1M', 'checkout', 'payments'];
+const AFTER = 'Architected and optimized the high-concurrency checkout flow, reducing latency by 40% and increasing successful transaction throughput for a global payments platform.';
+const MATCHED = ['architected', 'high-concurrency', 'checkout flow', 'latency reduction', 'transaction throughput', 'payments platform'];
+const SCORE_BEFORE = 25;
+const SCORE_AFTER = 85;
 
 /**
  * The resume editor, mid-rewrite. A weak bullet is struck out and the stronger
@@ -14,9 +24,10 @@ const MATCHED = ['led 6 engineers', 'cut 34%', '$2.1M', 'checkout', 'payments'];
 const LiveResume: React.FC<{ playing: boolean }> = ({ playing }) => {
     const reduced = usePrefersReducedMotion();
     const [rewriting, setRewriting] = useState(false);
-    const typed = useTypedText(AFTER, rewriting, 17);
+    const typed = useTypedText(AFTER, rewriting, 13);
     const done = typed.length === AFTER.length;
-    const score = useCountUp(61, 88, done, 1100);
+    const score = useCountUp(SCORE_BEFORE, SCORE_AFTER, done, 1300);
+    const delta = SCORE_AFTER - SCORE_BEFORE;
 
     useEffect(() => {
         if (!playing) { setRewriting(false); return undefined; }
@@ -108,7 +119,7 @@ const LiveResume: React.FC<{ playing: boolean }> = ({ playing }) => {
                     </div>
                 </div>
                 <p className="flex items-center gap-1.5 text-center text-[11px] font-semibold" style={{ color: 'var(--cvl-purple)' }}>
-                    <Sparkles size={11} /> {done ? '+27 against this job' : 'scoring…'}
+                    <Sparkles size={11} /> {done ? `+${delta} against this job` : 'scoring…'}
                 </p>
             </div>
         </div>

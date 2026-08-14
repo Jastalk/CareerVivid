@@ -6,15 +6,15 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { Eye, EyeOff, ArrowLeft, Loader2, Mail, Lock, ChevronRight, Users } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, ChevronRight, Users } from 'lucide-react';
 import { trackUsage } from '../services/trackingService';
-import Logo from '../components/Logo';
 import { navigate } from '../utils/navigation';
 import { queueTransactionalAuthEmail } from '../services/transactionalEmailService';
 import { resolveSignedInWorkspace } from '../services/authAccountLinkingService';
 import { getSafeRelativeRedirect } from '../utils/security';
 import { getEmailDisplayName } from '../utils/userDisplayName';
 import { waitForReferralEntitlement } from '../services/referralService';
+import { AuthShell } from '../components/Landing/live/PublicShell';
 
 const SignUpPage: React.FC = () => {
     const { t } = useTranslation();
@@ -268,50 +268,20 @@ const SignUpPage: React.FC = () => {
     const isBioLinkContext = new URLSearchParams(window.location.search).get('source') === 'bio-link'
         || localStorage.getItem('tiktok_auth_context') === 'bio-link';
 
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 relative overflow-hidden font-sans">
-            {/* Abstract Background Elements */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-400/20 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen opacity-50"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-400/20 rounded-full blur-3xl mix-blend-multiply dark:mix-blend-screen opacity-50"></div>
-            </div>
+    const isBioLink = new URLSearchParams(window.location.search).get('source') === 'bio-link';
 
+    return (
+        <AuthShell
+            filename="create-account"
+            title={isBioLink ? 'Create your Bio-Link account' : t('auth.create_account')}
+            subtitle={isBioLink ? 'Claim your unique URL and start sharing.' : t('auth.start_building')}
+        >
             {loading && <LoadingOverlay />}
 
-            <a
-                href={new URLSearchParams(window.location.search).get('source') === 'bio-link' ? '/bio-links' : '/'}
-                className="absolute top-8 left-8 z-20 flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
-            >
-                <ArrowLeft size={18} />
-                {t('auth.back_home')}
-            </a>
+            <div>
+                <div>
 
-            <div className="w-full max-w-md relative z-10">
-                <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 p-8 sm:p-10">
-
-                    <div className="text-center mb-10">
-                        <Logo className="h-10 w-10 mx-auto mb-6" />
-
-                        {/* Contextual Headline */}
-                        {new URLSearchParams(window.location.search).get('source') === 'bio-link' ? (
-                            <>
-                                <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                                    Create your Bio-Link Account
-                                </h2>
-                                <p className="mt-3 text-gray-500 dark:text-gray-400">
-                                    Sign up to claim your unique URL and start sharing.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <h2 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-                                    {t('auth.create_account')}
-                                </h2>
-                                <p className="mt-3 text-gray-500 dark:text-gray-400">
-                                    {t('auth.start_building')}
-                                </p>
-                            </>
-                        )}
+                    <div className="text-center mb-8">
 
                         {getReferralCode() && (
                             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-100 to-yellow-50 dark:from-yellow-900/30 dark:to-yellow-800/20 rounded-full">
@@ -334,7 +304,8 @@ const SignUpPage: React.FC = () => {
                                     name="email"
                                     type="email"
                                     required
-                                    className="block w-full pl-11 pr-4 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium"
+                                    className="block w-full py-3.5 rounded-xl text-sm font-medium focus:outline-none transition-all pl-11 pr-4"
+                                    style={{ background: 'var(--cvl-paper-2)', border: '1px solid var(--cvl-line)', color: 'var(--cvl-ink)' }}
                                     placeholder={t('auth.email_placeholder')}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -353,7 +324,8 @@ const SignUpPage: React.FC = () => {
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     required
-                                    className="block w-full pl-11 pr-11 py-3.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-sm font-medium"
+                                    className="block w-full py-3.5 rounded-xl text-sm font-medium focus:outline-none transition-all pl-11 pr-11"
+                                    style={{ background: 'var(--cvl-paper-2)', border: '1px solid var(--cvl-line)', color: 'var(--cvl-ink)' }}
                                     placeholder={t('auth.password_placeholder')}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -394,7 +366,8 @@ const SignUpPage: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-primary-500/20 text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all transform hover:-translate-y-0.5"
+                            className="w-full flex justify-center py-3.5 px-4 rounded-xl text-sm font-bold text-white disabled:opacity-70 disabled:cursor-not-allowed transition hover:opacity-90"
+                            style={{ background: 'var(--cvl-purple)' }}
                         >
                             {t('auth.create_account_btn')}
                         </button>
@@ -402,10 +375,10 @@ const SignUpPage: React.FC = () => {
 
                     <div className="my-8 relative">
                         <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                            <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+                            <div className="w-full border-t" style={{ borderColor: 'var(--cvl-line)' }}></div>
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white dark:bg-gray-900 text-gray-500 font-medium">{t('auth.or_continue_with')}</span>
+                            <span className="px-4 font-medium" style={{ background: 'var(--cvl-paper)', color: 'var(--cvl-faint)' }}>{t('auth.or_continue_with')}</span>
                         </div>
                     </div>
 
@@ -425,20 +398,22 @@ const SignUpPage: React.FC = () => {
                         <button
                             onClick={handleGoogleSignUp}
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-sm font-bold text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl text-sm font-bold transition hover:opacity-80"
+                            style={{ background: 'var(--cvl-paper)', border: '1px solid var(--cvl-line)', color: 'var(--cvl-ink)' }}
                         >
                             <svg className="w-5 h-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 111.8 512 0 398.2 0 256S111.8 0 244 0c71.2 0 130.9 27.8 176.9 72.9l-63.1 61.3C294.3 93.6 270.3 80 244 80 158.4 80 90 148.2 90 233.9s68.4 153.9 154 153.9c75.5 0 120.9-42.3 124.9-97.9H244v-77.3h236.1c2.4 12.7 3.9 26.1 3.9 40.2z"></path></svg>
                             {t('auth.google')}
                         </button>
                     </div>
 
-                    <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-800 text-center">
+                    <div className="mt-8 pt-8 border-t text-center" style={{ borderColor: 'var(--cvl-line)' }}>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 font-medium uppercase tracking-wider text-[10px]">
                             Just exploring?
                         </p>
                         <a
                             href="/community"
-                            className="inline-flex items-center gap-2.5 px-6 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-750 text-gray-900 dark:text-white rounded-2xl border border-gray-200 dark:border-gray-700 transition-all group shadow-sm hover:shadow-md"
+                            className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-2xl transition group hover:opacity-80"
+                            style={{ background: 'var(--cvl-paper-2)', border: '1px solid var(--cvl-line)', color: 'var(--cvl-ink)' }}
                         >
                             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 group-hover:scale-110 transition-transform">
                                 <Users size={16} />
@@ -449,7 +424,7 @@ const SignUpPage: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </AuthShell>
     );
 };
 

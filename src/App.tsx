@@ -831,7 +831,7 @@ const AppContent: React.FC = () => {
       content = <BlogPostPage postId={id} />;
     }
     else if (path === '/tech-preview') { content = <TechLandingPage />; }
-    else if (path === '/live-preview') { content = <LiveLandingPage />; }
+    else if (path === '/landing-classic') { content = <LandingPage />; }
     else if (path === '/partners') { content = <PartnerLandingPage />; }
     else if (path === '/partners/academic') { content = <AcademicPartnerPage />; }
     else if (path === '/partners/business') { content = <BusinessPartnerPage />; }
@@ -869,7 +869,7 @@ const AppContent: React.FC = () => {
 
     // Public landing routes
     else if (path === '/' || path === '/product') {
-      content = <LandingPage />;
+      content = <LiveLandingPage />;
     }
 
     // Fallback

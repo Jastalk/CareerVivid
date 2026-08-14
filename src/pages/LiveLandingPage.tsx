@@ -1,8 +1,10 @@
 import React from 'react';
-import { Helmet } from 'react-helmet-async';
 import { ArrowRight, Check, ChevronDown } from 'lucide-react';
+import Footer from '../components/Footer';
+import LandingSeo from '../components/Landing/LandingSeo';
 import '../components/Landing/live/liveLanding.css';
-import DeskHero, { MenuBar } from '../components/Landing/live/DeskHero';
+import DeskHero from '../components/Landing/live/DeskHero';
+import { MenuBar } from '../components/Landing/live/PublicShell';
 import DeskWindow from '../components/Landing/live/DeskWindow';
 import QuestTape from '../components/Landing/live/QuestTape';
 import LiveResume from '../components/Landing/live/LiveResume';
@@ -12,10 +14,10 @@ import { INTERVIEW_GUIDE_TOTALS } from '../data/interviewGuideSummaries.generate
 import { getCourseCatalogTotals } from '../lib/interactiveCourses';
 
 const COMPANY_COUNT = INTERVIEW_GUIDE_TOTALS.companies;
+const STAGE_COUNT = INTERVIEW_GUIDE_TOTALS.stages;
+const QUESTION_COUNT = INTERVIEW_GUIDE_TOTALS.questQuestions;
 const { courses: COURSE_COUNT, lessons: LESSON_COUNT } = getCourseCatalogTotals();
-
-const SEO_TITLE = 'CareerVivid — practise the interview before it happens';
-const SEO_DESCRIPTION = `Draw system design on a whiteboard that grades you, run a voice interview that pushes back, and rewrite your resume against the job. ${COMPANY_COUNT} company interview loops, ${COURSE_COUNT} courses, ${LESSON_COUNT} lessons.`;
+const groupDigits = (value: number) => value.toLocaleString('en-US');
 
 /** Left copy, right live demo — the shape both feature sections share. */
 const FeatureRow: React.FC<{
@@ -67,11 +69,13 @@ const FeatureRow: React.FC<{
     );
 };
 
+// The same figures the studio itself prints, read from the generated summaries
+// rather than typed in — so the page cannot drift from the catalogue.
 const NUMBERS = [
-    { value: String(COMPANY_COUNT), label: 'company interview loops' },
-    { value: String(COURSE_COUNT), label: 'interactive courses' },
-    { value: String(LESSON_COUNT), label: 'hands-on lessons' },
-    { value: '$0', label: 'to start — no card' },
+    { value: groupDigits(COMPANY_COUNT), label: 'companies' },
+    { value: groupDigits(QUESTION_COUNT), label: 'practice questions' },
+    { value: groupDigits(STAGE_COUNT), label: 'interview stages' },
+    { value: groupDigits(LESSON_COUNT), label: 'hands-on lessons' },
 ];
 
 const PLANS = [
@@ -142,14 +146,16 @@ const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
 
 const LiveLandingPage: React.FC = () => (
     <div className="cvl min-h-screen">
-        <Helmet titleTemplate="%s">
-            <title>{SEO_TITLE}</title>
-            <meta name="description" content={SEO_DESCRIPTION} />
-            {/* A prototype route — it must not compete with / in search. */}
-            <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
+        <LandingSeo />
 
-        <MenuBar />
+        <MenuBar
+            anchors={[
+                { href: '#quests', label: 'quests' },
+                { href: '#resume', label: 'resume' },
+                { href: '#studio', label: 'studio' },
+                { href: '/pricing', label: 'pricing' },
+            ]}
+        />
 
         <main>
             <DeskHero />
@@ -282,11 +288,7 @@ const LiveLandingPage: React.FC = () => (
             </section>
         </main>
 
-        <footer className="border-t py-8 text-center" style={{ borderColor: 'var(--cvl-line)' }}>
-            <p className="cvl-mono text-[11px]" style={{ color: 'var(--cvl-faint)' }}>
-                careervivid · prototype landing · <a href="/" className="underline">compare with the live page</a>
-            </p>
-        </footer>
+        <Footer />
     </div>
 );
 

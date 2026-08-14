@@ -1,42 +1,9 @@
 import React from 'react';
-import { ArrowRight, Battery, FileText, Sparkles, Wifi } from 'lucide-react';
+import { ArrowRight, FileText, Sparkles } from 'lucide-react';
 import DeskWindow from './DeskWindow';
 import LiveWhiteboard from './LiveWhiteboard';
-import { QUEST_DEMOS } from './QuestTape';
-import { useClock, useCountUp, useHasBeenSeen, useTypedText } from './liveHooks';
-
-/** The strip along the top. It is a menu bar, and the clock is the real time. */
-export const MenuBar: React.FC = () => {
-    const time = useClock();
-    return (
-        <header
-            className="sticky top-0 z-40 border-b backdrop-blur-md"
-            style={{ borderColor: 'var(--cvl-line)', background: 'color-mix(in srgb, var(--cvl-desk) 82%, transparent)' }}
-        >
-            <div className="mx-auto flex h-9 max-w-[1400px] items-center gap-5 px-4 text-[12.5px]">
-                <a href="/" className="font-semibold tracking-tight">careervivid</a>
-                <nav className="hidden gap-4 sm:flex" style={{ color: 'var(--cvl-muted)' }}>
-                    <a href="#quests" className="transition hover:opacity-70">quests</a>
-                    <a href="#resume" className="transition hover:opacity-70">resume</a>
-                    <a href="#studio" className="transition hover:opacity-70">studio</a>
-                    <a href="#pricing" className="transition hover:opacity-70">pricing</a>
-                </nav>
-                <div className="ml-auto flex items-center gap-3" style={{ color: 'var(--cvl-faint)' }}>
-                    <Wifi size={13} className="hidden sm:block" />
-                    <Battery size={14} className="hidden sm:block" />
-                    <span className="cvl-mono text-[12px] tabular-nums">{time}</span>
-                    <a
-                        href="/signup"
-                        className="font-semibold transition hover:opacity-70"
-                        style={{ color: 'var(--cvl-purple)' }}
-                    >
-                        start free
-                    </a>
-                </div>
-            </div>
-        </header>
-    );
-};
+import { QUEST_DEMOS } from './questDemos';
+import { useCountUp, useHasBeenSeen, useTypedText } from './liveHooks';
 
 const MiniWave: React.FC = () => (
     <div className="flex h-[104px] items-center gap-[3px] px-4" style={{ background: 'var(--cvl-paper)' }}>

@@ -6,14 +6,14 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { Eye, EyeOff, ArrowLeft, Loader2, Mail, Lock, ChevronRight, Users, Briefcase, CheckCircle2, Chrome, FileText, PanelRightOpen, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock, ChevronRight, Users, Briefcase, CheckCircle2, FileText, PanelRightOpen, Sparkles } from 'lucide-react';
 import { trackUsage } from '../services/trackingService';
-import Logo from '../components/Logo';
 import { navigate } from '../utils/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { queueTransactionalAuthEmail } from '../services/transactionalEmailService';
 import { resolveSignedInWorkspace } from '../services/authAccountLinkingService';
 import { getSafeRelativeRedirect } from '../utils/security';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 
 const normalizeCliPort = (port: string | null): string | null => {
     if (!port || !/^\d{1,5}$/.test(port)) return null;
@@ -319,25 +319,12 @@ const SignInPage: React.FC = () => {
     }, []);
 
     return (
-        <div className="cv-warm-page cv-warm-grid relative min-h-screen overflow-hidden px-4 py-6 font-sans sm:px-6 lg:px-8">
+        <div className="cvl relative min-h-screen font-sans">
             {loading && <LoadingOverlay />}
+            <MenuBar />
 
-            <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col">
-                <header className="flex items-center justify-between gap-4">
-                    <a
-                        href="/"
-                        className="inline-flex items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/85 px-3 py-2 text-xs font-bold text-[#665a4a] shadow-sm transition hover:border-[#caa26c] hover:text-[#211b16] focus:outline-none focus:ring-2 focus:ring-[#7069dc]/30 dark:border-[#37332d] dark:bg-[#262522]/85 dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]"
-                    >
-                        <ArrowLeft size={15} />
-                        {t('auth.back_home')}
-                    </a>
-                    <div className="hidden items-center gap-2 rounded-full border border-[#e4d3bc] bg-[#fffaf1]/85 px-3 py-2 text-xs font-bold text-[#665a4a] shadow-sm dark:border-[#37332d] dark:bg-[#262522]/85 dark:text-[#aaa39a] sm:inline-flex">
-                        <Chrome size={14} className="text-[#625bd5] dark:text-[#8d88e6]" />
-                        Chrome extension ready
-                    </div>
-                </header>
-
-                <main className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,1fr)] lg:gap-12">
+            <div className="mx-auto flex w-full max-w-6xl flex-col px-4 sm:px-6 lg:px-8">
+                <main className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,1fr)] lg:gap-12">
                     <section className="order-2 hidden lg:block">
                         <div className="max-w-xl">
                             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d9c7ad] bg-[#fffaf1] px-3 py-1.5 text-[11px] font-bold text-[#8b5a16] shadow-sm dark:border-[#37332d] dark:bg-[#262522] dark:text-[#caa26c]">
@@ -393,15 +380,15 @@ const SignInPage: React.FC = () => {
                     </section>
 
                     <section className="order-1 w-full max-w-md justify-self-center lg:justify-self-start">
-                        <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1]/95 p-6 shadow-[0_20px_70px_rgba(80,55,28,0.12)] backdrop-blur dark:border-[#37332d] dark:bg-[#262522]/95 sm:p-8">
+                        <div className="cvl-win">
+                          <div className="cvl-bar" style={{ backgroundImage: 'linear-gradient(90deg, rgba(98,91,213,0.16), transparent 65%)' }}>
+                            <span className="cvl-dot cvl-dot-r" />
+                            <span className="cvl-dot cvl-dot-y" />
+                            <span className="cvl-dot cvl-dot-g" />
+                            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>sign-in</span>
+                          </div>
+                          <div className="p-6 sm:p-8">
                             <div className="mb-7">
-                                <div className="mb-5 flex items-center gap-3">
-                                    <Logo className="h-10 w-10 shrink-0" />
-                                    <div>
-                                        <p className="text-xs font-bold text-[#a97935] dark:text-[#caa26c]">CareerVivid</p>
-                                        <p className="text-[11px] font-semibold text-[#665a4a] dark:text-[#aaa39a]">Job search workspace</p>
-                                    </div>
-                                </div>
                                 {isBioLinkContext ? (
                                     <>
                                         <h2 className="text-2xl font-bold tracking-tight text-[#211b16] dark:text-[#f4f1e9]">
@@ -556,10 +543,12 @@ const SignInPage: React.FC = () => {
                                     <ChevronRight size={13} />
                                 </a>
                             </div>
+                          </div>
                         </div>
                     </section>
                 </main>
             </div>
+            <PublicFooter />
         </div>
     );
 };
