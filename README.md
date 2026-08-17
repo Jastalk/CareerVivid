@@ -15,7 +15,7 @@
 
 ---
 
-## Try it right now — no account, no card
+## Try it now — no login required
 
 Every link below opens the **live production app** as a guest. Nothing here is a
 sandbox or a seeded demo; it is the same application a paying user gets, with
@@ -184,12 +184,21 @@ roughly $3.00 against $12 of revenue.
 
 ## Why Education &amp; Human Potential
 
-Interview preparation is normally advice to read. CareerVivid makes it a loop to
-*run*: a round by voice or text, code that executes, a diagram scored against a
-rubric, and the result carried into the resume. The grounding is real —
-301 companies, 4,551 documented questions, 12 courses, 203 lessons — and the
-free tier alone is a complete preparation path in 7 languages, reachable without
-an account.
+The global job market has never been more difficult or unequal. Millions of
+capable engineers and job seekers are trapped in an opaque, high-stakes hiring
+system — spending hundreds of hours firing resumes into automated black holes,
+receiving zero actionable feedback, and watching their confidence drain in
+silence. Traditional interview prep is broken because passive reading cannot
+prepare anyone for the pressure of a live technical dialogue.
+
+CareerVivid exists to collapse the gap between human potential and real-world
+opportunity. We replace passive memorization with a real-time, closed-loop
+execution environment: voice-driven technical sparring, interactive system
+design whiteboards, instant rubric scoring, and context-aware resume
+engineering. By offering a comprehensive preparation engine in 7 languages —
+with a free tier that needs no login and no card — CareerVivid democratizes
+elite engineering mentorship, empowering anyone, anywhere, to prove what they
+can build and land life-changing roles.
 
 ---
 
@@ -215,6 +224,49 @@ A few decisions worth calling out:
   stays a SPA for humans and still indexes (`functions/src/seo/`).
 - **One question follows across surfaces.** The agent hands back a route
   carrying the exact `questionId`, so "practise this one" lands on that question.
+
+---
+
+## Challenges
+
+**Multimodal vision diagnostics vs. aesthetic bias.** Grading a freeform drawing
+is fundamentally harder than parsing text. Early versions suffered from
+tidy-canvas bias — rewarding a neat diagram over an architecturally sound one.
+The fix was a strict chain-of-thought scratchpad: the model must map data paths,
+identify single points of failure, and trace capacity limits before it computes
+a score. Binding evaluation to rigid per-dimension caps and a constrained JSON
+schema removed the arbitrary scoring, so every grade is anchored to a systems
+argument rather than a first impression.
+
+**Full-duplex voice and instant barge-in.** A conversational interview partner
+meant beating browser audio latency: client-side microphone downsampling,
+low-latency chunk streaming, and clean acoustic interruption so the candidate
+can cut in mid-sentence without clipping or echo loops. That took more audio
+buffer tuning and WebSocket state orchestration than any other part of the
+product.
+
+---
+
+## What I learned
+
+**Ground-truth data beats synthetic generation every time.** This started out
+generating plausible interview prompts, and generic questions produced generic
+coaching. The turn came from curating and verifying 4,551 real questions from
+documented hiring loops. That foundation lifted everything downstream — quest
+progressions, diagnostic reports, and agent advice that mirrors what an
+interviewer actually probes.
+
+---
+
+## What's next
+
+- **Polyglot execution.** Extending the client-side execution environment beyond
+  JavaScript and Python to Java, C++ and Go.
+- **Persistent episodic agent memory.** A cross-session memory graph tracking a
+  candidate's weak areas, pacing and behavioural growth across weeks of
+  preparation rather than isolated rounds.
+- **Broader loop coverage.** Ingesting and calibrating diagnostic rubrics for
+  50+ additional tier-1 and hyper-growth companies.
 
 ---
 
