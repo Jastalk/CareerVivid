@@ -341,14 +341,8 @@ const InteractiveRevenueChart: React.FC<{
                                 <>
                                     <line
                                         x1={xAt(hoveredIndex)} y1={0} x2={xAt(hoveredIndex)} y2={100}
-                                        stroke="#6557d2" strokeOpacity="0.35" strokeWidth={1}
-                                        strokeDasharray="3 3" vectorEffect="non-scaling-stroke"
-                                    />
-                                    <circle
-                                        cx={xAt(hoveredIndex)} cy={yAt(hoveredIndex)} r={5}
-                                        fill="#ffffff" stroke="#6557d2" strokeWidth={3}
+                                        stroke="#6557d2" strokeOpacity="0.28" strokeWidth={1}
                                         vectorEffect="non-scaling-stroke"
-                                        style={{ filter: 'drop-shadow(0 3px 8px rgba(101,87,210,0.55))' }}
                                     />
                                 </>
                             )}
@@ -384,6 +378,23 @@ const InteractiveRevenueChart: React.FC<{
                             </div>
                         );
                     })}
+
+                    {/* Marker for the hovered point. Deliberately outside the SVG:
+                        inside that stretched viewBox a circle is drawn as an ellipse. */}
+                    {hoveredIndex !== null && !loading && (
+                        <span
+                            aria-hidden
+                            className="pointer-events-none absolute z-20"
+                            style={{
+                                left: `${xAt(hoveredIndex)}%`,
+                                bottom: `${(100 - yAt(hoveredIndex)).toFixed(3)}%`,
+                                transform: 'translate(-50%, 50%)',
+                            }}
+                        >
+                            <span className="absolute left-1/2 top-1/2 h-[22px] w-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6557d2]/12" />
+                            <span className="absolute left-1/2 top-1/2 block h-[11px] w-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-white bg-[#6557d2] shadow-[0_2px_8px_rgba(101,87,210,0.55)] dark:border-[#1f1f1d]" />
+                        </span>
+                    )}
 
                     {/* Floating readout. Anchored to the hovered bar's top edge so the
                         numbers appear where the reader is already looking. */}
