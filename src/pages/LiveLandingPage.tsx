@@ -185,7 +185,7 @@ const LiveLandingPage: React.FC = () => (
                 points={[
                     '16 coding patterns, each with a test suite that runs in the browser',
                     '25+ distributed system architectures with interactive whiteboard drills',
-                    'Every lesson readable without an account',
+                    'No sign-in required to start',
                 ]}
                 href="/learning"
                 cta="Explore free courses"
