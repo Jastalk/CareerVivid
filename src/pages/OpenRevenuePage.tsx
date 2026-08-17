@@ -374,7 +374,10 @@ const InteractiveRevenueChart: React.FC<{
                             className="pointer-events-none absolute z-30 w-max min-w-[148px] rounded-xl border border-[#e4d3bc] bg-white/95 px-3 py-2 shadow-[0_16px_38px_-12px_rgba(33,27,22,0.4)] backdrop-blur-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/95"
                             style={{
                                 left: `${hoveredPct}%`,
-                                bottom: `calc(${Math.max(valueOf(hovered) > 0 ? 6 : 2, (valueOf(hovered) / maxValue) * 100)}% + 14px)`,
+                                // Sits above the bar, but min() stops a tall bar from
+                                // pushing the card out of the plot and over the
+                                // Gross/Net toggle above it.
+                                bottom: `min(calc(${Math.max(valueOf(hovered) > 0 ? 6 : 2, (valueOf(hovered) / maxValue) * 100)}% + 14px), calc(100% - 96px))`,
                                 transform: `translateX(${hoverShift})`,
                             }}
                         >
