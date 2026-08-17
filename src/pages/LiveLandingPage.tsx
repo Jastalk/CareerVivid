@@ -7,7 +7,7 @@ import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 import DeskWindow from '../components/Landing/live/DeskWindow';
 import QuestTape from '../components/Landing/live/QuestTape';
 import LiveResume from '../components/Landing/live/LiveResume';
-import LiveVoice from '../components/Landing/live/LiveVoice';
+import LiveCourses from '../components/Landing/live/LiveCourses';
 import { useHasBeenSeen } from '../components/Landing/live/liveHooks';
 import { INTERVIEW_GUIDE_TOTALS } from '../data/interviewGuideSummaries.generated';
 import { getCourseCatalogTotals } from '../lib/interactiveCourses';
@@ -98,13 +98,13 @@ const PLANS = [
         featured: true,
     },
     {
-        name: 'teams',
-        price: 'Custom',
-        note: 'billed per cohort',
-        blurb: 'for schools and career centres.',
-        points: ['Student dashboards', 'Credit allocation', 'Progress tracking'],
-        href: '/contact',
-        cta: 'talk to us',
+        name: 'annual',
+        price: '$12/mo',
+        note: 'billed yearly, cancel anytime',
+        blurb: 'for an extended search.',
+        points: ['All pro features', 'Full course catalogue', 'Priority model latency'],
+        href: '/pricing',
+        cta: 'see annual',
         featured: false,
     },
 ];
@@ -128,7 +128,7 @@ const FAQS = [
     },
     {
         q: 'where do the jobs come from?',
-        a: 'Straight from 160+ companies\' official career boards — Greenhouse, Lever, and Ashby — refreshed every six hours. Every apply link is checked before it shows up, so expired postings drop out on their own.',
+        a: 'Direct from company career pages — no scraped aggregators. If a role is listed on CareerVivid, you apply straight on the employer\'s site.',
     },
 ];
 
@@ -150,7 +150,7 @@ const LiveLandingPage: React.FC = () => (
             anchors={[
                 { href: '#quests', label: 'quests' },
                 { href: '#resume', label: 'resume' },
-                { href: '#studio', label: 'studio' },
+                { href: '#learning', label: 'learning' },
                 { href: '/pricing', label: 'pricing' },
             ]}
         />
@@ -178,21 +178,21 @@ const LiveLandingPage: React.FC = () => (
             />
 
             <FeatureRow
-                id="studio"
-                eyebrow="interview studio"
-                title="Experience the full interview loop before you walk in the room."
-                copy="The Career Agent reads your resume, runs the round the exact way that company conducts it, and asks dynamic follow-up questions out loud. You finish knowing exactly how the live interview feels — and where to sharpen your answers."
+                id="learning"
+                eyebrow="free interactive courses"
+                title="Master system design and coding patterns with hands-on courses."
+                copy="Explore full-length interactive curricula across coding interview patterns, distributed system design, and AI agent architectures. Execute Python drills directly in your browser, sketch architectures against real hiring rubrics, and learn for free with zero paywalls on core foundations."
                 points={[
-                    'Real voice, not a chat box pretending to be one',
-                    `Questions drawn from ${COMPANY_COUNT} verified company guides`,
-                    'A report at the end that names what to practise, not just a score',
+                    '16 coding patterns with in-browser WebAssembly test suites',
+                    '25+ distributed system architectures with interactive whiteboard drills',
+                    '100% free curriculum with zero sign-in required to browse',
                 ]}
-                href="/interview-studio"
-                cta="Open the studio"
-                filename="voice-round.mov"
+                href="/learning"
+                cta="Explore free courses"
+                filename="interactive-courses.mov"
                 accent="amber"
                 flip
-                render={(playing) => <LiveVoice playing={playing} />}
+                render={(playing) => <LiveCourses playing={playing} />}
             />
 
             <section className="border-y py-12" style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}>
