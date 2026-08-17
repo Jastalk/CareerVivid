@@ -1,0 +1,2 @@
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips-uber-dispatch/uber-dispatch-clip-1-hook-clean.mp4'
+file '/Users/jiawenzhu/Developer/careervivid/public/system-design-lessons/clips-uber-dispatch/uber-dispatch-clip-2-painpoint-clean.mp4'

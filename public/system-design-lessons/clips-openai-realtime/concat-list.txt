@@ -1,0 +1,3 @@
+file 'openai-realtime-clip-1-hook-clean.mp4'
+file 'openai-realtime-clip-2-painpoint-clean.mp4'
+file 'openai-realtime-clip-3-companion-clean.mp4'
