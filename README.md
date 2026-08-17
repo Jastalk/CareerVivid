@@ -2,290 +2,246 @@
 
 # CareerVivid
 
-### One practical workspace for the job search, interview practice, and skill building.
+### A job-search workspace where the mock interview is a real spoken conversation, your code is actually executed, your whiteboard is graded against a rubric, and the fixes land in the resume you apply with.
 
-[Open the product](https://careervivid.app) · [Build a resume](https://careervivid.app/edit/new) · [Practice interviews](https://careervivid.app/interview-studio) · [Browse open jobs](https://careervivid.app/jobs) · [Browse courses](https://careervivid.app/learning) · [Read the competition guide](COMPETITION.md)
+[![Live product](https://img.shields.io/badge/Live-careervivid.app-4f46e5?style=for-the-badge)](https://careervivid.app)
+[![Category](https://img.shields.io/badge/Category-Education%20%26%20Human%20Potential-0F9D58?style=for-the-badge)](#why-education--human-potential)
+[![Gemini API](https://img.shields.io/badge/Gemini%20API-live%20in%20production-4285F4?style=for-the-badge)](#ai-in-production)
+[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-139%20functions%20deployed-1a73e8?style=for-the-badge)](#how-it-is-built)
 
 </div>
 
-![The CareerVivid home page: a whiteboard drawing a URL-shortener design, a live voice waveform, a scored design report, and a ride-dispatch diagram, scattered around the wordmark](docs/screenshots/landing.png)
+![The CareerVivid home page: a whiteboard drawing a URL-shortener design, a live voice waveform, a scored design report, and a ride-dispatch diagram scattered around the wordmark](docs/screenshots/landing.png)
 
-## Try it without an account
+---
 
-Three surfaces are public, so you can see the real product before signing up:
+## Try it right now — no account, no card
 
-| | |
+Every link below opens the **live production app** as a guest. Nothing here is a
+sandbox or a seeded demo; it is the same application a paying user gets, with
+the signed-in surfaces withheld.
+
+| Open this | What you should see in 30 seconds |
 | --- | --- |
-| [careervivid.app/edit/new](https://careervivid.app/edit/new) | The builder and all 36 templates, no account needed |
-| [careervivid.app/jobs](https://careervivid.app/jobs) | Verified, still-open job listings |
-| [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | Interview questions for 301 companies |
+| **[careervivid.app/quest/google](https://careervivid.app/quest/google)** ← **start here** | Google's real interview ladder — recruiter screen, coding, system design, behavioural, values, final — each stage with a 70/100 pass mark, built from that company's documented questions. |
+| [careervivid.app/learn/coding-interview-patterns/tp-code](https://careervivid.app/learn/coding-interview-patterns/tp-code) | A coding lesson that **runs your Python in the browser** — CPython on WebAssembly, in a worker — and diffs the real output against the expected result. Press Run. |
+| [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | 301 companies, 4,551 documented questions, 821 documented stages. Search the company you are actually interviewing at. |
+| [careervivid.app/edit/new](https://careervivid.app/edit/new) | The resume editor, open to guests. Write or import one, pick from 36 templates, export to PDF, Google Docs or `.docx` without ever signing in. |
 
-The free plan is a working product rather than a trial: 100 credits a month,
-all 36 templates, unlimited PDF export, and the company interview guides, with
-no card required.
+The free plan is a working product, not a trial: 100 credits a month, all 36
+templates, every company guide, no card.
 
-![CareerVivid pricing showing the free plan alongside Pro and Max, with monthly credit allowances](docs/screenshots/pricing.png)
+---
 
-## Test account (for reviewers)
+## The problem
 
-A shared demo account is available so you can explore the full experience at
-[careervivid.app](https://careervivid.app) without setting anything up. Email
-[support@careervivid.app](mailto:support@careervivid.app) and we will send you
-the credentials directly — we don't publish them here.
+Landing a job costs hundreds of hours, and almost none of that effort produces
+feedback. You submit applications into silence. You rehearse answers alone in a
+room. You draw a system design on a whiteboard that nobody grades. The loop that
+decides your career is the one loop you never get to practise against.
 
-## Built around the candidate loop
+CareerVivid makes that loop runnable. You talk out loud and something answers.
+You write code and it executes. You draw an architecture and it is scored
+against a rubric. Then the same agent that just watched you fail edits the
+resume you apply with.
 
-CareerVivid keeps the work that usually lives across a resume editor, job board,
-interview prep site, and course platform in one connected workflow:
+---
 
-1. Choose the resume and application profile that represent the role you want.
-2. Review explainable job matches that account for your evidence, preferences,
-   and location.
-3. Prepare with company-style recruiter, coding, system-design, and behavioral
-   practice.
-4. Use feedback to choose the next course lesson, practice task, or application
-   action.
-5. Return at any time and continue from the exact unfinished lesson or stage.
+## What it does
 
-The product uses a warm editorial presentation for public learning and
-competition documentation, and a compact neutral workspace for repeated
-candidate work. The README follows that same approach: real screens, concise
-explanations, and reproducible evidence.
+### Speak the interview, out loud, in real time
 
-## See the product
+Not a chat window pretending to be an interview. The browser opens a WebSocket
+to Vertex AI's Live API, streams **16 kHz mono PCM** from the microphone, and
+plays 24 kHz audio back. The model decides when a follow-up is warranted and
+when the round is over. The transcript is then scored and written into a report.
 
-### Build the resume
+`src/components/aiInterviewAgent/useAIInterviewAgentSession.ts` · `gemini-live-2.5-flash-native-audio`
 
-36 templates, AI drafting from your own experience, ATS-aware scoring, and
-unlimited PDF export on the free plan.
+![Interview Studio: company interview guides with 301 companies, 22,611 questions and 821 stages, alongside recent sessions and career paths](docs/screenshots/interview-studio.png)
 
-The template picker, the live PDF preview, the resume score, and the Career
-Agent sit on one screen — so a suggestion, the change it describes, and the
-score it moves are all visible at once.
+### Run a company's actual interview ladder
 
-![Resume editor with the template picker, live PDF preview, resume score, and the Career Agent panel open](docs/screenshots/app-resume-editor.png)
+Six stages per company, each with a 70/100 pass threshold and a badge. The
+questions are documented, not generated — 4,551 real questions scraped and
+curated across 301 companies, expanded into 22,611 per-stage quest questions.
 
-### Find the next role
+`src/lib/companyQuests.ts` · guest-browsable at `/quest/:slug`
 
-The dashboard opens on the three things the product is for — continue a quest,
-your resume, your last round — each showing where you actually left off and
-offering one action. Readiness, numbers, and next steps sit below them.
+![The Google interview quest: six stages from recruiter screen through final round, each with pass marks, progress, and stage badges](docs/screenshots/quest-google.png)
 
-![CareerVivid dashboard leading with continue-a-quest, your-resume and your-last-round panels, above target-role readiness and workspace numbers](docs/screenshots/app-dashboard.png)
+### Draw an architecture and have it graded
 
-Job recommendations stay tied to the selected target resume. Each role makes
-the evidence, gaps, work arrangement, salary information, and direct action
-visible instead of presenting an unexplained match number.
+You draw on a real canvas. The rendered image goes to Gemini with a numeric
+rubric and a forced scratchpad, and comes back with a weighted score, named
+gaps, and a follow-up question aimed at whatever you left out. The board below
+is a live session: the coach has already pushed back on key generation and is
+asking how a standby KGS avoids issuing duplicate pre-allocated keys.
 
-![Resume-grounded job recommendations with match reasons, gaps to review, salary, location, and apply actions](docs/screenshots/job-recommendations.png)
+`src/services/geminiService.ts:1215` · `gemini-3.6-flash`
 
-Anyone can browse the same listings without an account. Every posting is
-fetched from a company's own applicant tracking system and re-checked before it
-is shown, so a role that has closed is removed rather than left to waste an
-application. The match score is what an account adds, because a score is a
-comparison against a resume.
+![A system-design whiteboard for a Google-scale URL shortener showing client application, API gateway, key generation service, Redis cache, Kafka message queue, analytics consumer, Bigtable and an OLAP store](docs/screenshots/app-system-design.png)
 
-![Public job board showing verified open roles with location, work model, seniority, and a locked match score that unlocks with a free account](docs/screenshots/public-jobs.png)
+### Write code that actually runs
 
-### Practice the interview loop
+Python executes in Pyodide — CPython compiled to WebAssembly — inside a Web
+Worker the host can terminate. The pass rate is **measured**, not estimated, and
+the model grades on top of a real result rather than guessing from the source.
 
-Interview Studio brings together saved sessions, company guides, preparation
-formats, difficulty, and career paths. Guides cover 301 companies, and each one
-is built from the questions candidates reported being asked there.
+![A coding lesson in the Two Pointers chapter with an editor, requirements and a run action](docs/screenshots/coding-lesson.png)
 
-![Interview Studio with company-specific interview quests, search, filters, recent sessions, and career paths](docs/screenshots/interview-studio.png)
+### One agent that can see your workspace
 
-![Interview Studio hub showing company interview guides, practice rounds, and scored reports](docs/screenshots/interview-studio-hub.png)
+The Career Agent has 29 tools and up to 12 tool-calling iterations per turn. It
+reads your open code buffer and its test summary, the diagram you are drawing,
+and your scored rounds — so it answers about the thing in front of you instead
+of asking you to describe it.
 
-A Company Quest gives the learner a visible stage map for recruiter, coding,
-system-design, behavioral, and final-round preparation.
+**It cannot write anything.** Every mutating tool returns a server-stored
+*proposal*; the client approves it by ID and never supplies the payload. An
+agent that has been prompt-injected still cannot mutate your data.
 
-![SAP Company Quest showing five interview stages, quest progress, badges, and resume actions](docs/screenshots/company-quest-overview.png)
+`functions/src/agent/turnRunner.ts` · `functions/src/agent/tools.ts` · `gemini-3.6-flash`
 
-The practice surfaces retain the prompt, requirements, work area, and feedback
-context in the same place so the next action is clear.
+![The Career Agent giving a detailed system-design critique naming key generation services, distributed locks, Redis cache stampedes and an OLAP store](docs/screenshots/app-career-agent.png)
+
+### Turn the feedback into the resume you send
+
+36 templates, AI tailoring against a specific posting, a match score across four
+named categories, and export to PDF, Google Docs or `.docx`. Guests get the
+editor and the exports; sync, AI and sharing need an account.
+
+![The resume editor with the section navigator, live PDF preview, a resume score of 89, and the resume optimizer panel](docs/screenshots/app-resume-editor.png)
+
+### And a place to put it all together
+
+![The CareerVivid dashboard: continue a quest, your resume, your last round, target-role readiness at 85%, and workspace numbers](docs/screenshots/app-dashboard.png)
 
 <details>
-<summary><strong>Open the interview-practice gallery</strong></summary>
+<summary><b>More surfaces</b> — learning catalog, job board, pricing, quest progress</summary>
 
-<br />
+<br>
 
-**Live recruiter practice** keeps the question queue, task requirements,
-transcript, session path, and live signals on one screen.
+12 published courses, 56 chapters, 203 interactive lessons.
 
-![Live SAP recruiter-screen voice interview with transcript, question queue, task requirements, and session metrics](docs/screenshots/live-voice-interview.png)
+![The learning catalog with goal selection and courses for coding interview patterns, AI agent building and system design](docs/screenshots/app-learning.png)
 
-**Targeted coding practice** lets a candidate reopen the specific problem that
-needs work, then use a language-aware editor, tests, and AI review.
+The resume editor as a guest sees it — no account, no card, exports enabled.
 
-![Company Quest coding stage with a problem picker for targeted practice](docs/screenshots/quest-coding-picker.png)
+![The guest resume editor inviting you to write it yourself or let AI draft from what you have](docs/screenshots/guest-resume-editor.png)
 
-![Coding workspace for the Climbing Stairs problem with Python editor, requirements, tests, and submit-for-review action](docs/screenshots/coding-workspace.png)
+Live postings from 161 company ATS boards, each re-checked to confirm the role
+is still open before it is shown.
 
-![AI Code Coach in the coding workspace with an optimization hint and suggested test cases](docs/screenshots/ai-code-coach.png)
+![The public job board showing open roles with location, work model and seniority](docs/screenshots/jobs.png)
 
-**System-design practice** pairs an editable whiteboard with clear requirements,
-AI diagram review, and coaching. Course exercises use a course-owned return
-path, so closing a whiteboard returns the learner to the same course lesson.
+Quest progress, XP and stage badges.
 
-![Google system-design round: design a URL shortener at scale, with an editable architecture diagram, requirements, and submit-for-review](docs/screenshots/app-system-design.png)
+![Quest progress showing level, XP, stages cleared and stage badges](docs/screenshots/app-quest-progress.png)
 
-**Interview reports** turn each attempt into focused strengths and the next
-improvements to practice.
+One credit pool across every AI surface.
 
-![Interview report with an overall score, communication, confidence and answer-relevance metrics, what went well, what to practise next, and export actions](docs/screenshots/app-interview-report.png)
+![Pricing: free, Pro and Max plans drawing on one pool of monthly credits](docs/screenshots/pricing.png)
 
 </details>
 
-### Certify what you learned
+---
 
-The Claude Certified Architect track scores readiness per domain and gates each
-lesson behind the one before it. Lessons are places rather than list items, and
-the same material can be worked through as a 3D quest.
+## AI in production
 
-![Claude Certified Architect readiness assessment with per-domain scores, gated lessons, and an Enter 3D Quest action](docs/screenshots/app-quest-progress.png)
+Every scored surface in the deployed application calls the Gemini API. Google
+Cloud products in production: **Firebase Auth, Cloud Firestore, Cloud Functions
+(139 deployed), Firebase Hosting, and Vertex AI** for the realtime voice session.
 
-### The Career Agent
+| Decision the model makes | Model | Code |
+| --- | --- | --- |
+| Conducts a spoken interview and decides when it ends | `gemini-live-2.5-flash-native-audio` | `src/components/aiInterviewAgent/useAIInterviewAgentSession.ts` |
+| Scores the transcript, writes the feedback report | `gemini-3.6-flash` | `functions/src/agent/reportTools.ts` |
+| Grades the whiteboard image against a numeric rubric | `gemini-3.6-flash` | `src/services/geminiService.ts:1215` |
+| Grades code on top of a measured pass rate | `gemini-3.6-flash` | `src/services/geminiService.ts:1331` |
+| Runs the 29-tool agent loop, ≤12 iterations per turn | `gemini-3.6-flash` | `functions/src/agent/turnRunner.ts` |
+| Scores a resume against a posting, in 4 categories | `gemini-2.5-flash` | `src/services/geminiService.ts:1501` |
+| Tailors a resume by placing missing keywords | `gemini-2.5-flash` | `functions/src/tailorResume.ts:38` |
 
-A coach that follows you across the product rather than living on one page. It
-reads the round you actually have open — the code buffer in a coding round, the
-canvas in a system-design one — so it coaches what is on your screen instead of
-asking you to describe it.
+**Cost is metered, not hand-waved.** One credit is anchored at **$0.003** of
+model cost at list price (`shared/credits.ts` → `functions/src/generated/credits.ts`).
+The free tier's 100 credits is roughly $0.30 of COGS; Pro's 1,000 credits is
+roughly $3.00 against $12 of revenue.
 
-In a coding round it can see whether your code parses, and offers the fix as a
-diff you approve before anything reaches your editor. It will make your code
-run; it will not write the solution, because that is what the round is
-measuring. Anything it changes on your resume or job tracker arrives the same
-way: as a card you approve, never as a silent write.
+---
 
-### Learn by doing
+## Why Education &amp; Human Potential
 
-The course catalog connects interview preparation to a structured learning
-plan. Progress is saved per lesson; a bare course link resolves to the next
-incomplete exercise rather than resetting the learner to the first lesson.
+Interview preparation is normally advice you read. CareerVivid makes it a loop
+you *run*: you speak a round, execute code, get a diagram scored against a
+rubric, and carry the result into the resume you send. The grounding is real —
+301 companies, 4,551 documented questions, 12 courses, 203 lessons — and the
+free tier alone is a complete preparation path in 7 languages, reachable without
+an account.
 
-![Course catalog showing AI Agent Builder, Coding Interview Patterns, System Design Interview, progress bars, and upcoming courses](docs/screenshots/course-catalog.png)
+---
 
-Each course opens on a roadmap rather than lesson one: pick the level that
-matches the interviews you are preparing for, and every pattern carries its
-recognition signals, a step-through animation, and a practice lab.
+## How it is built
 
-![Coding Interview Patterns roadmap with beginner, intermediate and advanced levels and per-pattern lesson progress](docs/screenshots/app-course-lesson.png)
-
-Published courses include:
-
-- **AI Agent Builder Curriculum**: foundations through capstone work using
-  readings, interactive playgrounds, videos, quizzes, and code labs.
-- **Coding Interview Patterns**: step-through algorithm visualizations and
-  runnable practice exercises.
-- **System Design Interview**: twelve modules of deterministic simulations,
-  scenario decisions, whiteboard exercises, answer drills, and timed mock
-  practice.
-
-<details>
-<summary><strong>Open the interactive-learning gallery</strong></summary>
-
-<br />
-
-Interactive lessons model a real, observable state rather than using motion as
-decoration. Learners change inputs, see the resulting behavior, and complete
-the stated lesson criterion.
-
-**Tokens and cost intuition**
-
-![Tokenizer playground showing editable text, token segmentation, token count, characters per token, and estimated usage costs](docs/screenshots/tokenizer-playground.png)
-
-**Context-window behavior**
-
-![Context-window visualizer showing model context capacity, message types, and the effect of a pasted document](docs/screenshots/context-window-playground.png)
-
-**Curated source material in context**
-
-![AI course video lesson with course progress, lesson framing, learning objectives, and previous-next navigation](docs/screenshots/video-lesson.png)
-
-**Retrieval-Augmented Generation**
-
-![RAG playground showing a selected query, ranked retrieved chunks, similarity scores, and a grounded answer with citation](docs/screenshots/rag-playground.png)
-
-</details>
-
-## How it is put together
-
-| Area | Implementation |
-| --- | --- |
-| Application | React, TypeScript, Vite, Tailwind CSS, and Framer Motion |
-| Identity and persistence | Firebase Auth and Firestore |
-| Job data | Official ATS and career-board ingestion with apply-link validation |
-| Job matching | Resume, role requirements, experience evidence, location, work preferences, and available compensation information |
-| Interview practice | Voice sessions, coding runner, Excalidraw whiteboard, and AI feedback |
-| Career Agent | Gemini Live voice plus a text agent over a shared tool registry, with every write gated behind user approval |
-| Search | Crawler-rendered HTML and a generated sitemap served from Cloud Functions |
-| Course delivery | JSON course definitions rendered through a React widget registry |
-| AI services | Gemini through controlled application services |
-| Hosting | Firebase Hosting |
-
-```text
-data/courses/*.json -> course engine -> lesson pages -> saved lesson progress
-                                      |
-src/components/CourseWidgets/ -> deterministic simulations
-                                      |
-src/lib/companyQuests.ts -> company-specific prompts and stages
-                                      |
-functions/ -> job ingestion, AI services, and SEO generation
 ```
+React + TypeScript (Vite)          →  Firebase Hosting
+Cloud Functions (139 exported)     →  AI calls, ATS ingestion, SEO rendering
+Cloud Firestore                    →  user data, sessions, agent proposals
+Firebase Auth                      →  accounts
+Vertex AI Live API                 →  realtime voice (raw BidiGenerateContent WS)
+Gemini API                         →  grading, agent, resume, job scoring
+Pyodide (CPython → WASM)           →  in-browser code execution, in a Worker
+```
+
+A few decisions worth calling out:
+
+- **The agent writes nothing directly.** Mutating tools emit server-stored
+  proposals; the client approves by ID. Prompt injection cannot mutate data.
+- **Agent transcripts live outside `users/{uid}`** on purpose — that namespace
+  carries an owner-write rule that would let a compromised client forge history.
+- **22 pages are server-rendered for crawlers** behind a UA check, so the SPA
+  stays a SPA for humans and still indexes (`functions/src/seo/`).
+- **One question follows you across surfaces.** The agent hands back a route
+  carrying the exact `questionId`, so "practise this one" lands on that question.
+
+---
 
 ## Run locally
 
 ```bash
-git clone https://github.com/JiawenZhu/CareerVivid.git
-cd CareerVivid
-npm ci
-npm run dev
+npm install
+npm run dev          # http://localhost:3001
 ```
-
-For local product integrations, provide the required Firebase and AI service
-environment values. The Vite development server then exposes the application
-locally.
-
-### Verify the application
 
 ```bash
-npm test -- --run
-npm run build:vite
+npm run build        # production bundle
+npm test             # unit + integration suites
 ```
 
-The suite covers course contracts and widget registration, deterministic
-system-design simulation steps, question-bank contracts, resume template
-contrast across every theme colour, the SEO content served to crawlers, and the
-agent's tool gates. The Vite build confirms the production bundle can be
-generated.
+Firebase emulators and the functions workspace live under `functions/`; see
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for the full development workflow.
 
-To refresh the product screenshots this README embeds:
-
-```bash
-node scripts/capture-readme-screenshots.mjs
-```
-
-Public pages only — signed-in surfaces would put one person's real resumes and
-job matches into a public repository.
+---
 
 ## Repository guide
 
-| Path | Purpose |
+| Path | What is in it |
 | --- | --- |
-| [`COMPETITION.md`](COMPETITION.md) | Competition provenance, evaluator path, and submission verification |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution workflow and course-content licensing rules |
-| `data/courses/` | Data-driven course definitions |
-| `data/interview-guides/` | Company interview-guide content |
-| `docs/screenshots/` | The product evidence used in this README |
-| `src/components/CourseWidgets/` | Interactive course simulations |
-| `src/components/Quest/` | Company Quest coding and system-design practice |
-| `src/features/agent/` | Career Agent panel, live voice session, and approval cards |
-| `scripts/capture-readme-screenshots.mjs` | Regenerates the product screenshots above |
-| `src/pages/` | Application routes and product surfaces |
-| `functions/` | ATS ingestion, AI services, and SEO generation |
+| `src/` | React app: routes, components, services |
+| `src/services/geminiService.ts` | Grading, scoring and tailoring calls |
+| `src/components/aiInterviewAgent/` | Realtime voice session |
+| `src/lib/companyQuests.ts` | Quest ladder construction and pass thresholds |
+| `functions/src/agent/` | Career Agent: tools, turn runner, proposals |
+| `functions/src/seo/` | Crawler-aware server rendering |
+| `data/courses/` | 12 published courses, 203 lessons |
+| `docs/screenshots/` | The images in this README |
+
+---
 
 ## Competition submission
+
+**[Build with Gemini XPRIZE](https://xprize.devpost.com)** · category:
+**Education &amp; Human Potential**
 
 | Item | Evidence |
 | --- | --- |
@@ -294,16 +250,23 @@ job matches into a public repository.
 | First qualifying commit | [`42320189`](https://github.com/JiawenZhu/CareerVivid/commit/423201899f3717876c8f3645eaaffed57c5028b8) |
 | Competition window | May 19, 2026 at 10:00 AM PDT to August 17, 2026 at 1:00 PM PDT |
 | Evaluator guide | [`COMPETITION.md`](COMPETITION.md) |
+| Google Cloud products | Firebase Auth, Cloud Firestore, Cloud Functions, Firebase Hosting, Vertex AI |
+| Gemini API in production | 7 distinct scored surfaces — see [AI in production](#ai-in-production) |
 
 The annotated `competition-start` tag marks the first qualifying commit after
 the competition opened. The repository preserves its actual history; timestamps
 and earlier commits have not been rewritten.
 
+---
+
 ## License and contributions
 
 CareerVivid is source-available for personal learning and job-search use.
-Commercial use of this Software is strictly prohibited. Any commercial use or licensing inquiries must be directed to CareerVivid at evan@careervivid.app or support@careervivid.app. Course source materials retain their original licenses; see `data/learning/sources.json`.
+Commercial use of this Software is strictly prohibited. Any commercial use or
+licensing inquiries must be directed to CareerVivid at evan@careervivid.app or
+support@careervivid.app. Course source materials retain their original licenses;
+see `data/learning/sources.json`.
 
-Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for
-the development workflow, focused-test expectations, and content licensing
+Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) for the
+development workflow, focused-test expectations, and content licensing
 requirements.
