@@ -50,7 +50,7 @@ const InterviewShowcaseSection: React.FC = () => (
                         Practice the exact loop with your AI companion — {ALL_GUIDES.length} companies.
                     </h2>
                     <p className="mt-2 max-w-2xl text-base font-medium text-[#665a4a] dark:text-[#aaa39a]">
-                        Select a company prompt, sketch your architecture on the whiteboard alongside a friendly system design coach, and complete live voice rounds with an instant performance report on what to focus on next.
+                        Select a company prompt, sketch your architecture on the whiteboard alongside the Career Agent, and complete live voice rounds with an instant performance report on what to focus on next.
                     </p>
                 </div>
                 <a

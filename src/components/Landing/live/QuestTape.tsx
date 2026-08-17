@@ -18,7 +18,7 @@ const QuestTape: React.FC = () => {
                     system design quests
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
-                    A design coach, sitting next to you.
+                    The Career Agent, sitting next to you.
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                     Pick a company and their prompt lands on your whiteboard. Draw it however you

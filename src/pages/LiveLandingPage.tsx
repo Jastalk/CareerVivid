@@ -162,8 +162,8 @@ const LiveLandingPage: React.FC = () => (
             <FeatureRow
                 id="resume"
                 eyebrow="resume editor"
-                title="Your resume, finished — not just written."
-                copy="Any model can draft a bullet. The hour goes on formatting, ATS rules, and which file the recruiter actually wants. Paste the posting and the agent rewrites, scores, and exports it — then translates the whole thing when the role is in another country."
+                title="Your resume, engineered for the role — not just formatted."
+                copy="Any model can draft a bullet. The real challenge is keyword targeting, ATS compliance, and recruiter impact. Paste the job posting and the Career Agent rewrites, scores, and exports your resume — complete with instant multi-language translation."
                 points={[
                     'Your facts and your evidence — better phrasing, nothing invented',
                     'Scored against this posting, not a generic template',
@@ -180,8 +180,8 @@ const LiveLandingPage: React.FC = () => (
             <FeatureRow
                 id="studio"
                 eyebrow="interview studio"
-                title="Hear the whole loop before you live it."
-                copy="The agent reads your resume, runs the round the way that company runs it, and asks the follow-up out loud. You finish knowing what the day will feel like — and exactly what to work on before it arrives."
+                title="Experience the full interview loop before you walk in the room."
+                copy="The Career Agent reads your resume, runs the round the exact way that company conducts it, and asks dynamic follow-up questions out loud. You finish knowing exactly how the live interview feels — and where to sharpen your answers."
                 points={[
                     'Real voice, not a chat box pretending to be one',
                     `Questions drawn from ${COMPANY_COUNT} verified company guides`,
