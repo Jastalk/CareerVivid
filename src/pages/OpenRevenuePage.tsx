@@ -231,6 +231,19 @@ const InteractiveRevenueChart: React.FC<{
     // from `selected`: hovering previews a period, clicking pins it, so moving
     // the cursor away never destroys what the reader chose to keep on screen.
     const hovered = hoveredIndex !== null ? points[hoveredIndex] : null;
+    // A running total, which is what gives the curve its one-directional climb.
+    // Plotting the per-period value instead would swing back to zero on every
+    // quiet month and read as noise rather than a trend.
+    const cumulative = useMemo(() => {
+        let running = 0;
+        return points.map((point) => (running += valueOf(point)));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [points, measure]);
+    const maxCum = Math.max(cumulative[cumulative.length - 1] || 1, 1);
+    const xAt = (i: number) => (points.length <= 1 ? 0 : (i / (points.length - 1)) * 100);
+    const yAt = (i: number) => 100 - (cumulative[i] / maxCum) * 100;
+    const linePath = points.map((_, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(3)},${yAt(i).toFixed(3)}`).join(' ');
+    const areaPath = `${linePath} L100,100 L0,100 Z`;
     const hoveredPct = hoveredIndex !== null ? ((hoveredIndex + 0.5) / points.length) * 100 : 0;
     // Near the ends the card would overflow the plot, so the anchor slides from
     // centred to edge-aligned instead of being clipped.
@@ -251,7 +264,7 @@ const InteractiveRevenueChart: React.FC<{
                 <div>
                     <h2 className="text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Verified revenue</h2>
                     <p className="mt-0.5 text-xs font-semibold text-[#8a7a66] dark:text-[#aaa39a]">
-                        Hover any bar for the numbers · click to pin that {range === 'daily' ? 'day' : 'month'} below.
+                        Hover the curve for running totals · click to pin that {range === 'daily' ? 'day' : 'month'} below.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -289,40 +302,61 @@ const InteractiveRevenueChart: React.FC<{
             {/* Chart */}
             <div className="mt-6 grid grid-cols-[44px_1fr] gap-3">
                 <div className="flex h-64 flex-col justify-between text-right text-[10px] font-bold text-[#8a7a66] dark:text-[#aaa39a]">
-                    <span>{formatMoney(maxValue, currency, true)}</span>
-                    <span>{formatMoney(maxValue / 2, currency, true)}</span>
+                    <span>{formatMoney(maxCum, currency, true)}</span>
+                    <span>{formatMoney(maxCum / 2, currency, true)}</span>
                     <span>$0</span>
                 </div>
                 <div
                     onMouseLeave={() => setHoveredIndex(null)}
                     className="relative flex h-64 items-end gap-[3px] border-b border-l border-[#e4d3bc] bg-[linear-gradient(to_bottom,rgba(148,116,70,0.1)_1px,transparent_1px)] bg-[length:100%_25%] px-1 dark:border-[#37332d] dark:bg-[linear-gradient(to_bottom,rgba(202,162,108,0.12)_1px,transparent_1px)]"
                 >
-                    {/* Column spotlight. Sits behind the bars and tracks the cursor so the
-                        eye can follow a single period straight down to its axis label. */}
-                    {hovered && !loading && (
-                        <span
-                            aria-hidden
-                            className="pointer-events-none absolute inset-y-0 z-0 rounded-md transition-all duration-150"
-                            style={{
-                                left: `${hoveredPct}%`,
-                                width: `${Math.max(100 / points.length, 3)}%`,
-                                transform: 'translateX(-50%)',
-                                background: 'linear-gradient(to top, rgba(101,87,210,0.16), rgba(101,87,210,0.02))',
-                            }}
-                        />
+                    {/* Stock-style cumulative curve. The bars showed each period in
+                        isolation; the area shows the business climbing. */}
+                    {!loading && (
+                        <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#6557d2" stopOpacity="0.42" />
+                                    <stop offset="100%" stopColor="#6557d2" stopOpacity="0.02" />
+                                </linearGradient>
+                                <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stopColor="#8d83f6" />
+                                    <stop offset="100%" stopColor="#6557d2" />
+                                </linearGradient>
+                            </defs>
+                            <path d={areaPath} fill="url(#revFill)" />
+                            <path
+                                d={linePath}
+                                fill="none"
+                                stroke="url(#revLine)"
+                                strokeWidth={2.5}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                vectorEffect="non-scaling-stroke"
+                            />
+                            {hoveredIndex !== null && (
+                                <>
+                                    <line
+                                        x1={xAt(hoveredIndex)} y1={0} x2={xAt(hoveredIndex)} y2={100}
+                                        stroke="#6557d2" strokeOpacity="0.35" strokeWidth={1}
+                                        strokeDasharray="3 3" vectorEffect="non-scaling-stroke"
+                                    />
+                                    <circle
+                                        cx={xAt(hoveredIndex)} cy={yAt(hoveredIndex)} r={5}
+                                        fill="#ffffff" stroke="#6557d2" strokeWidth={3}
+                                        vectorEffect="non-scaling-stroke"
+                                        style={{ filter: 'drop-shadow(0 3px 8px rgba(101,87,210,0.55))' }}
+                                    />
+                                </>
+                            )}
+                        </svg>
                     )}
 
+                    {/* Invisible hit columns. The curve itself is one path, so the
+                        pointer needs per-period targets to resolve which point it is on. */}
                     {points.map((point, index) => {
-                        const value = valueOf(point);
-                        const height = loading ? placeholderHeight(index) : Math.max(value > 0 ? 6 : 2, (value / maxValue) * 100);
                         const isSelected = selectedIndex === index;
-                        const isHovered = hoveredIndex === index;
-                        // Everything that is not the bar under the cursor recedes, which is
-                        // what makes the hovered one read as foreground rather than merely
-                        // a slightly different shade of the same purple.
-                        const isMuted = hoveredIndex !== null && !isHovered && !isSelected;
                         const showLabel = visibleLabels.includes(index);
-
                         return (
                             <div
                                 key={`${point.date}-${index}`}
@@ -334,31 +368,13 @@ const InteractiveRevenueChart: React.FC<{
                                     disabled={loading}
                                     onClick={() => setSelectedIndex(isSelected ? null : index)}
                                     onFocus={() => !loading && setHoveredIndex(index)}
-                                    aria-label={`${point.label}: ${formatMoney(value, currency)} ${measure}`}
+                                    aria-label={`${point.label}: ${formatMoney(valueOf(point), currency)} ${measure}`}
                                     aria-pressed={isSelected}
-                                    className={`w-full max-w-[26px] rounded-t-md transition-all duration-200 ease-out ${loading ? 'animate-pulse bg-[#d9cdbb] dark:bg-[#3f3a33]' : ''}`}
-                                    style={{
-                                        height: `${height}%`,
-                                        animationDelay: loading ? `${(index % 10) * 90}ms` : undefined,
-                                        ...(loading ? {} : {
-                                            background: isSelected
-                                                ? 'linear-gradient(180deg,#3a2f26,#211b16)'
-                                                : isHovered
-                                                    ? 'linear-gradient(180deg,#a99ffb,#6557d2)'
-                                                    : 'linear-gradient(180deg,#8d83f6,#6557d2)',
-                                            opacity: isMuted ? 0.32 : 1,
-                                            transform: isHovered ? 'scaleY(1.04)' : 'scaleY(1)',
-                                            transformOrigin: 'bottom',
-                                            boxShadow: isHovered
-                                                ? '0 0 0 3px rgba(101,87,210,0.22), 0 10px 22px -6px rgba(101,87,210,0.65)'
-                                                : isSelected
-                                                    ? '0 0 0 3px rgba(33,27,22,0.18)'
-                                                    : 'none',
-                                        }),
-                                    }}
+                                    className="h-full w-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6557d2]"
+                                    style={{ background: isSelected ? 'rgba(101,87,210,0.10)' : 'transparent' }}
                                 />
                                 {showLabel && (
-                                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold transition-colors ${isHovered ? 'text-[#6557d2] dark:text-[#a99ffb]' : 'text-[#8a7a66] dark:text-[#aaa39a]'}`}>
+                                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold transition-colors ${hoveredIndex === index ? 'text-[#6557d2] dark:text-[#a99ffb]' : 'text-[#8a7a66] dark:text-[#aaa39a]'}`}>
                                         {point.label}
                                     </span>
                                 )}
@@ -377,7 +393,7 @@ const InteractiveRevenueChart: React.FC<{
                                 // Sits above the bar, but min() stops a tall bar from
                                 // pushing the card out of the plot and over the
                                 // Gross/Net toggle above it.
-                                bottom: `min(calc(${Math.max(valueOf(hovered) > 0 ? 6 : 2, (valueOf(hovered) / maxValue) * 100)}% + 14px), calc(100% - 96px))`,
+                                bottom: `min(calc(${(100 - yAt(hoveredIndex as number)).toFixed(2)}% + 16px), calc(100% - 96px))`,
                                 transform: `translateX(${hoverShift})`,
                             }}
                         >
@@ -385,10 +401,11 @@ const InteractiveRevenueChart: React.FC<{
                                 {range === 'daily' ? formatFullDate(hovered.date) : hovered.label}
                             </p>
                             <p className="mt-1 text-xl font-black leading-none tabular-nums text-[#211b16] dark:text-[#f4f1e9]">
-                                {formatMoney(valueOf(hovered), currency)}
+                                {formatMoney(cumulative[hoveredIndex as number], currency)}
                             </p>
                             <div className="mt-2 flex items-center gap-3 border-t border-[#efe3d2] pt-1.5 text-[10px] font-bold text-[#8a7a66] dark:border-[#37332d] dark:text-[#aaa39a]">
-                                <span className="capitalize">{measure}</span>
+                                <span className="capitalize">{measure} to date</span>
+                                <span className="tabular-nums">+{formatMoney(valueOf(hovered), currency)}</span>
                                 <span className="tabular-nums">
                                     {hovered.chargeCount} {hovered.chargeCount === 1 ? 'txn' : 'txns'}
                                 </span>
