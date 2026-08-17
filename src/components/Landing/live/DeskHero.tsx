@@ -125,7 +125,7 @@ const DeskHero: React.FC = () => {
                 </h1>
 
                 <p className="mx-auto mt-4 max-w-lg text-[16px] leading-relaxed sm:text-[18px]" style={{ color: 'var(--cvl-muted)' }}>
-                    Career Agent that sits with you — writing the resume so you get your evening back,
+                    An autonomous companion in your corner — engineering the resume so you get your evening back,
                     then working through the hardest problem until you can say it out loud. Understand
                     it, explain it well, and the offer follows naturally.
                 </p>
