@@ -218,12 +218,15 @@ const InteractiveRevenueChart: React.FC<{
     const points = range === 'daily' ? daily : monthly.slice(-MONTHS_SHOWN);
     const valueOf = (point: RevenuePoint) =>
         Math.max(measure === 'gross' ? point.grossRevenueCents : point.netRevenueCents, 0);
-    const maxValue = Math.max(...points.map(valueOf), 1);
 
     const totals = useMemo(() => {
         const sum = points.reduce((acc, point) => acc + valueOf(point), 0);
         const transactions = points.reduce((acc, point) => acc + point.chargeCount, 0);
-        const best = points.reduce((acc, point) => (valueOf(point) > valueOf(acc) ? point : acc), points[0]);
+        // Seeded with points[0], so an empty series would hand back undefined and
+        // the footer would read .label off it. Guarded rather than assumed.
+        const best = points.length
+            ? points.reduce((acc, point) => (valueOf(point) > valueOf(acc) ? point : acc), points[0])
+            : null;
         const activePeriods = points.filter((point) => valueOf(point) > 0).length;
         return { sum, transactions, best, activePeriods };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -242,7 +245,17 @@ const InteractiveRevenueChart: React.FC<{
         return points.map((point) => (running += valueOf(point)));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [points, measure]);
-    const maxCum = Math.max(cumulative[cumulative.length - 1] || 1, 1);
+    // A raw peak prints axes like $98 / $49. Rounding up to a 1/2/2.5/5 step gives
+    // the readable ticks a money chart is expected to have, and leaves the curve
+    // sitting just under the top gridline rather than pinned against it.
+    const niceCeil = (value: number) => {
+        if (value <= 0) return 1;
+        const magnitude = 10 ** Math.floor(Math.log10(value));
+        const step = [1, 2, 2.5, 5, 10].find((candidate) => value <= candidate * magnitude) ?? 10;
+        return step * magnitude;
+    };
+    const peak = Math.max(cumulative[cumulative.length - 1] || 1, 1);
+    const maxCum = niceCeil(peak);
     const xAt = (i: number) => (points.length <= 1 ? 0 : (i / (points.length - 1)) * 100);
     const yAt = (i: number) => 100 - (cumulative[i] / maxCum) * 100;
     const linePath = points.map((_, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(3)},${yAt(i).toFixed(3)}`).join(' ');
@@ -251,7 +264,6 @@ const InteractiveRevenueChart: React.FC<{
     // Near the ends the card would overflow the plot, so the anchor slides from
     // centred to edge-aligned instead of being clipped.
     const hoverShift = hoveredPct < 18 ? '-12%' : hoveredPct > 82 ? '-88%' : '-50%';
-    const placeholderHeight = (index: number) => 18 + ((index * 37) % 61);
     const visibleLabels = range === 'daily' ? [0, 7, 14, 21, 29] : [0, 2, 4, 5];
 
     const switchRange = (next: 'daily' | 'monthly') => {
@@ -313,6 +325,16 @@ const InteractiveRevenueChart: React.FC<{
                     onMouseLeave={() => setHoveredIndex(null)}
                     className="relative flex h-64 items-end gap-[3px] border-b border-l border-[#e4d3bc] bg-[linear-gradient(to_bottom,rgba(148,116,70,0.1)_1px,transparent_1px)] bg-[length:100%_25%] px-1 dark:border-[#37332d] dark:bg-[linear-gradient(to_bottom,rgba(202,162,108,0.12)_1px,transparent_1px)]"
                 >
+                    {/* Skeleton. Removing the bars left the plot completely empty while
+                        Stripe is still answering, which reads as a broken chart rather
+                        than a loading one. */}
+                    {loading && (
+                        <svg className="absolute inset-0 h-full w-full animate-pulse" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="#d9cdbb" fillOpacity="0.35" className="dark:hidden" />
+                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="#3f3a33" fillOpacity="0.5" className="hidden dark:block" />
+                        </svg>
+                    )}
+
                     {/* Stock-style cumulative curve. The bars showed each period in
                         isolation; the area shows the business climbing. */}
                     {!loading && (
@@ -470,12 +492,12 @@ const InteractiveRevenueChart: React.FC<{
                     <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-[#8a7a66] dark:text-[#aaa39a]">
                         <span>
                             {loading ? 'Loading period summary…' : (
-                                <>Period total <span className="text-[#211b16] dark:text-[#f4f1e9]">{formatMoney(totals.sum, currency)}</span> · {totals.transactions} transactions · {totals.activePeriods} active {range === 'daily' ? 'days' : 'months'}</>
+                                <>{range === 'daily' ? 'Last 30 days' : `Last ${MONTHS_SHOWN} months`} <span className="text-[#211b16] dark:text-[#f4f1e9]">{formatMoney(totals.sum, currency)}</span> · {totals.transactions} transactions · {totals.activePeriods} active {range === 'daily' ? 'days' : 'months'}</>
                             )}
                         </span>
                         {!loading && totals.best && valueOf(totals.best) > 0 && (
                             <span>
-                                Best {range === 'daily' ? 'day' : 'month'}: <span className="text-[#211b16] dark:text-[#f4f1e9]">{totals.best.label} · {formatMoney(valueOf(totals.best), currency)}</span>
+                                {totals.best && <>Best {range === 'daily' ? 'day' : 'month'}: <span className="text-[#211b16] dark:text-[#f4f1e9]">{totals.best.label} · {formatMoney(valueOf(totals.best), currency)}</span></>}
                             </span>
                         )}
                     </div>
