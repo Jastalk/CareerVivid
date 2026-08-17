@@ -14,8 +14,7 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-react';
-import PublicHeader from '../components/PublicHeader';
-import Footer from '../components/Footer';
+import { MenuBar, PublicFooter } from '../components/Landing/live/PublicShell';
 
 type RevenueSummary = {
     grossRevenueCents: number;
@@ -463,7 +462,7 @@ const OpenRevenuePage: React.FC = () => {
                 <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
             </Helmet>
 
-            <PublicHeader variant="editorial" />
+            <MenuBar />
 
             <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
                 {/* Compact professional header */}
@@ -649,7 +648,7 @@ const OpenRevenuePage: React.FC = () => {
                 </section>
             </main>
 
-            <Footer />
+            <PublicFooter />
         </div>
     );
 };
