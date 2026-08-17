@@ -57,7 +57,7 @@ export const SystemDesignAnswerDrillWidget: React.FC<CourseWidgetProps> = ({ cha
       {practice && course && exercise && (
         <div className="mt-5 border-t border-[var(--cv-border-warm)] pt-4">
           <p className="text-xs font-extrabold text-[var(--cv-text-heading)]">Timed mock practice</p>
-          <p className="mt-1 text-[11px] leading-4 text-[var(--cv-text-muted)]">Your course whiteboard is complete. This opens a separate course practice session with diagram review and the Socratic coach. Its submission stays in the course.</p>
+          <p className="mt-1 text-[11px] leading-4 text-[var(--cv-text-muted)]">Your course whiteboard is complete. This opens a separate course practice session with diagram review and the Career Agent. Its submission stays in the course.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button type="button" disabled={!completed} onClick={openPractice} className="cv-design-button-primary inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs disabled:cursor-not-allowed disabled:opacity-45"><ShieldCheck size={14} /> Start timed {practice.primaryChallengeId} mock <ArrowRight size={14} /></button>
           </div>

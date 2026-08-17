@@ -73,7 +73,7 @@ const ReferralLandingPage: React.FC = () => {
         {
             icon: <Target className="w-8 h-8 text-blue-500" />,
             title: 'Unlimited Interview Practice',
-            description: 'Mock interview sessions with AI coach'
+            description: 'Mock interview sessions with the Career Agent'
         },
         {
             icon: <Zap className="w-8 h-8 text-green-500" />,

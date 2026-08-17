@@ -1130,7 +1130,7 @@ const CompanyQuestPage: React.FC<CompanyQuestPageProps> = ({ slug }) => {
                             {!currentUser && canGuestUseLocalQuestStage(slug, 'coding') && (
                                 <section className="cv-design-card p-4">
                                     <h2 className="cv-design-title text-base">Try the technical stages free</h2>
-                                    <p className="cv-design-body mt-1.5 text-xs">Use the code editor and whiteboard in this company quest without signing in. Sign in when you want AI review, coaching, saved progress, and XP.</p>
+                                    <p className="cv-design-body mt-1.5 text-xs">Use the code editor and whiteboard in this company quest without signing in. Sign in when you want AI review, Career Agent feedback, saved progress, and XP.</p>
                                 </section>
                             )}
 

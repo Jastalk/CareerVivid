@@ -247,7 +247,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             return {
                 ...base,
                 title: 'continue a quest',
-                blurb: 'Your board is where you left it. Submit the design and the coach names what is missing.',
+                blurb: 'Your board is where you left it. Submit the design and the Career Agent names what is missing.',
                 state: {
                     label: entry.job?.title || 'System design round',
                     meta: `${entry.job?.company ? `${entry.job.company} · ` : ''}${formatDate(touched || entry.timestamp)}`,
@@ -261,7 +261,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             return {
                 ...base,
                 title: 'continue a quest',
-                blurb: 'Your board is where you left it. Submit the design and the coach names what is missing.',
+                blurb: 'Your board is where you left it. Submit the design and the Career Agent names what is missing.',
                 state: {
                     label: latestWhiteboard.title || 'Untitled whiteboard',
                     meta: `edited ${formatRelativeTime(latestWhiteboard.updatedAt)}`,
@@ -274,7 +274,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         return {
             ...base,
             title: 'draw it, get told what is wrong',
-            blurb: 'Sketch the system on a whiteboard. The coach asks about the parts you skipped, then scores coverage, trade-offs, and clarity.',
+            blurb: 'Sketch the system on a whiteboard. The Career Agent asks about the parts you skipped, then scores coverage, trade-offs, and clarity.',
             state: null,
             actionLabel: 'Start a quest',
             actionPath: '/interview-studio',

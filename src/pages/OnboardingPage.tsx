@@ -465,7 +465,7 @@ const OnboardingPage: React.FC = () => {
                             eyebrow="step two"
                             icon={<PenTool size={21} />}
                             title="Draw the system."
-                            description="A whiteboard round from a real company loop. You design it, the coach probes what you left out, and the diagram gets scored."
+                            description="A whiteboard round from a real company loop. You design it, the Career Agent probes what you left out, and the diagram gets scored."
                             checklist={[
                                 'Whiteboard the design, no multiple choice',
                                 'Follow-ups on the parts you skipped',

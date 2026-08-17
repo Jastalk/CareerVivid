@@ -18,13 +18,13 @@ const QuestTape: React.FC = () => {
                     system design quests
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">
-                    The Career Agent, sitting next to you.
+                    Career Agent that sits with you.
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                     Pick a company and their prompt lands on your whiteboard. Draw it however you
-                    think — the agent follows along, asks what the interviewer would ask, and names
-                    the gap while it is still cheap to find. Every diagnosis below is real coaching
-                    output, for the design beside it.
+                    think — the Career Agent follows along, asks what the interviewer would ask, and names
+                    the gap while it is still cheap to find. Every diagnosis below is real Career Agent
+                    evaluation, for the design beside it.
                 </p>
             </div>
 
@@ -74,7 +74,7 @@ const QuestTape: React.FC = () => {
                                 style={{ borderColor: 'var(--cvl-line)', background: 'var(--cvl-paper)' }}
                             >
                                 <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold" style={{ color: 'var(--cvl-purple)' }}>
-                                    <Mic size={11} /> coach
+                                    <Mic size={11} /> Career Agent
                                 </p>
                                 <p className="text-[12.5px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
                                     {note}

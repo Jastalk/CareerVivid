@@ -80,7 +80,7 @@ const AICreditLimitModal: React.FC<AICreditLimitModalProps> = ({
                                 <div className="bg-green-100 dark:bg-green-900/30 rounded-full p-1 mt-0.5">
                                     <Check className="w-3 h-3 text-green-600 dark:text-green-400" />
                                 </div>
-                                <span>Access advanced AI interview coaching</span>
+                                <span>Access advanced Career Agent interview rounds</span>
                             </li>
                         </ul>
                     </div>

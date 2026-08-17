@@ -46,7 +46,7 @@ const featureTabs = [
     { key: 'resume_tailor', label: 'Resume Tailor', icon: Wand2, href: '/newresume' },
     { key: 'autofill', label: 'Autofill Applications', icon: Chrome, href: '/extension-welcome' },
     { key: 'resume_match', label: 'Resume Match', icon: Search, href: '/newresume' },
-    { key: 'interview_coach', label: 'Interview Coach', icon: Mic, href: '/interview-studio' },
+    { key: 'interview_coach', label: 'Career Agent', icon: Mic, href: '/interview-studio' },
     { key: 'career_pipeline', label: 'Career Pipeline', icon: LayoutDashboard, href: '/job-tracker' },
 ];
 

@@ -116,7 +116,7 @@ const FAQS = [
     },
     {
         q: 'is the system design round really graded?',
-        a: 'Yes. You draw on a whiteboard, the coach asks about the parts you skipped, and the submitted diagram is scored on coverage, trade-offs, and clarity. Every past report reopens the exact design you submitted for it.',
+        a: 'Yes. You draw on a whiteboard, the Career Agent asks about the parts you skipped, and the submitted diagram is scored on coverage, trade-offs, and clarity. Every past report reopens the exact design you submitted for it.',
     },
     {
         q: 'do i need to pay to look around?',
@@ -162,7 +162,7 @@ const LiveLandingPage: React.FC = () => (
             <FeatureRow
                 id="resume"
                 eyebrow="resume editor"
-                title="Your resume, engineered for the role — not just formatted."
+                title="Your resume, engineered for the role — not just formatting."
                 copy="Any model can draft a bullet. The real challenge is keyword targeting, ATS compliance, and recruiter impact. Paste the job posting and the Career Agent rewrites, scores, and exports your resume — complete with instant multi-language translation."
                 points={[
                     'Your facts and your evidence — better phrasing, nothing invented',

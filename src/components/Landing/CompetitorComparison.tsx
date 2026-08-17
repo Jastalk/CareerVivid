@@ -30,7 +30,7 @@ const competitors: Competitor[] = [
   {
     name: 'Resume.io / Zety',
     icon: <Briefcase size={14} />,
-    gap: 'No interview coach, no job tracker',
+    gap: 'No Career Agent, no job tracker',
     edge: 'All-in-one: resume + interview + tracker + portfolio',
     accentFrom: 'from-rose-500',
     accentTo: 'to-orange-500',
@@ -43,7 +43,7 @@ const competitors: Competitor[] = [
   {
     name: 'LinkedIn',
     icon: <Layers size={14} />,
-    gap: 'No AI interview coach, no whiteboard',
+    gap: 'No Career Agent, no whiteboard',
     edge: 'AI voice interview simulation, architecture diagramming',
     accentFrom: 'from-sky-500',
     accentTo: 'to-blue-600',
