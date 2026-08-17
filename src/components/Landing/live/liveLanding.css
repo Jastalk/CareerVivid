@@ -345,3 +345,40 @@ html.dark .cvl {
     --cvl-danger: #f2938c;
     --cvl-danger-soft: #2e1a18;
 }
+
+/*
+ * Pricing runs five plan accents. They live here, not in the page, so they get
+ * the same light/dark treatment as every other token — and so their lightness is
+ * tuned as one set rather than five independent guesses. That was the real fault
+ * on that page: the hues were fine, but emerald came from Tailwind's defaults, the
+ * steel blue was far more saturated than its neighbours and the slate was far
+ * greyer, so four cards that should have read as siblings read as four designs.
+ *
+ * Light: accents land near L 38-42%, their grounds near L 95%.
+ * Dark:  accents near L 72%, grounds near L 14% — same relationship, inverted.
+ */
+.cvl {
+    --cvl-plan-green: #2f7d52;
+    --cvl-plan-green-soft: #e9f4ed;
+    --cvl-plan-blue: #35619c;
+    --cvl-plan-blue-soft: #eaf1fa;
+    --cvl-plan-slate: #56616f;
+    --cvl-plan-slate-soft: #eef1f4;
+    --cvl-plan-amber: #a3711d;
+    --cvl-plan-amber-soft: #fbf2de;
+    --cvl-plan-purple: #4a4392;
+    --cvl-plan-purple-soft: #ecebf8;
+}
+
+html.dark .cvl {
+    --cvl-plan-green: #74caa0;
+    --cvl-plan-green-soft: #16281e;
+    --cvl-plan-blue: #8fb4e6;
+    --cvl-plan-blue-soft: #172232;
+    --cvl-plan-slate: #a9b3c0;
+    --cvl-plan-slate-soft: #1f242b;
+    --cvl-plan-amber: #e0ac52;
+    --cvl-plan-amber-soft: #2c2415;
+    --cvl-plan-purple: #a9a4f0;
+    --cvl-plan-purple-soft: #232040;
+}

@@ -322,11 +322,19 @@ const PublicJobsListPage: React.FC = () => {
                         open roles
                     </p>
                     <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-                        Open jobs, checked before you click
+                        Apply on the company&rsquo;s own site
                     </h1>
+                    {/*
+                     * The previous copy promised each role was "re-checked before being shown,
+                     * so the roles you open are still open". Nothing re-checks them — the word
+                     * appeared in this sentence and nowhere else in the codebase — and a listing
+                     * can close between the fetch and the click. What is actually true, and more
+                     * useful, is where the apply button sends you: straight to the employer.
+                     */}
                     <p className="mt-4 text-[15px] leading-relaxed" style={{ color: 'var(--cvl-muted)' }}>
-                        Every listing here was fetched from a company&rsquo;s own careers page and re-checked
-                        before being shown, so the roles you open are still open. Browsing needs no account.
+                        Every role is collected from a company&rsquo;s own careers page, and Apply opens
+                        that page directly &mdash; you submit to the employer, not through CareerVivid.
+                        No account needed to browse.
                     </p>
                 </header>
 

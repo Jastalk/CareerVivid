@@ -42,34 +42,45 @@ type PricingPlan = {
 
 type BillingInterval = 'monthly' | 'yearly';
 
+/*
+ * Five plan accents, kept distinct so the tiers stay tellable apart at a glance.
+ * What changed is not the hues but their footing: they used to come from three
+ * unrelated places — Tailwind's emerald, a heavily saturated steel blue, a much
+ * greyer slate — so cards that should have read as siblings read as four separate
+ * designs. They now come from one tuned set in liveLanding.css, which also gives
+ * each of them a dark value instead of a hand-written dark: override.
+ */
 const planToneClasses = {
     green: {
-        card: 'border-emerald-200 bg-[#fbfff7]',
-        chip: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        icon: 'bg-emerald-50 text-emerald-700',
-        button: 'border-[#d8c6ad] bg-white text-[#211b16] hover:border-[#bfa782] hover:bg-[#fffaf1]',
-        check: 'text-emerald-600',
+        card: 'cvl-panel',
+        chip: 'border-[color-mix(in_srgb,var(--cvl-plan-green)_30%,transparent)] bg-[var(--cvl-plan-green-soft)] text-[var(--cvl-plan-green)]',
+        icon: 'bg-[var(--cvl-plan-green-soft)] text-[var(--cvl-plan-green)]',
+        button: 'cvl-btn cvl-btn-ghost',
+        check: 'text-[var(--cvl-plan-green)]',
     },
     blue: {
-        card: 'border-[#cbd9f4] bg-white shadow-[0_18px_55px_rgba(74,90,140,0.12)]',
-        chip: 'border-[#dbe7ff] bg-[#eef4ff] text-[#315da7]',
-        icon: 'bg-[#eef4ff] text-[#315da7]',
-        button: 'bg-[#4a4392] text-white shadow-[0_14px_34px_rgba(98,91,213,0.22)] hover:bg-[#5149c7]',
-        check: 'text-[#4a4392]',
+        // The featured plan. Blue identifies the card; the purple CTA is the one
+        // filled button on the page, so the eye lands on it rather than on four
+        // buttons competing.
+        card: 'cvl-panel cvl-panel-lift',
+        chip: 'border-[color-mix(in_srgb,var(--cvl-plan-blue)_30%,transparent)] bg-[var(--cvl-plan-blue-soft)] text-[var(--cvl-plan-blue)]',
+        icon: 'bg-[var(--cvl-plan-blue-soft)] text-[var(--cvl-plan-blue)]',
+        button: 'text-white bg-[var(--cvl-plan-purple)] hover:opacity-90',
+        check: 'text-[var(--cvl-plan-blue)]',
     },
     slate: {
-        card: 'border-[#ccd4df] bg-[#fbfcff]',
-        chip: 'border-[#dbe4f3] bg-white text-[#43566f]',
-        icon: 'bg-[#eef2f7] text-[#43566f]',
-        button: 'cvl-cta',
-        check: 'text-[#43566f]',
+        card: 'cvl-panel',
+        chip: 'border-[color-mix(in_srgb,var(--cvl-plan-slate)_30%,transparent)] bg-[var(--cvl-plan-slate-soft)] text-[var(--cvl-plan-slate)]',
+        icon: 'bg-[var(--cvl-plan-slate-soft)] text-[var(--cvl-plan-slate)]',
+        button: 'cvl-btn cvl-btn-ghost',
+        check: 'text-[var(--cvl-plan-slate)]',
     },
     amber: {
-        card: 'border-[#ead7b9] bg-[#fffaf1]',
-        chip: 'border-[#ead7b9] bg-[#fff7e8] text-[#9a651f]',
-        icon: 'bg-[#fff4cc] text-[#9a651f]',
-        button: 'cvl-cta',
-        check: 'text-[#9a651f]',
+        card: 'cvl-panel',
+        chip: 'border-[color-mix(in_srgb,var(--cvl-plan-amber)_30%,transparent)] bg-[var(--cvl-plan-amber-soft)] text-[var(--cvl-plan-amber)]',
+        icon: 'bg-[var(--cvl-plan-amber-soft)] text-[var(--cvl-plan-amber)]',
+        button: 'cvl-btn cvl-btn-ghost',
+        check: 'text-[var(--cvl-plan-amber)]',
     },
 } as const;
 
@@ -233,13 +244,13 @@ const PricingPage: React.FC = () => {
 
                 <section className="relative mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 lg:px-8 lg:pb-16 lg:pt-14">
                     <div className="mx-auto max-w-4xl text-center">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[#bcdcc9] bg-[#f7fff8] px-4 py-2 text-sm font-black text-[#137245] dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--cvl-green-soft)] bg-[var(--cvl-paper-2)] px-4 py-2 text-sm font-semibold text-[var(--cvl-green)] dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:text-emerald-300">
                             <BadgeDollarSign size={16} /> Simple AI credit pricing
                         </div>
-                        <h1 className="mt-7 text-5xl font-black leading-[0.98] tracking-tight text-[#211b16] dark:text-[#f4f1e9] sm:text-6xl lg:text-7xl">
+                        <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-tight text-[var(--cvl-ink)] sm:text-3xl">
                             Start free. Upgrade when the job search gets busy.
                         </h1>
-                        <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-[#665a4a] dark:text-[#aaa39a]">
+                        <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-[var(--cvl-muted)]">
                             CareerVivid uses one monthly credit pool across resume tailoring, job matching,
                             interview practice, and workflow assistance. Manual tracking, writing, and editing
                             stay free.
@@ -247,13 +258,13 @@ const PricingPage: React.FC = () => {
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <button
                                 onClick={() => handleChoosePlan(plans[0])}
-                                className="cvl-cta inline-flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-black transition hover:-translate-y-0.5"
+                                className="cvl-cta inline-flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-sm font-semibold transition hover:-translate-y-0.5"
                             >
                                 Start for free <ArrowRight size={18} />
                             </button>
                             <button
                                 onClick={() => document.getElementById('plans')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="inline-flex items-center justify-center gap-3 rounded-xl border border-[#d8c6ad] bg-[#fffaf1] px-6 py-4 text-sm font-black text-[#211b16] shadow-sm transition hover:-translate-y-0.5 hover:border-[#bfa782] dark:border-[#37332d] dark:bg-[#262522] dark:text-[#f4f1e9] dark:hover:border-[#5a5449]"
+                                className="inline-flex items-center justify-center gap-3 rounded-xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] px-6 py-4 text-sm font-semibold text-[var(--cvl-ink)] shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)] dark:text-[var(--cvl-ink)] dark:hover:border-[var(--cvl-muted)]"
                             >
                                 Compare plans <CreditCard size={18} />
                             </button>
@@ -267,34 +278,34 @@ const PricingPage: React.FC = () => {
                     </div>
                 )}
 
-                <section id="plans" className="relative border-y border-[#e4d3bc] bg-[#fffaf1]/70 py-14 dark:border-[#37332d] dark:bg-[#262522]/60">
+                <section id="plans" className="relative border-y border-[var(--cvl-line)] bg-[var(--cvl-paper)]/70 py-14 dark:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)]/60">
                     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                         <div className="mb-9 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                             <div>
-                                <p className="text-xs font-black uppercase tracking-[0.2em] text-[#a97935] dark:text-[#caa26c]">Plans</p>
-                                <h2 className="mt-3 text-3xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9] sm:text-4xl">
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--cvl-amber)]">Plans</p>
+                                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--cvl-ink)] sm:text-4xl">
                                     Choose your plan.
                                 </h2>
                             </div>
                             <div className="flex flex-col items-start gap-2 md:items-end">
-                                <div className="inline-flex rounded-full bg-[#e9e1d6] p-1 shadow-inner dark:bg-[#1f1f1d]">
+                                <div className="inline-flex rounded-full bg-[var(--cvl-line)] p-1 shadow-inner dark:bg-[var(--cvl-paper-2)]">
                                     {(['monthly', 'yearly'] as const).map((interval) => (
                                         <button
                                             key={interval}
                                             type="button"
                                             aria-pressed={billingInterval === interval}
                                             onClick={() => setBillingInterval(interval)}
-                                            className={`min-w-[112px] rounded-full px-5 py-2.5 text-xs font-black transition-all ${
+                                            className={`min-w-[112px] rounded-full px-5 py-2.5 text-xs font-semibold transition-all ${
                                                 billingInterval === interval
-                                                    ? 'bg-white text-[#211b16] shadow-sm dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
-                                                    : 'text-[#766955] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'
+                                                    ? 'bg-white text-[var(--cvl-ink)] shadow-sm dark:bg-[var(--cvl-ink)] dark:text-[rgb(33,27,22)]'
+                                                    : 'text-[var(--cvl-muted)] hover:text-[var(--cvl-ink)] dark:text-[var(--cvl-muted)] dark:hover:text-[var(--cvl-ink)]'
                                             }`}
                                         >
                                             {interval === 'monthly' ? 'Monthly' : 'Yearly'}
                                         </button>
                                     ))}
                                 </div>
-                                <p className="text-xs font-bold text-[#665a4a] dark:text-[#aaa39a]">
+                                <p className="text-xs font-bold text-[var(--cvl-muted)]">
                                     Yearly saves on Pro and Max.
                                 </p>
                             </div>
@@ -306,10 +317,10 @@ const PricingPage: React.FC = () => {
                                 return (
                                     <article
                                         key={plan.id}
-                                        className={`relative flex min-h-[520px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[#37332d] dark:bg-[#262522]`}
+                                        className={`relative flex min-h-[520px] flex-col rounded-2xl border p-6 shadow-sm transition hover:-translate-y-1 ${tone.card} dark:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)]`}
                                     >
                                         {plan.featured && (
-                                            <div className="cvl-cta absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em]">
+                                            <div className="cvl-cta absolute right-5 top-5 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]">
                                                 Popular
                                             </div>
                                         )}
@@ -318,25 +329,25 @@ const PricingPage: React.FC = () => {
                                             {plan.id === 'enterprise' ? <Users size={21} /> : <Zap size={21} />}
                                         </div>
 
-                                        <h3 className="text-2xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">{plan.name}</h3>
-                                        <p className="mt-2 min-h-[48px] text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                                        <h3 className="text-lg font-semibold tracking-tight text-[var(--cvl-ink)]">{plan.name}</h3>
+                                        <p className="mt-2 min-h-[48px] text-sm font-semibold leading-6 text-[var(--cvl-muted)]">
                                             {plan.description}
                                         </p>
 
                                         <div className="mt-7">
                                             <div className="flex items-end gap-1">
-                                                <span className="text-5xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">{plan.price}</span>
-                                                <span className="max-w-[82px] pb-2 text-xs font-black leading-4 text-[#665a4a] dark:text-[#aaa39a]">{plan.period}</span>
+                                                <span className="text-4xl font-semibold tracking-tight text-[var(--cvl-ink)]">{plan.price}</span>
+                                                <span className="max-w-[82px] pb-2 text-xs font-semibold leading-4 text-[var(--cvl-muted)]">{plan.period}</span>
                                             </div>
-                                            <div className={`mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] ${tone.chip}`}>
+                                            <div className={`mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] ${tone.chip}`}>
                                                 <Sparkles size={13} /> {plan.credits}
                                             </div>
-                                            <p className="mt-2 text-xs font-bold text-[#7d6e5e] dark:text-[#aaa39a]">{plan.note}</p>
+                                            <p className="mt-2 text-xs font-bold text-[var(--cvl-muted)]">{plan.note}</p>
                                         </div>
 
                                         <ul className="mt-7 flex-grow space-y-3.5">
                                             {plan.features.map((feature) => (
-                                                <li key={feature} className="flex items-start gap-3 text-sm font-semibold leading-5 text-[#665a4a] dark:text-[#d7d0c6]">
+                                                <li key={feature} className="flex items-start gap-3 text-sm font-semibold leading-5 text-[var(--cvl-muted)]">
                                                     <Check className={`mt-0.5 h-4 w-4 shrink-0 ${tone.check}`} strokeWidth={3} />
                                                     <span>{feature}</span>
                                                 </li>
@@ -346,7 +357,7 @@ const PricingPage: React.FC = () => {
                                         <button
                                             onClick={() => handleChoosePlan(plan)}
                                             disabled={loadingPlanId === plan.id}
-                                            className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-60 ${tone.button}`}
+                                            className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${tone.button}`}
                                         >
                                             {loadingPlanId === plan.id ? 'Opening checkout...' : plan.cta}
                                             <ArrowRight size={16} />
@@ -360,30 +371,30 @@ const PricingPage: React.FC = () => {
 
                 <section className="relative py-16">
                     <div className="mx-auto grid max-w-7xl gap-5 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
-                        <article className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-6 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f4ead8] text-[#9a651f] dark:bg-[#302e2a] dark:text-[#caa26c]">
+                        <article className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-6 shadow-sm dark:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)]">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--cvl-amber-soft)] text-[var(--cvl-amber)]">
                                 <ShieldCheck size={22} />
                             </div>
-                            <h2 className="mt-5 text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Manual work stays free</h2>
-                            <p className="mt-3 text-sm font-semibold leading-7 text-[#665a4a] dark:text-[#aaa39a]">
+                            <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--cvl-ink)]">Manual work stays free</h2>
+                            <p className="mt-3 text-sm font-semibold leading-7 text-[var(--cvl-muted)]">
                                 Saving jobs, updating statuses, editing resumes, and writing notes should not burn credits.
                             </p>
                         </article>
-                        <article className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-6 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#eef0ff] text-[#4a4392] dark:bg-[#302e2a] dark:text-[#8d88e6]">
+                        <article className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-6 shadow-sm dark:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)]">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--cvl-purple-soft)] text-[var(--cvl-purple)]">
                                 <Clock size={22} />
                             </div>
-                            <h2 className="mt-5 text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Credits reset monthly</h2>
-                            <p className="mt-3 text-sm font-semibold leading-7 text-[#665a4a] dark:text-[#aaa39a]">
+                            <h2 className="mt-5 text-xl font-semibold tracking-tight text-[var(--cvl-ink)]">Credits reset monthly</h2>
+                            <p className="mt-3 text-sm font-semibold leading-7 text-[var(--cvl-muted)]">
                                 Every plan refreshes on a predictable monthly cycle so active searches have a clear budget.
                             </p>
                         </article>
-                        <article className="cv-surface-inverted rounded-2xl border border-[#e4d3bc] bg-[#211b16] p-6 shadow-[0_18px_55px_rgba(33,27,22,0.18)] dark:border-[#37332d] dark:bg-[#262522]">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#fff4cc] text-[#9a651f]">
+                        <article className="cv-surface-inverted rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-ink)] p-6 shadow-[0_18px_55px_rgba(33,27,22,0.18)] dark:border-[var(--cvl-line)] dark:bg-[var(--cvl-paper)]">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--cvl-amber-soft)] text-[var(--cvl-amber)]">
                                 <Users size={22} />
                             </div>
-                            <h2 className="mt-5 text-xl font-black tracking-tight">Teams pool credits</h2>
-                            <p className="mt-3 text-sm font-semibold leading-7 text-[#d7d0c6]">
+                            <h2 className="mt-5 text-xl font-semibold tracking-tight">Teams pool credits</h2>
+                            <p className="mt-3 text-sm font-semibold leading-7 text-[var(--cvl-line)]">
                                 Enterprise seats contribute to one shared capacity pool for cohorts, teams, and career programs.
                             </p>
                         </article>
