@@ -14,13 +14,16 @@ const setupAgentChat = async (promptText) => {
     })()`);
     await wait(0.5);
 
+    // JSON.stringify emits the whole literal, quotes included. Escaping only the
+    // double quote by hand leaves the backslash unescaped, so a prompt ending in
+    // one closes the literal early and the rest of it is parsed as code.
     await js(String.raw`((text) => {
         const ta = document.querySelector('textarea[placeholder*="Ask anything"]');
         if (ta) {
             ta.value = text;
             ta.dispatchEvent(new Event('input', { bubbles: true }));
         }
-    })("${promptText.replace(/"/g, '\\"')}")`);
+    })` + `(${JSON.stringify(promptText)})`);
     await wait(0.5);
 };
 

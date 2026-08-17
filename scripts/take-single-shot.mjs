@@ -95,9 +95,20 @@ await wait(1.5);
 `;
 }
 
+// Values are interpolated into a script that is parsed twice more - once by the
+// ego-browser runtime, once by the page - so they are emitted as JSON literals
+// bound to a const at the top. Escaping only the double quote by hand leaves the
+// backslash unescaped, and a value ending in one closes the literal early and the
+// rest of it is parsed as code. Binding first also keeps the value out of the
+// generated String.raw templates, where a backtick or a ${ would still break out.
+const lit = (value) => JSON.stringify(value);
+
 const jsCode = `
 import fs from 'fs';
 import path from 'path';
+
+const AGENT_PROMPT = ${lit(config.prompt)};
+const SHOT_NAME = ${lit(shotType)};
 
 let task;
 try {
@@ -106,7 +117,7 @@ try {
     task = await useOrCreateTaskSpace('signed-in readme shots');
 }
 
-await openOrReuseTab('${config.url}', { wait: false });
+await openOrReuseTab(${lit(config.url)}, { wait: false });
 await wait(1.5);
 
 ${actionSnippet}
@@ -115,13 +126,13 @@ ${actionSnippet}
 await js(String.raw\`(() => { const b = document.querySelector('button[aria-label="Open Career Agent"]') || document.querySelector('button[aria-label="Expand Career Agent"]'); if (b) b.click(); const pill = [...document.querySelectorAll('button, div')].find(el => el.textContent && el.textContent.includes('No messages yet')); if (pill) pill.click(); })()\`);
 await wait(0.5);
 
-await js(String.raw\`((text) => { const ta = document.querySelector('textarea[placeholder*="Ask anything"]'); if (ta) { ta.value = text; ta.dispatchEvent(new Event('input', { bubbles: true })); } })("${config.prompt.replace(/"/g, '\\"')}")\`);
+await js(String.raw\`((text) => { const ta = document.querySelector('textarea[placeholder*="Ask anything"]'); if (ta) { ta.value = text; ta.dispatchEvent(new Event('input', { bubbles: true })); } })\` + '(' + JSON.stringify(AGENT_PROMPT) + ')');
 await wait(0.5);
 
 const res = await cdp('Page.captureScreenshot', { format: 'png' });
-const outPath = '/Users/jiawenzhu/Developer/careervivid/docs/screenshots/${shotType}';
+const outPath = path.join('/Users/jiawenzhu/Developer/careervivid/docs/screenshots', SHOT_NAME);
 fs.writeFileSync(outPath, Buffer.from(res.data, 'base64'));
-cliLog('✅ Saved ${shotType} (' + fs.statSync(outPath).size + ' bytes)');
+cliLog('✅ Saved ' + SHOT_NAME + ' (' + fs.statSync(outPath).size + ' bytes)');
 `;
 
 const cmd = `ego-browser nodejs <<'EOF'\n${jsCode}\nEOF`;
