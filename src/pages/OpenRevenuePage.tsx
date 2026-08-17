@@ -247,7 +247,7 @@ const InteractiveRevenueChart: React.FC<{
     const yAt = (i: number) => 100 - (cumulative[i] / maxCum) * 100;
     const linePath = points.map((_, i) => `${i === 0 ? 'M' : 'L'}${xAt(i).toFixed(3)},${yAt(i).toFixed(3)}`).join(' ');
     const areaPath = `${linePath} L100,100 L0,100 Z`;
-    const hoveredPct = hoveredIndex !== null ? ((hoveredIndex + 0.5) / points.length) * 100 : 0;
+    const hoveredPct = hoveredIndex !== null ? xAt(hoveredIndex) : 0;
     // Near the ends the card would overflow the plot, so the anchor slides from
     // centred to edge-aligned instead of being clipped.
     const hoverShift = hoveredPct < 18 ? '-12%' : hoveredPct > 82 ? '-88%' : '-50%';
@@ -404,10 +404,13 @@ const InteractiveRevenueChart: React.FC<{
                             className="pointer-events-none absolute z-30 w-max min-w-[148px] rounded-xl border border-[#e4d3bc] bg-white/95 px-3 py-2 shadow-[0_16px_38px_-12px_rgba(33,27,22,0.4)] backdrop-blur-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/95"
                             style={{
                                 left: `${hoveredPct}%`,
-                                // Sits above the bar, but min() stops a tall bar from
-                                // pushing the card out of the plot and over the
-                                // Gross/Net toggle above it.
-                                bottom: `min(calc(${(100 - yAt(hoveredIndex as number)).toFixed(2)}% + 16px), calc(100% - 96px))`,
+                                // Above the point normally. Clamping it instead would drag
+                                // the card down onto the marker, so once the point sits high
+                                // enough that the card would leave the plot, it hangs below
+                                // the curve rather than being squeezed against the ceiling.
+                                ...((100 - yAt(hoveredIndex as number)) > 58
+                                    ? { top: `calc(${yAt(hoveredIndex as number).toFixed(2)}% + 20px)` }
+                                    : { bottom: `calc(${(100 - yAt(hoveredIndex as number)).toFixed(2)}% + 20px)` }),
                                 transform: `translateX(${hoverShift})`,
                             }}
                         >
