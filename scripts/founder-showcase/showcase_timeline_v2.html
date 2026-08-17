@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>CareerVivid Founder &amp; Product Showcase — deterministic timeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ------------------------------------------------------------------
+       Every animation in this file is a pure function of the seek time and
+       is applied by render(t) below. There are deliberately NO CSS
+       `transition` or `animation` declarations anywhere: the renderer seeks
+       to a timestamp and screenshots immediately, so anything driven by the
+       browser's own wall clock either never interpolates (transitions) or
+       lands on an arbitrary phase (keyframes). The previous cut lost every
+       zoom, fade and pulse that way.
+       ------------------------------------------------------------------ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1920px; height: 1080px;
+      background-color: #08090d; color: #fff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden; position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .bg-canvas   { position:absolute; inset:0; background: radial-gradient(circle at 50% 35%, #141722 0%, #08090d 70%, #030406 100%); z-index:1; }
+    .bg-grid     { position:absolute; inset:-80px; z-index:2;
+                   background-image: linear-gradient(to right, rgba(255,255,255,.035) 1px, transparent 1px),
+                                     linear-gradient(to bottom, rgba(255,255,255,.035) 1px, transparent 1px);
+                   background-size: 64px 64px; }
+    .bg-vignette { position:absolute; inset:0; background: radial-gradient(circle at center, transparent 35%, rgba(0,0,0,.88) 100%); z-index:3; pointer-events:none; }
+    .film-grain  { position:absolute; inset:-50%; width:200%; height:200%; opacity:.030; z-index:4; pointer-events:none;
+                   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+    #stage { position:absolute; inset:0; z-index:10; will-change: transform; }
+
+    /* Layers stay in the layout at all times; only opacity moves, so a
+       crossfade actually has two rendered layers to blend between. */
+    .section-layer {
+      position:absolute; inset:0; display:flex; opacity:0;
+      visibility:hidden; will-change: opacity, transform;
+    }
+    .section-layer.on { visibility:visible; }
+
+    /* ---------- SECTION 1 · FOUNDER ---------- */
+    .s1-container { width:100%; height:100%; display:flex; align-items:center; justify-content:space-between; padding:0 100px; }
+    .s1-founder-col { width:540px; height:850px; position:relative; display:flex; align-items:center; justify-content:center; }
+    .founder-cutout-wrapper { position:relative; width:480px; height:720px; filter: drop-shadow(0 25px 50px rgba(0,0,0,.95)); will-change: transform; }
+    .founder-img-card { width:100%; height:100%; object-fit:cover; object-position:top center;
+      border:8px solid #fff; border-radius:36px;
+      box-shadow:0 0 0 2px rgba(255,255,255,.2), 0 35px 70px rgba(0,0,0,.9); background:#181a22; }
+    .founder-tag { position:absolute; bottom:-22px; left:50%; background:#fff; color:#000;
+      padding:12px 30px; border-radius:999px; font-weight:800; font-size:22px; letter-spacing:-.5px;
+      box-shadow:0 12px 30px rgba(0,0,0,.6); white-space:nowrap; text-transform:lowercase; }
+    .s1-content-col { flex:1; margin-left:80px; display:flex; flex-direction:column; justify-content:center; }
+
+    .pill-badge { display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.16); padding:8px 20px; border-radius:999px; font-size:15px;
+      font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#94a3b8; width:fit-content; margin-bottom:20px; }
+    .pill-badge .dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 12px #10b981; }
+
+    .kinetic-headline { font-size:58px; font-weight:900; line-height:1.15; letter-spacing:-1.8px; margin-bottom:22px; }
+    .kinetic-headline .w { display:inline-block; will-change: transform, opacity; }
+    .kinetic-headline span.highlight { background:linear-gradient(135deg,#fff 30%,#94a3b8 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+    .s1-sub { font-size:21px; color:#94a3b8; line-height:1.6; max-width:780px; margin-bottom:20px; }
+
+    .stats-row { display:flex; gap:24px; margin-top:20px; }
+    .stat-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);
+      padding:20px 28px; border-radius:20px; backdrop-filter:blur(14px); will-change: transform, opacity; }
+    .stat-card .num { font-size:38px; font-weight:900; letter-spacing:-1px; color:#fff; font-variant-numeric: tabular-nums; }
+    .stat-card .label { font-size:13px; color:#94a3b8; font-weight:600; margin-top:4px; }
+
+    .company-pills-row { display:flex; align-items:center; gap:12px; margin-top:24px; }
+    .company-pill { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+      padding:6px 14px; border-radius:8px; font-size:13px; font-weight:700; color:#cbd5e1; letter-spacing:.5px;
+      will-change: transform, opacity; }
+
+    /* Section 1 runs as two scenes: 1a is the photo wall that carries the
+       opening line, 1b is the original founder card, unchanged. */
+    .s1-stack { position:absolute; inset:0; }
+    .s1-scene { position:absolute; inset:0; display:flex; align-items:center;
+      justify-content:space-between; padding:0 100px; will-change: opacity; }
+
+    .photo-wall { width:840px; height:742px; display:grid;
+      grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:22px; }
+    .pw-card { position:relative; border-radius:22px; overflow:hidden; background:#181a22;
+      box-shadow:0 26px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.10);
+      will-change: transform, opacity; }
+    .pw-card img { width:100%; height:100%; object-fit:cover; will-change: transform; }
+    .pw-cap { position:absolute; left:14px; bottom:13px; z-index:2; font-size:13px;
+      font-weight:800; letter-spacing:.3px; color:#fff; background:rgba(8,9,13,.74);
+      padding:6px 13px; border-radius:999px; backdrop-filter:blur(6px); }
+    .s1a-text { flex:1; margin-left:80px; display:flex; flex-direction:column; justify-content:center; }
+    .s1a-head { font-size:62px; font-weight:900; line-height:1.12; letter-spacing:-2px; }
+    .s1a-head .ln { display:block; will-change: transform, opacity; }
+    .s1a-head .dim { color:#94a3b8; }
+
+    /* ---------- SECTION 2 · RESUME ---------- */
+    .s2-container { width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:40px 100px; will-change: transform; }
+    .app-window { width:1620px; height:860px; background:#fff; color:#0f172a; border-radius:26px;
+      box-shadow:0 40px 120px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.15);
+      display:flex; flex-direction:column; overflow:hidden; position:relative; will-change: transform, opacity; }
+    .window-header { height:56px; background:#f8fafc; border-bottom:1px solid #e2e8f0;
+      display:flex; align-items:center; justify-content:space-between; padding:0 26px; }
+    .window-dots { display:flex; gap:8px; }
+    .window-dot { width:12px; height:12px; border-radius:50%; }
+    .dot-red{background:#ef4444}.dot-yellow{background:#f59e0b}.dot-green{background:#10b981}
+    .window-title { font-size:14px; font-weight:700; color:#64748b; }
+    .window-body-grid { flex:1; display:grid; grid-template-columns:500px 1fr; background:#f8fafc; }
+    .auth-preview-pane { border-right:1px solid #e2e8f0; padding:24px; background:#fff;
+      display:flex; flex-direction:column; gap:16px; }
+
+    .score-meter-card { background:#f1f5f9; border-radius:18px; padding:20px; display:flex;
+      align-items:center; gap:18px; border:1px solid #e2e8f0; will-change: transform, box-shadow; }
+    .score-ring { width:84px; height:84px; border-radius:50%; display:flex; align-items:center;
+      justify-content:center; position:relative; flex-shrink:0; }
+    .score-ring::after { content:""; width:66px; height:66px; background:#fff; border-radius:50%; position:absolute; }
+    .score-value { position:relative; z-index:2; font-size:26px; font-weight:900; color:#0f172a; font-variant-numeric: tabular-nums; }
+    .score-meta h4 { font-size:17px; font-weight:700; color:#0f172a; }
+    .score-meta p { font-size:13px; color:#64748b; margin-top:4px; }
+
+    .thumb-frame { width:100%; height:480px; border-radius:16px; border:1px solid #e2e8f0;
+      box-shadow:0 12px 30px rgba(0,0,0,.08); overflow:hidden; position:relative; }
+    .thumb-frame img { width:100%; height:100%; object-fit:cover; object-position:top center;
+      will-change: transform; transform-origin:50% 22%; }
+
+    .editor-main-pane { padding:36px 40px; display:flex; flex-direction:column; gap:22px; }
+    .bullet-box { background:#fff; border:2px solid #e2e8f0; border-radius:20px; padding:26px 30px;
+      position:relative; will-change: transform, opacity; }
+    .bullet-box.optimized { border-color:#10b981; background:#f0fdf4; box-shadow:0 10px 30px rgba(16,185,129,.08); }
+    .bullet-label { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:1px;
+      margin-bottom:12px; display:inline-block; }
+    .label-before{color:#ef4444}.label-after{color:#10b981}
+    .bullet-text { font-size:21px; line-height:1.55; font-weight:500; color:#1e293b; }
+    /* Strike drawn as a gradient so its width can be animated frame-accurately. */
+    .strike-wrap { position:relative; display:inline; background-image:linear-gradient(#94a3b8,#94a3b8);
+      background-repeat:no-repeat; background-position:0 62%; background-size:0% 2px; color:#94a3b8; }
+    .metric-badge-chip { display:inline-flex; background:#dcfce7; color:#15803d; font-weight:800;
+      padding:4px 10px; border-radius:8px; font-size:16px; margin:0 4px; will-change: transform, opacity; }
+
+    /* ---------- SECTION 3 · SYSTEM DESIGN ---------- */
+    .s3-container { width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:30px 80px; will-change: transform; }
+    .s3-stack { position:relative; width:1720px; height:870px; }
+    .real-interaction-window { position:absolute; inset:0; background:#0f111a;
+      border:1px solid rgba(255,255,255,.16); border-radius:28px; box-shadow:0 40px 120px rgba(0,0,0,.85);
+      display:grid; grid-template-columns:980px 1fr; overflow:hidden; will-change: transform, opacity; }
+    .interaction-left-viewport { background:#090a10; border-right:1px solid rgba(255,255,255,.1);
+      padding:20px; display:flex; flex-direction:column; gap:14px; position:relative; }
+    .interaction-header { display:flex; align-items:center; justify-content:space-between;
+      padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,.08); }
+    /* 680px matches the aspect of the replacement board capture, so the full
+       diagram - KGS through Kafka to the OLAP store - survives object-fit. */
+    .live-feed-wrap { position:relative; width:100%; height:680px; border-radius:16px; overflow:hidden;
+      border:1px solid rgba(255,255,255,.12); box-shadow:0 15px 40px rgba(0,0,0,.6); }
+    .live-feed-img { width:100%; height:100%; object-fit:cover; object-position:top center;
+      will-change: transform; transform-origin:50% 42%; }
+    .data-flow-pulse { position:absolute; width:14px; height:14px; border-radius:50%; background:#10b981;
+      box-shadow:0 0 18px #10b981, 0 0 30px #10b981; pointer-events:none; opacity:0; will-change: transform, opacity; }
+
+    .waveform-visualizer { display:flex; align-items:center; justify-content:center; gap:7px; height:56px;
+      background:rgba(255,255,255,.03); border-radius:14px; border:1px solid rgba(255,255,255,.06); }
+    .wave-bar { width:6px; border-radius:999px; background:#3b82f6; height:8px; will-change: height; }
+
+    .interaction-right-panel { padding:24px; display:flex; flex-direction:column;
+      justify-content:flex-start; background:rgba(255,255,255,.02); }
+    .dialogue-stream { display:flex; flex-direction:column; gap:12px; }
+    .dialogue-bubble { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+      border-radius:16px; padding:14px 18px; will-change: transform, opacity; }
+    .dialogue-bubble.agent { border-color:rgba(59,130,246,.4); background:rgba(59,130,246,.08); }
+    .bubble-author { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.8px; margin-bottom:4px; }
+    .bubble-author.agent{color:#60a5fa}.bubble-author.candidate{color:#34d399}
+    .bubble-text { font-size:16px; line-height:1.45; color:#f1f5f9; }
+
+    .report-full-window { position:absolute; inset:0; background:#fff; border-radius:28px;
+      box-shadow:0 40px 120px rgba(0,0,0,.85); overflow:hidden; opacity:0; will-change: transform, opacity; }
+    .report-full-window img { width:100%; height:100%; object-fit:cover; object-position:top center;
+      will-change: transform; transform-origin:50% 18%; }
+
+    /* ---------- SECTION 4 · ROLE TRACKS + PROOF ---------- */
+    /* Two sub-scenes sharing one stack: 4a is the three role-track resumes and
+       the export flow, 4b is the studio and the Google quest loop. They map
+       onto the two narration lines in this section. */
+    .s4-container { width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:30px 80px; }
+    .s4-stack { position:relative; width:1720px; height:846px; }
+    .s4-scene { position:absolute; inset:0; will-change: opacity, transform; }
+
+    .resume-row { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; height:398px; }
+    .resume-card { background:#fff; border-radius:20px; overflow:hidden; display:flex; flex-direction:column;
+      box-shadow:0 28px 70px rgba(0,0,0,.65); border:1px solid rgba(255,255,255,.15);
+      will-change: transform, opacity; }
+    .rc-tag { padding:13px 18px; font-size:16px; font-weight:800; color:#0f172a; background:#f8fafc;
+      border-bottom:1px solid #e2e8f0; letter-spacing:-.2px; display:flex; align-items:center; gap:9px; }
+    .rc-tag .n { width:22px; height:22px; border-radius:6px; background:#0f172a; color:#fff;
+      font-size:12px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+    .rc-shot { flex:1; overflow:hidden; }
+    .rc-shot { display:flex; align-items:flex-start; justify-content:center; background:#fff; }
+    .rc-shot img { width:100%; height:100%; object-fit:contain; object-position:top center;
+      will-change: transform; transform-origin:50% 8%; }
+
+    .dl-card { position:absolute; left:0; right:0; bottom:0; height:422px; background:#fff;
+      border-radius:22px; overflow:hidden; box-shadow:0 40px 100px rgba(0,0,0,.8);
+      border:1px solid rgba(255,255,255,.16); will-change: transform, opacity; }
+    .dl-card img { width:100%; height:100%; object-fit:cover; object-position:top left;
+      will-change: transform; transform-origin:22% 0%; }
+    .dl-label { position:absolute; top:20px; left:24px; z-index:3; background:rgba(15,23,42,.9);
+      color:#fff; font-size:15px; font-weight:800; padding:9px 18px; border-radius:999px;
+      letter-spacing:-.2px; backdrop-filter:blur(8px); }
+
+    .studio-grid { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:470px 1fr;
+      gap:24px; height:100%; }
+    .studio-card { background:#fff; border-radius:20px; overflow:hidden; position:relative;
+      box-shadow:0 30px 80px rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.15);
+      will-change: transform, opacity; }
+    .studio-card.lead { grid-column:1 / span 2; }
+    .studio-card img { width:100%; height:100%; object-fit:cover; object-position:top center;
+      will-change: transform; transform-origin:50% 12%; }
+    .sc-label { position:absolute; bottom:16px; left:16px; z-index:3; background:rgba(15,23,42,.9);
+      color:#fff; font-size:14px; font-weight:800; padding:8px 16px; border-radius:999px;
+      letter-spacing:-.2px; backdrop-filter:blur(8px); }
+
+    /* ---------- SECTION 5 · CTA ---------- */
+    .s5-container { width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; text-align:center; }
+    .cta-logo-wrap { display:flex; align-items:center; gap:18px; margin-bottom:24px; will-change: transform, opacity; }
+    .cta-logo-box { width:80px; height:80px; background:#fff; border-radius:24px; display:flex;
+      align-items:center; justify-content:center; }
+    .cta-logo-text { font-size:56px; font-weight:900; letter-spacing:-1.8px; }
+    .cta-big-tagline { font-size:70px; font-weight:900; line-height:1.12; letter-spacing:-2.2px;
+      max-width:1250px; margin-bottom:36px; }
+    .cta-big-tagline .ln { display:block; will-change: transform, opacity; }
+    /* ---------- SECTION 6 · REAL COMMUNITY & USERS ---------- */
+    .s6-container { width:100%; height:100%; display:flex; flex-direction:column; align-items:center;
+      justify-content:center; padding:30px 80px; text-align:center; will-change: transform, opacity; }
+    .s6-headline { font-size:46px; font-weight:900; letter-spacing:-1.6px; margin-bottom:22px; line-height:1.2; }
+    .users-showcase-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; width:1680px; height:660px; }
+    .user-table-card { background:#0e131f; border:1px solid rgba(255,255,255,0.15); border-radius:20px;
+      overflow:hidden; box-shadow:0 35px 90px rgba(0,0,0,0.8); display:flex; flex-direction:column; will-change: transform, opacity; }
+    .utc-bar { background:#141b2d; border-bottom:1px solid rgba(255,255,255,0.1); padding:12px 20px;
+      font-size:13px; font-weight:800; color:#94a3b8; letter-spacing:0.5px; text-transform:uppercase; display:flex; align-items:center; gap:8px; text-align:left; }
+    .utc-dot { width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; }
+    .user-table-card img { width:100%; height:100%; object-fit:cover; object-position:top center; will-change: transform; }
+    .s6-bottom-bar { margin-top:22px; will-change: transform, opacity; }
+  </style>
+</head>
+<body>
+  <div class="bg-canvas"></div>
+  <div class="bg-grid" id="bgGrid"></div>
+  <div class="bg-vignette"></div>
+  <div class="film-grain" id="filmGrain"></div>
+
+  <div id="stage">
+    <!-- SECTION 1 -->
+    <div id="sec1" class="section-layer">
+     <div class="s1-stack">
+      <!-- 1a: the human world the opening line describes -->
+      <div class="s1-scene" id="s1a">
+        <div class="photo-wall">
+          <div class="pw-card" id="pw1"><img src="../assets/v2_photo_careerfair.png" id="pwImg1" alt=""><div class="pw-cap">coding events</div></div>
+          <div class="pw-card" id="pw2"><img src="../assets/v2_photo_rejections.jpg" id="pwImg2" alt=""><div class="pw-cap">rejection inboxes</div></div>
+          <div class="pw-card" id="pw3"><img src="../assets/v2_photo_whiteboard.jpg" id="pwImg3" alt=""><div class="pw-cap">system design rounds</div></div>
+          <div class="pw-card" id="pw4"><img src="../assets/v2_photo_applications.jpg" id="pwImg4" alt=""><div class="pw-cap">350+ applications</div></div>
+        </div>
+        <div class="s1a-text">
+          <div class="pill-badge" id="s1aPill"><span class="dot"></span> Before any of this worked</div>
+          <h1 class="s1a-head">
+            <span class="ln" id="s1aL1">hundreds of hours.</span>
+            <span class="ln dim" id="s1aL2">mostly silence.</span>
+            <span class="ln" id="s1aL3">and your confidence,</span>
+            <span class="ln dim" id="s1aL4">quietly running out.</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- 1b: the original founder card, untouched -->
+      <div class="s1-scene s1-container" id="s1b">
+        <div class="s1-founder-col">
+          <div class="founder-cutout-wrapper" id="founderWrap">
+            <img src="../assets/hero-google-photo.webp" class="founder-img-card" alt="Jiawen Zhu">
+            <div class="founder-tag" id="founderTag">jiawen zhu · creator</div>
+          </div>
+        </div>
+        <div class="s1-content-col">
+          <div class="pill-badge" id="s1Pill"><span class="dot"></span> Built by one engineer</div>
+          <h1 class="kinetic-headline" id="s1Headline"></h1>
+          <p class="s1-sub" id="s1Sub">A full-stack engineer who kept running into the same thing: people grinding through a hiring loop nobody ever gets to rehearse. So he built somewhere to rehearse it.</p>
+          <div class="stats-row">
+            <div class="stat-card"><div class="num" id="statA">0</div><div class="label">Mapped Hiring Loops</div></div>
+            <div class="stat-card"><div class="num" id="statB">0</div><div class="label">Verified Questions</div></div>
+            <div class="stat-card"><div class="num" id="statC">0%</div><div class="label">Human-AI Interaction</div></div>
+          </div>
+          <div class="company-pills-row" id="pillRow">
+            <span style="font-size:12px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Calibrated For:</span>
+            <span class="company-pill">Google</span><span class="company-pill">Meta</span>
+            <span class="company-pill">Apple</span><span class="company-pill">Amazon</span>
+            <span class="company-pill">Stripe</span><span class="company-pill">Uber</span>
+          </div>
+        </div>
+      </div>
+     </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div id="sec2" class="section-layer">
+      <div class="s2-container" id="s2Container">
+        <div class="pill-badge" style="margin-bottom:16px;"><span class="dot"></span> Authenticated Resume Engineering</div>
+        <div class="app-window" id="appWindow">
+          <div class="window-header">
+            <div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div>
+            <div class="window-title">CareerVivid · Resume Engineering Studio (careervivid.app/edit/zeVfp5J9PGBNeU1RqvWy)</div>
+            <div style="font-size:13px;color:#10b981;font-weight:700;">● Authenticated Session</div>
+          </div>
+          <div class="window-body-grid">
+            <div class="auth-preview-pane">
+              <div class="score-meter-card" id="scoreMeterCard">
+                <div class="score-ring" id="scoreRing"><div class="score-value" id="scoreValue">54%</div></div>
+                <div class="score-meta"><h4>ATS Match Index</h4><p>Target: Senior SWE (L5/L6)</p></div>
+              </div>
+              <div class="thumb-frame"><img src="../assets/auth_resume_studio_real.png" id="resumeThumb" alt="Live Resume Studio"></div>
+            </div>
+            <div class="editor-main-pane">
+              <div class="bullet-box" id="rawBullet">
+                <span class="bullet-label label-before">✕ Raw Input Bullet (Score: 54%)</span>
+                <div class="bullet-text"><span class="strike-wrap" id="strikeWrap">Responsible for managing the payment microservices and handling daily customer transactions with standard database queries.</span></div>
+              </div>
+              <div class="bullet-box optimized" id="optBullet">
+                <span class="bullet-label label-after">✓ CareerVivid Quantified Refactor (Score: 92%)</span>
+                <div class="bullet-text">
+                  Architected event-driven payment pipelines processing <span class="metric-badge-chip chip">$40M daily volume</span> with <span class="metric-badge-chip chip">sub-25ms latency</span> and <span class="metric-badge-chip chip">99.99% uptime</span> across multi-region Kubernetes clusters.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div id="sec3" class="section-layer">
+      <div class="s3-container" id="s3Container">
+        <div class="s3-stack">
+          <div class="real-interaction-window" id="s3InteractionView">
+            <div class="interaction-left-viewport">
+              <div class="interaction-header">
+                <div style="font-size:14px;font-weight:800;color:#3b82f6;display:flex;align-items:center;gap:8px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;"></span>
+                  GOOGLE · SYSTEM DESIGN STUDIO (URL SHORTENER AT SCALE)
+                </div>
+                <div style="font-size:12px;color:#94a3b8;font-family:'JetBrains Mono',monospace;">Live AI Coach Active</div>
+              </div>
+              <div class="live-feed-wrap">
+                <img src="../assets/v2_whiteboard_canvas.png" class="live-feed-img" id="whiteboardImg" alt="Google System Design Whiteboard">
+                <div class="data-flow-pulse" id="dataFlowPulse"></div>
+              </div>
+              <div class="waveform-visualizer" id="waveform"></div>
+            </div>
+            <div class="interaction-right-panel">
+              <div class="dialogue-stream" id="dialogueStream">
+                <div class="dialogue-bubble candidate" id="bubble1">
+                  <div class="bubble-author candidate">Candidate (Audio Prompt)</div>
+                  <div class="bubble-text">"For Google scale, I'm routing client requests through the API gateway to our app service and using Redis for caching short URLs, with PostgreSQL for storage. How should I handle analytics ingestion without degrading redirect latency?"</div>
+                </div>
+                <div class="dialogue-bubble agent" id="bubble2">
+                  <div class="bubble-author agent">Career Agent (Technical Coach)</div>
+                  <div class="bubble-text">"Great separation. To keep redirect latency under 10ms, decouple analytics: publish click events to a Kafka queue and process asynchronously into BigQuery. That prevents writes from blocking reads."</div>
+                </div>
+                <div class="dialogue-bubble candidate" id="bubble3">
+                  <div class="bubble-author candidate">Candidate (Architecture Update)</div>
+                  <div class="bubble-text">"Got it. I'll add the message queue and partition our Redis cache using consistent hashing across virtual nodes."</div>
+                </div>
+                <div class="dialogue-bubble agent" id="bubble4">
+                  <div class="bubble-author agent">Career Agent · Verdict</div>
+                  <div class="bubble-text">"Exactly. Your architecture is solid and scalable. Let's submit for full diagnostic review."</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="report-full-window" id="s3ReportView">
+            <img src="../assets/google_interview_report_real.png" id="reportImg" alt="Google System Design Interview Report">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div id="sec4" class="section-layer">
+      <div class="s4-container">
+        <div class="pill-badge" style="margin-bottom:16px;"><span class="dot"></span> <span id="s4PillText">Role Tracks &amp; Export</span></div>
+        <div class="s4-stack">
+
+          <!-- 4a - three role tracks, then the export flow -->
+          <div class="s4-scene" id="s4a">
+            <div class="resume-row">
+              <div class="resume-card" id="rc1">
+                <div class="rc-tag"><span class="n">1</span> Senior Software Engineer</div>
+                <div class="rc-shot"><img src="../assets/v2_card_swe.png" id="rcImg1" alt="Senior Software Engineer resume"></div>
+              </div>
+              <div class="resume-card" id="rc2">
+                <div class="rc-tag"><span class="n">2</span> Technical Product Manager</div>
+                <div class="rc-shot"><img src="../assets/v2_card_pm.png" id="rcImg2" alt="Product Manager resume"></div>
+              </div>
+              <div class="resume-card" id="rc3">
+                <div class="rc-tag"><span class="n">3</span> AI Infrastructure</div>
+                <div class="rc-shot"><img src="../assets/v2_card_aiinfra.png" id="rcImg3" alt="AI Infrastructure resume"></div>
+              </div>
+            </div>
+            <div class="dl-card" id="dlCard">
+              <div class="dl-label">Export · PDF · Google Docs · .DOCX</div>
+              <img src="../assets/v2_resume_export.png" id="dlImg" alt="Export menu: PDF, Google Docs, .DOCX">
+            </div>
+          </div>
+
+          <!-- 4b - the library the practice is benchmarked against -->
+          <div class="s4-scene" id="s4b">
+            <div class="studio-grid">
+              <div class="studio-card lead" id="sc1">
+                <img src="../assets/v2_studio_1_clean.png" id="scImg1" alt="Interview Studio company guides">
+                <div class="sc-label">301 companies · 22,611 questions · 821 stages</div>
+              </div>
+              <div class="studio-card" id="sc2">
+                <img src="../assets/v2_studio_google_quest.png" id="scImg2" alt="Google quest in Interview Studio">
+                <div class="sc-label">Google · guided quest</div>
+              </div>
+              <div class="studio-card" id="sc3">
+                <img src="../assets/v2_google_quest_clean.png" id="scImg3" alt="Google interview loop">
+                <div class="sc-label">The full six-stage loop</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: FINAL BRAND CLIMAX & CALL TO ACTION -->
+    <div id="sec5" class="section-layer">
+      <div class="s5-container">
+        <div class="cta-logo-wrap" id="ctaLogo">
+          <div class="cta-logo-box">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="cta-logo-text">CareerVivid</div>
+        </div>
+        <div class="social-proof-banner" id="ctaProof"><span>★★★★★</span> <span id="proofText">4.9/5 Trust Rating · 3,200+ Software Engineers &amp; Tech Leaders Prepped</span></div>
+        <h1 class="cta-big-tagline">
+          <span class="ln" id="ctaLn1">Built by engineers.</span>
+          <span class="ln" id="ctaLn2" style="color:#3b82f6;">Designed for your next breakthrough.</span>
+        </h1>
+        <div class="cta-btn-pill" id="ctaBtn">
+          <span>Get Started Free at CareerVivid.app</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 6: REAL COMMUNITY & ACTIVE CANDIDATE PROOF -->
+    <div id="sec6" class="section-layer">
+      <div class="s6-container">
+        <div class="pill-badge" id="s6Pill" style="margin-bottom:14px;"><span class="dot"></span> Real Candidates &amp; Active Members</div>
+        <h1 class="s6-headline" id="s6Headline">
+          Engineers leveling up and <span style="color:#10b981;">landing offers</span> in this market.
+        </h1>
+        <div class="users-showcase-grid" id="usersGrid">
+          <div class="user-table-card" id="utc1">
+            <div class="utc-bar"><span class="utc-dot"></span> Active Premium Candidates · Page 1</div>
+            <img src="../assets/v2_users_page1_blurred.png" id="utcImg1" alt="Active Candidates Page 1">
+          </div>
+          <div class="user-table-card" id="utc2">
+            <div class="utc-bar"><span class="utc-dot"></span> Active Premium Candidates · Page 2</div>
+            <img src="../assets/v2_users_page2_blurred.png" id="utcImg2" alt="Active Candidates Page 2">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="subtitle-bar" id="subtitleBar"></div>
+
+<script>
+/* =====================================================================
+   Timing. These cue points are verified against master_audio_v2.wav (200.0s).
+   ===================================================================== */
+const CUE = {
+  s1: 0,     s1b: 20.9,
+  s2: 35,    s2b: 53.2,
+  s3: 71.5,  candA: 87.2, coachA: 104.7, candB: 120.2, coachB: 127.9, report: 135.3,
+  s4: 147.5, s4b: 159.8,
+  s5: 170,   s6: 185.8,
+  end: 200,
+};
+const XFADE = 0.55;               // section crossfade length, seconds
+const SECTIONS = [
+  { el: 'sec1', in: CUE.s1,  out: CUE.s2 },
+  { el: 'sec2', in: CUE.s2,  out: CUE.s3 },
+  { el: 'sec3', in: CUE.s3,  out: CUE.s4 },
+  { el: 'sec4', in: CUE.s4,  out: CUE.s5 },
+  { el: 'sec6', in: CUE.s5,  out: CUE.s6 },
+  { el: 'sec5', in: CUE.s6,  out: CUE.end + 1 },
+];
+
+/* ---------- easing + math helpers ---------- */
+const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+const lerp    = (a, b, p) => a + (b - a) * p;
+/** progress of t inside [a,b], clamped */
+const span    = (t, a, b) => clamp01((t - a) / (b - a));
+const outCubic  = x => 1 - Math.pow(1 - x, 3);
+const outQuint  = x => 1 - Math.pow(1 - x, 5);
+const inOutCubic= x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x+2, 3)/2;
+/** critically-damped-looking overshoot, used for pops */
+const outBack = (x, s=1.70158) => 1 + (s+1)*Math.pow(x-1,3) + s*Math.pow(x-1,2);
+/** ramp up over `rise`, hold, ramp down over `fall` inside [a,b] */
+function env(t, a, b, rise, fall) {
+  if (t <= a || t >= b) return 0;
+  const up = clamp01((t - a) / rise);
+  const dn = clamp01((b - t) / fall);
+  return inOutCubic(Math.min(up, dn));
+}
+const fmt = n => Math.round(n).toLocaleString('en-US');
+
+/* ---------- one-time DOM construction ---------- */
+const $ = id => document.getElementById(id);
+
+// Headline split into words so each can be revealed independently.
+(function buildHeadline(){
+  const words = [
+    'so','he','built','the','thing',
+    {t:'he', hl:true}, {t:'wished', hl:true}, {t:'existed.', hl:true},
+  ];
+  const h = $('s1Headline');
+  words.forEach((w, i) => {
+    const isObj = typeof w === 'object';
+    const s = document.createElement('span');
+    s.className = 'w' + (isObj && w.hl ? ' highlight' : '');
+    s.textContent = (isObj ? w.t : w) + (i < words.length - 1 ? ' ' : '');
+    h.appendChild(s);
+  });
+})();
+
+// 40 waveform bars gives a dense, believable meter at 1080p.
+const WAVE_N = 40;
+(function buildWave(){
+  const w = $('waveform');
+  for (let i = 0; i < WAVE_N; i++) {
+    const b = document.createElement('div');
+    b.className = 'wave-bar';
+    w.appendChild(b);
+  }
+})();
+
+// Subtitles as discrete cards so they can crossfade instead of hard-swapping.
+const SUBS = [
+  [CUE.s1,     CUE.s1b,   'hundreds of hours · mostly silence · and your confidence running out'],
+  [CUE.s1b,    CUE.s2,    'so he built the thing he wished existed · jiawen zhu, creator'],
+  [CUE.s2,     CUE.s2b,   "here's how careervivid works · context-aware resume engineering"],
+  [CUE.s2b,    CUE.s3,    'quantifying architectural trade-offs · score surges 54% to 92%'],
+  [CUE.s3,     CUE.candA, 'system design studio: solving google URL shortener with a live AI coach'],
+  [CUE.candA,  CUE.coachA,'candidate: how do I handle analytics without degrading redirect latency?'],
+  [CUE.coachA, CUE.candB, 'coach: decouple with kafka & bigquery to keep latency under 10ms'],
+  [CUE.candB,  CUE.coachB,'candidate: adding a message queue & consistent hashing across virtual nodes'],
+  [CUE.coachB, CUE.report,"coach: solid and scalable · let's submit for full diagnostic review"],
+  [CUE.report, CUE.s4,    'instant diagnostic report: communication, tech stack, and architectural depth'],
+  [CUE.s4,     CUE.s4b,   'three role tracks · tailored, then exported to PDF, google docs or word'],
+  [CUE.s4b,    CUE.s5,    'benchmarked against 22,611 real questions from 301 hiring loops'],
+  [CUE.s5,     CUE.s6,    'engineers & job seekers landing top tech offers · careervivid.app'],
+  [CUE.s6,     CUE.end+1, 'stop practicing in the dark · master your technical narrative with AI'],
+];
+const subEls = SUBS.map(([a, b, text]) => {
+  const d = document.createElement('div');
+  d.className = 'subtitle-pill';
+  d.textContent = text;
+  $('subtitleBar').appendChild(d);
+  return d;
+});
+
+const bubbles  = [$('bubble1'), $('bubble2'), $('bubble3'), $('bubble4')];
+const bubbleAt = [CUE.candA, CUE.coachA, CUE.candB, CUE.coachB];
+const chips    = Array.from(document.querySelectorAll('.chip'));
+const statCards= Array.from(document.querySelectorAll('.stat-card'));
+const compPills= Array.from(document.querySelectorAll('.company-pill'));
+const waveBars = Array.from(document.querySelectorAll('.wave-bar'));
+const headWords= Array.from(document.querySelectorAll('#s1Headline .w'));
+
+/* Who is speaking when — drives the waveform amplitude so the meter goes
+   quiet between turns instead of buzzing at full tilt for 76 seconds. */
+const SPEAKING = [
+  [CUE.candA,  104.1], [CUE.coachA, 119.9],
+  [CUE.candB,  127.3], [CUE.coachB, 135.0],
+];
+
+/* =====================================================================
+   render(t) — the single entry point. Deterministic for any t.
+   ===================================================================== */
+window.setSeekTime = function (t) {
+  /* ---- ambient: slow parallax + drifting grain ---- */
+  $('bgGrid').style.transform    = `translate(${Math.sin(t*0.08)*14}px, ${Math.cos(t*0.06)*10}px)`;
+  // Grain must move or it reads as dirt on the lens rather than film.
+  $('filmGrain').style.transform = `translate(${(t*37)%180 - 90}px, ${(t*53)%180 - 90}px)`;
+
+  /* ---- section crossfades ---- */
+  SECTIONS.forEach(s => {
+    const el = $(s.el);
+    const fadeIn  = s.in === 0 ? 1 : span(t, s.in - XFADE/2, s.in + XFADE/2);
+    const fadeOut = 1 - span(t, s.out - XFADE/2, s.out + XFADE/2);
+    const o = clamp01(Math.min(inOutCubic(fadeIn), inOutCubic(fadeOut)));
+    el.style.opacity = o.toFixed(4);
+    if (o > 0.001) el.classList.add('on'); else el.classList.remove('on');
+    // Sections drift very slightly on the way out so cuts have direction.
+    const leave = span(t, s.out - XFADE, s.out);
+    el.style.transform = `scale(${(1 - leave*0.02).toFixed(4)})`;
+  });
+
+  /* ================= SECTION 1 ================= */
+  {
+    // 1a carries the opening line on the photos; 1b is the original founder card.
+    const toB = inOutCubic(span(t, CUE.s1b - 0.55, CUE.s1b + 0.55));
+    $('s1a').style.opacity = (1 - toB).toFixed(4);
+    $('s1a').style.transform = `scale(${lerp(1, 0.965, toB).toFixed(4)})`;
+    $('s1b').style.opacity = toB.toFixed(4);
+    $('s1b').style.transform = `scale(${lerp(1.04, 1, toB).toFixed(4)})`;
+
+    // Photo wall: the four tiles land one at a time under the narration.
+    const pwAt = [1.0, 3.4, 5.8, 8.2];
+    [1,2,3,4].forEach((n, i) => {
+      const p = outQuint(span(t, pwAt[i], pwAt[i] + 0.95));
+      const c = $('pw' + n);
+      c.style.opacity = p.toFixed(3);
+      const tilt = (i % 2 ? 1 : -1) * (1 - p) * 3.5;
+      c.style.transform =
+        `translateY(${lerp(52,0,p).toFixed(2)}px) scale(${lerp(0.9,1,p).toFixed(4)}) rotate(${tilt.toFixed(2)}deg)`;
+      // Each photo drifts on its own so the wall never sits still.
+      const kb = span(t, pwAt[i], CUE.s1b);
+      const dir = i % 2 ? -1 : 1;
+      $('pwImg' + n).style.transform =
+        `scale(${lerp(1.06, 1.20, kb).toFixed(4)}) translate(${(dir*lerp(0,10,kb)).toFixed(2)}px, ${lerp(0,-12,kb).toFixed(2)}px)`;
+    });
+
+    $('s1aPill').style.opacity = span(t, 0.5, 1.1).toFixed(3);
+    $('s1aPill').style.transform = `translateY(${lerp(14,0,outCubic(span(t,0.5,1.3))).toFixed(2)}px)`;
+    // Headline lines arrive with the phrases they mirror.
+    [['s1aL1',1.6],['s1aL2',4.6],['s1aL3',8.4],['s1aL4',11.4]].forEach(([id, at]) => {
+      const p = outQuint(span(t, at, at + 0.75));
+      $(id).style.opacity = p.toFixed(3);
+      $(id).style.transform = `translateY(${lerp(30,0,p).toFixed(2)}px)`;
+    });
+
+    const local = t - CUE.s1b;
+    // Continuous float, phase-locked to t rather than the wall clock.
+    const fy = -8 + 8*Math.cos(2*Math.PI*local/6);
+    const fr = -0.6 * Math.sin(2*Math.PI*local/9);
+    const intro = outQuint(span(t, CUE.s1b - 0.2, CUE.s1b + 1.2));
+    $('founderWrap').style.transform =
+      `translateY(${(fy + (1-intro)*40).toFixed(2)}px) rotate(${fr.toFixed(3)}deg) scale(${lerp(0.94,1,intro).toFixed(4)})`;
+    $('founderWrap').style.opacity = intro.toFixed(3);
+    $('founderTag').style.transform = `translateX(-50%) scale(${outBack(span(t,CUE.s1b+0.8,CUE.s1b+1.5)).toFixed(3)})`;
+    $('founderTag').style.opacity = span(t,CUE.s1b+0.8,CUE.s1b+1.1).toFixed(3);
+
+    $('s1Pill').style.opacity   = span(t, CUE.s1b+0.1, CUE.s1b+0.7).toFixed(3);
+    $('s1Pill').style.transform = `translateY(${lerp(14,0,outCubic(span(t,CUE.s1b+0.1,CUE.s1b+0.9))).toFixed(2)}px)`;
+
+    // Word-by-word headline reveal.
+    const headAt = [CUE.s1b+0.9, CUE.s1b+1.2, CUE.s1b+1.5, CUE.s1b+1.8, CUE.s1b+2.1, CUE.s1b+2.5, CUE.s1b+2.9, CUE.s1b+3.3];
+    headWords.forEach((el, i) => {
+      const at = headAt[i] || (CUE.s1b + 1.0 + i*0.25);
+      const p = outBack(span(t, at, at + 0.55), 1.2);
+      el.style.opacity = span(t, at, at + 0.25).toFixed(3);
+      el.style.transform = `scale(${lerp(0.8,1,p).toFixed(3)}) translateY(${lerp(12,0,p).toFixed(2)}px)`;
+    });
+
+    $('s1Sub').style.opacity   = span(t, CUE.s1b+3.6, CUE.s1b+4.5).toFixed(3);
+    $('s1Sub').style.transform = `translateY(${lerp(16,0,outCubic(span(t,CUE.s1b+3.6,CUE.s1b+4.7))).toFixed(2)}px)`;
+
+    // Stat counters ease up from zero.
+    const statsProgress = outCubic(span(t, CUE.s1b+4.6, CUE.s1b+6.6));
+    $('statA').textContent = fmt(lerp(0, 301, statsProgress));
+    $('statB').textContent = fmt(lerp(0, 22611, statsProgress));
+    $('statC').textContent = Math.round(lerp(0, 100, statsProgress)) + '%';
+    statCards.forEach((c, i) => {
+      const at = CUE.s1b + 4.3 + i*0.2;
+      const p = outQuint(span(t, at, at + 0.7));
+      c.style.opacity = p.toFixed(3);
+      c.style.transform = `translateY(${lerp(24,0,p).toFixed(2)}px)`;
+    });
+
+    compPills.forEach((p, i) => {
+      const at = CUE.s1b + 5.5 + i*0.08;
+      const prog = outQuint(span(t, at, at + 0.6));
+      p.style.opacity = prog.toFixed(3);
+      p.style.transform = `translateY(${lerp(16,0,prog).toFixed(2)}px)`;
+    });
+
+    // Very slow push-in across the whole section so it is never truly static.
+    const push = span(t, 0, CUE.s2);
+    $('sec1').style.transformOrigin = '38% 50%';
+    if (t < CUE.s2 + 1) {
+      const leave = span(t, CUE.s2 - XFADE, CUE.s2);
+      $('sec1').style.transform = `scale(${(lerp(1, 1.045, push) - leave*0.02).toFixed(4)})`;
+    }
+  }
+
+  /* ================= SECTION 2 ================= */
+  {
+    const enter = outQuint(span(t, CUE.s2 - 0.1, CUE.s2 + 1.1));
+    $('appWindow').style.opacity   = enter.toFixed(3);
+    $('appWindow').style.transform = `translateY(${lerp(40,0,enter).toFixed(2)}px) scale(${lerp(0.97,1,enter).toFixed(4)})`;
+
+    // Camera move onto the score meter, eased both ways. The old cut snapped
+    // straight to scale(1.08) on a single frame.
+    const push = env(t, 54.2, 67.5, 2.6, 2.2);
+    $('s2Container').style.transformOrigin = '26% 34%';
+    $('s2Container').style.transform = `scale(${lerp(1, 1.085, push).toFixed(4)}) translate(${lerp(0,-26,push).toFixed(2)}px, ${lerp(0,10,push).toFixed(2)}px)`;
+
+    // THE fix for the script's central claim: the ring actually travels
+    // 54 -> 92 while the narration says it does. It was hardcoded at 92%.
+    const rawP = outQuint(span(t, CUE.s2 + 0.3, CUE.s2 + 1.0));
+    $('rawBullet').style.opacity   = rawP.toFixed(3);
+    $('rawBullet').style.transform = `translateY(${lerp(20,0,rawP).toFixed(2)}px)`;
+
+    // Strike-through draws across the bad bullet during the pause.
+    const strike = outCubic(span(t, CUE.s2b - 6.5, CUE.s2b - 4.5));
+    $('strikeWrap').style.backgroundSize = `${(strike*100).toFixed(1)}% 2px`;
+
+    // 2b lands: the quantified bullet arrives and the score surges.
+    const optP = outQuint(span(t, CUE.s2b + 0.2, CUE.s2b + 1.1));
+    $('optBullet').style.opacity   = optP.toFixed(3);
+    $('optBullet').style.transform = `translateY(${lerp(24,0,optP).toFixed(2)}px)`;
+
+    chips.forEach((c, i) => {
+      const at = CUE.s2b + 1.1 + i*0.35;
+      const p = outBack(span(t, at, at + 0.55), 1.5);
+      c.style.opacity = span(t, at, at + 0.2).toFixed(3);
+      c.style.transform = `scale(${lerp(0.7,1,p).toFixed(3)})`;
+    });
+
+    const surge = outCubic(span(t, CUE.s2b + 4.2, CUE.s2b + 6.8));
+    const score = Math.round(lerp(54, 92, surge));
+    $('scoreValue').textContent = score + '%';
+    $('scoreRing').style.background =
+      `conic-gradient(#10b981 0% ${score}%, #e2e8f0 ${score}% 100%)`;
+    const pop = outBack(span(t, CUE.s2b + 6.6, CUE.s2b + 7.4), 2.2);
+    $('scoreMeterCard').style.transform = `scale(${lerp(1, 1.05, pop - (pop>1?0:0)).toFixed(3)})`;
+    $('scoreMeterCard').style.boxShadow = `0 10px ${(pop*30).toFixed(1)}px rgba(16,185,129,${(surge*0.25).toFixed(3)})`;
+
+    // Slow push into the document thumbnail so text stays readable.
+    const thumbKB = span(t, CUE.s2, CUE.s3);
+    $('resumeThumb').style.transform = `scale(${lerp(1.0, 1.12, thumbKB).toFixed(4)})`;
+  }
+
+  /* ================= SECTION 3 ================= */
+  {
+    // Interaction view and report crossfade against each other.
+    const toReport = inOutCubic(span(t, CUE.report - 0.45, CUE.report + 0.45));
+    $('s3InteractionView').style.opacity   = (1 - toReport).toFixed(4);
+    $('s3InteractionView').style.transform = `scale(${lerp(1, 0.965, toReport).toFixed(4)})`;
+    $('s3ReportView').style.opacity        = toReport.toFixed(4);
+    $('s3ReportView').style.transform      = `scale(${lerp(1.04, 1, toReport).toFixed(4)})`;
+
+    // Slow zoom through the whiteboard.
+    const bKB = span(t, CUE.s3, CUE.report);
+    $('whiteboardImg').style.transform =
+      `scale(${lerp(1.0, 1.18, bKB).toFixed(4)}) translateY(${lerp(0, -18, bKB).toFixed(2)}px)`;
+
+    // Diagnostic report continuous slow push-in.
+    const rKB = span(t, CUE.report, CUE.s4);
+    $('reportImg').style.transform =
+      `scale(${lerp(1.0, 1.08, rKB).toFixed(4)}) translateY(${lerp(0, -28, rKB).toFixed(2)}px)`;
+
+    // The packet travels once across the architecture diagram.
+    const p1 = span(t, CUE.candA + 0.6, CUE.candA + 2.8);
+    if (p1 > 0 && p1 < 1) {
+      $('dataFlowPulse').style.opacity = env(t, CUE.candA + 0.6, CUE.candA + 2.8, 0.25, 0.35).toFixed(3);
+      $('dataFlowPulse').style.top  = `${lerp(22, 88, inOutCubic(p1)).toFixed(1)}%`;
+      $('dataFlowPulse').style.left = `${lerp(48, 52, Math.sin(p1*Math.PI)).toFixed(1)}%`;
+    } else {
+      $('dataFlowPulse').style.opacity = '0';
+    }
+
+    // Fast snappy reactive audio visualizer.
+    let isSpeaking = false;
+    for (const [a, b] of SPEAKING) {
+      if (t >= a && t <= b) { isSpeaking = true; break; }
+    }
+    const amp = isSpeaking ? 1 : 0.08;
+    waveBars.forEach((b, i) => {
+      const ph = (t * 8.5 + i * 0.42);
+      const h = 8 + amp * 36 * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(ph)));
+      b.style.height = `${h.toFixed(1)}px`;
+    });
+
+    // Dialogue bubbles reveal with speaker turns.
+    bubbles.forEach((b, i) => {
+      const at = bubbleAt[i];
+      const p = outQuint(span(t, at, at + 0.7));
+      b.style.opacity   = p.toFixed(3);
+      b.style.transform = `translateY(${lerp(20,0,p).toFixed(2)}px)`;
+      if (i === 3) {
+        const hl = span(t, at + 0.3, at + 1.2);
+        b.style.boxShadow = `0 0 ${(hl*24).toFixed(1)}px rgba(16,185,129,${(hl*0.28).toFixed(3)})`;
+      }
+    });
+  }
+
+  /* ================= SECTION 4 ================= */
+  {
+    const toB = inOutCubic(span(t, CUE.s4b - 0.45, CUE.s4b + 0.45));
+    $('s4a').style.opacity = (1 - toB).toFixed(4);
+    $('s4a').style.transform = `scale(${lerp(1, 0.975, toB).toFixed(4)})`;
+    $('s4b').style.opacity = toB.toFixed(4);
+    $('s4b').style.transform = `scale(${lerp(1.03, 1, toB).toFixed(4)})`;
+    $('s4PillText').textContent = toB > 0.5 ? 'Benchmarked Against Real Loops' : 'Role Tracks & Export';
+
+    const rcAt = [CUE.s4 + 0.15, CUE.s4 + 1.15, CUE.s4 + 2.15];
+    [1,2,3].forEach((n, i) => {
+      const p = outQuint(span(t, rcAt[i], rcAt[i] + 0.85));
+      const card = $('rc' + n);
+      card.style.opacity = p.toFixed(3);
+      card.style.transform = `translateY(${lerp(46,0,p).toFixed(2)}px) scale(${lerp(0.95,1,p).toFixed(4)})`;
+      const kb = span(t, rcAt[i], CUE.s4b);
+      $('rcImg' + n).style.transform =
+        `scale(${lerp(1.0,1.07,kb).toFixed(4)}) translateY(${lerp(0,-8,kb).toFixed(2)}px)`;
+    });
+
+    const dl = outQuint(span(t, CUE.s4 + 4.4, CUE.s4 + 5.5));
+    const dlOut = span(t, CUE.s4b - 1.1, CUE.s4b - 0.2);
+    $('dlCard').style.opacity = (dl * (1 - dlOut)).toFixed(3);
+    $('dlCard').style.transform =
+      `translateY(${lerp(300, 0, dl).toFixed(2)}px) scale(${lerp(0.97,1,dl).toFixed(4)})`;
+    const dkb = span(t, CUE.s4 + 4.4, CUE.s4b);
+    $('dlImg').style.transform = `scale(${lerp(1.12,1.24,dkb).toFixed(4)})`;
+
+    const scAt = [CUE.s4b + 0.1, CUE.s4b + 0.75, CUE.s4b + 1.25];
+    [1,2,3].forEach((n, i) => {
+      const p = outQuint(span(t, scAt[i], scAt[i] + 0.9));
+      const card = $('sc' + n);
+      card.style.opacity = p.toFixed(3);
+      card.style.transform =
+        `translateY(${lerp(44,0,p).toFixed(2)}px) scale(${lerp(0.96,1,p).toFixed(4)})`;
+      const kb = span(t, scAt[i], CUE.s5);
+      const dir = i === 1 ? -1 : 1;
+      const base = n === 1 ? 1.02 : 1.06;
+      $('scImg' + n).style.transform =
+        `scale(${lerp(base, base + 0.14, kb).toFixed(4)}) translateY(${(dir*lerp(0,-22,kb)).toFixed(2)}px)`;
+    });
+  }
+
+  /* ================= SECTION 6: COMMUNITY PROOF (FLIPPED FIRST) ================= */
+  {
+    const p = outQuint(span(t, CUE.s5 + 0.1, CUE.s5 + 0.9));
+    $('s6Pill').style.opacity = p.toFixed(3);
+    $('s6Pill').style.transform = `translateY(${lerp(18,0,p).toFixed(2)}px)`;
+
+    const h = outQuint(span(t, CUE.s5 + 0.4, CUE.s5 + 1.2));
+    $('s6Headline').style.opacity = h.toFixed(3);
+    $('s6Headline').style.transform = `translateY(${lerp(24,0,h).toFixed(2)}px)`;
+
+    [1, 2].forEach((n, i) => {
+      const at = CUE.s5 + 0.7 + i * 0.45;
+      const cp = outQuint(span(t, at, at + 0.9));
+      const card = $('utc' + n);
+      card.style.opacity = cp.toFixed(3);
+      card.style.transform = `translateY(${lerp(40,0,cp).toFixed(2)}px) scale(${lerp(0.96,1,cp).toFixed(4)})`;
+      const kb = span(t, at, CUE.s6);
+      $('utcImg' + n).style.transform = `scale(${lerp(1.0, 1.05, kb).toFixed(4)}) translateY(${lerp(0, -10, kb).toFixed(2)}px)`;
+    });
+  }
+
+  /* ================= SECTION 5: FINAL BRAND CLIMAX & CTA (FLIPPED LAST) ================= */
+  {
+    const l = outQuint(span(t, CUE.s6 - 0.1, CUE.s6 + 0.9));
+    $('ctaLogo').style.opacity = l.toFixed(3);
+    $('ctaLogo').style.transform = `translateY(${lerp(28,0,l).toFixed(2)}px) scale(${lerp(0.9,1,l).toFixed(4)})`;
+    const pf = outCubic(span(t, CUE.s6 + 0.5, CUE.s6 + 1.3));
+    $('ctaProof').style.opacity = pf.toFixed(3);
+    $('ctaProof').style.transform = `translateY(${lerp(18,0,pf).toFixed(2)}px)`;
+    [[$('ctaLn1'), CUE.s6+0.9], [$('ctaLn2'), CUE.s6+1.25]].forEach(([el, at]) => {
+      const p = outQuint(span(t, at, at + 0.7));
+      el.style.opacity = p.toFixed(3);
+      el.style.transform = `translateY(${lerp(34,0,p).toFixed(2)}px)`;
+    });
+    const bp = clamp01(outBack(span(t, CUE.s6 + 1.6, CUE.s6 + 2.4)));
+    const glow = 0.5 + 0.5*Math.sin((t - CUE.s6)*1.7);
+    $('ctaBtn').style.opacity = span(t, CUE.s6+1.6, CUE.s6+1.9).toFixed(3);
+    $('ctaBtn').style.transform = `scale(${lerp(0.86,1,bp).toFixed(4)})`;
+    $('ctaBtn').style.boxShadow = `0 20px ${lerp(44,72,glow).toFixed(1)}px rgba(255,255,255,${lerp(0.22,0.38,glow).toFixed(3)})`;
+    $('sec5').style.transformOrigin = '50% 50%';
+  }
+
+  /* ---- subtitles crossfade ---- */
+  subEls.forEach((el, i) => {
+    const [a, b] = SUBS[i];
+    const f = 0.3;
+    const o = clamp01(Math.min(inOutCubic(span(t, a - f/2, a + f/2)),
+                               1 - inOutCubic(span(t, b - f/2, b + f/2))));
+    el.style.opacity = o.toFixed(4);
+    el.style.transform = `translateY(${lerp(10, 0, o).toFixed(2)}px)`;
+  });
+};
+
+// Render a first frame so the page is never blank if opened directly.
+window.setSeekTime(0);
+</script>
+</body>
+</html>
