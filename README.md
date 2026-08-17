@@ -24,12 +24,19 @@ the signed-in surfaces withheld.
 | Open this | What appears within 30 seconds |
 | --- | --- |
 | **[careervivid.app/quest/google](https://careervivid.app/quest/google)** ← **start here** | Google's real interview ladder — recruiter screen, coding, system design, behavioural, values, final — each stage with a 70/100 pass mark, built from that company's documented questions. |
-| [careervivid.app/learn/coding-interview-patterns/tp-code](https://careervivid.app/learn/coding-interview-patterns/tp-code) | A coding lesson that **runs Python in the browser** — CPython on WebAssembly, in a worker — and diffs the real output against the expected result. Press Run. |
+| [careervivid.app/learn/coding-interview-patterns/tp-code](https://careervivid.app/learn/coding-interview-patterns/tp-code) | A coding lesson that **runs the code in the browser** — JavaScript natively in a Worker, Python through Pyodide — and diffs the real output against the expected result. Press Run. |
 | [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | 301 companies, 4,551 documented questions, 821 documented stages, searchable by company name. |
 | [careervivid.app/edit/new](https://careervivid.app/edit/new) | The resume editor, open to guests. Write or import one, pick from 36 templates, export to PDF, Google Docs or `.docx` without ever signing in. |
 
-The free plan is a working product: 100 credits a month, all 36
-templates, every company guide, no card.
+| Plan | Price | Credits / month |
+| --- | --- | --- |
+| Free | $0 | 100 |
+| Pro | $12 ($10 billed annually) | 1,000 |
+| Max | $35 ($31 billed annually) | 4,500 |
+| Enterprise | $12 per seat, two-seat minimum | 1,500 per seat, pooled |
+
+All 36 templates and all 301 company guides are on every plan, and building,
+editing and downloading a resume never costs credits.
 
 ---
 
@@ -59,14 +66,16 @@ named. The agent that reviewed the round then rewrites the resume it produced.
 
 ### One agent that can see the workspace
 
-The Career Agent has 29 tools and up to 12 tool-calling iterations per turn. It
-reads the open code buffer and its test summary, the diagram in progress, and
-the scored rounds — so it answers about the work in front of it instead of
-asking for a description.
+The Career Agent has 29 tools and can chain several of them behind a single
+message — up to 12 steps, stopping as soon as it has what it needs. It reads the
+open code buffer and its test summary, the diagram in progress, and the scored
+rounds, so it answers about the work in front of it instead of asking for a
+description.
 
-**It cannot write anything.** Each mutating tool returns a server-stored
-*proposal*; the client approves it by ID and never supplies the payload. An
-agent that has been prompt-injected still cannot mutate user data.
+**It proposes, the user decides.** Anything that would change a resume, a job
+entry or a tracker stage arrives as a card to approve. The mutating tool returns
+a server-stored *proposal* and the client approves it by ID, never supplying the
+payload — so an agent that has been prompt-injected has nothing to act on.
 
 `functions/src/agent/turnRunner.ts` · `functions/src/agent/tools.ts` · `gemini-3.6-flash`
 
@@ -96,9 +105,10 @@ asking how a standby KGS avoids issuing duplicate pre-allocated keys.
 
 ### Write code that actually runs
 
-Python executes in Pyodide — CPython compiled to WebAssembly — inside a Web
-Worker the host can terminate. The pass rate is **measured** from the actual run, and
-the model grades on top of a real result rather than guessing from the source.
+JavaScript executes natively inside a Web Worker the host can terminate; Python
+executes in the same worker through Pyodide, CPython compiled to WebAssembly.
+The pass rate is **measured** from the actual run, and the model grades on top of
+that result rather than guessing from the source.
 
 ![A coding lesson in the Two Pointers chapter with an editor, requirements and a run action](docs/screenshots/coding-lesson.png)
 
@@ -192,7 +202,7 @@ Cloud Firestore                    →  user data, sessions, agent proposals
 Firebase Auth                      →  accounts
 Vertex AI Live API                 →  realtime voice (raw BidiGenerateContent WS)
 Gemini API                         →  grading, agent, resume, job scoring
-Pyodide (CPython → WASM)           →  in-browser code execution, in a Worker
+Web Worker + Pyodide               →  in-browser execution: JS natively, Python on WASM
 ```
 
 A few decisions worth calling out:
