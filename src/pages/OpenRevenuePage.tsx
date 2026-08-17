@@ -434,9 +434,9 @@ const OpenRevenuePage: React.FC = () => {
     const structuredData = {
         '@context': 'https://schema.org',
         '@type': 'Dataset',
-        name: 'CareerVivid Open Revenue',
-        description: 'A public, read-only aggregate revenue dashboard for CareerVivid.',
-        url: 'https://careervivid.app/open',
+        name: 'CareerVivid Open Revenue & Earnings',
+        description: 'A public, read-only aggregate revenue and earnings dashboard for CareerVivid.',
+        url: 'https://careervivid.app/earning',
         creator: {
             '@type': 'Organization',
             name: 'CareerVivid',
@@ -449,17 +449,17 @@ const OpenRevenuePage: React.FC = () => {
     return (
         <div className="cv-public-warm-page min-h-screen bg-[#f7f1e7] text-[#211b16] selection:bg-amber-200/60 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
             <Helmet titleTemplate="%s">
-                <title>Open Revenue | CareerVivid</title>
+                <title>Open Revenue & Earnings | CareerVivid</title>
                 <meta
                     name="description"
                     content="CareerVivid shares aggregate read-only revenue metrics from Stripe so job seekers and partners can see the business being built in public."
                 />
                 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-                <link rel="canonical" href="https://careervivid.app/open" />
+                <link rel="canonical" href="https://careervivid.app/earning" />
                 <meta property="og:type" content="website" />
-                <meta property="og:title" content="Open Revenue | CareerVivid" />
-                <meta property="og:description" content="A public read-only view of CareerVivid aggregate revenue, verified from Stripe without exposing customer data." />
-                <meta property="og:url" content="https://careervivid.app/open" />
+                <meta property="og:title" content="Open Revenue & Earnings | CareerVivid" />
+                <meta property="og:description" content="A public read-only view of CareerVivid aggregate revenue and earnings, verified from Stripe without exposing customer data." />
+                <meta property="og:url" content="https://careervivid.app/earning" />
                 <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
             </Helmet>
 

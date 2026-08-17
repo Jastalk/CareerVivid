@@ -90,6 +90,7 @@ const footerLinksFor = (signedIn: boolean) => [
     { href: resumeHref(signedIn), label: 'Resume editor' },
     { href: '/learning', label: 'Learning' },
     { href: '/pricing', label: 'Pricing' },
+    { href: '/earning', label: 'Earning' },
     { href: '/contact', label: 'Contact' },
     { href: '/privacy', label: 'Privacy' },
     { href: '/terms', label: 'Terms' },

@@ -869,7 +869,7 @@ const AppContent: React.FC = () => {
     // history entry from a session loaded before the deploy, both of which
     // route client-side and would otherwise fall through to the 404 branch.
     else if (path === '/resume-builder') { content = <RetiredRoute target="/edit/new" />; }
-    else if (path === '/open') { content = <OpenRevenuePage />; }
+    else if (path === '/earning' || path === '/earnings' || path === '/open') { content = <OpenRevenuePage />; }
     else if (path === '/demo') { content = <DemoPage />; }
     else if (path === '/contact') { content = <ContactPage />; }
     else if (path === '/services') { content = <ServicesPage />; }
