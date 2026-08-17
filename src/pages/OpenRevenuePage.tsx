@@ -212,7 +212,10 @@ const InteractiveRevenueChart: React.FC<{
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-    const points = range === 'daily' ? daily : monthly;
+    // The API still returns 12 months; the view shows the most recent 6 so the
+    // curve reads as recent trend rather than a year-long flat run-up.
+    const MONTHS_SHOWN = 6;
+    const points = range === 'daily' ? daily : monthly.slice(-MONTHS_SHOWN);
     const valueOf = (point: RevenuePoint) =>
         Math.max(measure === 'gross' ? point.grossRevenueCents : point.netRevenueCents, 0);
     const maxValue = Math.max(...points.map(valueOf), 1);
@@ -249,7 +252,7 @@ const InteractiveRevenueChart: React.FC<{
     // centred to edge-aligned instead of being clipped.
     const hoverShift = hoveredPct < 18 ? '-12%' : hoveredPct > 82 ? '-88%' : '-50%';
     const placeholderHeight = (index: number) => 18 + ((index * 37) % 61);
-    const visibleLabels = range === 'daily' ? [0, 7, 14, 21, 29] : [0, 3, 6, 9, 11];
+    const visibleLabels = range === 'daily' ? [0, 7, 14, 21, 29] : [0, 2, 4, 5];
 
     const switchRange = (next: 'daily' | 'monthly') => {
         setRange(next);
@@ -278,7 +281,7 @@ const InteractiveRevenueChart: React.FC<{
                                     ? 'bg-[#211b16] text-[#fffaf1] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
                                     : 'text-[#8a7a66] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'}`}
                             >
-                                {option === 'daily' ? '30 days' : '12 months'}
+                                {option === 'daily' ? '30 days' : '6 months'}
                             </button>
                         ))}
                     </div>
