@@ -57,16 +57,20 @@ named. The agent that reviewed the round then rewrites the resume it produced.
 
 ## What it does
 
-### Answer by voice or by typing
+### One agent that can see the workspace
 
-In voice mode the browser opens a WebSocket to Vertex AI's Live API, streams
-**16 kHz mono PCM** from the microphone, and plays 24 kHz audio back. In text
-mode the same round runs as chat. Either way the model decides when a follow-up
-is warranted and when the round is over, then scores the transcript into a report.
+The Career Agent has 29 tools and up to 12 tool-calling iterations per turn. It
+reads the open code buffer and its test summary, the diagram in progress, and
+the scored rounds — so it answers about the work in front of it instead of
+asking for a description.
 
-`src/components/aiInterviewAgent/useAIInterviewAgentSession.ts` · `gemini-live-2.5-flash-native-audio`
+**It cannot write anything.** Each mutating tool returns a server-stored
+*proposal*; the client approves it by ID and never supplies the payload. An
+agent that has been prompt-injected still cannot mutate user data.
 
-![Interview Studio: company interview guides with 301 companies, 22,611 questions and 821 stages, alongside recent sessions and career paths](docs/screenshots/interview-studio.png)
+`functions/src/agent/turnRunner.ts` · `functions/src/agent/tools.ts` · `gemini-3.6-flash`
+
+![The Career Agent giving a detailed system-design critique naming key generation services, distributed locks, Redis cache stampedes and an OLAP store](docs/screenshots/app-career-agent.png)
 
 ### Run a company's actual interview ladder
 
@@ -98,21 +102,6 @@ the model grades on top of a real result rather than guessing from the source.
 
 ![A coding lesson in the Two Pointers chapter with an editor, requirements and a run action](docs/screenshots/coding-lesson.png)
 
-### One agent that can see the workspace
-
-The Career Agent has 29 tools and up to 12 tool-calling iterations per turn. It
-reads the open code buffer and its test summary, the diagram in progress, and
-the scored rounds — so it answers about the work in front of it instead of
-asking for a description.
-
-**It cannot write anything.** Every mutating tool returns a server-stored
-*proposal*; the client approves it by ID and never supplies the payload. An
-agent that has been prompt-injected still cannot mutate user data.
-
-`functions/src/agent/turnRunner.ts` · `functions/src/agent/tools.ts` · `gemini-3.6-flash`
-
-![The Career Agent giving a detailed system-design critique naming key generation services, distributed locks, Redis cache stampedes and an OLAP store](docs/screenshots/app-career-agent.png)
-
 ### The feedback lands in the resume
 
 36 templates, AI tailoring against a specific posting, a match score across four
@@ -126,9 +115,14 @@ editor and the exports; sync, AI and sharing need an account.
 ![The CareerVivid dashboard: continue a quest, the current resume, the last scored round, target-role readiness at 85%, and workspace numbers](docs/screenshots/app-dashboard.png)
 
 <details>
-<summary><b>More surfaces</b> — learning catalog, job board, pricing, quest progress</summary>
+<summary><b>More surfaces</b> — Interview Studio, learning catalog, job board, pricing, quest progress</summary>
 
 <br>
+
+Interview Studio: 301 company guides, searchable, with the documented question
+and stage counts on the page.
+
+![Interview Studio: company guides for 301 companies with 22,611 questions and 821 stages, plus recent sessions and career paths](docs/screenshots/interview-studio.png)
 
 12 published courses, 56 chapters, 203 interactive lessons.
 
