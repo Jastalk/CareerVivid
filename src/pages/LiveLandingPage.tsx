@@ -181,11 +181,11 @@ const LiveLandingPage: React.FC = () => (
                 id="learning"
                 eyebrow="free interactive courses"
                 title="Master system design and coding patterns with hands-on courses."
-                copy="Explore full-length interactive curricula across coding interview patterns, distributed system design, and AI agent architectures. Execute Python drills directly in your browser, sketch architectures against real hiring rubrics, and learn for free with zero paywalls on core foundations."
+                copy="Explore full-length interactive curricula across coding interview patterns, distributed system design, and AI agent architectures. Write code and run it in the browser, sketch architectures that get scored against a written rubric, and start on the free tier without signing in."
                 points={[
-                    '16 coding patterns with in-browser WebAssembly test suites',
+                    '16 coding patterns, each with a test suite that runs in the browser',
                     '25+ distributed system architectures with interactive whiteboard drills',
-                    '100% free curriculum with zero sign-in required to browse',
+                    'Every lesson readable without an account',
                 ]}
                 href="/learning"
                 cta="Explore free courses"
