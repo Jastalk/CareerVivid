@@ -238,7 +238,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     const latestSessionScore = latestSession ? getBestScore(latestSession) : null;
 
     const questCard: PrimaryWindow = (() => {
-        const base = { id: 'quest', filename: 'quest-log.md', eyebrow: 'system design', icon: PenTool, accent: 'purple' as const };
+        const base = { id: 'quest', filename: 'quest-log', eyebrow: 'system design', icon: PenTool, accent: 'purple' as const };
         const boardIsNewer = latestWhiteboard
             && (!latestDesignQuest || toMillis(latestWhiteboard.updatedAt) > latestDesignQuest.touched);
 
@@ -284,7 +284,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     const resumeCard: PrimaryWindow = latestResume
         ? {
             id: 'resume',
-            filename: 'resume.pdf',
+            filename: 'resume',
             eyebrow: 'resume editor',
             icon: FileText,
             accent: 'green',
@@ -299,7 +299,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         }
         : {
             id: 'resume',
-            filename: 'resume.pdf',
+            filename: 'resume',
             eyebrow: 'resume editor',
             icon: FileText,
             accent: 'green',
@@ -368,7 +368,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
                 <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(340px,0.92fr)] xl:gap-5">
                     <article className="cvl-win flex flex-col">
-                        <WindowBar filename="next-step.txt" />
+                        <WindowBar filename="next-step" />
                         <div className="flex flex-1 flex-col p-5">
                             <div className="flex h-full flex-col items-start sm:flex-row sm:gap-5">
                                 <span
@@ -402,7 +402,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     </article>
 
                     <article className="cvl-win flex flex-col">
-                        <WindowBar filename="readiness.txt" />
+                        <WindowBar filename="readiness" />
                         <div className="flex flex-1 flex-col p-5">
                             <div className="flex items-start justify-between gap-4">
                                 <div className="min-w-0">
@@ -459,7 +459,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 </div>
 
                 <section className="cvl-win" aria-labelledby="dashboard-metrics-heading">
-                    <WindowBar filename="numbers.txt" />
+                    <WindowBar filename="numbers" />
                     <div className="p-5">
                         {/* The page subtitle already says "your job search at a glance" — repeating
                             it as the section heading told the reader nothing new. */}
@@ -491,7 +491,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
                 <div className="grid gap-4 xl:grid-cols-2 xl:gap-5">
                     <section className="cvl-win" aria-labelledby="setup-map-heading">
-                        <WindowBar filename="next-steps.md" />
+                        <WindowBar filename="next-steps" />
                         <div className="p-5">
                             <div className="flex items-center justify-between gap-4">
                                 {/* "Setup map" named the mechanism; this names what the reader gets. */}
@@ -534,7 +534,7 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     </section>
 
                     <section className="cvl-win" aria-labelledby="recent-interviews-heading">
-                        <WindowBar filename="sessions.log" />
+                        <WindowBar filename="sessions" />
                         <div className="p-5">
                             <div className="flex items-center justify-between gap-4">
                                 <h2 id="recent-interviews-heading" className="cvl-mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'var(--cvl-muted)' }}>

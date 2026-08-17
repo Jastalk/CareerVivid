@@ -398,7 +398,7 @@ const OnboardingPage: React.FC = () => {
                     </header>
 
                     <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(360px,0.55fr)]">
-                        <Win filename="workspace-readiness.log">
+                        <Win filename="workspace-readiness">
                             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <p className={eyebrowClass} style={eyebrowStyle}>where you are</p>
@@ -433,7 +433,7 @@ const OnboardingPage: React.FC = () => {
                             </div>
                         </Win>
 
-                        <Win filename="next-steps.md">
+                        <Win filename="next-steps">
                             <p className={eyebrowClass} style={eyebrowStyle}>your steps</p>
                             <div className="mt-4 space-y-3">
                                 {steps.map((item) => (
@@ -445,7 +445,7 @@ const OnboardingPage: React.FC = () => {
 
                     <section className="mt-6 grid gap-4 lg:grid-cols-3">
                         <PathCard
-                            filename="base-resume.md"
+                            filename="base-resume"
                             eyebrow="step one"
                             icon={<FileText size={21} />}
                             title="Get the resume in."
@@ -461,7 +461,7 @@ const OnboardingPage: React.FC = () => {
                             onSecondary={() => navigate('/dashboard')}
                         />
                         <PathCard
-                            filename="system-design.quest"
+                            filename="system-design"
                             eyebrow="step two"
                             icon={<PenTool size={21} />}
                             title="Draw the system."
@@ -477,7 +477,7 @@ const OnboardingPage: React.FC = () => {
                             onSecondary={() => navigate(hasJob ? '/job-tracker' : '/jobs/recommend')}
                         />
                         <PathCard
-                            filename="voice-round.mov"
+                            filename="voice-round"
                             eyebrow="step three"
                             icon={<Mic size={21} />}
                             title="Talk it through."
@@ -493,7 +493,7 @@ const OnboardingPage: React.FC = () => {
                     </section>
 
                     <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,0.64fr)_minmax(360px,0.46fr)]">
-                        <Win filename="first-packet.md">
+                        <Win filename="first-packet">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                     <p className={eyebrowClass} style={eyebrowStyle}>after the first three</p>
@@ -555,7 +555,7 @@ const OnboardingPage: React.FC = () => {
                             </div>
                         </Win>
 
-                        <Win filename="job-packet.json">
+                        <Win filename="job-packet">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                     <p className={eyebrowClass} style={eyebrowStyle}>attached role</p>

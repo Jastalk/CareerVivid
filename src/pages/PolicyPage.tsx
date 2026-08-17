@@ -23,7 +23,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     {
         title: 'Refund Policy',
         slug: 'refund',
-        file: 'refund-policy.md',
+        file: 'refund-policy',
         items: [
             {
                 question: 'What is your refund policy?',
@@ -54,7 +54,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     {
         title: 'Terms of Service',
         slug: 'terms',
-        file: 'terms-of-service.md',
+        file: 'terms-of-service',
         items: [
             {
                 question: 'Who can use CareerVivid?',
@@ -85,7 +85,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     {
         title: 'Privacy Policy',
         slug: 'privacy',
-        file: 'privacy-policy.md',
+        file: 'privacy-policy',
         items: [
             {
                 question: 'What information do we collect?',
@@ -116,7 +116,7 @@ const POLICY_SECTIONS: PolicySection[] = [
     {
         title: 'Bio-Link & Creators',
         slug: 'bio-link',
-        file: 'bio-link.md',
+        file: 'bio-link',
         items: [
             {
                 question: 'What content is allowed on my Bio-Link page?',

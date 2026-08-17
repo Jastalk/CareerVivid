@@ -172,7 +172,7 @@ const LiveLandingPage: React.FC = () => (
                 ]}
                 href="/edit/new"
                 cta="Open the resume editor"
-                filename="resume-rewrite.mov"
+                filename="resume-rewrite"
                 accent="green"
                 render={(playing) => <LiveResume playing={playing} />}
             />
@@ -189,7 +189,7 @@ const LiveLandingPage: React.FC = () => (
                 ]}
                 href="/learning"
                 cta="Explore free courses"
-                filename="interactive-courses.mov"
+                filename="interactive-courses"
                 accent="amber"
                 flip
                 render={(playing) => <LiveCourses playing={playing} />}

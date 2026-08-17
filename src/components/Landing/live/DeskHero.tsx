@@ -61,7 +61,7 @@ const DeskHero: React.FC = () => {
             <div className="pointer-events-none absolute inset-0 hidden lg:block">
                 <div className="relative mx-auto h-full max-w-[1400px]">
                     <div className="pointer-events-auto absolute left-[1%] top-[6%] w-[236px]" style={{ ['--cvl-tilt' as string]: '-2.4deg', ['--cvl-float-dur' as string]: '11s' }}>
-                        <DeskWindow filename="google-quest.mov" accent="purple" floating>
+                        <DeskWindow filename="google-quest" accent="purple" floating>
                             <div className="aspect-[320/200]">
                                 <LiveWhiteboard spec={QUEST_DEMOS[0].spec} playing={seen} replayKey="hero-google" />
                             </div>
@@ -69,19 +69,19 @@ const DeskHero: React.FC = () => {
                     </div>
 
                     <div className="pointer-events-auto absolute right-[2%] top-[4%] w-[248px]" style={{ ['--cvl-tilt' as string]: '2deg', ['--cvl-float-dur' as string]: '9.5s', ['--cvl-float-delay' as string]: '-3s' }}>
-                        <DeskWindow filename="voice-round.mov" accent="amber" floating>
+                        <DeskWindow filename="voice-round" accent="amber" floating>
                             <MiniWave />
                         </DeskWindow>
                     </div>
 
                     <div className="pointer-events-auto absolute bottom-[8%] left-[4%] w-[228px]" style={{ ['--cvl-tilt' as string]: '1.6deg', ['--cvl-float-dur' as string]: '10.5s', ['--cvl-float-delay' as string]: '-5s' }}>
-                        <DeskWindow filename="score-report.png" accent="green" floating>
+                        <DeskWindow filename="score-report" accent="green" floating>
                             <MiniScore playing={seen} />
                         </DeskWindow>
                     </div>
 
                     <div className="pointer-events-auto absolute bottom-[12%] right-[4%] w-[244px]" style={{ ['--cvl-tilt' as string]: '-1.8deg', ['--cvl-float-dur' as string]: '12s', ['--cvl-float-delay' as string]: '-1.5s' }}>
-                        <DeskWindow filename="uber-dispatch.mov" accent="purple" floating>
+                        <DeskWindow filename="uber-dispatch" accent="purple" floating>
                             <div className="aspect-[320/200]">
                                 <LiveWhiteboard spec={QUEST_DEMOS[3].spec} playing={seen} replayKey="hero-uber" />
                             </div>
@@ -163,12 +163,12 @@ const DeskHero: React.FC = () => {
 
             {/* Below lg the desk collapses into a plain, scrollable row. */}
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:hidden">
-                <DeskWindow filename="google-quest.mov" accent="purple">
+                <DeskWindow filename="google-quest" accent="purple">
                     <div className="aspect-[320/200]">
                         <LiveWhiteboard spec={QUEST_DEMOS[0].spec} playing={seen} replayKey="hero-google-sm" />
                     </div>
                 </DeskWindow>
-                <DeskWindow filename="voice-round.mov" accent="amber">
+                <DeskWindow filename="voice-round" accent="amber">
                     <MiniWave />
                 </DeskWindow>
             </div>

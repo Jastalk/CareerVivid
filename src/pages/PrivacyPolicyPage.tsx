@@ -12,10 +12,10 @@ import '../components/Landing/live/liveLanding.css';
  */
 
 const SECTIONS = [
-    { id: 'collect', title: 'what we collect', file: 'what-we-collect.md' },
-    { id: 'ai', title: 'how Gemini sees your data', file: 'gemini-analysis.md' },
-    { id: 'sharing', title: 'how we use and share it', file: 'use-and-sharing.md' },
-    { id: 'rights', title: 'your rights', file: 'your-rights.md' },
+    { id: 'collect', title: 'what we collect', file: 'what-we-collect' },
+    { id: 'ai', title: 'how Gemini sees your data', file: 'gemini-analysis' },
+    { id: 'sharing', title: 'how we use and share it', file: 'use-and-sharing' },
+    { id: 'rights', title: 'your rights', file: 'your-rights' },
 ];
 
 const Dots: React.FC = () => (

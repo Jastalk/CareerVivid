@@ -20,7 +20,7 @@ interface TermsSection {
 const SECTIONS: TermsSection[] = [
     {
         id: 'account',
-        file: 'account-terms.md',
+        file: 'account-terms',
         title: 'account terms',
         items: [
             {
@@ -35,7 +35,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'acceptable-use',
-        file: 'acceptable-use.md',
+        file: 'acceptable-use',
         title: 'acceptable use',
         items: [
             {
@@ -50,7 +50,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'payments',
-        file: 'payments.md',
+        file: 'payments',
         title: 'payment and subscriptions',
         items: [
             {
@@ -65,7 +65,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'ip',
-        file: 'intellectual-property.md',
+        file: 'intellectual-property',
         title: 'intellectual property',
         items: [
             {
@@ -80,7 +80,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'ai',
-        file: 'ai-services.md',
+        file: 'ai-services',
         title: 'AI services',
         items: [
             {
@@ -95,7 +95,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'liability',
-        file: 'liability.md',
+        file: 'liability',
         title: 'liability and disclaimers',
         items: [
             {
@@ -110,7 +110,7 @@ const SECTIONS: TermsSection[] = [
     },
     {
         id: 'legal-contact',
-        file: 'legal-contact.md',
+        file: 'legal-contact',
         title: 'legal contact',
         items: [
             {

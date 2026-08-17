@@ -171,7 +171,7 @@ export const LiveCourses: React.FC<{ playing: boolean }> = ({ playing }) => {
                     {/* was var(--cvl-text), which is not a token in this set — the
                         colour silently fell through to whatever it inherited. */}
                     <span className="cvl-mono text-[11px] font-semibold tracking-wide" style={{ color: 'var(--cvl-ink)' }}>
-                        interactive-courses.catalog
+                        interactive-courses
                     </span>
                 </div>
                 {/*

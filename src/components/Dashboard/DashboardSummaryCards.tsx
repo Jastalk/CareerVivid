@@ -21,7 +21,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
     const cards = [
         {
             title: 'resumes',
-            file: 'resumes.md',
+            file: 'resumes',
             count: resumeCount,
             icon: FileText,
             accent: 'var(--cvl-green)',
@@ -31,7 +31,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         },
         {
             title: 'find jobs',
-            file: 'jobs.md',
+            file: 'jobs',
             count: null,
             icon: Briefcase,
             accent: 'var(--cvl-amber)',
@@ -42,7 +42,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         },
         {
             title: 'interview rounds',
-            file: 'rounds.log',
+            file: 'rounds',
             count: interviewCount,
             icon: Mic,
             accent: 'var(--cvl-purple)',
@@ -52,7 +52,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         },
         {
             title: 'portfolios',
-            file: 'portfolios.md',
+            file: 'portfolios',
             count: portfolioCount,
             icon: Globe,
             accent: 'var(--cvl-purple)',
@@ -62,7 +62,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         },
         {
             title: 'jobs you are chasing',
-            file: 'pipeline.md',
+            file: 'pipeline',
             count: jobCount > 0 ? jobCount : null,
             icon: Briefcase,
             accent: 'var(--cvl-green)',
@@ -73,7 +73,7 @@ const DashboardSummaryCards: React.FC<DashboardSummaryCardsProps> = ({
         },
         {
             title: 'community posts',
-            file: 'posts.md',
+            file: 'posts',
             count: communityPostCount,
             icon: MessageSquare,
             accent: 'var(--cvl-amber)',

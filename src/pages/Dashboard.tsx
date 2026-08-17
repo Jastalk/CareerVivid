@@ -58,7 +58,7 @@ const MobileWorkflowLauncher: React.FC = () => (
             <span className="cvl-dot cvl-dot-r" />
             <span className="cvl-dot cvl-dot-y" />
             <span className="cvl-dot cvl-dot-g" />
-            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>shortcuts.txt</span>
+            <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>shortcuts</span>
         </div>
         <div className="grid grid-cols-3 gap-2 p-3">
             {mobileWorkflowActions.map(({ label, icon: Icon, path, accent, soft }) => (
@@ -230,7 +230,7 @@ const Dashboard: React.FC = () => {
                                                 <span className="cvl-dot cvl-dot-r" />
                                                 <span className="cvl-dot cvl-dot-y" />
                                                 <span className="cvl-dot cvl-dot-g" />
-                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>new.txt</span>
+                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>new</span>
                                             </div>
                                             <div className="py-1">
                                                 <button onClick={() => { navigate('/onboarding'); setIsNewMenuOpen(false); }} className={MENU_ITEM}>
@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
                                                 <span className="cvl-dot cvl-dot-r" />
                                                 <span className="cvl-dot cvl-dot-y" />
                                                 <span className="cvl-dot cvl-dot-g" />
-                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>account.txt</span>
+                                                <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>account</span>
                                             </div>
                                             <div className="py-1">
                                                 <button onClick={() => { handleStep2Click(); navigate('/profile'); }} className={`relative ${MENU_ITEM}`}>
@@ -431,7 +431,7 @@ const Dashboard: React.FC = () => {
                                     <span className="cvl-dot cvl-dot-r" />
                                     <span className="cvl-dot cvl-dot-y" />
                                     <span className="cvl-dot cvl-dot-g" />
-                                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>report.log</span>
+                                    <span className="cvl-mono truncate text-[11px]" style={{ color: 'var(--cvl-faint)' }}>report</span>
                                 </div>
                                 <div className="p-5">
                                     <span className="cvl-mono text-[12px]" style={{ color: 'var(--cvl-muted)' }}>loading report…</span>
