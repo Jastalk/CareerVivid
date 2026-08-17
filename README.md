@@ -1,15 +1,8 @@
-<div align="center">
-
 # CareerVivid
 
-### A mock interview that answers back, code that really runs, and a whiteboard graded against a rubric — then the resume gets rewritten from what the round exposed.
+**A mock interview that answers back, code that really runs, and a whiteboard graded against a rubric — then the resume gets rewritten from what the round exposed.**
 
-[![Live product](https://img.shields.io/badge/Live-careervivid.app-4f46e5?style=for-the-badge)](https://careervivid.app)
-[![Category](https://img.shields.io/badge/Category-Education%20%26%20Human%20Potential-0F9D58?style=for-the-badge)](#why-education--human-potential)
-[![Gemini API](https://img.shields.io/badge/Gemini%20API-live%20in%20production-4285F4?style=for-the-badge)](#ai-in-production)
-[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-139%20functions%20deployed-1a73e8?style=for-the-badge)](#how-it-is-built)
-
-</div>
+▶ [Watch the 3-minute Video](https://www.youtube.com/watch?v=L2v1ZrPdwx8) · [Live Product Link](https://careervivid.app) · [Github Repo](https://github.com/JiawenZhu/CareerVivid)
 
 ![The CareerVivid home page: a whiteboard drawing a URL-shortener design, a live voice waveform, a scored design report, and a ride-dispatch diagram scattered around the wordmark](docs/screenshots/landing.png)
 
@@ -17,135 +10,111 @@
 
 ## Try it now — no login required
 
-Every link below opens the **live production app** as a guest. Nothing here is a
-sandbox or a seeded demo; it is the same application a paying user gets, with
-the signed-in surfaces withheld.
+CareerVivid works without an account. Signing in unlocks sync, AI tools and sharing.
 
-| Open this | What appears within 30 seconds |
+These four links open the real product, running live:
+
+**1. [Google interview questions](https://careervivid.app/quest/google) — start here**
+Six real stages: recruiter screen, coding, system design, behavioural, values, final. Each needs 70/100 to pass to unlock the next question.
+
+**2. [Run TypeScript/JavaScript or Python in a coding lesson](https://careervivid.app/learn/coding-interview-patterns/tp-code)**
+Press Run. The code executes in the browser and the output is diffed against the expected result.
+
+**3. [Search 301 companies](https://careervivid.app/interview-studio)**
+4,551 documented questions across 821 documented stages, searchable by company name.
+
+**4. [Build a resume](https://careervivid.app/edit/new)**
+36 templates. Export to PDF, Google Docs or .docx without signing in.
+
+Free — $0/month, 100 credits. All 36 templates, all 301 company guides.
+Pro — $12/month ($10 billed annually), 1,000 credits.
+Max — $35/month ($31 billed annually), 4,500 credits.
+Enterprise — $12 per seat/month, 1,500 credits per seat, pooled, two-seat minimum.
+
+Building, editing and downloading a resume never costs credits, on any plan.
+
+---
+
+## By the numbers
+
+| | |
 | --- | --- |
-| **[careervivid.app/quest/google](https://careervivid.app/quest/google)** ← **start here** | Google's real interview ladder — recruiter screen, coding, system design, behavioural, values, final — each stage with a 70/100 pass mark, built from that company's documented questions. |
-| [careervivid.app/learn/coding-interview-patterns/tp-code](https://careervivid.app/learn/coding-interview-patterns/tp-code) | A coding lesson that **runs the code in the browser** — JavaScript natively in a Worker, Python through Pyodide — and diffs the real output against the expected result. Press Run. |
-| [careervivid.app/interview-studio](https://careervivid.app/interview-studio) | 301 companies, 4,551 documented questions, 821 documented stages, searchable by company name. |
-| [careervivid.app/edit/new](https://careervivid.app/edit/new) | The resume editor, open to guests. Write or import one, pick from 36 templates, export to PDF, Google Docs or `.docx` without ever signing in. |
+| Companies with real interview guides | **301** |
+| Documented interview questions | **4,551** |
+| Documented interview stages | **821** |
+| Per-stage quest questions | **22,611** |
+| Courses / chapters / lessons | **12 / 56 / 203** |
+| Resume templates | **36** |
+| Company job boards scraped live | **161** |
+| Cloud Functions deployed | **139** |
+| UI languages | **7** |
 
-| Plan | Price | Credits / month |
-| --- | --- | --- |
-| Free | $0 | 100 |
-| Pro | $12 ($10 billed annually) | 1,000 |
-| Max | $35 ($31 billed annually) | 4,500 |
-| Enterprise | $12 per seat, two-seat minimum | 1,500 per seat, pooled |
-
-All 36 templates and all 301 company guides are on every plan, and building,
-editing and downloading a resume never costs credits.
+Each figure above is read from a file in the repo.
 
 ---
 
 ## The problem
 
-AI has made the surface of this work easy. Anyone can generate a resume, a
-cover letter, or an answer that reads well. Those skills no longer separate
-candidates, because the whole field has them.
+AI has made the surface of this work easy. Anyone can generate a resume, a cover letter, or an answer that reads well. Those skills no longer separate candidates, because the whole field has them.
 
-What still separates candidates is depth: designing a system that holds under
-load, defending the trade-offs behind it, and shipping something a company can
-actually run. That is what a senior interview tests, and it is the hardest part
-to rehearse, because it takes a second party — someone to push back on the
-architecture, run the code, and score the result.
+What still separates candidates is depth: designing a system that holds under load, defending the trade-offs behind it, and shipping something a company can actually run. That is what a senior interview tests, and it is the hardest part to rehearse, because it takes a second party — someone to push back on the architecture, run the code, and score the result.
 
-Most job-search tools optimise the other end of the funnel: apply faster, send
-more. That helps with getting seen. It does nothing for clearing a system-design
-round.
+Most job-search tools optimise the other end of the funnel: apply faster, send more. That helps with getting seen. It does nothing for clearing a system-design round.
 
-CareerVivid is built for the depth problem. Rounds run by voice or by text.
-Code executes. Architecture is scored against a numeric rubric with the gaps
-named. The agent that reviewed the round then rewrites the resume it produced.
+CareerVivid is built for the depth problem. Rounds run by voice or by text. Code executes. Architecture is scored against a numeric rubric with the gaps named. The agent that reviewed the round then rewrites the resume it produced.
 
 ---
 
 ## What it does
 
-### One agent that can see the workspace
-
-The Career Agent has 29 tools and can chain several of them behind a single
-message — up to 12 steps, stopping as soon as it has what it needs. It reads the
-open code buffer and its test summary, the diagram in progress, and the scored
-rounds, so it answers about the work in front of it instead of asking for a
-description.
-
-**It proposes, the user decides.** Anything that would change a resume, a job
-entry or a tracker stage arrives as a card to approve. The mutating tool returns
-a server-stored *proposal* and the client approves it by ID, never supplying the
-payload — so an agent that has been prompt-injected has nothing to act on.
-
-`functions/src/agent/turnRunner.ts` · `functions/src/agent/tools.ts` · `gemini-3.6-flash`
+**🧠 Context-Aware Autonomous Career Agent**:
+Working directly inside the candidate's active workspace, the Career Agent inspects live code, whiteboard topologies, and career history in real time. Equipped with 29 specialized tools, it can reason through and chain up to 12 autonomous actions per turn—proposing surgical edits, pipeline updates, and interview counterpoints as interactive decision cards that preserve 100% user control.
 
 ![The Career Agent giving a detailed system-design critique naming key generation services, distributed locks, Redis cache stampedes and an OLAP store](docs/screenshots/app-career-agent.png)
 
-### Run a company's actual interview ladder
-
-Six stages per company, each with a 70/100 pass threshold and a badge. The
-questions come from documented interview loops — 4,551 real questions scraped and
-curated across 301 companies, expanded into 22,611 per-stage quest questions.
-
-`src/lib/companyQuests.ts` · guest-browsable at `/quest/:slug`
-
-![The Google interview quest: six stages from recruiter screen through final round, each with pass marks, progress, and stage badges](docs/screenshots/quest-google.png)
-
-### Draw an architecture and have it graded
-
-Diagrams are drawn on a real canvas. The rendered image goes to Gemini with a
-numeric rubric and a forced scratchpad, and returns a weighted score, named
-gaps, and a follow-up question aimed at whatever is missing. The board below
-is a live session: the coach has already pushed back on key generation and is
-asking how a standby KGS avoids issuing duplicate pre-allocated keys.
-
-`src/services/geminiService.ts:1215` · `gemini-3.6-flash`
+**📐 Multimodal Whiteboard Vision & Rubric Scoring**:
+Candidates design distributed architectures on a freeform, reactive digital canvas. The rendered system topology is evaluated multimodal-first against rigorous FAANG hiring rubrics—instantly returning weighted dimension scores, identifying single points of failure, and generating adaptive pushback on architectural trade-offs.
 
 ![A system-design whiteboard for a Google-scale URL shortener showing client application, API gateway, key generation service, Redis cache, Kafka message queue, analytics consumer, Bigtable and an OLAP store](docs/screenshots/app-system-design.png)
 
-### Write code that actually runs
-
-JavaScript executes natively inside a Web Worker the host can terminate; Python
-executes in the same worker through Pyodide, CPython compiled to WebAssembly.
-The pass rate is **measured** from the actual run, and the model grades on top of
-that result rather than guessing from the source.
+**⚡ Zero-Latency In-Browser Code Execution Sandbox**:
+Code is never mocked or hallucinated. JavaScript runs natively inside a dedicated Web Worker; Python runs in that same worker via Pyodide (CPython compiled to WebAssembly). The model grades candidates against real test executions, raw stdout, edge cases, and runtime complexity.
 
 ![A coding lesson in the Two Pointers chapter with an editor, requirements and a run action](docs/screenshots/coding-lesson.png)
 
-### The feedback lands in the resume
-
-36 templates, AI tailoring against a specific posting, a match score across four
-named categories, and export to PDF, Google Docs or `.docx`. Guests get the
-editor and the exports; sync, AI and sharing need an account.
+**🎯 Closed-Loop Resume & Narrative Synthesis**:
+Every insight, architectural breakthrough, and coding metric discovered during practice flows straight into the candidate's application assets. With 36 ATS-optimized templates and 4-category role matching, candidates tailor their narratives to any job posting and export instantly to clean PDF, Google Docs, or Word formats.
 
 ![The resume editor with the section navigator, live PDF preview, a resume score of 89, and the resume optimizer panel](docs/screenshots/app-resume-editor.png)
 
-### And a place to put it all together
-
-![The CareerVivid dashboard: continue a quest, the current resume, the last scored round, target-role readiness at 85%, and workspace numbers](docs/screenshots/app-dashboard.png)
-
 <details>
-<summary><b>More surfaces</b> — Interview Studio, learning catalog, job board, pricing, quest progress</summary>
+<summary><b>More surfaces</b> — company quests, Interview Studio, dashboard, courses, jobs, guest editor, pricing</summary>
 
 <br>
 
-Interview Studio: 301 company guides, searchable, with the documented question
-and stage counts on the page.
+Six stages per company, each with a 70/100 pass mark and a badge.
+
+![The Google interview quest: six stages from recruiter screen through final round, each with pass marks, progress, and stage badges](docs/screenshots/quest-google.png)
+
+Interview Studio: 301 company guides, searchable, with the documented question and stage counts on the page.
 
 ![Interview Studio: company guides for 301 companies with 22,611 questions and 821 stages, plus recent sessions and career paths](docs/screenshots/interview-studio.png)
+
+The dashboard leads with the quest in progress, the current resume and the last scored round.
+
+![The CareerVivid dashboard: continue a quest, the current resume, the last scored round, target-role readiness at 85%, and workspace numbers](docs/screenshots/app-dashboard.png)
 
 12 published courses, 56 chapters, 203 interactive lessons.
 
 ![The learning catalog with goal selection and courses for coding interview patterns, AI agent building and system design](docs/screenshots/app-learning.png)
 
-The resume editor as a guest sees it — no account, no card, exports enabled.
-
-![The guest resume editor offering a hand-written start or an AI draft from an existing resume](docs/screenshots/guest-resume-editor.png)
-
-Live postings from 161 company ATS boards, each re-checked to confirm the role
-is still open before it is shown.
+Live postings from 161 company ATS boards, each re-checked to confirm the role is still open before it is shown.
 
 ![The public job board showing open roles with location, work model and seniority](docs/screenshots/jobs.png)
+
+The resume editor as a guest sees it — no login, no card, exports enabled.
+
+![The guest resume editor offering a hand-written start or an AI draft from an existing resume](docs/screenshots/guest-resume-editor.png)
 
 Quest progress, XP and stage badges.
 
@@ -161,44 +130,27 @@ One credit pool across every AI surface.
 
 ## AI in production
 
-Every scored surface in the deployed application calls the Gemini API. Google
-Cloud products in production: **Firebase Auth, Cloud Firestore, Cloud Functions
-(139 deployed), Firebase Hosting, and Vertex AI** for the realtime voice session.
+The Gemini API backs all seven scored surfaces. Google Cloud in production: **Firebase Auth, Cloud Firestore, Cloud Functions (139 deployed), Firebase Hosting, Vertex AI.**
 
-| Decision the model makes | Model | Code |
-| --- | --- | --- |
-| Conducts a spoken interview and decides when it ends | `gemini-live-2.5-flash-native-audio` | `src/components/aiInterviewAgent/useAIInterviewAgentSession.ts` |
-| Scores the transcript, writes the feedback report | `gemini-3.6-flash` | `functions/src/agent/reportTools.ts` |
-| Grades the whiteboard image against a numeric rubric | `gemini-3.6-flash` | `src/services/geminiService.ts:1215` |
-| Grades code on top of a measured pass rate | `gemini-3.6-flash` | `src/services/geminiService.ts:1331` |
-| Runs the 29-tool agent loop, ≤12 iterations per turn | `gemini-3.6-flash` | `functions/src/agent/turnRunner.ts` |
-| Scores a resume against a posting, in 4 categories | `gemini-2.5-flash` | `src/services/geminiService.ts:1501` |
-| Tailors a resume by placing missing keywords | `gemini-2.5-flash` | `functions/src/tailorResume.ts:38` |
+| What the model decides | Model |
+| --- | --- |
+| Runs a spoken interview, decides when it ends | `gemini-live-2.5-flash-native-audio` |
+| Scores the transcript, writes the report | `gemini-3.6-flash` |
+| Grades the whiteboard image against a rubric | `gemini-3.6-flash` |
+| Grades code on top of a measured pass rate | `gemini-3.6-flash` |
+| Runs the 29-tool agent loop | `gemini-3.6-flash` |
+| Scores a resume against a posting | `gemini-2.5-flash` |
+| Tailors a resume to a posting | `gemini-2.5-flash` |
 
-**The unit economics are real.** One credit is anchored at **$0.003** of
-model cost at list price (`shared/credits.ts` → `functions/src/generated/credits.ts`).
-The free tier's 100 credits is roughly $0.30 of COGS; Pro's 1,000 credits is
-roughly $3.00 against $12 of revenue.
+**The unit economics are real.** One credit costs $0.003 in model spend. The free tier's 100 credits is about $0.30 of cost. Pro's 1,000 credits is about $3.00 against $12 of revenue.
 
 ---
 
 ## Why Education &amp; Human Potential
 
-The global job market has never been more difficult or unequal. Millions of
-capable engineers and job seekers are trapped in an opaque, high-stakes hiring
-system — spending hundreds of hours firing resumes into automated black holes,
-receiving zero actionable feedback, and watching their confidence drain in
-silence. Traditional interview prep is broken because passive reading cannot
-prepare anyone for the pressure of a live technical dialogue.
+The global job market has never been more difficult or unequal. Millions of capable engineers and job seekers are trapped in an opaque, high-stakes hiring system—spending hundreds of hours firing resumes into automated black holes, receiving zero actionable feedback, and watching their confidence drain in silence. Traditional interview prep is broken because passive reading cannot prepare anyone for the pressure of a live technical dialogue.
 
-CareerVivid exists to collapse the gap between human potential and real-world
-opportunity. We replace passive memorization with a real-time, closed-loop
-execution environment: voice-driven technical sparring, interactive system
-design whiteboards, instant rubric scoring, and context-aware resume
-engineering. By offering a comprehensive preparation engine in 7 languages —
-with a free tier that needs no login and no card — CareerVivid democratizes
-elite engineering mentorship, empowering anyone, anywhere, to prove what they
-can build and land life-changing roles.
+CareerVivid exists to collapse the gap between human potential and real-world opportunity. We replace passive memorization with a real-time, closed-loop execution environment: voice-driven technical sparring, interactive system design whiteboards, instant rubric scoring, and context-aware resume engineering. By offering a comprehensive, frictionless preparation engine in 7 languages—with a free tier that needs no login and no card—CareerVivid democratizes elite engineering mentorship, empowering anyone, anywhere, to prove what they can build and land life-changing roles.
 
 ---
 
@@ -214,59 +166,37 @@ Gemini API                         →  grading, agent, resume, job scoring
 Web Worker + Pyodide               →  in-browser execution: JS natively, Python on WASM
 ```
 
-A few decisions worth calling out:
+Four decisions worth calling out:
 
-- **The agent writes nothing directly.** Mutating tools emit server-stored
-  proposals; the client approves by ID. Prompt injection cannot mutate data.
-- **Agent transcripts live outside `users/{uid}`** on purpose — that namespace
-  carries an owner-write rule that would let a compromised client forge history.
-- **22 pages are server-rendered for crawlers** behind a UA check, so the SPA
-  stays a SPA for humans and still indexes (`functions/src/seo/`).
-- **One question follows across surfaces.** The agent hands back a route
-  carrying the exact `questionId`, so "practise this one" lands on that question.
+- **The agent writes nothing directly.** Mutating tools emit server-stored proposals; the client approves by ID. Prompt injection cannot mutate data.
+- **Agent transcripts live outside `users/{uid}`** on purpose — that namespace has an owner-write rule a compromised client could use to forge history.
+- **22 pages are server-rendered for crawlers** behind a UA check, so the app stays a SPA for humans and still indexes (`functions/src/seo/`).
+- **One question follows across surfaces.** The agent returns a route carrying the exact question ID, so "practise this one" lands on that question.
 
 ---
 
-## Challenges
+## Challenges We Overcame
 
-**Multimodal vision diagnostics vs. aesthetic bias.** Grading a freeform drawing
-is fundamentally harder than parsing text. Early versions suffered from
-tidy-canvas bias — rewarding a neat diagram over an architecturally sound one.
-The fix was a strict chain-of-thought scratchpad: the model must map data paths,
-identify single points of failure, and trace capacity limits before it computes
-a score. Binding evaluation to rigid per-dimension caps and a constrained JSON
-schema removed the arbitrary scoring, so every grade is anchored to a systems
-argument rather than a first impression.
+**Multimodal Vision Diagnostics vs. Aesthetic Bias.**
+Grading arbitrary freeform drawings is fundamentally harder than parsing text. Early vision models suffered from "tidy-canvas bias"—rewarding neatly drawn diagrams over architecturally sound ones. We engineered a strict chain-of-thought scratchpad protocol: the model is forced to map data paths, identify single points of failure, and trace capacity limits before computing scores. By binding evaluation to rigid dimension caps and constrained JSON schemas, we eliminated arbitrary scoring and ensured every grade is anchored in genuine systems engineering principles.
 
-**Full-duplex voice and instant barge-in.** A conversational interview partner
-meant beating browser audio latency: client-side microphone downsampling,
-low-latency chunk streaming, and clean acoustic interruption so the candidate
-can cut in mid-sentence without clipping or echo loops. That took more audio
-buffer tuning and WebSocket state orchestration than any other part of the
-product.
+**Full-Duplex Real-Time Voice & Instant Barge-In.**
+Building a natural conversational interview partner required conquering browser-level audio latency. Handling client-side microphone downsampling, low-latency audio chunk streaming, and seamless acoustic interruption (barge-in)—enabling the candidate to cut in while the AI is mid-sentence without clipping or echo loops—demanded extensive audio buffer optimization and WebSocket state orchestration.
 
 ---
 
-## What I learned
+## What I Learned
 
-**Ground-truth data beats synthetic generation every time.** This started out
-generating plausible interview prompts, and generic questions produced generic
-coaching. The turn came from curating and verifying 4,551 real questions from
-documented hiring loops. That foundation lifted everything downstream — quest
-progressions, diagnostic reports, and agent advice that mirrors what an
-interviewer actually probes.
+**Ground-truth data beats synthetic generation every time.**
+We initially experimented with AI-generated interview prompts, but generic questions produced generic coaching. The breakthrough came when we pivoted to empirical engineering: curating and verifying 4,551 real-world questions from documented hiring loops. This ground-truth foundation instantly elevated the entire platform—powering authentic quest progressions, razor-sharp diagnostic reports, and agent advice that actually mirrors what hiring managers look for.
 
 ---
 
-## What's next
+## What's Next for CareerVivid
 
-- **Polyglot execution.** Extending the client-side execution environment beyond
-  JavaScript and Python to Java, C++ and Go.
-- **Persistent episodic agent memory.** A cross-session memory graph tracking a
-  candidate's weak areas, pacing and behavioural growth across weeks of
-  preparation rather than isolated rounds.
-- **Broader loop coverage.** Ingesting and calibrating diagnostic rubrics for
-  50+ additional tier-1 and hyper-growth companies.
+- **Expanded Polyglot Execution.** Extending the client-side WebAssembly execution environment beyond JavaScript and Python to support Java, C++, and Go.
+- **Persistent Episodic Agent Memory.** Upgrading the Career Agent with a cross-session memory graph that tracks a candidate's weaknesses, pacing, and behavioral growth across weeks of preparation rather than isolated rounds.
+- **Broader Enterprise Loop Coverage.** Ingesting and calibrating diagnostic rubrics for 50+ additional tier-1 and hyper-growth tech companies.
 
 ---
 
