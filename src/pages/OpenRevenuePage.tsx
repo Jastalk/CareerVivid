@@ -170,13 +170,20 @@ const KpiTile: React.FC<{
     icon: React.ReactNode;
     delta?: { text: string; up: boolean | null };
 }> = ({ label, value, sub, icon, delta }) => (
-    <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-4 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-        <div className="flex items-center justify-between gap-2">
+    <div className="group relative overflow-hidden rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#6557d2]/40 hover:shadow-[0_14px_30px_-14px_rgba(101,87,210,0.55)] dark:border-[#37332d] dark:bg-[#262522] dark:hover:border-[#a99ffb]/40">
+        {/* Sheen that only resolves on hover, so a tile reads as a surface you can
+            interact with rather than a static box. */}
+        <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            style={{ background: 'radial-gradient(120% 90% at 100% 0%, rgba(101,87,210,0.12), transparent 60%)' }}
+        />
+        <div className="relative flex items-center justify-between gap-2">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">{label}</p>
-            <span className="text-[#9a651f]/70 dark:text-[#caa26c]/70">{icon}</span>
+            <span className="text-[#9a651f]/70 transition-transform duration-200 group-hover:scale-110 group-hover:text-[#6557d2] dark:text-[#caa26c]/70 dark:group-hover:text-[#a99ffb]">{icon}</span>
         </div>
-        <p className="mt-2.5 text-2xl font-black tabular-nums tracking-tight text-[#211b16] dark:text-[#f4f1e9] xl:text-3xl">{value}</p>
-        <div className="mt-1.5 flex items-center gap-1.5">
+        <p className="relative mt-2.5 text-2xl font-black tabular-nums tracking-tight text-[#211b16] dark:text-[#f4f1e9] xl:text-3xl">{value}</p>
+        <div className="relative mt-1.5 flex items-center gap-1.5">
             {delta && delta.up !== null && (
                 <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-black ${delta.up
                     ? 'bg-[#eef9f2] text-[#15803d] dark:bg-[#1d3226] dark:text-[#86e0a8]'
@@ -203,6 +210,7 @@ const InteractiveRevenueChart: React.FC<{
     const [range, setRange] = useState<'daily' | 'monthly'>('daily');
     const [measure, setMeasure] = useState<'gross' | 'net'>('gross');
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     const points = range === 'daily' ? daily : monthly;
     const valueOf = (point: RevenuePoint) =>
@@ -219,12 +227,21 @@ const InteractiveRevenueChart: React.FC<{
     }, [points, measure]);
 
     const selected = selectedIndex !== null ? points[selectedIndex] : null;
+    // The hovered bar drives the floating readout. It is deliberately separate
+    // from `selected`: hovering previews a period, clicking pins it, so moving
+    // the cursor away never destroys what the reader chose to keep on screen.
+    const hovered = hoveredIndex !== null ? points[hoveredIndex] : null;
+    const hoveredPct = hoveredIndex !== null ? ((hoveredIndex + 0.5) / points.length) * 100 : 0;
+    // Near the ends the card would overflow the plot, so the anchor slides from
+    // centred to edge-aligned instead of being clipped.
+    const hoverShift = hoveredPct < 18 ? '-12%' : hoveredPct > 82 ? '-88%' : '-50%';
     const placeholderHeight = (index: number) => 18 + ((index * 37) % 61);
     const visibleLabels = range === 'daily' ? [0, 7, 14, 21, 29] : [0, 3, 6, 9, 11];
 
     const switchRange = (next: 'daily' | 'monthly') => {
         setRange(next);
         setSelectedIndex(null);
+        setHoveredIndex(null);
     };
 
     return (
@@ -234,7 +251,7 @@ const InteractiveRevenueChart: React.FC<{
                 <div>
                     <h2 className="text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Verified revenue</h2>
                     <p className="mt-0.5 text-xs font-semibold text-[#8a7a66] dark:text-[#aaa39a]">
-                        Click any bar to inspect that {range === 'daily' ? 'day' : 'month'}.
+                        Hover any bar for the numbers · click to pin that {range === 'daily' ? 'day' : 'month'} below.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -276,36 +293,106 @@ const InteractiveRevenueChart: React.FC<{
                     <span>{formatMoney(maxValue / 2, currency, true)}</span>
                     <span>$0</span>
                 </div>
-                <div className="relative flex h-64 items-end gap-[3px] border-b border-l border-[#e4d3bc] bg-[linear-gradient(to_bottom,rgba(148,116,70,0.1)_1px,transparent_1px)] bg-[length:100%_25%] px-1 dark:border-[#37332d] dark:bg-[linear-gradient(to_bottom,rgba(202,162,108,0.12)_1px,transparent_1px)]">
+                <div
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    className="relative flex h-64 items-end gap-[3px] border-b border-l border-[#e4d3bc] bg-[linear-gradient(to_bottom,rgba(148,116,70,0.1)_1px,transparent_1px)] bg-[length:100%_25%] px-1 dark:border-[#37332d] dark:bg-[linear-gradient(to_bottom,rgba(202,162,108,0.12)_1px,transparent_1px)]"
+                >
+                    {/* Column spotlight. Sits behind the bars and tracks the cursor so the
+                        eye can follow a single period straight down to its axis label. */}
+                    {hovered && !loading && (
+                        <span
+                            aria-hidden
+                            className="pointer-events-none absolute inset-y-0 z-0 rounded-md transition-all duration-150"
+                            style={{
+                                left: `${hoveredPct}%`,
+                                width: `${Math.max(100 / points.length, 3)}%`,
+                                transform: 'translateX(-50%)',
+                                background: 'linear-gradient(to top, rgba(101,87,210,0.16), rgba(101,87,210,0.02))',
+                            }}
+                        />
+                    )}
+
                     {points.map((point, index) => {
                         const value = valueOf(point);
                         const height = loading ? placeholderHeight(index) : Math.max(value > 0 ? 6 : 2, (value / maxValue) * 100);
                         const isSelected = selectedIndex === index;
+                        const isHovered = hoveredIndex === index;
+                        // Everything that is not the bar under the cursor recedes, which is
+                        // what makes the hovered one read as foreground rather than merely
+                        // a slightly different shade of the same purple.
+                        const isMuted = hoveredIndex !== null && !isHovered && !isSelected;
                         const showLabel = visibleLabels.includes(index);
 
                         return (
-                            <div key={`${point.date}-${index}`} className="relative flex h-full min-w-0 flex-1 items-end justify-center">
+                            <div
+                                key={`${point.date}-${index}`}
+                                onMouseEnter={() => !loading && setHoveredIndex(index)}
+                                className="relative z-10 flex h-full min-w-0 flex-1 items-end justify-center"
+                            >
                                 <button
                                     type="button"
                                     disabled={loading}
                                     onClick={() => setSelectedIndex(isSelected ? null : index)}
+                                    onFocus={() => !loading && setHoveredIndex(index)}
                                     aria-label={`${point.label}: ${formatMoney(value, currency)} ${measure}`}
                                     aria-pressed={isSelected}
-                                    className={`w-full max-w-[26px] rounded-t-md transition-all duration-200 ${loading
-                                        ? 'animate-pulse bg-[#d9cdbb] dark:bg-[#3f3a33]'
-                                        : isSelected
-                                            ? 'bg-[#211b16] ring-2 ring-[#211b16]/30 dark:bg-[#f4f1e9] dark:ring-[#f4f1e9]/30'
-                                            : 'bg-[#6557d2] hover:bg-[#544ac2] dark:bg-[#8d83f6] dark:hover:bg-[#a39af8]'}`}
-                                    style={{ height: `${height}%`, animationDelay: loading ? `${(index % 10) * 90}ms` : undefined }}
+                                    className={`w-full max-w-[26px] rounded-t-md transition-all duration-200 ease-out ${loading ? 'animate-pulse bg-[#d9cdbb] dark:bg-[#3f3a33]' : ''}`}
+                                    style={{
+                                        height: `${height}%`,
+                                        animationDelay: loading ? `${(index % 10) * 90}ms` : undefined,
+                                        ...(loading ? {} : {
+                                            background: isSelected
+                                                ? 'linear-gradient(180deg,#3a2f26,#211b16)'
+                                                : isHovered
+                                                    ? 'linear-gradient(180deg,#a99ffb,#6557d2)'
+                                                    : 'linear-gradient(180deg,#8d83f6,#6557d2)',
+                                            opacity: isMuted ? 0.32 : 1,
+                                            transform: isHovered ? 'scaleY(1.04)' : 'scaleY(1)',
+                                            transformOrigin: 'bottom',
+                                            boxShadow: isHovered
+                                                ? '0 0 0 3px rgba(101,87,210,0.22), 0 10px 22px -6px rgba(101,87,210,0.65)'
+                                                : isSelected
+                                                    ? '0 0 0 3px rgba(33,27,22,0.18)'
+                                                    : 'none',
+                                        }),
+                                    }}
                                 />
                                 {showLabel && (
-                                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-[#8a7a66] dark:text-[#aaa39a]">
+                                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold transition-colors ${isHovered ? 'text-[#6557d2] dark:text-[#a99ffb]' : 'text-[#8a7a66] dark:text-[#aaa39a]'}`}>
                                         {point.label}
                                     </span>
                                 )}
                             </div>
                         );
                     })}
+
+                    {/* Floating readout. Anchored to the hovered bar's top edge so the
+                        numbers appear where the reader is already looking. */}
+                    {hovered && !loading && (
+                        <div
+                            aria-hidden
+                            className="pointer-events-none absolute z-30 w-max min-w-[148px] rounded-xl border border-[#e4d3bc] bg-white/95 px-3 py-2 shadow-[0_16px_38px_-12px_rgba(33,27,22,0.4)] backdrop-blur-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/95"
+                            style={{
+                                left: `${hoveredPct}%`,
+                                bottom: `calc(${Math.max(valueOf(hovered) > 0 ? 6 : 2, (valueOf(hovered) / maxValue) * 100)}% + 14px)`,
+                                transform: `translateX(${hoverShift})`,
+                            }}
+                        >
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#9a651f] dark:text-[#caa26c]">
+                                {range === 'daily' ? formatFullDate(hovered.date) : hovered.label}
+                            </p>
+                            <p className="mt-1 text-xl font-black leading-none tabular-nums text-[#211b16] dark:text-[#f4f1e9]">
+                                {formatMoney(valueOf(hovered), currency)}
+                            </p>
+                            <div className="mt-2 flex items-center gap-3 border-t border-[#efe3d2] pt-1.5 text-[10px] font-bold text-[#8a7a66] dark:border-[#37332d] dark:text-[#aaa39a]">
+                                <span className="capitalize">{measure}</span>
+                                <span className="tabular-nums">
+                                    {hovered.chargeCount} {hovered.chargeCount === 1 ? 'txn' : 'txns'}
+                                </span>
+                                {selectedIndex !== hoveredIndex && <span className="text-[#6557d2] dark:text-[#a99ffb]">click to pin</span>}
+                            </div>
+                        </div>
+                    )}
                     {loading && (
                         <span className="absolute inset-x-0 top-3 mx-auto w-fit rounded-full border border-[#e4d3bc] bg-white/90 px-3 py-1 text-[11px] font-black text-[#9a651f] shadow-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/90 dark:text-[#caa26c]">
                             Fetching live Stripe data…
