@@ -1,3 +1,4 @@
+import '../components/Landing/live/liveLanding.css';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import {
@@ -170,7 +171,7 @@ const KpiTile: React.FC<{
     icon: React.ReactNode;
     delta?: { text: string; up: boolean | null };
 }> = ({ label, value, sub, icon, delta }) => (
-    <div className="group relative overflow-hidden rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#6557d2]/40 hover:shadow-[0_14px_30px_-14px_rgba(101,87,210,0.55)] dark:border-[#37332d] dark:bg-[#262522] dark:hover:border-[#a99ffb]/40">
+    <div className="group relative overflow-hidden rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--cvl-purple)]/40 hover:shadow-[0_14px_30px_-14px_rgba(101,87,210,0.55)] dark:hover:border-[var(--cvl-purple)]/40">
         {/* Sheen that only resolves on hover, so a tile reads as a surface you can
             interact with rather than a static box. */}
         <span
@@ -179,20 +180,20 @@ const KpiTile: React.FC<{
             style={{ background: 'radial-gradient(120% 90% at 100% 0%, rgba(101,87,210,0.12), transparent 60%)' }}
         />
         <div className="relative flex items-center justify-between gap-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">{label}</p>
-            <span className="text-[#9a651f]/70 transition-transform duration-200 group-hover:scale-110 group-hover:text-[#6557d2] dark:text-[#caa26c]/70 dark:group-hover:text-[#a99ffb]">{icon}</span>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--cvl-amber)]">{label}</p>
+            <span className="text-[var(--cvl-amber)]/70 transition-transform duration-200 group-hover:scale-110 group-hover:text-[var(--cvl-purple)]/70 dark:group-hover:text-[var(--cvl-purple)]">{icon}</span>
         </div>
-        <p className="relative mt-2.5 text-2xl font-black tabular-nums tracking-tight text-[#211b16] dark:text-[#f4f1e9] xl:text-3xl">{value}</p>
+        <p className="relative mt-2.5 text-2xl font-black tabular-nums tracking-tight text-[var(--cvl-ink)] xl:text-3xl">{value}</p>
         <div className="relative mt-1.5 flex items-center gap-1.5">
             {delta && delta.up !== null && (
                 <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-black ${delta.up
-                    ? 'bg-[#eef9f2] text-[#15803d] dark:bg-[#1d3226] dark:text-[#86e0a8]'
-                    : 'bg-[#fdeef1] text-[#b03a54] dark:bg-[#3c2229] dark:text-[#f4a5b8]'}`}>
+                    ? 'bg-[var(--cvl-green-soft)] text-[var(--cvl-green)]'
+                    : 'bg-[var(--cvl-danger-soft)] text-[var(--cvl-danger)]'}`}>
                     {delta.up ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
                     {delta.text}
                 </span>
             )}
-            {sub && <p className="truncate text-[11px] font-semibold text-[#8a7a66] dark:text-[#aaa39a]">{sub}</p>}
+            {sub && <p className="truncate text-[11px] font-semibold text-[var(--cvl-muted)]">{sub}</p>}
         </div>
     </div>
 );
@@ -273,39 +274,39 @@ const InteractiveRevenueChart: React.FC<{
     };
 
     return (
-        <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522] sm:p-6">
+        <div className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-5 shadow-sm sm:p-6">
             {/* Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 className="text-xl font-black tracking-tight text-[#211b16] dark:text-[#f4f1e9]">Verified revenue</h2>
-                    <p className="mt-0.5 text-xs font-semibold text-[#8a7a66] dark:text-[#aaa39a]">
+                    <h2 className="text-xl font-black tracking-tight text-[var(--cvl-ink)]">Verified revenue</h2>
+                    <p className="mt-0.5 text-xs font-semibold text-[var(--cvl-muted)]">
                         Hover the curve for running totals · click to pin that {range === 'daily' ? 'day' : 'month'} below.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex rounded-xl border border-[#e4d3bc] bg-white p-0.5 dark:border-[#37332d] dark:bg-[#1f1f1d]">
+                    <div className="flex rounded-xl border border-[var(--cvl-line)] bg-[var(--cvl-paper-2)] p-0.5">
                         {(['daily', 'monthly'] as const).map((option) => (
                             <button
                                 key={option}
                                 type="button"
                                 onClick={() => switchRange(option)}
                                 className={`rounded-[10px] px-3 py-1.5 text-xs font-black transition ${range === option
-                                    ? 'bg-[#211b16] text-[#fffaf1] dark:bg-[#f4f1e9] dark:text-[rgb(33,27,22)]'
-                                    : 'text-[#8a7a66] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'}`}
+                                    ? 'bg-[var(--cvl-ink)] text-[var(--cvl-paper)]'
+                                    : 'text-[var(--cvl-muted)] hover:text-[var(--cvl-ink)]'}`}
                             >
                                 {option === 'daily' ? '30 days' : '6 months'}
                             </button>
                         ))}
                     </div>
-                    <div className="flex rounded-xl border border-[#e4d3bc] bg-white p-0.5 dark:border-[#37332d] dark:bg-[#1f1f1d]">
+                    <div className="flex rounded-xl border border-[var(--cvl-line)] bg-[var(--cvl-paper-2)] p-0.5">
                         {(['gross', 'net'] as const).map((option) => (
                             <button
                                 key={option}
                                 type="button"
                                 onClick={() => setMeasure(option)}
                                 className={`rounded-[10px] px-3 py-1.5 text-xs font-black capitalize transition ${measure === option
-                                    ? 'bg-[#6557d2] text-white'
-                                    : 'text-[#8a7a66] hover:text-[#211b16] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]'}`}
+                                    ? 'bg-[var(--cvl-purple)] text-white'
+                                    : 'text-[var(--cvl-muted)] hover:text-[var(--cvl-ink)]'}`}
                             >
                                 {option}
                             </button>
@@ -316,57 +317,59 @@ const InteractiveRevenueChart: React.FC<{
 
             {/* Chart */}
             <div className="mt-6 grid grid-cols-[44px_1fr] gap-3">
-                <div className="flex h-64 flex-col justify-between text-right text-[10px] font-bold text-[#8a7a66] dark:text-[#aaa39a]">
+                <div className="flex h-64 flex-col justify-between text-right text-[10px] font-bold text-[var(--cvl-muted)]">
                     <span>{formatMoney(maxCum, currency, true)}</span>
                     <span>{formatMoney(maxCum / 2, currency, true)}</span>
                     <span>$0</span>
                 </div>
                 <div
                     onMouseLeave={() => setHoveredIndex(null)}
-                    className="relative flex h-64 items-end gap-[3px] border-b border-l border-[#e4d3bc] bg-[linear-gradient(to_bottom,rgba(148,116,70,0.1)_1px,transparent_1px)] bg-[length:100%_25%] px-1 dark:border-[#37332d] dark:bg-[linear-gradient(to_bottom,rgba(202,162,108,0.12)_1px,transparent_1px)]"
+                    className="relative flex h-64 items-end gap-[3px] border-b border-l border-[var(--cvl-line)] bg-[linear-gradient(to_bottom,var(--cvl-line)_1px,transparent_1px)] bg-[length:100%_25%] px-1"
                 >
                     {/* Skeleton. Removing the bars left the plot completely empty while
                         Stripe is still answering, which reads as a broken chart rather
                         than a loading one. */}
                     {loading && (
                         <svg className="absolute inset-0 h-full w-full animate-pulse" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="#d9cdbb" fillOpacity="0.35" className="dark:hidden" />
-                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="#3f3a33" fillOpacity="0.5" className="hidden dark:block" />
+                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="var(--cvl-line)" fillOpacity="0.35" className="dark:hidden" />
+                            <path d="M0,96 L20,92 L40,84 L60,66 L80,38 L100,8 L100,100 L0,100 Z" fill="var(--cvl-line)" fillOpacity="0.5" className="hidden dark:block" />
                         </svg>
                     )}
 
                     {/* Stock-style cumulative curve. The bars showed each period in
                         isolation; the area shows the business climbing. */}
                     {!loading && (
-                        <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        /* A `dark:` class cannot reach a stopColor, so the theme colour rides
+                           on the svg itself and every stop, stroke and rule reads it through
+                           currentColor. A hard-coded hex left the curve, its fill and the
+                           crosshair at the light-mode purple on a dark ground. */
+                        <svg
+                            className="pointer-events-none absolute inset-0 h-full w-full overflow-visible text-[var(--cvl-purple)]"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                        >
                             <defs>
                                 <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#6557d2" stopOpacity="0.42" />
-                                    <stop offset="100%" stopColor="#6557d2" stopOpacity="0.02" />
-                                </linearGradient>
-                                <linearGradient id="revLine" x1="0" y1="0" x2="1" y2="0">
-                                    <stop offset="0%" stopColor="#8d83f6" />
-                                    <stop offset="100%" stopColor="#6557d2" />
+                                    <stop offset="0%" stopColor="currentColor" stopOpacity="0.42" />
+                                    <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
                                 </linearGradient>
                             </defs>
                             <path d={areaPath} fill="url(#revFill)" />
                             <path
                                 d={linePath}
                                 fill="none"
-                                stroke="url(#revLine)"
+                                stroke="currentColor"
                                 strokeWidth={2.5}
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 vectorEffect="non-scaling-stroke"
                             />
                             {hoveredIndex !== null && (
-                                <>
-                                    <line
-                                        x1={xAt(hoveredIndex)} y1={0} x2={xAt(hoveredIndex)} y2={100}
-                                        stroke="#6557d2" strokeOpacity="0.28" strokeWidth={1}
-                                        vectorEffect="non-scaling-stroke"
-                                    />
-                                </>
+                                <line
+                                    x1={xAt(hoveredIndex)} y1={0} x2={xAt(hoveredIndex)} y2={100}
+                                    stroke="currentColor" strokeOpacity="0.3" strokeWidth={1}
+                                    vectorEffect="non-scaling-stroke"
+                                />
                             )}
                         </svg>
                     )}
@@ -389,11 +392,11 @@ const InteractiveRevenueChart: React.FC<{
                                     onFocus={() => !loading && setHoveredIndex(index)}
                                     aria-label={`${point.label}: ${formatMoney(valueOf(point), currency)} ${measure}`}
                                     aria-pressed={isSelected}
-                                    className="h-full w-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#6557d2]"
+                                    className="h-full w-full rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cvl-purple)]"
                                     style={{ background: isSelected ? 'rgba(101,87,210,0.10)' : 'transparent' }}
                                 />
                                 {showLabel && (
-                                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold transition-colors ${hoveredIndex === index ? 'text-[#6557d2] dark:text-[#a99ffb]' : 'text-[#8a7a66] dark:text-[#aaa39a]'}`}>
+                                    <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold transition-colors ${hoveredIndex === index ? 'text-[var(--cvl-purple)]' : 'text-[var(--cvl-muted)]'}`}>
                                         {point.label}
                                     </span>
                                 )}
@@ -413,8 +416,8 @@ const InteractiveRevenueChart: React.FC<{
                                 transform: 'translate(-50%, 50%)',
                             }}
                         >
-                            <span className="absolute left-1/2 top-1/2 h-[22px] w-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#6557d2]/12" />
-                            <span className="absolute left-1/2 top-1/2 block h-[11px] w-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-white bg-[#6557d2] shadow-[0_2px_8px_rgba(101,87,210,0.55)] dark:border-[#1f1f1d]" />
+                            <span className="absolute left-1/2 top-1/2 h-[22px] w-[22px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--cvl-purple)]/12 dark:bg-[var(--cvl-purple)]/20" />
+                            <span className="absolute left-1/2 top-1/2 block h-[11px] w-[11px] -translate-x-1/2 -translate-y-1/2 rounded-full border-[2.5px] border-white bg-[var(--cvl-purple)] shadow-[0_2px_8px_rgba(101,87,210,0.55)]" />
                         </span>
                     )}
 
@@ -423,7 +426,7 @@ const InteractiveRevenueChart: React.FC<{
                     {hovered && !loading && (
                         <div
                             aria-hidden
-                            className="pointer-events-none absolute z-30 w-max min-w-[148px] rounded-xl border border-[#e4d3bc] bg-white/95 px-3 py-2 shadow-[0_16px_38px_-12px_rgba(33,27,22,0.4)] backdrop-blur-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/95"
+                            className="pointer-events-none absolute z-30 w-max min-w-[148px] rounded-xl border border-[var(--cvl-line)] bg-[var(--cvl-paper-2)]/95 px-3 py-2 shadow-[0_16px_38px_-12px_rgba(33,27,22,0.4)] backdrop-blur-sm"
                             style={{
                                 left: `${hoveredPct}%`,
                                 // Above the point normally. Clamping it instead would drag
@@ -436,24 +439,24 @@ const InteractiveRevenueChart: React.FC<{
                                 transform: `translateX(${hoverShift})`,
                             }}
                         >
-                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#9a651f] dark:text-[#caa26c]">
+                            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--cvl-amber)]">
                                 {range === 'daily' ? formatFullDate(hovered.date) : hovered.label}
                             </p>
-                            <p className="mt-1 text-xl font-black leading-none tabular-nums text-[#211b16] dark:text-[#f4f1e9]">
+                            <p className="mt-1 text-xl font-black leading-none tabular-nums text-[var(--cvl-ink)]">
                                 {formatMoney(cumulative[hoveredIndex as number], currency)}
                             </p>
-                            <div className="mt-2 flex items-center gap-3 border-t border-[#efe3d2] pt-1.5 text-[10px] font-bold text-[#8a7a66] dark:border-[#37332d] dark:text-[#aaa39a]">
+                            <div className="mt-2 flex items-center gap-3 border-t border-[var(--cvl-line)] pt-1.5 text-[10px] font-bold text-[var(--cvl-muted)]">
                                 <span className="capitalize">{measure} to date</span>
                                 <span className="tabular-nums">+{formatMoney(valueOf(hovered), currency)}</span>
                                 <span className="tabular-nums">
                                     {hovered.chargeCount} {hovered.chargeCount === 1 ? 'txn' : 'txns'}
                                 </span>
-                                {selectedIndex !== hoveredIndex && <span className="text-[#6557d2] dark:text-[#a99ffb]">click to pin</span>}
+                                {selectedIndex !== hoveredIndex && <span className="text-[var(--cvl-purple)]">click to pin</span>}
                             </div>
                         </div>
                     )}
                     {loading && (
-                        <span className="absolute inset-x-0 top-3 mx-auto w-fit rounded-full border border-[#e4d3bc] bg-white/90 px-3 py-1 text-[11px] font-black text-[#9a651f] shadow-sm dark:border-[#37332d] dark:bg-[#1f1f1d]/90 dark:text-[#caa26c]">
+                        <span className="absolute inset-x-0 top-3 mx-auto w-fit rounded-full border border-[var(--cvl-line)] bg-[var(--cvl-paper-2)]/90 px-3 py-1 text-[11px] font-black text-[var(--cvl-amber)] shadow-sm">
                             Fetching live Stripe data…
                         </span>
                     )}
@@ -461,14 +464,14 @@ const InteractiveRevenueChart: React.FC<{
             </div>
 
             {/* Inspector: real numbers for the clicked point */}
-            <div className="mt-9 rounded-2xl border border-[#e4d3bc] bg-white p-4 dark:border-[#37332d] dark:bg-[#1f1f1d]">
+            <div className="mt-9 rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper-2)] p-4">
                 {selected ? (
                     <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center">
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--cvl-amber)]">
                                 {range === 'daily' ? formatFullDate(selected.date) : selected.label}
                             </p>
-                            <p className="text-xs font-semibold text-[#8a7a66] dark:text-[#aaa39a]">Verified Stripe aggregate for this {range === 'daily' ? 'day' : 'month'}</p>
+                            <p className="text-xs font-semibold text-[var(--cvl-muted)]">Verified Stripe aggregate for this {range === 'daily' ? 'day' : 'month'}</p>
                         </div>
                         {[
                             ['Gross', formatMoney(selected.grossRevenueCents, currency)],
@@ -476,28 +479,28 @@ const InteractiveRevenueChart: React.FC<{
                             ['Transactions', String(selected.chargeCount)],
                         ].map(([label, value]) => (
                             <div key={label} className="text-right sm:pl-6">
-                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8a7a66] dark:text-[#aaa39a]">{label}</p>
-                                <p className="text-lg font-black tabular-nums text-[#211b16] dark:text-[#f4f1e9]">{value}</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[var(--cvl-muted)]">{label}</p>
+                                <p className="text-lg font-black tabular-nums text-[var(--cvl-ink)]">{value}</p>
                             </div>
                         ))}
                         <button
                             type="button"
                             onClick={() => setSelectedIndex(null)}
-                            className="justify-self-end rounded-lg border border-[#e4d3bc] px-2.5 py-1.5 text-[11px] font-black text-[#8a7a66] transition hover:text-[#211b16] dark:border-[#37332d] dark:text-[#aaa39a] dark:hover:text-[#f4f1e9]"
+                            className="justify-self-end rounded-lg border border-[var(--cvl-line)] px-2.5 py-1.5 text-[11px] font-black text-[var(--cvl-muted)] transition hover:text-[var(--cvl-ink)]"
                         >
                             Clear
                         </button>
                     </div>
                 ) : (
-                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-[#8a7a66] dark:text-[#aaa39a]">
+                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-bold text-[var(--cvl-muted)]">
                         <span>
                             {loading ? 'Loading period summary…' : (
-                                <>{range === 'daily' ? 'Last 30 days' : `Last ${MONTHS_SHOWN} months`} <span className="text-[#211b16] dark:text-[#f4f1e9]">{formatMoney(totals.sum, currency)}</span> · {totals.transactions} transactions · {totals.activePeriods} active {range === 'daily' ? 'days' : 'months'}</>
+                                <>{range === 'daily' ? 'Last 30 days' : `Last ${MONTHS_SHOWN} months`} <span className="text-[var(--cvl-ink)]">{formatMoney(totals.sum, currency)}</span> · {totals.transactions} transactions · {totals.activePeriods} active {range === 'daily' ? 'days' : 'months'}</>
                             )}
                         </span>
                         {!loading && totals.best && valueOf(totals.best) > 0 && (
                             <span>
-                                {totals.best && <>Best {range === 'daily' ? 'day' : 'month'}: <span className="text-[#211b16] dark:text-[#f4f1e9]">{totals.best.label} · {formatMoney(valueOf(totals.best), currency)}</span></>}
+                                {totals.best && <>Best {range === 'daily' ? 'day' : 'month'}: <span className="text-[var(--cvl-ink)]">{totals.best.label} · {formatMoney(valueOf(totals.best), currency)}</span></>}
                             </span>
                         )}
                     </div>
@@ -592,7 +595,7 @@ const OpenRevenuePage: React.FC = () => {
     };
 
     return (
-        <div className="cv-public-warm-page min-h-screen bg-[#f7f1e7] text-[#211b16] selection:bg-amber-200/60 dark:bg-[#1f1f1d] dark:text-[#f4f1e9]">
+        <div className="cvl cv-public-warm-page min-h-screen bg-[var(--cvl-desk)] text-[var(--cvl-ink)] selection:bg-amber-200/60">
             <Helmet titleTemplate="%s">
                 <title>Open Revenue & Earnings | CareerVivid</title>
                 <meta
@@ -614,32 +617,32 @@ const OpenRevenuePage: React.FC = () => {
                 {/* Compact professional header */}
                 <section className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-[#d9c6ab] bg-white px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-[#9a651f] dark:border-[#37332d] dark:bg-[#262522] dark:text-[#caa26c]">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--cvl-amber-soft)] bg-[var(--cvl-paper-2)] px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-[var(--cvl-amber)]">
                             <Eye className="h-3.5 w-3.5" />
                             Open startup
                         </div>
                         <h1 className="mt-4 text-4xl font-black leading-none tracking-tight sm:text-5xl">
                             Open metrics
                         </h1>
-                        <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-[#665a4a] dark:text-[#aaa39a]">
+                        <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-[var(--cvl-muted)]">
                             Aggregate revenue straight from Stripe, read-only and public by default. No customer names, invoices, cards, or emails — just the business signal.
                         </p>
                     </div>
                     <div className="flex flex-col items-start gap-2 lg:items-end">
                         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black ${stats.verified
-                            ? 'bg-[#eef9f2] text-[#15803d] dark:bg-[#1d3226] dark:text-[#86e0a8]'
-                            : 'bg-[#fdf3d7] text-[#8a642f] dark:bg-[#39332a] dark:text-[#f0d9a8]'}`}>
+                            ? 'bg-[var(--cvl-green-soft)] text-[var(--cvl-green)]'
+                            : 'bg-[var(--cvl-amber-soft)] text-[var(--cvl-amber)]'}`}>
                             <BadgeCheck size={14} />
                             {loading ? 'Verifying with Stripe…' : stats.verified ? 'Stripe verified' : 'Awaiting Stripe connection'}
                         </span>
-                        <span className="text-[11px] font-bold text-[#8a7a66] dark:text-[#aaa39a]">
+                        <span className="text-[11px] font-bold text-[var(--cvl-muted)]">
                             {loading ? 'Updating…' : `Last updated ${formatDateTime(stats.lastUpdated)}`}
                         </span>
                     </div>
                 </section>
 
                 {error && (
-                    <div className="mt-6 rounded-2xl border border-[#eeddc0] bg-[#fdf3d7] p-4 text-sm font-bold text-[#8a642f] dark:border-[#51483c] dark:bg-[#39332a] dark:text-[#f0d9a8]">
+                    <div className="mt-6 rounded-2xl border border-[var(--cvl-amber-soft)] bg-[var(--cvl-amber-soft)] p-4 text-sm font-bold text-[var(--cvl-amber)]">
                         {error}
                     </div>
                 )}
@@ -697,8 +700,8 @@ const OpenRevenuePage: React.FC = () => {
 
                 {/* Breakdown + policy */}
                 <section className="mt-8 grid gap-4 lg:grid-cols-3">
-                    <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">30-day breakdown</h2>
+                    <div className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-5 shadow-sm">
+                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[var(--cvl-amber)]">30-day breakdown</h2>
                         <dl className="mt-4 space-y-3">
                             {[
                                 ['Gross revenue', stats.last30Days.grossRevenueCents, false],
@@ -708,24 +711,24 @@ const OpenRevenuePage: React.FC = () => {
                             ].map(([label, cents, negative], index, list) => (
                                 <div
                                     key={label as string}
-                                    className={`flex items-center justify-between gap-3 ${index === list.length - 1 ? 'border-t border-[#e4d3bc] pt-3 dark:border-[#37332d]' : ''}`}
+                                    className={`flex items-center justify-between gap-3 ${index === list.length - 1 ? 'border-t border-[var(--cvl-line)] pt-3' : ''}`}
                                 >
-                                    <dt className={`text-sm font-bold ${index === list.length - 1 ? 'text-[#211b16] dark:text-[#f4f1e9]' : 'text-[#665a4a] dark:text-[#aaa39a]'}`}>{label as string}</dt>
-                                    <dd className={`text-sm font-black tabular-nums ${negative ? 'text-[#b03a54] dark:text-[#f4a5b8]' : 'text-[#211b16] dark:text-[#f4f1e9]'}`}>
+                                    <dt className={`text-sm font-bold ${index === list.length - 1 ? 'text-[var(--cvl-ink)]' : 'text-[var(--cvl-muted)]'}`}>{label as string}</dt>
+                                    <dd className={`text-sm font-black tabular-nums ${negative ? 'text-[var(--cvl-danger)]' : 'text-[var(--cvl-ink)]'}`}>
                                         {loading ? <NumberShimmer /> : `${(negative as boolean) && (cents as number) !== 0 ? '−' : ''}${formatMoney(Math.abs(cents as number), stats.currency)}`}
                                     </dd>
                                 </div>
                             ))}
                         </dl>
-                        <p className="mt-4 text-[11px] font-semibold leading-5 text-[#8a7a66] dark:text-[#aaa39a]">
+                        <p className="mt-4 text-[11px] font-semibold leading-5 text-[var(--cvl-muted)]">
                             {stats.netRevenueIncludesStripeFees
                                 ? 'Net = gross − refunds − Stripe fees.'
                                 : 'The current key exposes charge totals; fee detail requires a broader read scope.'}
                         </p>
                     </div>
 
-                    <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">What's public</h2>
+                    <div className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-5 shadow-sm">
+                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[var(--cvl-amber)]">What's public</h2>
                         <div className="mt-4 space-y-3">
                             {[
                                 [Eye, 'Public', 'Revenue totals, transaction counts, subscription count, update time.'],
@@ -735,12 +738,12 @@ const OpenRevenuePage: React.FC = () => {
                                 const PolicyIcon = Icon as typeof Eye;
                                 return (
                                     <div key={title as string} className="flex gap-3">
-                                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f3f2ff] text-[#6557d2] dark:bg-[#34314e] dark:text-[#b7b2ff]">
+                                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--cvl-purple-soft)] text-[var(--cvl-purple)]">
                                             <PolicyIcon className="h-4 w-4" />
                                         </span>
                                         <div>
-                                            <p className="text-sm font-black text-[#211b16] dark:text-[#f4f1e9]">{title as string}</p>
-                                            <p className="mt-0.5 text-xs font-semibold leading-5 text-[#7b6d5b] dark:text-[#aaa39a]">{detail as string}</p>
+                                            <p className="text-sm font-black text-[var(--cvl-ink)]">{title as string}</p>
+                                            <p className="mt-0.5 text-xs font-semibold leading-5 text-[var(--cvl-muted)]">{detail as string}</p>
                                         </div>
                                     </div>
                                 );
@@ -748,23 +751,23 @@ const OpenRevenuePage: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-[#e4d3bc] bg-[#fffaf1] p-5 shadow-sm dark:border-[#37332d] dark:bg-[#262522]">
-                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[#9a651f] dark:text-[#caa26c]">Source & method</h2>
+                    <div className="rounded-2xl border border-[var(--cvl-line)] bg-[var(--cvl-paper)] p-5 shadow-sm">
+                        <h2 className="text-sm font-black uppercase tracking-[0.18em] text-[var(--cvl-amber)]">Source & method</h2>
                         <div className="mt-4 flex items-start gap-3">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#eef9f2] text-[#15803d] dark:bg-[#1d3226] dark:text-[#86e0a8]">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[var(--cvl-green-soft)] text-[var(--cvl-green)]">
                                 <ShieldCheck className="h-4 w-4" />
                             </span>
-                            <p className="text-xs font-semibold leading-5 text-[#665a4a] dark:text-[#aaa39a]">
+                            <p className="text-xs font-semibold leading-5 text-[var(--cvl-muted)]">
                                 Generated from a restricted Stripe key on Firebase Functions — {stats.sourceMode === 'balance_transactions' ? 'aggregate balance transactions' : 'charge and subscription data'}. Only totals, counts, dates, and currency reach the browser.
                             </p>
                         </div>
                         <dl className="mt-4 grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-[#eadcc7] bg-white/70 p-3 dark:border-[#37332d] dark:bg-[#1f1f1d]/70">
-                                <dt className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8a7a66] dark:text-[#aaa39a]">Data inspected</dt>
+                            <div className="rounded-xl border border-[var(--cvl-amber-soft)] bg-[var(--cvl-paper-2)]/70 p-3">
+                                <dt className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--cvl-muted)]">Data inspected</dt>
                                 <dd className="mt-1 text-xl font-black tabular-nums">{loading ? <NumberShimmer /> : stats.inspectedTransactionCount}</dd>
                             </div>
-                            <div className="rounded-xl border border-[#eadcc7] bg-white/70 p-3 dark:border-[#37332d] dark:bg-[#1f1f1d]/70">
-                                <dt className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8a7a66] dark:text-[#aaa39a]">Page cap</dt>
+                            <div className="rounded-xl border border-[var(--cvl-amber-soft)] bg-[var(--cvl-paper-2)]/70 p-3">
+                                <dt className="text-[10px] font-black uppercase tracking-[0.16em] text-[var(--cvl-muted)]">Page cap</dt>
                                 <dd className="mt-1 text-xl font-black">{loading ? <NumberShimmer /> : stats.isLimitedByPageCap ? 'Hit' : 'Clear'}</dd>
                             </div>
                         </dl>
@@ -772,7 +775,7 @@ const OpenRevenuePage: React.FC = () => {
                 </section>
 
                 {/* CTA strip */}
-                <section className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-[#211b16] bg-[#211b16] p-6 text-[#fffaf1] sm:flex-row dark:border-[#37332d]">
+                <section className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-[var(--cvl-ink)] bg-[var(--cvl-ink)] p-6 text-[var(--cvl-paper)] sm:flex-row">
                     <div>
                         <p className="text-lg font-black tracking-tight">Built in public. Priced in public.</p>
                         <p className="mt-1 text-sm font-semibold opacity-75">Every dollar above comes from job seekers we helped get hired.</p>
@@ -780,13 +783,13 @@ const OpenRevenuePage: React.FC = () => {
                     <div className="flex gap-3">
                         <a
                             href="/signup"
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#6557d2] px-5 py-2.5 text-sm font-black !text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#544ac2]"
+                            className="inline-flex items-center gap-2 rounded-xl bg-[var(--cvl-purple)] px-5 py-2.5 text-sm font-black !text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[var(--cvl-purple-ink)]"
                         >
                             Start CareerVivid <ArrowUpRight className="h-4 w-4" />
                         </a>
                         <a
                             href="/pricing"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-2.5 text-sm font-black !text-[#fffaf1] transition hover:-translate-y-0.5 hover:bg-white/10"
+                            className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-5 py-2.5 text-sm font-black !text-[var(--cvl-paper)] transition hover:-translate-y-0.5 hover:bg-[var(--cvl-paper-2)]/10"
                         >
                             View pricing
                         </a>
