@@ -405,6 +405,46 @@ const AppContent: React.FC = () => {
     );
   }
 
+  /*
+   * Sign-in and sign-up paint before Firebase has resolved a session.
+   *
+   * Everything below the loading gate waits on onAuthStateChanged, which cannot
+   * fire until the entry chunk and the Firebase SDK have both downloaded and
+   * parsed — around 1.8MB on a cold visit. For /jobs and the other routes above
+   * that costs nothing, because they return first. The auth pages sat below it
+   * only because they read currentUser to decide whether to redirect, so a
+   * visitor with no session at all still stared at LoadingFallback for seconds
+   * before a form appeared that never depended on the answer.
+   *
+   * The form renders immediately instead. The redirect still happens, once the
+   * session actually resolves: a signed-in visitor to /signin is rare, and a
+   * brief form before the redirect beats making everyone else wait.
+   */
+  if (path === '/signin' || path.startsWith('/signin?') || path === '/signup') {
+    const authParams = new URLSearchParams(window.location.search);
+    const cliPort = authParams.get('cli_port');
+    const redirectParam = authParams.get('redirect');
+    const redirectTarget = redirectParam ? decodeURIComponent(redirectParam) : null;
+    const isSignUp = path === '/signup';
+
+    let authContent: React.ReactNode;
+    if (redirectTarget?.startsWith('/extension-welcome')) {
+      authContent = <AuthRedirect target={redirectTarget} />;
+    } else if (!loading && currentUser && !(cliPort && !isSignUp)) {
+      authContent = <AuthRedirect target={redirectTarget || (isSignUp ? '/onboarding' : '/dashboard')} />;
+    } else {
+      authContent = isSignUp ? <SignUpPage /> : <SignInPage />;
+    }
+
+    return (
+      <ThemeProvider>
+        <RouteSuspense routeKey={path}>
+          {authContent}
+        </RouteSuspense>
+      </ThemeProvider>
+    );
+  }
+
   if (loading || isAdminLoading) {
     return <LoadingFallback />;
   }
@@ -492,24 +532,9 @@ const AppContent: React.FC = () => {
       );
     } else if (path === '/extension-welcome') {
       content = <ExtensionWelcomePage />;
-    } else if (path === '/signin' || path.startsWith('/signin?')) {
-      const params = new URLSearchParams(window.location.search);
-      const cliPort = params.get('cli_port');
-      const redirect = params.get('redirect');
-      const redirectTarget = redirect ? decodeURIComponent(redirect) : null;
-
-      if (redirectTarget?.startsWith('/extension-welcome')) {
-        content = <AuthRedirect target={redirectTarget} />;
-      } else if (currentUser && !cliPort) {
-        content = <AuthRedirect target={redirectTarget || '/dashboard'} />;
-      } else {
-        content = <SignInPage />;
-      }
-    } else if (path === '/signup') {
-      const params = new URLSearchParams(window.location.search);
-      const redirect = params.get('redirect');
-      content = currentUser ? <AuthRedirect target={redirect ? decodeURIComponent(redirect) : '/onboarding'} /> : <SignUpPage />;
     } else if (path === '/auth') {
+      // /signin and /signup are handled above the loading gate; only /auth
+      // still reaches here.
       if (currentUser) {
         content = <AuthRedirect target="/dashboard" />;
       } else {
