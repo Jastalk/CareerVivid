@@ -146,6 +146,8 @@ export interface EmailPreferences {
   topicSource: 'smart' | 'manual';
   manualTopic: string;
   lastSentAt?: any; // Firestore Timestamp
+  /** Set when the user turns email on themselves; ends the first-week window. */
+  optInAt?: any;
   disabled?: boolean;
   unsubscribed?: boolean;
   disabledCategories?: string[];

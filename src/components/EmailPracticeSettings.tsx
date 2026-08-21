@@ -242,10 +242,21 @@ export default function EmailPracticeSettings() {
         }
 
         try {
+            /*
+             * Saving with anything enabled is the explicit opt-in that ends the
+             * first-week window in emailPolicy. It is stamped only when a track
+             * is actually on, so a user who opens settings and switches
+             * everything off does not accidentally re-subscribe themselves.
+             */
+            const wantsEmail = preferences.enabled !== false
+                && preferences.unsubscribed !== true
+                && preferences.disabled !== true;
+
             await updateUserProfile({
                 emailPreferences: {
                     ...preferences,
                     manualTopic: preferences.manualTopic.trim(),
+                    ...(wantsEmail ? { optInAt: Date.now() } : {}),
                 },
             });
             setStatus({ type: 'success', msg: 'Email preferences saved.' });

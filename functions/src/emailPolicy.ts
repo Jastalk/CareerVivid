@@ -127,6 +127,71 @@ export function getEmailFrequencySuppressionReason(
   return isEmailFrequencyDue(preferences, nowMs) ? null : "frequency_not_due";
 }
 
+/*
+ * Optional email stops being automatic after the first week.
+ *
+ * A new account hears from us while it is still finding its feet. Past that,
+ * silence is the default: the tracks a user never asked for stop on their own,
+ * and only two things start them again — the user turning one on in profile
+ * settings, or an announcement about something that actually changed.
+ *
+ * This is deliberately not an unsubscribe. Nothing is written to the user's
+ * document when the window closes, so a later opt-in restores delivery without
+ * having to undo a flag set on their behalf.
+ */
+export const AUTOMATIC_EMAIL_WINDOW_DAYS = 7;
+const AUTOMATIC_EMAIL_WINDOW_MS = AUTOMATIC_EMAIL_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
+// Announcements about real product changes may still land, which is the one
+// case the window is not meant to cover.
+const WINDOW_EXEMPT_CATEGORIES = new Set<EmailNotificationCategory>(["feature_spotlight"]);
+
+/*
+ * Seeded demo accounts have no mailbox behind them.
+ *
+ * The agency-partner demo branch creates addresses like
+ * alex.morgan.demo@careervivid.app. Nothing receives them, so every lifecycle
+ * send to one bounces, and the bounces come back as delivery errors. Skipping
+ * them here fixes it for the rows already in Firestore, rather than only for
+ * whatever the seed writes next — and it leaves the demo branch itself intact,
+ * since the accounts still need to exist for the demo to work.
+ */
+const NON_DELIVERABLE_EMAIL_PATTERNS = [
+  /\.demo@/i,
+  /^demo@/i,
+  /@example\.(com|org|net)$/i,
+  /^(test|fake|dummy|placeholder|noreply|no-reply)@/i,
+];
+
+export function isNonDeliverableEmail(email: unknown): boolean {
+  if (typeof email !== "string" || !email.trim()) return false;
+  const address = email.trim().toLowerCase();
+  return NON_DELIVERABLE_EMAIL_PATTERNS.some((pattern) => pattern.test(address));
+}
+
+export function getAutomaticEmailWindowSuppressionReason(
+  userData: Record<string, unknown> | undefined,
+  category: EmailNotificationCategory,
+  nowMs = Date.now()
+): string | null {
+  if (!userData) return null;
+  if (isRequiredEmailCategory(category)) return null;
+  if (WINDOW_EXEMPT_CATEGORIES.has(category)) return null;
+
+  const preferences = (userData.emailPreferences || {}) as Record<string, unknown>;
+  // An explicit opt-in ends the window permanently.
+  if (timestampToMillis(preferences.optInAt) > 0) return null;
+
+  const createdAt = timestampToMillis(userData.createdAt);
+  // Age unknown: send rather than silently withhold from an existing account
+  // whose document predates this field.
+  if (!createdAt) return null;
+
+  if (nowMs - createdAt <= AUTOMATIC_EMAIL_WINDOW_MS) return null;
+
+  return "automatic_window_elapsed";
+}
+
 export function getEmailPreferenceSuppressionReason(
   userData: Record<string, unknown> | undefined,
   category: EmailNotificationCategory,
@@ -134,9 +199,18 @@ export function getEmailPreferenceSuppressionReason(
 ): string | null {
   if (!userData) return "missing_user_profile";
 
+  // Before anything else, including required categories: a bounce is a bounce
+  // whether the mail was optional or a receipt.
+  if (isNonDeliverableEmail(userData.email)) {
+    return "non_deliverable_address";
+  }
+
   if (isRequiredEmailCategory(category)) {
     return null;
   }
+
+  const windowReason = getAutomaticEmailWindowSuppressionReason(userData, category);
+  if (windowReason) return windowReason;
 
   const aliases = Array.from(new Set([category, key || "", ...CATEGORY_ALIASES[category]].filter(Boolean)));
   const lifecycleEmails = userData.lifecycleEmails as Record<string, unknown> | undefined;
