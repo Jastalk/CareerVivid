@@ -27,7 +27,25 @@ export const FREE_COURSE_IDS: ReadonlySet<string> = new Set([
     'coding-interview-patterns',
 ]);
 
-export const isCourseFreeForGuests = (courseId: string): boolean => FREE_COURSE_IDS.has(courseId);
+/**
+ * Every interactive course is open to everyone, signed in or not.
+ *
+ * The catalog advertises "free interactive courses" and "no sign-in required",
+ * and the JSON-LD tells Google the same. Gating ten of the twelve behind an
+ * account made all of that untrue at the moment someone clicked, which is the
+ * worst place to discover it.
+ *
+ * Kept as a flag rather than by deleting the machinery: FREE_COURSE_IDS, the
+ * guest previews and the free-chapter set all still work, so re-gating part of
+ * the catalog later is flipping this one constant back rather than rebuilding
+ * the policy. Whatever this changes, change the pricing copy with it — a plan
+ * cannot advertise "full course catalogue" as a benefit once the catalog is
+ * free to everyone.
+ */
+export const ALL_COURSES_FREE = true;
+
+export const isCourseFreeForGuests = (courseId: string): boolean =>
+    ALL_COURSES_FREE || FREE_COURSE_IDS.has(courseId);
 
 type GuestPreview = {
     startExerciseId: string;
@@ -110,6 +128,7 @@ export const canAccessCourse = (
     courseId: string,
     { isSignedIn, isPremium }: { isSignedIn: boolean; isPremium: boolean },
 ): boolean => {
+    if (ALL_COURSES_FREE) return true;
     if (isPremium) return true;
     if (FREE_COURSE_IDS.has(courseId)) return true;
     // Signed-in free users are limited to the free tier catalog for now;
@@ -124,7 +143,7 @@ export const canAccessCourse = (
  * Design level. Drives whether the catalog offers "Start" or the auth gate.
  */
 export const hasFreeEntryPoint = (courseId: string, chapterIds: string[]): boolean =>
-    FREE_COURSE_IDS.has(courseId) || chapterIds.some((id) => FREE_CHAPTER_IDS.has(id));
+    ALL_COURSES_FREE || FREE_COURSE_IDS.has(courseId) || chapterIds.some((id) => FREE_CHAPTER_IDS.has(id));
 
 /**
  * Per-lesson entitlement. Premium unlocks everything; otherwise the lesson
@@ -135,6 +154,7 @@ export const canAccessLesson = (
     chapterId: string | undefined,
     { isSignedIn, isPremium }: { isSignedIn: boolean; isPremium: boolean },
 ): boolean => {
+    if (ALL_COURSES_FREE) return true;
     if (isPremium) return true;
     void isSignedIn;
     return isLessonFreeForGuests(courseId, chapterId);

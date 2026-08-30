@@ -61,21 +61,30 @@ describe('free Core Design level', () => {
     }
   });
 
-  it('keeps Levels 2 and 3 and the Classic Questions Arena behind Pro', () => {
-    const paid = course!.chapters.filter((c) => !FREE_CHAPTER_IDS.has(c.id));
-    expect(paid).toHaveLength(9);
-
-    for (const chapter of paid) {
-      expect(isChapterFreeForGuests(chapter.id)).toBe(false);
-      expect(canAccessLesson('system-design-interview', chapter.id, GUEST)).toBe(false);
-      expect(canAccessLesson('system-design-interview', chapter.id, FREE_ACCOUNT)).toBe(false);
+  it('opens every chapter to a guest, which is what the catalog advertises', () => {
+    // The landing page says "free interactive courses" and "no sign-in
+    // required", and the JSON-LD repeats it. A guest hitting a wall on any
+    // chapter would make all of that false at the click.
+    for (const chapter of course!.chapters) {
+      expect(canAccessLesson('system-design-interview', chapter.id, GUEST)).toBe(true);
+      expect(canAccessLesson('system-design-interview', chapter.id, FREE_ACCOUNT)).toBe(true);
       expect(canAccessLesson('system-design-interview', chapter.id, PRO)).toBe(true);
     }
   });
 
-  it('does not make the whole course free', () => {
-    // Catalog copy and SEO both key off this; flipping it gives away L2 and L3.
-    expect(isCourseFreeForGuests('system-design-interview')).toBe(false);
+  it('reports the course as free, which the catalog copy and SEO key off', () => {
+    expect(isCourseFreeForGuests('system-design-interview')).toBe(true);
+  });
+
+  it('keeps the chapter-level machinery intact so the catalog can be re-gated', () => {
+    // ALL_COURSES_FREE is a flag, not a demolition. FREE_CHAPTER_IDS still
+    // distinguishes the chapters that were free on their own, so turning the
+    // flag off restores the old policy rather than requiring it be rewritten.
+    const previouslyPaid = course!.chapters.filter((c) => !FREE_CHAPTER_IDS.has(c.id));
+    expect(previouslyPaid).toHaveLength(9);
+    for (const chapter of previouslyPaid) {
+      expect(isChapterFreeForGuests(chapter.id)).toBe(false);
+    }
   });
 
   it('still treats wholly free courses as free without a chapter id', () => {
@@ -114,10 +123,10 @@ describe('the two flows from the reported screenshots', () => {
     expect(hasFreeEntryPoint('system-design-interview', chapterIds)).toBe(true);
   });
 
-  it('does not accidentally open browse for a fully paid course', () => {
+  it('offers an entry point into every course, including the formerly paid ones', () => {
     const aiSecurity = getInteractiveCourse('llm-security-guardrails');
     if (aiSecurity) {
-      expect(hasFreeEntryPoint(aiSecurity.id, aiSecurity.chapters.map((c) => c.id))).toBe(false);
+      expect(hasFreeEntryPoint(aiSecurity.id, aiSecurity.chapters.map((c) => c.id))).toBe(true);
     }
   });
 });

@@ -1,3 +1,4 @@
+import { SUBSCRIPTION_CATALOG } from '../config/subscriptionCatalog';
 import React from 'react';
 import { ArrowRight, Check, ChevronDown } from 'lucide-react';
 import LandingSeo from '../components/Landing/LandingSeo';
@@ -76,13 +77,23 @@ const NUMBERS = [
     { value: groupDigits(LESSON_COUNT), label: 'hands-on lessons' },
 ];
 
+/*
+ * Prices come from SUBSCRIPTION_CATALOG rather than being typed here. This block
+ * previously advertised annual at $12/mo when annual is $10 — $12 is the monthly
+ * price — which is the same drift that put a $6 Pro offer in the JSON-LD.
+ *
+ * "Full course catalogue" is gone from the paid tier on purpose: every
+ * interactive course is free now (see ALL_COURSES_FREE in config/accessPolicy),
+ * so charging for the catalog would be selling something the free tier already
+ * has.
+ */
 const PLANS = [
     {
         name: 'free',
         price: '$0',
         note: 'free forever, no card needed',
         blurb: 'see whether it helps.',
-        points: ['Every quest page, readable', 'Resume starter flow', 'Job tracker'],
+        points: ['All 12 interactive courses', 'Every quest page, readable', 'Resume editor and job tracker'],
         href: '/signup',
         cta: 'start free',
         featured: false,
@@ -99,10 +110,10 @@ const PLANS = [
     },
     {
         name: 'annual',
-        price: '$12/mo',
+        price: `$${SUBSCRIPTION_CATALOG.pro.annualMonthlyEquivalent}/mo`,
         note: 'billed yearly, cancel anytime',
         blurb: 'for an extended search.',
-        points: ['All pro features', 'Full course catalogue', 'Priority model latency'],
+        points: ['All pro features', 'A larger monthly credit pool', 'Priority model latency'],
         href: '/pricing',
         cta: 'see annual',
         featured: false,
