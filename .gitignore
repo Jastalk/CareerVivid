@@ -48,11 +48,21 @@ src/dataconnect-admin-generated/
 dist/
 dist-ssr/
 dist-extension/
+dist-electron/
 build/
+out/
+release/
 .cache/
 output/
 .playwright-cli/
 experiments/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv*/
 
 # Local video renders are release artifacts, not source files.
 *.mp4
@@ -103,6 +113,8 @@ sop-assets/
 
 # Job automation tool
 browser-use/
+apps/
+apps/auto-apply-desktop/
 
 # CLI tool — source of the published `careervivid` npm package. Kept out of
 # this repo deliberately; it is developed and published from its own working
