@@ -457,17 +457,6 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
         ],
     },
     {
-        path: "/demo",
-        title: "CareerVivid Resume and Interview Demo",
-        description: "Try CareerVivid's guided resume and interview preparation demo for your target role.",
-        heading: "Try CareerVivid for your target role",
-        summary: "Choose a career path to preview resume preparation and role-specific interview practice.",
-        changefreq: "monthly",
-        priority: "0.7",
-        includeInSitemap: true,
-        links: [{ href: "/interview-studio", label: "Browse company interview practice" }],
-    },
-    {
         path: "/contact",
         title: "Contact CareerVivid",
         description: "Contact the CareerVivid team for product support, partnership questions, and account help.",

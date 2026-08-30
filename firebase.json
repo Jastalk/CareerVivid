@@ -24,6 +24,18 @@
         "destination": "/edit/new",
         "type": 301
       },
+      // /demo fronted the editor with a career-path picker and is indexed by
+      // Google as "CareerVivid Resume and Interview Demo", so the search result
+      // for the resume builder landed people there rather than in the editor.
+      // Its own success path already ended at the editor, so the picker was a
+      // step in front of the thing people came for. Pointing straight at
+      // /edit/new, not at /resume-builder, to avoid chaining one 301 into
+      // another.
+      {
+        "source": "/demo",
+        "destination": "/edit/new",
+        "type": 301
+      },
       // Points at /edit/new directly, NOT at /resume-builder. Chaining one 301
       // into another URL that itself 301s is worse than a single hop and far
       // worse if the middle hop ever 404s, because a permanent redirect is
