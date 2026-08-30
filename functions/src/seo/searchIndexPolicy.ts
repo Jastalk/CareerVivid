@@ -241,9 +241,9 @@ export const SEARCH_PAGES: SearchPageDefinition[] = [
     {
         path: "/pricing",
         title: "Pricing | CareerVivid",
-        description: "CareerVivid is free to start with 100 monthly credits. Pro is $12/month for 1,000 credits, Max is $35/month for 4,500. Compare plans, credits, and what each action costs.",
-        heading: "Simple pricing for your job search",
-        summary: "Every plan draws on one pool of monthly credits, so you can spend them on whatever your search actually needs — resumes one week, mock interviews the next.",
+        description: "All 12 interactive courses are free, no account needed. Credits cover the AI work: 100 free monthly, Pro $12/month for 1,000, Max $35/month for 4,500. Compare plans and what each action costs.",
+        heading: "The courses are free. You pay for the AI.",
+        summary: "All 12 interactive courses and 203 lessons open without an account, because lessons run in your browser and cost nothing to serve. Credits pay for the work that calls a model, from one pool you spend on whatever the search needs — resumes one week, mock interviews the next.",
         changefreq: "weekly",
         priority: "0.8",
         includeInSitemap: true,

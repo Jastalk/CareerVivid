@@ -225,7 +225,7 @@ const PricingPage: React.FC = () => {
                 <title>Pricing</title>
                 <meta
                     name="description"
-                    content="Start CareerVivid for free, then upgrade when you need more AI credits for resumes, job tracking, interview prep, and job-search workflows."
+                    content="All 12 interactive courses are free with no account needed. Credits cover the AI work — resume tailoring, graded interview rounds, and job matching. Free tier included, Pro $12/month, Max $35/month."
                 />
                 <link rel="canonical" href="https://careervivid.app/pricing" />
             </Helmet>
@@ -248,12 +248,13 @@ const PricingPage: React.FC = () => {
                             <BadgeDollarSign size={16} /> Simple AI credit pricing
                         </div>
                         <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-tight text-[var(--cvl-ink)] sm:text-3xl">
-                            Start free. Upgrade when the job search gets busy.
+                            Every course is free. You pay for the AI.
                         </h1>
                         <p className="mx-auto mt-6 max-w-2xl text-lg font-semibold leading-8 text-[var(--cvl-muted)]">
-                            CareerVivid uses one monthly credit pool across resume tailoring, job matching,
-                            interview practice, and workflow assistance. Manual tracking, writing, and editing
-                            stay free.
+                            All 12 interactive courses and 203 lessons are open to everyone, with no account
+                            needed &mdash; lessons run in your browser, so they cost nothing to serve. Credits
+                            cover the work that calls a model: resume tailoring, graded interview rounds, and
+                            job matching. Writing, editing and tracking stay free.
                         </p>
                         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                             <button
