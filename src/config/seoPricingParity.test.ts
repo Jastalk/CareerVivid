@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { getSearchPage } from '../../functions/src/seo/searchIndexPolicy';
 import { SUBSCRIPTION_CATALOG } from './subscriptionCatalog';
@@ -53,5 +55,43 @@ describe('the pricing page quotes what CareerVivid actually charges', () => {
     it('does not promise a free plan that does not exist', () => {
         expect(PLAN_MONTHLY_CREDITS.free).toBeGreaterThan(0);
         expect(pricing).toContain('No credit card is required');
+    });
+});
+
+/*
+ * index.html carries its own JSON-LD, and it was outside this guard until a
+ * "CareerVivid Pro" Offer of 6.00 sat there while the catalog charged 12 —
+ * half the real price, quotable straight out of a search result. The guard
+ * existed; the file simply was not in it. It is now.
+ *
+ * Read as text rather than parsed: the block is hand-maintained JSON-LD, and a
+ * wrong price is a wrong price whether or not the surrounding JSON is valid.
+ */
+const indexHtml = readFileSync(resolve(__dirname, '../../index.html'), 'utf8');
+
+describe('the JSON-LD in index.html quotes what CareerVivid actually charges', () => {
+    it('offers Pro at the catalog price', () => {
+        expect(indexHtml).toContain(`"price": "${SUBSCRIPTION_CATALOG.pro.monthlyPrice}.00"`);
+    });
+
+    it('offers Max at the catalog price', () => {
+        expect(indexHtml).toContain(`"price": "${SUBSCRIPTION_CATALOG.max.monthlyPrice}.00"`);
+    });
+
+    it('answers the pricing FAQ with the catalog price', () => {
+        expect(indexHtml).toContain(`Pro costs $${SUBSCRIPTION_CATALOG.pro.monthlyPrice} per month`);
+        expect(indexHtml).toContain(`$${SUBSCRIPTION_CATALOG.pro.annualMonthlyEquivalent} per month billed annually`);
+    });
+
+    it('quotes no price the catalog does not charge', () => {
+        const charged = new Set(
+            Object.values(SUBSCRIPTION_CATALOG).flatMap(plan => [
+                String(plan.monthlyPrice),
+                String((plan as { annualMonthlyEquivalent?: number }).annualMonthlyEquivalent ?? ''),
+            ]).filter(Boolean)
+        );
+        const quoted = [...indexHtml.matchAll(/\$(\d+)(?: per month|\/month)/g)].map(m => m[1]);
+        const stale = quoted.filter(v => !charged.has(v));
+        expect(stale, `index.html quotes prices the catalog does not charge: ${stale.join(', ')}`).toEqual([]);
     });
 });
