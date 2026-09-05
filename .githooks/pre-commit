@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+#
+# Blocks commits that contain credentials.
+#
+# GitHub push protection already guards the remote, but it only fires at push
+# time — after the secret is in your local history, where removing it means
+# rewriting commits. This catches it one step earlier, while `git commit` can
+# still be re-run cleanly.
+#
+# Two Google API keys reached this repo before it existed: one in
+# functions/test_models_api.js, one in .github/workflows/pr-checks.yml and
+# src/background.ts. Both were public for a time; both are now revoked.
+#
+# Enable (once per clone):
+#   git config core.hooksPath .githooks
+#
+# Bypass deliberately, when you are certain a match is a false positive:
+#   git commit --no-verify
+
+set -uo pipefail
+
+# Only the staged diff, so cost stays proportional to the change.
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED" ] && exit 0
+
+fail=0
+
+report() {
+    if [ "$fail" -eq 0 ]; then
+        echo ""
+        echo "  ✖ Commit blocked: possible credential in staged changes"
+        echo ""
+    fi
+    fail=1
+    printf '    %-22s %s\n' "$1" "$2"
+}
+
+# name|regex — anchored to ADDED lines only, so pre-existing content in a file
+# you are editing does not block you.
+PATTERNS='
+Google API key|AIza[A-Za-z0-9_-]{35}
+Private key block|-----BEGIN [A-Z ]*PRIVATE KEY-----
+Stripe live key|sk_live_[A-Za-z0-9]{20,}
+Stripe restricted key|rk_live_[A-Za-z0-9]{20,}
+GitHub token|gh[pousr]_[A-Za-z0-9]{36,}
+GitHub fine-grained PAT|github_pat_[A-Za-z0-9_]{50,}
+Slack token|xox[baprs]-[A-Za-z0-9-]{10,}
+OpenAI key|sk-(proj-)?[A-Za-z0-9]{32,}
+AWS access key|AKIA[0-9A-Z]{16}
+SendGrid key|SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}
+Anthropic key|sk-ant-[A-Za-z0-9_-]{20,}
+'
+
+for file in $STAGED; do
+    # Lockfiles and minified bundles are pure false-positive generators.
+    case "$file" in
+        *package-lock.json|*yarn.lock|*pnpm-lock.yaml|*.min.js|*.map) continue ;;
+    esac
+    # Skip binaries.
+    git diff --cached --numstat -- "$file" | grep -q '^-' && continue
+
+    added=$(git diff --cached -U0 -- "$file" | grep '^+' | grep -v '^+++')
+    [ -z "$added" ] && continue
+
+    echo "$PATTERNS" | while IFS='|' read -r name re; do
+        [ -z "$name" ] && continue
+        if printf '%s' "$added" | grep -qE "$re"; then
+            echo "MATCH|$name|$file"
+        fi
+    done
+done > /tmp/.cv-secret-hits 2>/dev/null
+
+while IFS='|' read -r tag name file; do
+    [ "$tag" = "MATCH" ] && report "$name" "$file"
+done < /tmp/.cv-secret-hits
+rm -f /tmp/.cv-secret-hits
+
+# A committed service-account file is the highest-severity case, so check the
+# filename too — the JSON body may not match any token pattern.
+for file in $STAGED; do
+    case "$file" in
+        *service-account*.json|*-adminsdk-*.json|*credentials*.json|*.pem|*.p12|*.key)
+            report "Credential file" "$file" ;;
+    esac
+done
+
+if [ "$fail" -ne 0 ]; then
+    cat <<'MSG'
+
+  Move the value into an environment variable or Secret Manager, then re-stage.
+
+  If this is genuinely a false positive:
+      git commit --no-verify
+
+MSG
+    exit 1
+fi
+
+exit 0
