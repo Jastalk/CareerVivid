@@ -35,10 +35,17 @@ export const getGoogleDriveAccessToken = async (
     provider.addScope(GOOGLE_DRIVE_FILE_SCOPE);
     provider.setCustomParameters(getDriveAuthParameters(user));
 
-    // Keep Drive authorization isolated from the CareerVivid auth session.
-    // Email/password users can choose any Google account for Docs access.
+    // Ensure authDomain targets the canonical Firebase domain (<project-id>.firebaseapp.com)
+    // where Google OAuth's /__/auth/handler is guaranteed to be pre-authorized by Google Cloud,
+    // preventing Google Error 400 redirect_uri_mismatch.
+    const projectId = primaryAuth.app.options.projectId;
+    const canonicalAuthDomain = projectId ? `${projectId}.firebaseapp.com` : (primaryAuth.app.options.authDomain || 'jastalk-firebase.firebaseapp.com');
+
     const tempAppName = `${tempAppPrefix}-${user.uid}-${Date.now()}`;
-    const tempApp = initializeApp(primaryAuth.app.options, tempAppName);
+    const tempApp = initializeApp({
+        ...primaryAuth.app.options,
+        authDomain: canonicalAuthDomain,
+    }, tempAppName);
     const tempAuth = getAuth(tempApp);
 
     try {
